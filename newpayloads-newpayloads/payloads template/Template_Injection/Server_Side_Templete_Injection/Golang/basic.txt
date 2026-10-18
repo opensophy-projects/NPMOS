@@ -1,7 +1,0 @@
-{{.}}
-{{printf "%s" "test"}}
-{{html "test"}}
-{{js "test"}}
-{{urlquery "test"}}
-{{. | printf "%s"}}
-{{define "T1"}}{{end}}{{template "T1"}}

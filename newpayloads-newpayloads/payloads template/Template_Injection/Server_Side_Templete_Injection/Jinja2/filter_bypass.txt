@@ -1,2 +1,0 @@
-request.__class__
-request["__class__"]

