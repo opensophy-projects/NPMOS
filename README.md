@@ -26,7 +26,14 @@ docker compose -f deploy/compose.yaml up -d
 
 Требования: Docker Engine 26+ и Compose 2.23+.
 
-> Образы на Docker Hub появятся после настройки публикации в CI. До этого используйте режим разработки ниже.
+Образы публикуются в Docker Hub `opensophy/npmos*` после слияния в ветку `work` (тег `develop`) и при выпуске версии (`X.Y.Z`, `latest`). Версии всех образов закреплены в `deploy/.env`.
+
+Собрать образы самому (первая сборка `npmos` и агента open-appsec занимает 30–60 минут):
+
+```bash
+scripts/build-images.sh
+NPMOS_REGISTRY=local NPMOS_VERSION=dev docker compose -f deploy/compose.yaml up -d
+```
 
 ## Разработка и просмотр изменений интерфейса
 
@@ -50,14 +57,15 @@ pnpm vite
 
 - [План разработки](docs/ROADMAP.md)
 - [Инвентаризация env-настроек](docs/ENV-INVENTORY.md)
+- [ADR-0001: сеть стека](docs/adr/0001-network.md)
 
 ## Структура репозитория
 
 | Папка | Что это |
 |---|---|
 | `app/` | Основа NPMOS: NPMplus (git subtree) и наши изменения |
-| `deploy/` | Compose-файлы стека, образ CrowdSec с офлайн-hub, тест закрытого контура |
+| `deploy/` | Compose-файлы стека, образы open-appsec, bootstrap (`init/`), тест закрытого контура |
 | `reference/` | Исходники open-appsec-npm, open-appsec, smartsync, smartsync-tuning — справочно ([версии](reference/VERSIONS.md)) |
 | `design/` | Токены дизайна и пример sidebar |
-| `scripts/` | Обновление `reference/`, тест закрытого контура |
+| `scripts/` | Сборка образов, тест закрытого контура, обновление `reference/` |
 | `docs/` | План и документация |

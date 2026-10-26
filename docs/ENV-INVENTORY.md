@@ -21,9 +21,9 @@
 | `LISTEN_PROXY_PROTOCOL*` | `false` | `false` | GUI (Система → Сеть) | 4 |
 | `DB_POSTGRES_*` | — (SQLite) | Postgres из compose, пароль из `DB_POSTGRES_PASSWORD_FILE` | Bootstrap | 0 ✅ |
 | `DB_MYSQL_*` | — | не используется | Bootstrap (поддержка upstream сохраняется) | — |
-| `COOKIE_SECRET` | случайный при каждом старте | генерировать в `npmos-init` | Bootstrap (секрет) | 1 |
+| `COOKIE_SECRET` | случайный при каждом старте | `COOKIE_SECRET_FILE` от `npmos-init` ✅ | Bootstrap (секрет) | 0 |
 | `INITIAL_ADMIN_EMAIL`, `INITIAL_ADMIN_PASSWORD` | — | не задаём: первый админ создаётся мастером в GUI | Bootstrap | — |
-| `ACME_SERVER`, `ACME_EMAIL`, `ACME_EAB_KID`, `ACME_EAB_HMAC_KEY`, `ACME_PROFILE`, `ACME_KEY_TYPE`, `ACME_KEY_SIZE`, `ACME_MUST_STAPLE`, `ACME_OCSP_STAPLING`, `ACME_SERVER_TLS_VERIFY` | Let's Encrypt | Let's Encrypt; регистрация не блокирует запуск без сети ✅ | GUI (Сертификаты → ACME); регистрация аккаунта — при первом запросе сертификата, а не при старте | 6 |
+| `ACME_SERVER`, `ACME_EMAIL`, `ACME_EAB_KID`, `ACME_EAB_HMAC_KEY`, `ACME_PROFILE`, `ACME_KEY_TYPE`, `ACME_KEY_SIZE`, `ACME_MUST_STAPLE`, `ACME_OCSP_STAPLING`, `ACME_SERVER_TLS_VERIFY` | Let's Encrypt | Let's Encrypt; аккаунт регистрируется при первом запросе сертификата, при старте обращений нет ✅ | GUI (Сертификаты → ACME) | 6 |
 | `CUSTOM_OCSP_STAPLING` | `false` | `false` | GUI (Сертификаты) | 6 |
 | `CERTBOT_RUN_INTERVAL` | 3 ч | 3 ч | GUI (Сертификаты) | 6 |
 | `DEFAULT_CERT_ID` | 0 | 0 | GUI (Система → Настройки) | 4 |
@@ -67,18 +67,22 @@
 | Сервис | Переменная | NPMOS | Класс |
 |---|---|---|---|
 | `appsec-tuning-svc` | `QUERY_DB_HOST`, `QUERY_DB_USER` | `postgres`, роль `appsec` (CREATEDB) | Bootstrap |
-| `appsec-tuning-svc` | `QUERY_DB_PASSWORD` | из `/run/npmos-secrets/db_password`, генерирует `npmos-init` | Bootstrap (секрет) ✅ |
+| `appsec-tuning-svc` | `QUERY_DB_PASSWORD` | `QUERY_DB_PASSWORD_FILE` (entrypoint образа NPMOS), секрет от `npmos-init` | Bootstrap (секрет) ✅ |
 | `appsec-smartsync`, `appsec-tuning-svc` | `SHARED_STORAGE_HOST` | `appsec-shared-storage` | Bootstrap |
 
-## CrowdSec (`crowdsec`, образ `npmos-crowdsec`)
+## CrowdSec (`crowdsec`, официальный образ `crowdsecurity/crowdsec`)
+
+Тома конфигурации и данных при первом старте наполняет `npmos-init` из офлайн-снимка hub, встроенного в образ NPMOS.
+
 
 | Переменная | NPMOS | Класс | Фаза |
 |---|---|---|---|
 | `DISABLE_ONLINE_API` | **`true`** (без CAPI: никаких сигналов наружу и community blocklist) | GUI (CrowdSec → Онлайн-функции, по умолчанию выключено) | 7 |
 | `NO_HUB_UPGRADE` | `true` | NPMOS фиксирует; hub обновляется из GUI (загрузка снимка или онлайн по кнопке) | 7 |
+| `cscli.__hub_url_template__` (config.yaml) | `http://npmos/.npmos/crowdsec-hub/%s/%s` — источник hub это NPMOS, не CDN | NPMOS фиксирует; раздача снимков — фаза 7 | 0 ✅ |
 | `cscli.hub_branch` (config.yaml) | `master` (не спрашивать version.crowdsec.net) | NPMOS фиксирует | 0 ✅ |
-| `BOUNCER_KEY_npmos` | из сгенерированного секрета | Bootstrap (секрет) ✅ | 0 |
-| `COLLECTIONS`, `PARSERS`, `SCENARIOS`, `POSTOVERFLOWS` (+`DISABLE_*`) | не задаются; базовый набор вшит в образ | GUI (CrowdSec → Hub) | 7 |
+| Ключ bouncer `npmos` | файл `/run/secrets/bouncer_key_npmos` от `npmos-init` (штатный механизм образа) | Bootstrap (секрет) ✅ | 0 |
+| `COLLECTIONS`, `PARSERS`, `SCENARIOS`, `POSTOVERFLOWS` (+`DISABLE_*`) | не задаются; базовый набор во встроенном снимке hub | GUI (CrowdSec → Hub) | 7 |
 | `ENROLL_KEY`, `ENROLL_INSTANCE_NAME`, `ENROLL_TAGS` | не задаются (без app.crowdsec.net) | NPMOS фиксирует | 0 ✅ |
 | `USE_WAL` | `true` | NPMOS фиксирует | — |
 | `TZ` | общий с NPMOS | GUI | 4 |
@@ -93,4 +97,17 @@
 - общие тома: `appsec-localconfig` (политика), `appsec-logs` (события, только чтение для NPMOS и CrowdSec), логи nginx для CrowdSec;
 - метки `npmos.managed=true`, по которым `npmos-control` решает, чем можно управлять;
 - `socket-proxy`: только `CONTAINERS` и `ALLOW_RESTARTS`;
-- образы и версии: `NPMOS_IMAGE`, `NPMOS_CROWDSEC_IMAGE`, `NPMOS_VERSION`, `APPSEC_VERSION`, `POSTGRES_VERSION`.
+- образы и версии (`deploy/.env`): `NPMOS_REGISTRY`, `NPMOS_VERSION`, `CROWDSEC_VERSION`, `POSTGRES_VERSION`, `SOCKET_PROXY_VERSION`.
+
+## Обращения наружу только по действию администратора
+
+При обычной работе NPMOS не выходит в интернет (это проверяет тест закрытого контура). Следующие обращения происходят только после явного действия в GUI. В GUI они должны быть помечены как «требует интернет»:
+
+| Действие | Куда | Фаза, в которой довести до local-first |
+|---|---|---|
+| Запрос и продление ACME-сертификата (первый запрос регистрирует аккаунт) | `ACME_SERVER`, для ZeroSSL — api.zerossl.com | 6: свой ACME-сервер/PKI как локальная альтернатива |
+| DNS-challenge: установка DNS-плагина certbot (`pip install` при первом использовании провайдера) | PyPI | 6: предустановленные плагины для популярных провайдеров или загрузка wheel через GUI |
+| «Проверить доступность» домена при выпуске сертификата | site24x7.com | 6: проверка без внешнего сервиса или явное предупреждение |
+| OCSP stapling (`ACME_OCSP_STAPLING`, `CUSTOM_OCSP_STAPLING`) | OCSP-респондеры CA | 6 |
+| Вход через OIDC | указанный IdP (рекомендуется локальный) | 3 |
+| Проверка обновлений, Gravatar, IP-диапазоны Cloudflare | api.github.com, gravatar.com, cloudflare.com | выключены по умолчанию ✅ |

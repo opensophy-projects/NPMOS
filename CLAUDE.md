@@ -31,7 +31,7 @@ NPMOS — форк NPMplus с встроенными open-appsec (ML-WAF) и Cro
 git subtree pull --prefix=app https://github.com/ZoeyVid/NPMplus <tag> --squash
 ```
 
-После этого: разрешить конфликты по меткам `NPMOS:`, поменять `NPMPLUS_BASE` в `deploy/dev/Dockerfile` на тот же тег, прогнать проверки и закрытый контур. Текущий тег: **2026-10-14-r1**.
+Берём только релизные теги NPMplus (`YYYY-MM-DD-rN`): они ставятся не на `develop`, а `develop` может содержать незавершённые изменения. После обновления: разрешить конфликты по меткам `NPMOS:`, поменять `NPMPLUS_BASE` в `deploy/dev/Dockerfile` на тот же тег, прогнать проверки и закрытый контур. Текущий тег: **2026-10-22-r1**.
 
 ## Команды проверки
 
@@ -50,6 +50,17 @@ scripts/test-airgap.sh
 ```
 
 `--assist-enabled=false`: upstream не соблюдает порядок импортов biome, массово его не исправляем (конфликты при обновлении).
+
+## Образы
+
+| Образ | Источник | Сборка |
+|---|---|---|
+| `npmos` | `app/Dockerfile` (+ стадия `crowdsec-seed`) | долго: nginx, aws-lc, attachment из исходников |
+| `npmos-appsec-agent` | `deploy/openappsec/agent` (openappsec из исходников) | долго: C++ |
+| `npmos-appsec-{smartsync,shared-storage,tuning}` | `deploy/openappsec/go-service` | минуты |
+| CrowdSec, Postgres, socket-proxy | официальные образы, версии в `deploy/.env` | — |
+
+Коммиты исходников open-appsec — в `deploy/openappsec/sources.env` (совпадают с `reference/VERSIONS.md`, проверяется в CI). Локальная сборка всех образов: `scripts/build-images.sh` (тег `local/<имя>:dev`), затем `NPMOS_REGISTRY=local NPMOS_VERSION=dev scripts/test-airgap.sh`. Долгие сборки (npmos, agent) делаются в CI или разработчиком, не в сессии агента.
 
 ## Разработка
 

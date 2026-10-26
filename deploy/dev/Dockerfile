@@ -1,7 +1,7 @@
 # Fast dev image: upstream NPMplus image of the same subtree tag + our backend, rootfs and
 # the offline CrowdSec seed. Builds in seconds. The production image is built from app/Dockerfile (CI).
 # Keep NPMPLUS_BASE equal to the tag app/ was last synced to (see CLAUDE.md).
-ARG NPMPLUS_BASE=docker.io/zoeyvid/npmplus:2026-10-14-r1
+ARG NPMPLUS_BASE=docker.io/zoeyvid/npmplus:2026-10-22-r1
 ARG CROWDSEC_VERSION=v1.8.1
 
 FROM docker.io/crowdsecurity/crowdsec:${CROWDSEC_VERSION} AS crowdsec-seed
