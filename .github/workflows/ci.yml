@@ -1,0 +1,124 @@
+# NPMOS CI. Upstream workflows under app/.github are not run (GitHub reads only the root .github).
+name: CI
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "17 2 * * *" # nightly: arm64 image
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Lint, types, tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: lts/*
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+        with:
+          version: latest
+      - name: backend
+        working-directory: app/backend
+        run: |
+          pnpm install --frozen-lockfile
+          # import ordering (biome assist) is not enforced: upstream code does not follow it
+          pnpm biome ci . --assist-enabled=false
+      - name: frontend
+        working-directory: app/frontend
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm biome ci . --assist-enabled=false
+          node check-locales.cjs
+          pnpm formatjs compile-folder src/locale/src src/locale/lang
+          pnpm tsc --noEmit
+          pnpm vitest run
+      - name: shell scripts
+        run: |
+          shellcheck -S warning scripts/*.sh deploy/init/*.sh deploy/dev/*.sh deploy/test/*.sh
+      - name: compose files
+        run: |
+          docker compose -f deploy/compose.yaml config -q
+          docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml config -q
+          docker compose -f deploy/compose.yaml -f deploy/test/compose.airgap.yaml config -q
+
+  image:
+    name: Image (amd64) + closed-network test
+    needs: checks
+    runs-on: ubuntu-latest
+    env:
+      PUSH: ${{ github.event_name == 'push' && github.ref == 'refs/heads/work' && vars.DOCKERHUB_NAMESPACE != '' }}
+      NAMESPACE: ${{ vars.DOCKERHUB_NAMESPACE || 'opensophy' }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - name: version
+        run: |
+          v="$(git rev-parse --short HEAD)"
+          echo "VERSION=$v" >> "$GITHUB_ENV"
+          for f in app/frontend/package.json app/backend/package.json; do
+            jq --arg v "$v" '.version = $v' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+          done
+      - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+        with:
+          driver-opts: env.BUILDKIT_STEP_LOG_MAX_SIZE=-1
+      - name: build npmos
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: app
+          load: true
+          tags: docker.io/${{ env.NAMESPACE }}/npmos:${{ env.VERSION }}
+          cache-from: type=gha,scope=npmos-amd64
+          cache-to: type=gha,mode=max,scope=npmos-amd64
+          build-args: |
+            FLAGS=-march=x86-64-v2 -mtune=generic -fcf-protection=full
+      - name: build npmos-crowdsec
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: deploy/crowdsec
+          load: true
+          tags: docker.io/${{ env.NAMESPACE }}/npmos-crowdsec:${{ env.VERSION }}
+      - name: closed-network test
+        env:
+          NPMOS_IMAGE: docker.io/${{ env.NAMESPACE }}/npmos
+          NPMOS_CROWDSEC_IMAGE: docker.io/${{ env.NAMESPACE }}/npmos-crowdsec
+          NPMOS_VERSION: ${{ env.VERSION }}
+        run: scripts/test-airgap.sh
+      - name: docker.io login
+        if: env.PUSH == 'true'
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: push
+        if: env.PUSH == 'true'
+        run: |
+          for img in npmos npmos-crowdsec; do
+            docker tag "docker.io/$NAMESPACE/$img:$VERSION" "docker.io/$NAMESPACE/$img:develop"
+            docker push "docker.io/$NAMESPACE/$img:$VERSION"
+            docker push "docker.io/$NAMESPACE/$img:develop"
+          done
+
+  image-arm64:
+    name: Image (arm64, nightly)
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+        with:
+          driver-opts: env.BUILDKIT_STEP_LOG_MAX_SIZE=-1
+      - uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: app
+          cache-from: type=gha,scope=npmos-arm64
+          cache-to: type=gha,mode=max,scope=npmos-arm64
+          build-args: |
+            FLAGS=-mbranch-protection=standard

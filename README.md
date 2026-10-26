@@ -15,18 +15,49 @@
 - RBAC с ролями, настраиваемыми в GUI, и OIDC-группами.
 - Интерфейс на русском и английском, редизайн на токенах opensophy UI.
 
+## Запуск
+
+```bash
+git clone https://github.com/opensophy-projects/npmos && cd npmos
+docker compose -f deploy/compose.yaml up -d
+```
+
+Откройте `https://<адрес-сервера>:81` и создайте первого администратора. Пароли сервисов генерируются автоматически, `.env` не нужен. Стек работает без доступа в интернет.
+
+Требования: Docker Engine 26+ и Compose 2.23+.
+
+> Образы на Docker Hub появятся после настройки публикации в CI. До этого используйте режим разработки ниже.
+
+## Разработка и просмотр изменений интерфейса
+
+```bash
+# backend и весь стек из локальных исходников (собирается за секунды)
+docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml up -d --build
+
+# интерфейс с горячей перезагрузкой: правки CSS/компонентов видны сразу
+cd app/frontend
+pnpm install
+pnpm vite
+```
+
+Интерфейс откроется на `http://localhost:5173`. Он ходит в backend на `https://127.0.0.1:81` (адрес можно поменять через `NPMOS_API`).
+
+Нужны Docker, Node.js 22+ и pnpm (`npm i -g pnpm`). На хосте без IPv6 добавьте `NPMOS_DISABLE_IPV6=true` перед `docker compose`.
+
+Подробнее о командах и правилах — в [CLAUDE.md](CLAUDE.md).
+
 ## Документация
 
 - [План разработки](docs/ROADMAP.md)
+- [Инвентаризация env-настроек](docs/ENV-INVENTORY.md)
 
-## Структура репозитория (текущая)
+## Структура репозитория
 
 | Папка | Что это |
 |---|---|
-| `NPMplus/` | Основа NPMOS (форк NPMplus) |
-| `open-appsec-npm-master/` | Интеграция open-appsec с NPM — источник логики для переноса |
-| `openappsec-main/` | Исходники агента open-appsec (справочно) |
-| `smartsync-main/`, `smartsync-tuning-main/` | Локальные сервисы обучения и тюнинга open-appsec (справочно) |
+| `app/` | Основа NPMOS: NPMplus (git subtree) и наши изменения |
+| `deploy/` | Compose-файлы стека, образ CrowdSec с офлайн-hub, тест закрытого контура |
+| `reference/` | Исходники open-appsec-npm, open-appsec, smartsync, smartsync-tuning — справочно ([версии](reference/VERSIONS.md)) |
+| `design/` | Токены дизайна и пример sidebar |
+| `scripts/` | Обновление `reference/`, тест закрытого контура |
 | `docs/` | План и документация |
-
-Целевая структура монорепо описана в [плане](docs/ROADMAP.md#3-целевая-архитектура).

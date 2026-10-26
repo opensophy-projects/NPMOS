@@ -12,7 +12,7 @@ cd "$(dirname "$0")/.."
 
 export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-npmos-airgap}"
 compose=(docker compose -f deploy/compose.yaml -f deploy/test/compose.airgap.yaml)
-services=(${SERVICES:-npmos appsec-agent appsec-smartsync appsec-shared-storage appsec-tuning-svc crowdsec socket-proxy})
+read -r -a services <<< "${SERVICES:-npmos appsec-agent appsec-smartsync appsec-shared-storage appsec-tuning-svc crowdsec socket-proxy}"
 
 cleanup() {
   status=$?
