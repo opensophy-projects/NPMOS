@@ -30,6 +30,13 @@ step "log in"
 $CURL -H 'Content-Type: application/json' "$ADMIN/api/tokens" \
   -d "{\"identity\": \"$EMAIL\", \"secret\": \"$PASSWORD\"}" > /dev/null
 
+step "duplicate email is rejected and does not crash the backend"
+code=$(curl -sS -k -b $JAR -o /dev/null -w '%{http_code}' -H 'Content-Type: application/json' "$ADMIN/api/users" \
+  -d "{\"name\": \"Dup\", \"nickname\": \"dup\", \"email\": \"$EMAIL\"}")
+[ "$code" = 400 ] || fail "duplicate email: expected 400, got $code"
+sleep 2
+$CURL "$ADMIN/api/" | grep -q '"status": *"OK"' || fail "backend is down after duplicate email"
+
 step "create a proxy host test.local -> test-upstream"
 $CURL -H 'Content-Type: application/json' "$ADMIN/api/nginx/proxy-hosts" -d '{
   "domain_names": ["test.local"], "forward_scheme": "http",

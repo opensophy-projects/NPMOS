@@ -12,6 +12,9 @@ const runLocaleScripts = () => {
 	});
 };
 
+// NPMOS: backend used by the dev server
+const devApi = process.env.NPMOS_API || "https://127.0.0.1:81";
+
 // https://vitejs.dev/config/
 export default defineConfig({
 	plugins: [
@@ -42,11 +45,12 @@ export default defineConfig({
 		port: 5173,
 		strictPort: true,
 		allowedHosts: true,
-		// NPMOS: dev server talks to a running backend (deploy/compose.dev.yaml), NPMOS_API overrides it
+		// NPMOS: dev server talks to a running backend (deploy/compose.dev.yaml), NPMOS_API overrides it.
+		// Origin is rewritten too: the backend rejects requests whose Origin differs from its own host.
 		proxy: Object.fromEntries(
 			["/api", "/images/gravatar"].map((path) => [
 				path,
-				{ target: process.env.NPMOS_API || "https://127.0.0.1:81", secure: false, changeOrigin: true },
+				{ target: devApi, secure: false, changeOrigin: true, headers: { origin: new URL(devApi).origin } },
 			]),
 		),
 	},

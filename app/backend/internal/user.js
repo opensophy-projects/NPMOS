@@ -32,17 +32,17 @@ const internalUser = {
 		data.roles = data.roles || [];
 
 		data.email = data.email.toLowerCase().trim();
-		internalUser.isEmailAvailable(data.email).then((available) => {
-			if (!available) {
-				throw new errs.ValidationError(`Email address already in use - ${data.email}`);
-			}
-		});
-
 		if (typeof data.is_disabled !== "undefined") {
 			data.is_disabled = data.is_disabled ? 1 : 0;
 		}
 
 		await access.can("users:create", data);
+
+		// NPMOS: awaited (an un-awaited rejection crashed the backend and let duplicates through)
+		// and checked after the permission check, so it does not reveal registered emails
+		if (!(await internalUser.isEmailAvailable(data.email))) {
+			throw new errs.ValidationError(`Email address already in use - ${data.email}`);
+		}
 
 		if (process.env.DISABLE_GRAVATAR === "true") {
 			data.avatar = "/images/default-avatar.jpg";
