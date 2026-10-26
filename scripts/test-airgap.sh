@@ -5,7 +5,7 @@
 #   scripts/test-airgap.sh                 # full stack
 #   SERVICES="npmos crowdsec" scripts/test-airgap.sh   # subset (dependencies are added by compose)
 #
-# Images come from NPMOS_IMAGE / NPMOS_CROWDSEC_IMAGE / NPMOS_VERSION (see deploy/compose.yaml).
+# Images: NPMOS_REGISTRY / NPMOS_VERSION and the pinned versions in deploy/.env.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -27,15 +27,24 @@ trap cleanup EXIT
 
 "${compose[@]}" up -d --no-build "${services[@]}" test-upstream
 
-echo "==> waiting for npmos to become healthy"
-for i in $(seq 1 90); do
-  state=$(docker inspect -f '{{.State.Health.Status}}' "$("${compose[@]}" ps -q npmos)" 2>/dev/null || true)
-  [ "$state" = healthy ] && break
-  [ "$i" = 90 ] && { echo "npmos is not healthy: $state"; exit 1; }
-  sleep 2
-done
 
-"${compose[@]}" run --rm tester
+wait_healthy() {
+  for i in $(seq 1 90); do
+    state=$(docker inspect -f '{{.State.Health.Status}}' "$("${compose[@]}" ps -q npmos)" 2>/dev/null || true)
+    [ "$state" = healthy ] && return 0
+    [ "$i" = 90 ] && { echo "npmos is not healthy: $state"; return 1; }
+    sleep 2
+  done
+}
+
+echo "==> waiting for npmos to become healthy"
+wait_healthy
+"${compose[@]}" run --rm -T tester
+
+echo "==> restart npmos"
+"${compose[@]}" restart npmos
+wait_healthy
+"${compose[@]}" run --rm -T tester after-restart
 
 echo "==> all requested services are still running"
 for s in "${services[@]}"; do

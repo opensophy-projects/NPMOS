@@ -7,18 +7,31 @@ ADMIN="https://npmos:81"
 HTTP="http://npmos"
 EMAIL="admin@npmos.test"
 PASSWORD="npmos-airgap-$(date +%s)"
-JAR=/tmp/cookies
+# cookie jar on a volume shared between tester runs (session must survive an npmos restart)
+JAR=/state/cookies
 CURL="curl -sS --fail-with-body --max-time 30 -k -b $JAR -c $JAR"
 
 step() { echo "==> $*"; }
 fail() { echo "FAIL: $*" >&2; exit 1; }
 
+wait_api() {
+  for i in $(seq 1 60); do
+    $CURL "$ADMIN/api/" 2>/dev/null | grep -q '"status": *"OK"' && return 0
+    sleep 2
+  done
+  fail "admin API did not become ready"
+}
+
+if [ "${1:-}" = after-restart ]; then
+  step "session is still valid after npmos restart (persistent COOKIE_SECRET)"
+  wait_api
+  $CURL "$ADMIN/api/users/me" | grep -q '"email": *"admin@npmos.test"' || fail "session lost after restart"
+  echo "OK: after-restart scenarios passed"
+  exit 0
+fi
+
 step "admin API is up"
-for i in $(seq 1 60); do
-  $CURL "$ADMIN/api/" 2>/dev/null | grep -q '"status": *"OK"' && break
-  [ "$i" = 60 ] && fail "admin API did not become ready"
-  sleep 2
-done
+wait_api
 
 step "initial setup: create the first admin"
 $CURL -H 'Content-Type: application/json' "$ADMIN/api/users" -d "{

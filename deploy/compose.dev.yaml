@@ -16,6 +16,10 @@ services:
     build:
       context: ../app
       dockerfile: ../deploy/dev/Dockerfile
+      args:
+        CROWDSEC_VERSION: ${CROWDSEC_VERSION}
+        # optional, for building behind restricted networks (see app/npmos/crowdsec/seed.sh)
+        HUB_URL_TEMPLATE: ${HUB_URL_TEMPLATE:-}
     environment:
       TZ: ${TZ:-UTC}
     develop:
@@ -28,21 +32,16 @@ services:
         - path: ../app/rootfs
           action: rebuild
 
-  crowdsec:
-    image: npmos-crowdsec:dev
-    build:
-      context: ./crowdsec
-
   # Proxy host target for manual and automated tests: http://test-upstream:80
   test-upstream:
-    image: docker.io/traefik/whoami:${WHOAMI_VERSION:-latest}
+    image: docker.io/traefik/whoami:${WHOAMI_VERSION}
     container_name: npmos-test-upstream
     restart: unless-stopped
     networks:
       - internal
 
   attacker:
-    image: docker.io/curlimages/curl:${CURL_VERSION:-latest}
+    image: docker.io/curlimages/curl:${CURL_VERSION}
     container_name: npmos-attacker
     profiles:
       - attack
