@@ -1,0 +1,4 @@
+minimumReleaseAge: 0
+allowBuilds:
+  '@scarf/scarf': false
+  better-sqlite3: true
