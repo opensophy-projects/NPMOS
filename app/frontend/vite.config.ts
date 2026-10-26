@@ -42,6 +42,13 @@ export default defineConfig({
 		port: 5173,
 		strictPort: true,
 		allowedHosts: true,
+		// NPMOS: dev server talks to a running backend (deploy/compose.dev.yaml), NPMOS_API overrides it
+		proxy: Object.fromEntries(
+			["/api", "/images/gravatar"].map((path) => [
+				path,
+				{ target: process.env.NPMOS_API || "https://127.0.0.1:81", secure: false, changeOrigin: true },
+			]),
+		),
 	},
 	test: {
 		environment: "happy-dom",

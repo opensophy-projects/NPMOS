@@ -56,7 +56,10 @@ const configure = () => {
 				host: envPostgresHost,
 				port: process.env.DB_POSTGRES_PORT || 5432,
 				user: envPostgresUser,
-				password: process.env.DB_POSTGRES_PASSWORD,
+				// NPMOS: also accept the password as a file (generated secret, see deploy/compose.yaml)
+				password: process.env.DB_POSTGRES_PASSWORD_FILE
+					? readFileSync(process.env.DB_POSTGRES_PASSWORD_FILE, "utf8").trim()
+					: process.env.DB_POSTGRES_PASSWORD,
 				name: envPostgresName,
 			},
 			keys: getKeys(),

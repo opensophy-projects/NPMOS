@@ -9,6 +9,12 @@ Group ID: $(id -g)
 -------------------------------------
 "
 
+# NPMOS: local-first — an unreachable ACME server (offline / air-gapped) must not block startup.
+# Registration is retried on the next start; only ACME certificates are unavailable meanwhile.
+npmos_acme_unavailable() {
+    echo "WARNING: could not register an ACME account at $ACME_SERVER (offline?). ACME certificates are unavailable until NPMOS can reach it; registration is retried on next start."
+}
+
 if [ -z "$(find /data/tls/certbot/accounts/"$(echo "$ACME_SERVER" | sed "s|^https\?://\([^/]\+\).*$|\1|g")" -type f 2> /dev/null)" ]; then
     if [ "$(echo "$ACME_SERVER" | sed "s|^https\?://\([^/]\+\).*$|\1|g")" = "acme.zerossl.com" ] && [ -z "$ACME_EAB_KID" ] && [ -z "$ACME_EAB_HMAC_KEY" ]; then
         if [ -z "$ACME_EMAIL" ]; then
@@ -16,7 +22,7 @@ if [ -z "$(find /data/tls/certbot/accounts/"$(echo "$ACME_SERVER" | sed "s|^http
             sleep inf
         fi
 
-        ZS_EAB="$(curl -sSL https://api.zerossl.com/acme/eab-credentials-email --data "email=$ACME_EMAIL")"
+        ZS_EAB="$(curl -sSL --connect-timeout 5 --max-time 20 https://api.zerossl.com/acme/eab-credentials-email --data "email=$ACME_EMAIL")"
         export ZS_EAB
         ACME_EAB_KID="$(echo "$ZS_EAB" | jq -r .eab_kid)"
         export ACME_EAB_KID
@@ -25,15 +31,15 @@ if [ -z "$(find /data/tls/certbot/accounts/"$(echo "$ACME_SERVER" | sed "s|^http
     fi
     if [ -z "$ACME_EMAIL" ]; then
         if ! certbot --config /etc/certbot.ini register --server "$ACME_SERVER" --register-unsafely-without-email; then
-                    sleep inf
+                    npmos_acme_unavailable
         fi
     elif [ -n "$ACME_EMAIL" ] && [ -z "$ACME_EAB_KID" ] && [ -z "$ACME_EAB_HMAC_KEY" ]; then
         if ! certbot --config /etc/certbot.ini register --server "$ACME_SERVER" --email "$ACME_EMAIL"; then
-                    sleep inf
+                    npmos_acme_unavailable
         fi
     elif [ -n "$ACME_EMAIL" ] && [ -n "$ACME_EAB_KID" ] && [ -n "$ACME_EAB_HMAC_KEY" ]; then
         if ! certbot --config /etc/certbot.ini register --server "$ACME_SERVER" --eab-kid "$ACME_EAB_KID" --eab-hmac-key "$ACME_EAB_HMAC_KEY" --email "$ACME_EMAIL"; then
-                    sleep inf
+                    npmos_acme_unavailable
         fi
     fi
     echo

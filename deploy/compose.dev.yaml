@@ -1,0 +1,58 @@
+# NPMOS — development overlay on top of compose.yaml.
+#
+#   docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml up -d --build
+#   docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml watch   # backend live sync
+#   cd app/frontend && pnpm install && pnpm vite                             # UI with hot reload
+#
+# Adds: npmos built from local sources (fast dev image), a test upstream and,
+# with --profile attack, a generator of malicious requests for WAF testing.
+
+services:
+  npmos-init:
+    image: npmos:dev
+
+  npmos:
+    image: npmos:dev
+    build:
+      context: ../app
+      dockerfile: ../deploy/dev/Dockerfile
+    environment:
+      TZ: ${TZ:-UTC}
+    develop:
+      watch:
+        - path: ../app/backend
+          target: /app
+          action: sync+restart
+          ignore:
+            - node_modules/
+        - path: ../app/rootfs
+          action: rebuild
+
+  crowdsec:
+    image: npmos-crowdsec:dev
+    build:
+      context: ./crowdsec
+
+  # Proxy host target for manual and automated tests: http://test-upstream:80
+  test-upstream:
+    image: docker.io/traefik/whoami:${WHOAMI_VERSION:-latest}
+    container_name: npmos-test-upstream
+    restart: unless-stopped
+    networks:
+      - internal
+
+  attacker:
+    image: docker.io/curlimages/curl:${CURL_VERSION:-latest}
+    container_name: npmos-attacker
+    profiles:
+      - attack
+    depends_on:
+      - npmos
+    entrypoint: ["/bin/sh", "/attack.sh"]
+    environment:
+      TARGET: http://npmos
+      HOST: ${ATTACK_HOST:-test.local}
+    volumes:
+      - ./dev/attack.sh:/attack.sh:ro
+    networks:
+      - internal

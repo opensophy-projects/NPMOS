@@ -1,0 +1,262 @@
+# NPMOS — default stack, fully local (no cloud services, no CAPI, no agent token).
+#
+#   docker compose -f deploy/compose.yaml up -d
+#   open https://<host>:81
+#
+# Everything that cannot be changed from the NPMOS GUI lives here and is wired up
+# in advance (shared volumes, IPC, networks, secrets), so that enabling WAF or
+# CrowdSec later is a switch in the GUI, not an edit of this file.
+# Settings below are bootstrap parameters only; see docs/ENV-INVENTORY.md.
+#
+# Requires Docker Engine >= 26 and Compose >= 2.23 (volume subpath mounts).
+
+name: npmos
+
+x-managed: &managed
+  restart: unless-stopped
+  labels:
+    npmos.managed: "true"
+
+services:
+  # One-shot: generates random secrets on first start (never overwrites them)
+  # and pre-creates volume subdirectories mounted by subpath.
+  # Each consumer mounts only its own subdirectory of the secrets volume.
+  npmos-init:
+    image: ${NPMOS_IMAGE:-docker.io/opensophy/npmos}:${NPMOS_VERSION:-latest}
+    restart: "no"
+    network_mode: none
+    entrypoint: ["/bin/sh", "/npmos-init.sh"]
+    volumes:
+      - ./init/npmos-init.sh:/npmos-init.sh:ro
+      - secrets:/secrets
+      # only to pre-create directories other services mount by subpath
+      - npmos-data:/npmos-data
+
+  npmos:
+    <<: *managed
+    image: ${NPMOS_IMAGE:-docker.io/opensophy/npmos}:${NPMOS_VERSION:-latest}
+    container_name: npmos
+    depends_on:
+      npmos-init:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+    # The open-appsec agent joins this IPC namespace and network namespace
+    ipc: shareable
+    ports:
+      - "${NPMOS_HTTP_PORT:-80}:80/tcp"
+      - "${NPMOS_HTTPS_PORT:-443}:443/tcp"
+      - "${NPMOS_HTTPS_PORT:-443}:443/udp"
+      - "${NPMOS_ADMIN_PORT:-81}:81/tcp"
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+      - SETGID
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      TZ: ${TZ:-UTC}
+      DB_POSTGRES_HOST: postgres
+      DB_POSTGRES_NAME: npmos
+      DB_POSTGRES_USER: npmos
+      DB_POSTGRES_PASSWORD_FILE: /run/npmos-secrets/db_password
+      # access/stream logs to /data/nginx/logs — read by CrowdSec
+      LOGROTATE: "true"
+      # set to true on hosts without IPv6
+      DISABLE_IPV6: ${NPMOS_DISABLE_IPV6:-false}
+    volumes:
+      - npmos-data:/data
+      - type: volume
+        source: secrets
+        target: /run/npmos-secrets
+        read_only: true
+        volume:
+          subpath: npmos
+      # open-appsec: attachment shared memory, declarative policy, agent logs
+      - appsec-shm:/dev/shm/check-point
+      - appsec-localconfig:/ext/appsec
+      - appsec-logs:/ext/appsec-logs:ro
+    networks:
+      - edge
+      - internal
+
+  appsec-agent:
+    <<: *managed
+    image: ghcr.io/openappsec/agent:${APPSEC_VERSION:-latest}
+    container_name: npmos-appsec-agent
+    depends_on:
+      - npmos
+      - appsec-shared-storage
+    network_mode: service:npmos
+    ipc: service:npmos
+    command: /cp-nano-agent
+    environment:
+      # No AGENT_TOKEN: hybrid mode, managed locally by NPMOS (no my.openappsec.io)
+      SHARED_STORAGE_HOST: appsec-shared-storage
+      LEARNING_HOST: appsec-smartsync
+      TUNING_HOST: appsec-tuning-svc
+      autoPolicyLoad: "true"
+      nginxproxymanager: "true"
+    volumes:
+      - appsec-shm:/dev/shm/check-point
+      - appsec-conf:/etc/cp/conf
+      - appsec-data:/etc/cp/data
+      - appsec-logs:/var/log/nano_agent
+      - appsec-localconfig:/ext/appsec
+
+  appsec-smartsync:
+    <<: *managed
+    image: ghcr.io/openappsec/smartsync:${APPSEC_VERSION:-latest}
+    container_name: npmos-appsec-smartsync
+    depends_on:
+      - appsec-shared-storage
+    environment:
+      SHARED_STORAGE_HOST: appsec-shared-storage
+    networks:
+      - internal
+
+  appsec-shared-storage:
+    <<: *managed
+    image: ghcr.io/openappsec/smartsync-shared-files:${APPSEC_VERSION:-latest}
+    container_name: npmos-appsec-shared-storage
+    # upstream requires root to own /db on first start
+    user: root
+    volumes:
+      - appsec-storage:/db
+    networks:
+      - internal
+
+  appsec-tuning-svc:
+    <<: *managed
+    image: ghcr.io/openappsec/smartsync-tuning:${APPSEC_VERSION:-latest}
+    container_name: npmos-appsec-tuning-svc
+    depends_on:
+      npmos-init:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      appsec-shared-storage:
+        condition: service_started
+    # the service reads its DB password only from env; take it from the secret file
+    entrypoint: ["/bin/sh", "-c", 'QUERY_DB_PASSWORD="$$(cat /run/npmos-secrets/db_password)" exec /go/bin/app']
+    environment:
+      SHARED_STORAGE_HOST: appsec-shared-storage
+      QUERY_DB_HOST: postgres
+      QUERY_DB_USER: appsec
+    volumes:
+      - appsec-conf:/etc/cp/conf
+      - type: volume
+        source: secrets
+        target: /run/npmos-secrets
+        read_only: true
+        volume:
+          subpath: appsec
+    networks:
+      - internal
+
+  postgres:
+    <<: *managed
+    image: docker.io/library/postgres:${POSTGRES_VERSION:-18-alpine}
+    container_name: npmos-postgres
+    depends_on:
+      npmos-init:
+        condition: service_completed_successfully
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD_FILE: /run/npmos-secrets/postgres_password
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - postgres-data:/var/lib/postgresql
+      - ./init/postgres-init.sh:/docker-entrypoint-initdb.d/npmos.sh:ro
+      - type: volume
+        source: secrets
+        target: /run/npmos-secrets
+        read_only: true
+        volume:
+          subpath: postgres
+    networks:
+      - internal
+
+  crowdsec:
+    <<: *managed
+    # crowdsecurity/crowdsec + offline hub snapshot (deploy/crowdsec/Dockerfile)
+    image: ${NPMOS_CROWDSEC_IMAGE:-docker.io/opensophy/npmos-crowdsec}:${NPMOS_VERSION:-latest}
+    container_name: npmos-crowdsec
+    depends_on:
+      npmos-init:
+        condition: service_completed_successfully
+    # The bouncer key for NPMOS is pre-registered from the generated secret
+    entrypoint: ["/bin/bash", "-c", 'export BOUNCER_KEY_npmos="$$(cat /run/npmos-secrets/bouncer_key)"; exec /bin/bash /docker_start.sh']
+    environment:
+      TZ: ${TZ:-UTC}
+      USE_WAL: "true"
+      # Local only: no Central API (no signal sharing, no community blocklist), no hub upgrades at start.
+      # Hub items come from the snapshot baked into the image; a failed hub update is tolerated.
+      DISABLE_ONLINE_API: "true"
+      NO_HUB_UPGRADE: "true"
+    volumes:
+      - crowdsec-conf:/etc/crowdsec
+      - crowdsec-data:/var/lib/crowdsec/data
+      - type: volume
+        source: secrets
+        target: /run/npmos-secrets
+        read_only: true
+        volume:
+          subpath: crowdsec
+      - type: volume
+        source: npmos-data
+        target: /var/log/npmos
+        read_only: true
+        volume:
+          subpath: nginx/logs
+      - appsec-logs:/var/log/openappsec:ro
+    networks:
+      - internal
+
+  # Docker API for the future npmos-control service (phase 1): restarts and status
+  # of npmos.managed containers only. Not reachable from any other service yet.
+  socket-proxy:
+    <<: *managed
+    image: docker.io/tecnativa/docker-socket-proxy:${SOCKET_PROXY_VERSION:-latest}
+    container_name: npmos-socket-proxy
+    environment:
+      # IPv4 listener only: works on hosts without IPv6, the proxy is internal anyway
+      DISABLE_IPV6: "1"
+      CONTAINERS: "1"
+      ALLOW_RESTARTS: "1"
+      POST: "0"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - control
+
+networks:
+  # published ports; egress only for what the admin enables (e.g. ACME)
+  edge: {}
+  # service-to-service traffic, no internet access
+  internal:
+    internal: true
+  control:
+    internal: true
+
+volumes:
+  secrets: {}
+  npmos-data: {}
+  postgres-data: {}
+  appsec-shm:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+  appsec-conf: {}
+  appsec-data: {}
+  appsec-logs: {}
+  appsec-localconfig: {}
+  appsec-storage: {}
+  crowdsec-conf: {}
+  crowdsec-data: {}
