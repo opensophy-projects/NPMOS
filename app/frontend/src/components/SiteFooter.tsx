@@ -1,6 +1,9 @@
 import { useCheckVersion, useHealth } from "src/hooks";
 import { T } from "src/locale";
 
+// NPMOS: links point to the NPMOS repository; upstream credits are kept
+const NPMOS_REPO = "https://github.com/opensophy-projects/npmos";
+
 export function SiteFooter() {
 	const health = useHealth();
 	const { data: versionData } = useCheckVersion();
@@ -16,12 +19,7 @@ export function SiteFooter() {
 					<div className="col-lg-auto ms-lg-auto">
 						<ul className="list-inline list-inline-dots mb-0">
 							<li className="list-inline-item">
-								<a
-									href="https://github.com/ZoeyVid/NPMplus"
-									target="_blank"
-									className="link-secondary"
-									rel="noopener"
-								>
+								<a href={NPMOS_REPO} target="_blank" className="link-secondary" rel="noopener">
 									<T id="footer.github" />
 								</a>
 							</li>
@@ -30,6 +28,16 @@ export function SiteFooter() {
 					<div className="col-12 col-lg-auto mt-3 mt-lg-0">
 						<ul className="list-inline list-inline-dots mb-0">
 							<li className="list-inline-item">© {new Date().getFullYear()} AGPL-3.0 (and MIT)</li>
+							<li className="list-inline-item">
+								<a
+									href="https://github.com/ZoeyVid/NPMplus"
+									rel="noreferrer"
+									target="_blank"
+									className="link-secondary"
+								>
+									NPMplus
+								</a>
+							</li>
 							<li className="list-inline-item">
 								<a href="https://jc21.com" rel="noreferrer" target="_blank" className="link-secondary">
 									jc21.com
@@ -53,7 +61,7 @@ export function SiteFooter() {
 							</li>
 							<li className="list-inline-item">
 								<a
-									href={`https://github.com/ZoeyVid/NPMplus/${githubLinkType}/${githubTag}`}
+									href={`${NPMOS_REPO}/${githubLinkType}/${githubTag}`}
 									className="link-secondary"
 									target="_blank"
 									rel="noopener"
@@ -65,7 +73,7 @@ export function SiteFooter() {
 							{versionData?.updateAvailable && versionData?.latest && (
 								<li className="list-inline-item">
 									<a
-										href={`https://github.com/ZoeyVid/NPMplus/releases/tag/${versionData.latest}`}
+										href={`${NPMOS_REPO}/releases/tag/${versionData.latest}`}
 										className="link-warning fw-bold"
 										target="_blank"
 										rel="noopener"

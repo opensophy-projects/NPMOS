@@ -11,13 +11,23 @@ const internalRemoteVersion = {
 	 * @return {Promise<{current: string, latest: string, update_available: boolean}>} Version info
 	 */
 	get: async () => {
+		// NPMOS: local-first — the update check is opt-in
+		if (process.env.NPMOS_CHECK_VERSION !== "true") {
+			return {
+				current: pjson.version,
+				latest: "unknown",
+				update_available: false,
+			};
+		}
+
 		try {
 			if (
 				!internalRemoteVersion.last_result ||
 				!internalRemoteVersion.last_fetch_time ||
 				Date.now() - internalRemoteVersion.last_fetch_time > internalRemoteVersion.cache_timeout
 			) {
-				const response = await fetch("https://api.github.com/repos/ZoeyVid/NPMplus/releases/latest", {
+				// NPMOS: NPMOS releases instead of NPMplus
+				const response = await fetch("https://api.github.com/repos/opensophy-projects/npmos/releases/latest", {
 					headers: {
 						"User-Agent": `NPMplus/${pjson.version}`,
 					},

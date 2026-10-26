@@ -132,7 +132,9 @@ export PHP83="${PHP83:-false}"
 export PHP84="${PHP84:-false}"
 export PHP85="${PHP85:-false}"
 export INITIAL_DEFAULT_PAGE="${INITIAL_DEFAULT_PAGE:-congratulations}"
-export DISABLE_GRAVATAR="${DISABLE_GRAVATAR:-false}"
+# NPMOS: local-first — no outbound requests unless the admin opts in
+export DISABLE_GRAVATAR="${DISABLE_GRAVATAR:-true}"
+export NPMOS_CHECK_VERSION="${NPMOS_CHECK_VERSION:-false}"
 export NGINX_LOAD_OPENAPPSEC_ATTACHMENT_MODULE="${NGINX_LOAD_OPENAPPSEC_ATTACHMENT_MODULE:-false}"
 export NGINX_LOAD_NJS_MODULE="${NGINX_LOAD_NJS_MODULE:-false}"
 export NGINX_LOAD_GEOIP2_MODULE="${NGINX_LOAD_GEOIP2_MODULE:-false}"
@@ -365,8 +367,9 @@ if ! echo "$CUSTOM_OCSP_STAPLING" | grep -q "^true$\|^false$"; then
     sleep inf
 fi
 
-if [ "$ACME_PROFILE" != "none" ] && [ "$(curl -sSL "$ACME_SERVER" | jq .meta.profiles."$ACME_PROFILE")" = "null" ]; then
-    if [ "$(curl -sSL "$ACME_SERVER" | jq -r ".newNonce")" != "null" ]; then
+# NPMOS: bounded timeouts so an offline (air-gapped) start does not stall here
+if [ "$ACME_PROFILE" != "none" ] && [ "$(curl -sSL --connect-timeout 5 --max-time 10 "$ACME_SERVER" | jq .meta.profiles."$ACME_PROFILE")" = "null" ]; then
+    if [ "$(curl -sSL --connect-timeout 5 --max-time 10 "$ACME_SERVER" | jq -r ".newNonce")" != "null" ]; then
         echo "The ACME_PROFILE seems to be not supported by the ACME_SERVER."
         sleep inf
 	else
@@ -681,6 +684,11 @@ if ! echo "$INITIAL_DEFAULT_PAGE" | grep -q "^\(404\|444\|redirect\|congratulati
     sleep inf
 fi
 
+
+if ! echo "$NPMOS_CHECK_VERSION" | grep -q "^true$\|^false$"; then
+    echo "NPMOS_CHECK_VERSION needs to be true or false."
+    sleep inf
+fi
 
 if ! echo "$DISABLE_GRAVATAR" | grep -q "^true$\|^false$"; then
     echo "DISABLE_GRAVATAR needs to be true or false."
