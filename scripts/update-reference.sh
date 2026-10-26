@@ -11,10 +11,11 @@ declare -A REPOS=(
   [openappsec]="https://github.com/openappsec/openappsec"
   [smartsync]="https://github.com/openappsec/smartsync"
   [smartsync-tuning]="https://github.com/openappsec/smartsync-tuning"
+  [smartsync-shared-files]="https://github.com/openappsec/smartsync-shared-files"
 )
 
 names=("$@")
-[ ${#names[@]} -eq 0 ] && names=(open-appsec-npm openappsec smartsync smartsync-tuning)
+[ ${#names[@]} -eq 0 ] && names=(open-appsec-npm openappsec smartsync smartsync-tuning smartsync-shared-files)
 
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT

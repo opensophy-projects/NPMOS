@@ -126,8 +126,6 @@ services:
     <<: *managed
     image: ${NPMOS_REGISTRY}/npmos-appsec-shared-storage:${NPMOS_VERSION}
     container_name: npmos-appsec-shared-storage
-    # upstream requires root to own /db on first start
-    user: root
     volumes:
       - appsec-storage:/db
     networks:
@@ -144,12 +142,12 @@ services:
         condition: service_healthy
       appsec-shared-storage:
         condition: service_started
-    # the service reads its DB password only from env; take it from the secret file
-    entrypoint: ["/bin/sh", "-c", 'QUERY_DB_PASSWORD="$$(cat /run/npmos-secrets/db_password)" exec /go/bin/app']
     environment:
       SHARED_STORAGE_HOST: appsec-shared-storage
       QUERY_DB_HOST: postgres
       QUERY_DB_USER: appsec
+      # NPMOS image entrypoint turns *_FILE into the variable itself
+      QUERY_DB_PASSWORD_FILE: /run/npmos-secrets/db_password
     volumes:
       - appsec-conf:/etc/cp/conf
       - type: volume

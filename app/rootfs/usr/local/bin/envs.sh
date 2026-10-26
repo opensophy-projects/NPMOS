@@ -367,15 +367,8 @@ if ! echo "$CUSTOM_OCSP_STAPLING" | grep -q "^true$\|^false$"; then
     sleep inf
 fi
 
-# NPMOS: bounded timeouts so an offline (air-gapped) start does not stall here
-if [ "$ACME_PROFILE" != "none" ] && [ "$(curl -sSL --connect-timeout 5 --max-time 10 "$ACME_SERVER" | jq .meta.profiles."$ACME_PROFILE")" = "null" ]; then
-    if [ "$(curl -sSL --connect-timeout 5 --max-time 10 "$ACME_SERVER" | jq -r ".newNonce")" != "null" ]; then
-        echo "The ACME_PROFILE seems to be not supported by the ACME_SERVER."
-        sleep inf
-	else
-        echo "Cannot check if the ACME_PROFILE is supported by the ACME_SERVER since the ACME_SERVER is down."
-    fi
-fi
+# NPMOS: local-first — the ACME_PROFILE support check contacted the ACME server at every start;
+# an unsupported profile is reported by certbot when a certificate is requested.
 
 
 if ! echo "$PUID" | grep -q "^[0-9]\+$"; then

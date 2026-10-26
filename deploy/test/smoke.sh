@@ -64,6 +64,10 @@ for i in $(seq 1 15); do
   sleep 2
 done
 
+step "upstream sees the real client IP"
+client_ip=$(hostname -i | awk '{print $1}')
+echo "$body" | grep -qiE "^X-(Real-Ip|Forwarded-For): .*$client_ip" || fail "client IP $client_ip not forwarded: $body"
+
 step "update check stays off"
 $CURL "$ADMIN/api/version/check" | grep -q '"latest": *"unknown"' || fail "update check is not disabled"
 

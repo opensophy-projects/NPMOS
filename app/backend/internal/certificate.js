@@ -8,6 +8,7 @@ import dayjs from "dayjs";
 import _ from "lodash";
 import dnsPlugins from "../certbot/dns-plugins.json" with { type: "json" };
 import { installPlugin } from "../lib/certbot.js";
+import { ensureAcmeAccount } from "../npmos/acme.js";
 import error from "../lib/error.js";
 import utils from "../lib/utils.js";
 import { debug, ssl as logger } from "../logger.js";
@@ -665,6 +666,8 @@ const internalCertificate = {
 	 * @returns {Promise}
 	 */
 	requestCertbot: async (certificate) => {
+		// NPMOS: the ACME account is registered on first use, not at startup
+		await ensureAcmeAccount();
 		logger.info(
 			`Requesting Certbot certificates for Cert #${certificate.id}: ${certificate.domain_names.join(", ")}`,
 		);
@@ -701,6 +704,8 @@ const internalCertificate = {
 			throw Error(`Unknown DNS provider '${certificate.meta.dns_provider}'`);
 		}
 		await installPlugin(certificate.meta.dns_provider);
+		// NPMOS: the ACME account is registered on first use, not at startup
+		await ensureAcmeAccount();
 
 		logger.info(
 			`Requesting Certbot certificates via ${dnsPlugin.name} for Cert #${certificate.id}: ${certificate.domain_names.join(", ")}`,

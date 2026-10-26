@@ -1,10 +1,17 @@
 # NPMOS CI. Upstream workflows under app/.github are not run (GitHub reads only the root .github).
+#
+# Images built by NPMOS: npmos (multi-arch) and npmos-appsec-{agent,smartsync,shared-storage,tuning}
+# (amd64; arm64 is experimental, upstream open-appsec ships amd64 only).
+# Publishing to Docker Hub (vars.DOCKERHUB_NAMESPACE, secrets.DOCKERHUB_USERNAME/DOCKERHUB_TOKEN):
+#   push to work  -> :develop and :<sha>
+#   tag vX.Y.Z    -> :X.Y.Z and :latest
+#   other events  -> build and test only (registry login is still checked when secrets exist)
 name: CI
 on:
   push:
+    branches: ["**"]
+    tags: ["v*"]
   pull_request:
-  schedule:
-    - cron: "17 2 * * *" # nightly: arm64 image
   workflow_dispatch:
 
 permissions:
@@ -13,6 +20,10 @@ permissions:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+env:
+  NAMESPACE: ${{ vars.DOCKERHUB_NAMESPACE || 'opensophy' }}
+  PUBLISH: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/work' || startsWith(github.ref, 'refs/tags/v')) && vars.DOCKERHUB_NAMESPACE != '' }}
 
 jobs:
   checks:
@@ -42,27 +53,47 @@ jobs:
           pnpm tsc --noEmit
           pnpm vitest run
       - name: shell scripts
-        run: |
-          shellcheck -S warning scripts/*.sh deploy/init/*.sh deploy/dev/*.sh deploy/test/*.sh
+        run: shellcheck -x -S warning scripts/*.sh deploy/*/*.sh deploy/openappsec/*/*.sh app/npmos/crowdsec/*.sh
       - name: compose files
         run: |
           docker compose -f deploy/compose.yaml config -q
           docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml config -q
           docker compose -f deploy/compose.yaml -f deploy/test/compose.airgap.yaml config -q
+          if grep -nE 'image: .*:latest|:-latest' deploy/*.yaml deploy/test/*.yaml; then
+            echo "::error::unpinned image version"; exit 1
+          fi
+      - name: version consistency
+        run: |
+          env_cs=$(sed -n 's/^CROWDSEC_VERSION=//p' deploy/.env)
+          for f in app/Dockerfile deploy/dev/Dockerfile; do
+            df_cs=$(sed -n 's/^ARG CROWDSEC_VERSION=//p' "$f")
+            [ "$env_cs" = "$df_cs" ] || { echo "::error file=$f::CROWDSEC_VERSION $df_cs != deploy/.env $env_cs"; exit 1; }
+          done
+          . deploy/openappsec/sources.env
+          for pair in "openappsec $OPENAPPSEC_REF" "smartsync $SMARTSYNC_REF" "smartsync-shared-files $SHARED_FILES_REF" "smartsync-tuning $TUNING_REF"; do
+            set -- $pair
+            grep -q "^| $1 | .* | \`$2\` |" reference/VERSIONS.md || { echo "::error::$1 ref $2 differs from reference/VERSIONS.md"; exit 1; }
+          done
+      - name: registry credentials
+        # validates DOCKERHUB_USERNAME / DOCKERHUB_TOKEN on every push, also when nothing is published
+        if: vars.DOCKERHUB_NAMESPACE != '' && github.event_name == 'push'
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-  image:
-    name: Image (amd64) + closed-network test
+  images:
+    name: Images (amd64) + closed-network test
     needs: checks
     runs-on: ubuntu-latest
-    env:
-      PUSH: ${{ github.event_name == 'push' && github.ref == 'refs/heads/work' && vars.DOCKERHUB_NAMESPACE != '' }}
-      NAMESPACE: ${{ vars.DOCKERHUB_NAMESPACE || 'opensophy' }}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-      - name: version
+      - name: versions
         run: |
           v="$(git rev-parse --short HEAD)"
           echo "VERSION=$v" >> "$GITHUB_ENV"
+          cat deploy/openappsec/sources.env >> "$GITHUB_ENV"
+          echo "CROWDSEC_VERSION=$(sed -n 's/^CROWDSEC_VERSION=//p' deploy/.env)" >> "$GITHUB_ENV"
           for f in app/frontend/package.json app/backend/package.json; do
             jq --arg v "$v" '.version = $v' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
           done
@@ -78,47 +109,164 @@ jobs:
           cache-from: type=gha,scope=npmos-amd64
           cache-to: type=gha,mode=max,scope=npmos-amd64
           build-args: |
+            CROWDSEC_VERSION=${{ env.CROWDSEC_VERSION }}
             FLAGS=-march=x86-64-v2 -mtune=generic -fcf-protection=full
-      - name: build npmos-crowdsec
+      - name: build npmos-appsec-agent
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
-          context: deploy/crowdsec
+          context: deploy/openappsec/agent
           load: true
-          tags: docker.io/${{ env.NAMESPACE }}/npmos-crowdsec:${{ env.VERSION }}
-      - name: closed-network test
+          tags: docker.io/${{ env.NAMESPACE }}/npmos-appsec-agent:${{ env.VERSION }}
+          cache-from: type=gha,scope=appsec-agent-amd64
+          cache-to: type=gha,mode=max,scope=appsec-agent-amd64
+          build-args: OPENAPPSEC_REF=${{ env.OPENAPPSEC_REF }}
+      - name: build npmos-appsec-smartsync
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: deploy/openappsec/go-service
+          load: true
+          tags: docker.io/${{ env.NAMESPACE }}/npmos-appsec-smartsync:${{ env.VERSION }}
+          cache-from: type=gha,scope=appsec-smartsync
+          cache-to: type=gha,mode=max,scope=appsec-smartsync
+          build-args: |
+            REPO=https://github.com/openappsec/smartsync.git
+            REF=${{ env.SMARTSYNC_REF }}
+      - name: build npmos-appsec-shared-storage
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: deploy/openappsec/go-service
+          load: true
+          tags: docker.io/${{ env.NAMESPACE }}/npmos-appsec-shared-storage:${{ env.VERSION }}
+          cache-from: type=gha,scope=appsec-shared-storage
+          cache-to: type=gha,mode=max,scope=appsec-shared-storage
+          build-args: |
+            REPO=https://github.com/openappsec/smartsync-shared-files.git
+            REF=${{ env.SHARED_FILES_REF }}
+      - name: build npmos-appsec-tuning
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: deploy/openappsec/go-service
+          load: true
+          tags: docker.io/${{ env.NAMESPACE }}/npmos-appsec-tuning:${{ env.VERSION }}
+          cache-from: type=gha,scope=appsec-tuning
+          cache-to: type=gha,mode=max,scope=appsec-tuning
+          build-args: |
+            REPO=https://github.com/openappsec/smartsync-tuning.git
+            REF=${{ env.TUNING_REF }}
+      - name: closed-network test (full stack)
         env:
-          NPMOS_IMAGE: docker.io/${{ env.NAMESPACE }}/npmos
-          NPMOS_CROWDSEC_IMAGE: docker.io/${{ env.NAMESPACE }}/npmos-crowdsec
+          NPMOS_REGISTRY: docker.io/${{ env.NAMESPACE }}
           NPMOS_VERSION: ${{ env.VERSION }}
         run: scripts/test-airgap.sh
       - name: docker.io login
-        if: env.PUSH == 'true'
+        if: env.PUBLISH == 'true'
         uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: push
-        if: env.PUSH == 'true'
+        if: env.PUBLISH == 'true'
         run: |
-          for img in npmos npmos-crowdsec; do
-            docker tag "docker.io/$NAMESPACE/$img:$VERSION" "docker.io/$NAMESPACE/$img:develop"
-            docker push "docker.io/$NAMESPACE/$img:$VERSION"
-            docker push "docker.io/$NAMESPACE/$img:develop"
+          case "$GITHUB_REF" in
+            refs/tags/v*) tags="${GITHUB_REF#refs/tags/v} latest" ;;
+            *) tags="develop" ;;
+          esac
+          for img in npmos npmos-appsec-agent npmos-appsec-smartsync npmos-appsec-shared-storage npmos-appsec-tuning; do
+            src="docker.io/$NAMESPACE/$img:$VERSION"
+            # npmos gets a multi-arch manifest in the manifest job; push its amd64 build under an arch tag
+            if [ "$img" = npmos ]; then
+              for t in $tags; do docker tag "$src" "docker.io/$NAMESPACE/$img:$t-amd64"; docker push "docker.io/$NAMESPACE/$img:$t-amd64"; done
+            else
+              docker push "$src"
+              for t in $tags; do docker tag "$src" "docker.io/$NAMESPACE/$img:$t"; docker push "docker.io/$NAMESPACE/$img:$t"; done
+            fi
           done
 
-  image-arm64:
-    name: Image (arm64, nightly)
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+  npmos-arm64:
+    name: npmos image (arm64)
+    needs: checks
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/work' || startsWith(github.ref, 'refs/tags/v')) || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - name: versions
+        run: |
+          v="$(git rev-parse --short HEAD)"
+          echo "VERSION=$v" >> "$GITHUB_ENV"
+          echo "CROWDSEC_VERSION=$(sed -n 's/^CROWDSEC_VERSION=//p' deploy/.env)" >> "$GITHUB_ENV"
+          case "$GITHUB_REF" in
+            refs/tags/v*) echo "TAGS=${GITHUB_REF#refs/tags/v} latest" >> "$GITHUB_ENV" ;;
+            *) echo "TAGS=develop" >> "$GITHUB_ENV" ;;
+          esac
+          for f in app/frontend/package.json app/backend/package.json; do
+            jq --arg v "$v" '.version = $v' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+          done
       - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
         with:
           driver-opts: env.BUILDKIT_STEP_LOG_MAX_SIZE=-1
-      - uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+      - name: docker.io login
+        if: env.PUBLISH == 'true'
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: build (and push arch tags)
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           context: app
+          push: ${{ env.PUBLISH == 'true' }}
+          tags: docker.io/${{ env.NAMESPACE }}/npmos:${{ env.VERSION }}-arm64
           cache-from: type=gha,scope=npmos-arm64
           cache-to: type=gha,mode=max,scope=npmos-arm64
           build-args: |
+            CROWDSEC_VERSION=${{ env.CROWDSEC_VERSION }}
             FLAGS=-mbranch-protection=standard
+      - name: arch tags
+        if: env.PUBLISH == 'true'
+        run: |
+          for t in $TAGS; do
+            docker buildx imagetools create -t "docker.io/$NAMESPACE/npmos:$t-arm64" "docker.io/$NAMESPACE/npmos:$VERSION-arm64"
+          done
+
+  npmos-manifest:
+    name: npmos multi-arch manifest
+    needs: [images, npmos-arm64]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/work' || startsWith(github.ref, 'refs/tags/v'))
+    runs-on: ubuntu-latest
+    steps:
+      - name: docker.io login
+        if: env.PUBLISH == 'true'
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+      - name: manifest
+        if: env.PUBLISH == 'true'
+        run: |
+          case "$GITHUB_REF" in
+            refs/tags/v*) tags="${GITHUB_REF#refs/tags/v} latest" ;;
+            *) tags="develop" ;;
+          esac
+          for t in $tags; do
+            docker buildx imagetools create -t "docker.io/$NAMESPACE/npmos:$t" \
+              "docker.io/$NAMESPACE/npmos:$t-amd64" "docker.io/$NAMESPACE/npmos:$t-arm64"
+          done
+
+  appsec-arm64:
+    name: open-appsec images (arm64, experimental)
+    needs: checks
+    if: github.event_name == 'workflow_dispatch'
+    continue-on-error: true
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - run: cat deploy/openappsec/sources.env >> "$GITHUB_ENV"
+      - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+      - name: build npmos-appsec-agent (arm64)
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: deploy/openappsec/agent
+          build-args: OPENAPPSEC_REF=${{ env.OPENAPPSEC_REF }}
+          cache-from: type=gha,scope=appsec-agent-arm64
+          cache-to: type=gha,mode=max,scope=appsec-agent-arm64
