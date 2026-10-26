@@ -1,292 +1,363 @@
 # NPMOS — план разработки
 
 > NPMOS = NPMplus (основа) + функциональность open-appsec-npm + open-appsec agent + CrowdSec.
-> Документ составлен по итогам разбора кода в этом монорепо (состояние на 26.10.2026).
-> Модель работы: реализацию пишет ИИ-агент (Claude Code), команда ревьюит, тестирует и принимает фазы.
+> Документ составлен по итогам разбора кода в этом монорепо (ред. 2, 26.10.2026).
+> Модель работы: реализацию пишет ИИ-агент (Claude Code), команда (opensophy + Кирилл) вместе ревьюит, тестирует и принимает каждую фазу; UI принимает в основном opensophy.
 
 ---
 
-## 0. Что показал анализ кода (важно для всех решений ниже)
+## ★ Главный принцип: никакой зависимости от облака
 
-### 0.1. NPMplus (`NPMplus/`) — правильный фундамент
-| Факт | Где | Что это значит для нас |
+**NPMOS должен полностью и штатно работать без интернета и без облачных сервисов** (Check Point / open-appsec SaaS, CrowdSec Console/CAPI, GitHub, Gravatar и т.п.). Всё, что open-appsec и CrowdSec дают через свои облачные консоли, NPMOS заменяет **локальным** решением. Интернет допустим только как *опция*, которую администратор включает сам (например, выпуск сертификатов Let's Encrypt).
+
+Как это обеспечиваем:
+1. **Инвентаризация облачных точек** (раздел 1) — каждая либо выключена по умолчанию, либо заменена локальным компонентом.
+2. **Тест «закрытый контур» в CI**: весь стек поднимается в docker-сети с `internal: true` (исходящий трафик запрещён) и проходит e2e-сценарии: атака блокируется, события видны, аналитика строится, обучение/тюнинг работают, CrowdSec банит. Плюс проверка, что ни один контейнер не пытался резолвить/подключаться наружу.
+3. **Правило для кода**: новая функция, требующая интернета, не принимается без локальной альтернативы и флага, выключенного по умолчанию.
+4. **Офлайн-поставка**: образы публикуются в Docker Hub, плюс архив для закрытых сетей (`docker save` всего стека + compose + инструкция), обновления ML-модели и хаба CrowdSec — загрузкой файла через UI.
+
+---
+
+## 1. Облачные зависимости и их локальная замена
+
+### 1.1. open-appsec
+| Что делает облако (SaaS my.openappsec.io) | Как устроено локально в коде | Что делает NPMOS |
 |---|---|---|
-| Backend: Node.js ESM, Express 5, Knex/Objection, SQLite/MySQL/Postgres, biome | `backend/package.json`, `db.js` | Современный стек, удобно расширять |
-| Frontend: React 19 + Vite + TypeScript + Tabler/Bootstrap + react-query + **react-intl** | `frontend/package.json` | i18n **уже есть** |
-| 22 языка, `ru.json` переведён на ~87% (259 из 299 ключей), есть `check-locales.cjs` | `frontend/src/locale/` | «Мультиязычность» делать с нуля не надо — только доделать RU и держать полноту в CI |
-| Attachment open-appsec **собирается из исходников** в Dockerfile (`OASA_VER`), включается env `NGINX_LOAD_OPENAPPSEC_ATTACHMENT_MODULE=true` (при этом выключается zstd) | `Dockerfile:165`, `rootfs/usr/local/bin/start.sh:438` | Интеграция с агентом на уровне nginx уже работает, управления из GUI нет совсем |
-| В `compose.yaml` уже описан standalone-стек агента: `agent` + `smartsync` + `shared-storage` + `tuning-svc` + `postgres`, `autoPolicyLoad=true` | `compose.yaml:174-247` | Агент сам перечитывает `local_policy.yaml` — панели достаточно писать файл |
-| NPMplus работает в `network_mode: host`, агент — в отдельной сети | `compose.yaml` | Подход open-appsec-npm (curl на `127.0.0.1:7777/set-apply-policy`) здесь **не заработает «как есть»** |
-| mTLS: можно загрузить CA (provider `mtls`), на хосте/стриме выбрать CA и режим `on/optional` | `backend/internal/certificate.js`, `templates/_common.conf:42`, `templates/stream.conf:48` | База для mTLS есть; нет собственного CA, выпуска, отзыва, сроков, раздачи |
-| CrowdSec bouncer (lua) + CrowdSec AppSec, настройка через файл `crowdsec.conf` | `rootfs/etc/crowdsec.conf.*`, README | Управления CrowdSec из GUI нет |
-| OIDC-вход (env `OIDC_*`), 2FA (TOTP), audit-log, Swagger `/api/docs` | `routes/oidc.js` и др. | Можно использовать OIDC-группы для RBAC |
-| Права: роли только `admin`/`user`, у пользователя фиксированные колонки `proxy_hosts`/`certificates`/... = `hidden/view/manage`, `visibility = all/user`; проверки через JSON-схемы `lib/access/*.json` | `migrations/…initial.js`, `lib/access.js`, `frontend/src/modules/Permissions.ts` | Под RBAC придётся заменить модель, а не «добавить колонку» |
-| GoAccess (статистика по access-логам) | env `GOA=true` | Пересекается с аналитикой трафика — не дублируем, а встраиваем/линкуем |
-| Лицензия AGPL-3.0 | `COPYING` | Весь форк — AGPL-3.0; код open-appsec-npm (MIT) и агента (Apache-2.0) — с сохранением уведомлений |
+| Управление политикой | Агент без `AGENT_TOKEN` работает в `hybrid_mode` (declarative), берёт `local_policy.yaml` из `/ext/appsec`, `autoPolicyLoad=true` | Генерирует политику из своей БД и пишет файл (Фазы 1, 5) |
+| Хранение логов, поиск, дашборды | `logDestination.cloud: true` в триггерах по умолчанию | Во всех генерируемых триггерах `cloud: false`, `local-tuning: true` (+ файл/syslog для нашего пайплайна) — Фаза 4 |
+| Совместное обучение нескольких агентов | `smartsync` + `smartsync-shared-files` (локальное S3-подобное хранилище) — уже есть в `compose.yaml` NPMplus | Поставляем в составе стека, мониторим состояние |
+| Tuning Suggestions, статистика, «готовность» обучения | `smartsync-tuning` + Postgres (таблица `appsec`, партиции по дням) | Наш UI поверх его REST API + собственная разметка (Фаза 8) |
+| Advanced ML model | Файл `/advanced-model/open-appsec-advanced-model.tgz` распаковывается при старте (`build_system/docker/entry.sh:115`); скачивается с портала open-appsec после регистрации | Загрузка `.tgz` через UI (один раз скачать на машине с интернетом), версия модели в UI. Без неё работает встроенная базовая модель |
+| Регистрация/телеметрия | В hybrid-режиме `registerLocalAgentToFog` срабатывает только при наличии токена; телеметрия уходит в локальные сервисы | Не задаём `AGENT_TOKEN`, `user_email`; проверяем тестом «закрытый контур» |
+| Автообновление агента | `upgradeMode` по умолчанию `manual` | Обновление = новая версия образа NPMOS-стека |
+| CrowdSec-репутация IP в агенте | Встроенная интеграция: `CROWDSEC_ENABLED=true`, `layer_7_access_control` опрашивает **локальный** LAPI | Включаем и настраиваем из UI (Фаза 7) |
 
-### 0.2. open-appsec-npm (`open-appsec-npm-master/`) — что из него переносить
-Это форк **старого** NPM 2.12 (Backbone/Marionette + jQuery). Код UI переносить нельзя — только логику, переписывая под React.
+### 1.2. CrowdSec
+| Облако (Console app.crowdsec.net / CAPI) | Локальная замена в NPMOS |
+|---|---|
+| Console: алерты, решения, машины, баунсеры, метрики | Раздел «CrowdSec» в NPMOS поверх **локального LAPI** + Prometheus-метрик |
+| CAPI: community blocklist, отправка сигналов | Отключено по умолчанию (`DISABLE_ONLINE_API=true`, без `online_api_credentials`). Взамен — локальные блок-листы: импорт файлов/URL по желанию, обмен решениями между нашими узлами |
+| Hub (парсеры, сценарии, коллекции) | Коллекции вшиваются в образ / локальное зеркало хаба; обновление — загрузкой архива через UI |
+| Enrollment в Console | Не нужен |
 
-Функциональность форка (всего ~750 строк backend + UI):
-1. **Per-host / per-location WAF**: `use_openappsec`, `openappsec_mode` (inactive / detect-learn / prevent-learn), `minimum_confidence` (critical/high/medium) — `backend/internal/nginx-openappsec.js`.
-   - Хранится **не в БД, а прямо в `local_policy.yaml`** (формат v1beta1), правила с именами `npm-managed-*-proxyhost-<id>`; при чтении хоста YAML парсится обратно.
-2. **Редактор политики** — сырой YAML в textarea (`routes/openappsec-settings.js`). Без валидации, без бэкапа, право проверяется как `settings:list` даже на запись.
-3. **Просмотр логов** — `internal/openappsec-log.js`: на **каждый запрос** читает **все** `*.log*` файлы агента целиком в память, фильтрует на клиенте (вкладки «Important» = critical/high, «All», «Notifications» = action item). В `getPage` используется `readline` без импорта (код мёртвый). Право — `auditlog:list`.
-4. **Применение политики** — `curl` на `127.0.0.1:7777|7778/set-apply-policy` через `child_process.exec`; ошибки фактически глотаются.
-
-Вывод: переносим **идеи и маппинг полей**, но реализуем заново и правильно (БД как источник правды, генерация YAML, нормальный пайплайн событий).
-
-### 0.3. Агент и сервисы (`openappsec-main/`, `smartsync-main/`, `smartsync-tuning-main/`)
-- Актуальный формат локальной политики — **v1beta2** (`config/linux/v1beta2/schema/schema_v1beta2.yaml`): `policies.default/specificRules`, `threatPreventionPractices` (webAttacks, intrusionPrevention, fileSecurity, snortSignatures, schemaValidation, antiBot), `accessControlPractices` (rateLimit), `customResponses`, `logTriggers`, `exceptions`, `trustedSources`, `sourceIdentifiers`. open-appsec-npm пишет устаревший v1beta1.
-- `logTriggers.logDestination` поддерживает `cloud`, `local-tuning`, `syslogService`, `cefService`, `stdout` — это даёт нам официальные способы получать события.
-- **smartsync-tuning** (standalone-режим) — REST API (`internal/app/drivers/http/rest/routers.go`):
-  - `POST /api/v1/agents/events[/bulk]` — приём логов от агента;
-  - `GET /api/v2/assets/{assetId}/statistics` — статистика (totalRequests, critical/high, legit/malicious, readiness, recommendation);
-  - `GET /api/v2/assets/{assetId}/tuning` и `/tuning/review` — **Tuning Suggestions** и уже принятые решения;
-  - `POST /api/v2/assets/{assetId}/tuning` — отправить решение (`benign` / `malicious` / `dismiss`);
-  - `GET /api/v2/assets/{assetId}/logs` — логи, относящиеся к предложению.
-  - Логи хранит в Postgres в таблице `appsec`, **партиционированной по дню** (`eventTime`), схема — `configs/tableSchema.json`.
-
-**Ответ на вопрос «должен ли запрос ждать решения админа»:** нет, и технически так не сделать. Attachment получает вердикт от агента синхронно за миллисекунды (с fail-open/fail-close по таймауту). «Обучение» в open-appsec — **ретроспективное**: tuning-сервис агрегирует подозрительные паттерны (параметр/URL/источник), а админ помечает их benign/malicious, после чего меняется поведение модели/политики для **будущих** запросов. То есть фича = «входящие Tuning Suggestions» (как в SaaS), а не очередь удержания запросов. Кирилл прав: блокировка зависит от режима (`prevent-learn` блокирует, `detect-learn` только логирует).
+### 1.3. NPMplus
+| Точка выхода в интернет (найдено в коде) | Решение |
+|---|---|
+| Проверка версии `api.github.com` (`backend/internal/remote-version.js`) | Выключено по умолчанию |
+| Gravatar (`backend/internal/user.js`) | `DISABLE_GRAVATAR=true` по умолчанию, локальные аватары |
+| IP-диапазоны Cloudflare (`backend/internal/ip_ranges.js`) | Выключено по умолчанию, ручной список/загрузка файла |
+| ACME (Let's Encrypt/ZeroSSL/Google) | Опция. Для закрытых сетей — серверные сертификаты из **нашего PKI** (Фаза 6), в перспективе локальный ACME-сервер |
+| GeoIP (MaxMind, geoipupdate) | Загрузка `.mmdb` через UI; без неё аналитика работает без стран |
+| DNS-плагины certbot | Только для DNS-challenge, опция |
 
 ---
 
-## 1. Целевая архитектура
+## 2. Что показал анализ кода
 
-### 1.1. Структура монорепо
+### 2.1. NPMplus (`NPMplus/`) — фундамент
+| Факт | Где | Значение |
+|---|---|---|
+| Backend: Node.js ESM, Express 5, Knex/Objection, SQLite/MySQL/**Postgres**, biome | `backend/` | Современный стек; Postgres поддерживается штатно |
+| Frontend: React 19 + Vite + TS + Tabler/Bootstrap + react-query + **react-intl** | `frontend/` | i18n уже есть: 22 языка, `ru.json` ≈87% (259/299), есть `check-locales.cjs` |
+| Attachment open-appsec собирается из исходников (`OASA_VER`), включается `NGINX_LOAD_OPENAPPSEC_ATTACHMENT_MODULE=true` (выключает zstd) | `Dockerfile:165`, `start.sh:438` | Интеграция на уровне nginx готова, управления из GUI нет |
+| В `compose.yaml` описан standalone-стек агента: agent + smartsync + shared-storage + tuning-svc + postgres | `compose.yaml:174-247` | Локальный контур open-appsec уже предусмотрен — оформляем его как основной |
+| NPMplus — `network_mode: host`, агент — в своей сети | `compose.yaml` | Применение политики через `curl 127.0.0.1:7777` из open-appsec-npm здесь не работает → пишем файл, агент сам подхватывает (`autoPolicyLoad`) |
+| mTLS: загрузка CA (provider `mtls`), на хосте/стриме `ssl_verify_client on/optional` | `internal/certificate.js`, `templates/_common.conf:42`, `templates/stream.conf:48` | База есть; нет своего CA, выпуска, отзыва, сроков |
+| CrowdSec bouncer (lua) + CrowdSec AppSec, настройка файлом | `rootfs/etc/crowdsec.conf.*` | GUI нет |
+| OIDC, 2FA, audit-log, Swagger | `routes/oidc.js` и др. | OIDC-группы → роли RBAC |
+| Права: роли `admin`/`user`, фиксированные колонки `hidden/view/manage` | `migrations/…initial.js`, `lib/access.js` | Для RBAC нужна новая модель |
+| Лицензия AGPL-3.0 | `COPYING` | Форк — AGPL-3.0; код open-appsec-npm (MIT) и агента (Apache-2.0) — с сохранением уведомлений |
+
+### 2.2. open-appsec-npm (`open-appsec-npm-master/`) — что переносим
+Форк **старого** NPM 2.12 (Backbone/Marionette). UI не переносим — только логику:
+1. Per-host / per-location WAF: `use_openappsec`, `openappsec_mode`, `minimum_confidence` — хранится прямо в `local_policy.yaml` (v1beta1) с именами `npm-managed-*-proxyhost-<id>`.
+2. Редактор политики — сырой YAML без валидации и бэкапа, запись проверяется правом `settings:list`.
+3. Логи — на каждый запрос читаются **все** файлы агента целиком; в `getPage` используется `readline` без импорта. **Интеграции с БД нет** (ответ на вопрос из обсуждения).
+4. Применение — `curl` через `child_process.exec`, ошибки фактически глотаются.
+
+### 2.3. Как на самом деле работает классификатор open-appsec (`openappsec-main/components/security_apps/waap/`)
+**Инспекция запроса (inline, синхронно, миллисекунды):**
+1. Парсеры (`waap_clib/Parser*.cc`: JSON, XML, multipart, GraphQL, urlencode, base64…) раскладывают запрос на параметры.
+2. Сканер ищет **индикаторы** (ключевые слова, комбинации, типы значений) — `WaapScanner`, `WaapKeywords`, `Signatures`, Hyperscan.
+3. `ScoreBuilder` / `WaapScores` считают **оценку 0–10** по весам модели (базовая модель встроена в `resources/*.data`; advanced-модель — файл). Учитываются репутация источника (`waapUserReputationScore`), FP-оценка URI (`waapUriFalsePositiveScore`).
+4. Оценка → уровень угрозы (`WaapConversions.cc`, `WaapEnums.h`): `< 3` — Low, `3…6` — Medium, `≥ 6` — High.
+5. `minimum-confidence` политики определяет, с какого уровня **блокировать** в режиме prevent:
+   - `critical` → блок только High (≥ 6);
+   - `high` → блок Medium и выше (≥ 3);
+   - `medium` → блок всего, что выше Info.
+   Всё, что ниже порога, проходит и логируется как Detect.
+6. В лог пишутся `waapFinalScore`, `waapCalculatedThreatLevel`, `waapFoundIndicators`, `matchedParameter`, `matchedSample`, `waapIncidentType`, `securityAction` и др. — **по ним можно найти «серую зону»**, т.е. запросы, по которым агент «не уверен».
+
+**Обучение (асинхронно, часы/дни):**
+- `IndicatorsFiltersManager` / `KeywordIndicatorFilter` / `TypeIndicatorsFilter` / `ConfidenceCalculator` копят статистику «какие индикаторы встречаются в каком параметре и от скольких **разных** источников». Если индикатор стабильно приходит от многих источников (smartsync: `MinSources: 3`, `MinIntervals: 5`, `RatioThreshold: 0.8`, интервал 2 ч), он считается нормой для этого параметра и перестаёт повышать оценку → меньше ложных срабатываний.
+- `TrustedSources` — источники, которым доверяем при обучении (их вес выше).
+- `smartsync` синхронизирует обученные данные между агентами через локальное shared-storage.
+
+**Как разметка человека доходит до агента (`waap_clib/TuningDecision.cc`):**
+- Агент **каждые 30 минут** забирает из shared-storage файл `<tenant>/<asset>/tuning/decisions.data` — список решений `{decision, eventType, eventTitle}`.
+- Типы: `source` (источник), `url`, `parameterName`, `parameterValue`. Решения: `benign`, `malicious`, `dismiss`.
+- Эффект:
+  - **benign** по URL/значению параметра → индикаторы дополнительно регистрируются от «виртуального источника» `TuningDecisionSource_*` → модель быстрее признаёт их нормой;
+  - **benign** по источнику → вес источника в `ConfidenceCalculator` увеличивается (как будто это `minSources` источников);
+  - **malicious** по любому типу → данные такого запроса **исключаются из обучения** (защита от «отравления» модели).
+- Файл пишет `smartsync-tuning` (`POST /api/v2/assets/{asset}/tuning`), он же генерирует Tuning Suggestions раз в 24 ч SQL-запросами к Postgres: Critical/High-события, повторяющиеся по одному параметру/URL от ≥ N разных источников.
+
+**Важные выводы:**
+- Разметка **не блокирует и не пропускает текущий запрос** — вердикт уже вынесен. Она меняет поведение на будущие запросы. Поэтому вопрос «пропускать или блокировать, если уведомление увидели через пару часов» решается **политикой, а не уведомлением**: если «неуверенные» запросы должны блокироваться сразу, ставим `minimum-confidence` строже (`high`/`medium`). А разметка затем убирает ложные срабатывания.
+- Разметка влияет на обучение **медленно** (30 мин + циклы обучения по часам). Для мгновенного эффекта нужны **исключения** политики (accept/drop по параметру/URL/IP) и бан в CrowdSec — NPMOS предлагает их в одном действии.
+- Встроенный генератор подсказок ориентирован на крупный трафик (нужно ≥ N разных источников). Для небольших сайтов подсказок почти не будет — поэтому нужна **наша собственная разметка событий** (Фаза 8).
+
+---
+
+## 3. Целевая архитектура
+
+### 3.1. Структура монорепо
 ```
 /
-├── app/                      # NPMOS = форк NPMplus (git subtree), ЕДИНСТВЕННОЕ, что собирается в образ
+├── app/                      # NPMOS = форк NPMplus (git subtree), только это собирается в образ
 │   ├── backend/
-│   │   ├── internal/…        # upstream-код NPMplus (минимум правок)
-│   │   └── npmos/            # НАШ код: waf/, events/, pki/, rbac/, crowdsec/ (+ routes, schema, migrations)
+│   │   ├── internal/…        # upstream NPMplus (минимум правок)
+│   │   └── npmos/            # НАШ код: waf/, events/, learning/, pki/, rbac/, crowdsec/, notify/
 │   ├── frontend/src/
-│   │   ├── …                 # upstream-код NPMplus
-│   │   └── npmos/            # НАШ код: shell/, waf/, analytics/, pki/, rbac/, ui/ (компоненты на токенах)
+│   │   ├── …                 # upstream NPMplus
+│   │   └── npmos/            # НАШ код: shell/ (sidebar), waf/, analytics/, learning/, pki/, rbac/, ui/
 │   ├── rootfs/, patches/, Dockerfile
-├── reference/                # read-only исходники для контекста ИИ, НЕ собираются
-│   ├── openappsec/  smartsync/  smartsync-tuning/  open-appsec-npm/
-│   └── VERSIONS.md           # откуда и какой коммит
-├── deploy/                   # compose-профили: minimal, waf (агент standalone), waf+crowdsec, dev
-├── design/                   # токены opensophy, макеты, sidebar-example
-├── docs/                     # ROADMAP, ADR (архитектурные решения), руководства пользователя
-├── scripts/upstream-sync.sh
-├── CLAUDE.md / AGENTS.md     # правила для ИИ: где что лежит, конвенции, как проверять
-└── .github/workflows/        # lint, typecheck, tests, locale-check, docker build
+├── reference/                # read-only исходники для контекста ИИ (агент, smartsync, tuning, open-appsec-npm) + VERSIONS.md
+├── deploy/                   # compose: стек по умолчанию (всё локально), dev, офлайн-бандл
+├── design/                   # токены opensophy, sidebar-example, макеты
+├── docs/                     # ROADMAP, ADR, руководства RU/EN
+├── scripts/upstream-sync.sh, scripts/offline-bundle.sh
+├── CLAUDE.md / AGENTS.md
+└── .github/workflows/        # lint, typecheck, tests, locale-check, docker build, air-gap e2e
 ```
 
-### 1.2. Правила, которые делают upstream «безболезненным»
-1. NPMplus подключается через `git subtree` с привязкой к конкретному коммиту upstream → `git subtree pull` делает настоящий 3-way merge.
-2. **Новый код — только в `npmos/`-директориях.** В upstream-файлах допускаются лишь «точки подключения» (регистрация роутов, пункт меню, хук после сохранения хоста, блок в nginx-шаблоне), каждая помечена комментарием `NPMOS:` — их легко найти при конфликте.
-3. Свои миграции — с префиксом имени `npmos_`, только новые таблицы; существующие upstream-таблицы не меняем (кроме неизбежного в RBAC — через отдельные таблицы, а не колонки).
-4. Frontend: после редизайна оболочка и навигация — наши; страницы upstream (Proxy Hosts и т.д.) сначала перекрашиваем токенами, не переписываем. Конфликты при синке ожидаемы в основном во frontend — это приемлемая цена.
-5. Синк с upstream — раз в месяц и перед каждым релизом, скриптом + CI-сборкой; отчёт о конфликтах — в PR.
+### 3.2. Правила для безболезненного upstream
+1. NPMplus подключён через `git subtree` с привязкой к коммиту upstream → настоящий 3-way merge.
+2. Новый код — только в `npmos/`. В upstream-файлах — лишь «точки подключения» с комментарием `NPMOS:`.
+3. Свои миграции — префикс `npmos_`, только новые таблицы.
+4. Конфликты ожидаемы в основном во frontend (sidebar, стили) — приемлемо.
+5. Синк — раз в месяц и перед релизом, скриптом + CI.
 
-### 1.3. Ключевые архитектурные решения (ADR)
-| # | Решение | Почему |
-|---|---|---|
-| ADR-1 | Источник правды для WAF-настроек — **БД NPMOS**; `local_policy.yaml` **генерируется** (v1beta2) как nginx-конфиги из шаблонов | Нет хрупкого парсинга YAML, есть версии/откат/аудит, понятный RBAC |
-| ADR-2 | Применение политики: запись файла в общий volume (`/opt/openappsec/localconf`) + `autoPolicyLoad=true`; опционально явный вызов apply через API агента, если доступен; статус применения читаем из агента/лога | Работает при `network_mode: host` NPMplus и отдельной сети агента |
-| ADR-3 | «Ручной» YAML остаётся как режим эксперта: пользовательские фрагменты мержатся с генерируемыми, перед записью — валидация по JSON-схеме v1beta2 и diff | Ничего не теряем из гибкости, но без риска «сломать агент опечаткой» |
-| ADR-4 | События безопасности — единая модель `security_event` (источник: openappsec / crowdsec / mtls / access-list) в отдельном хранилище с ретеншеном | Аналитика и логи из одного места, CrowdSec подключается без переделки |
-| ADR-5 | Собственный PKI внутри панели (Root → Intermediate → клиентские сертификаты), ключи CA шифруются на диске | Требование: «выпуск сертификатов самой панелью» |
-| ADR-6 | RBAC: роли + права «ресурс:действие» + (позже) область объектов; OIDC-группы → роли | Админ сам собирает роли в GUI; корпоративный SSO без RADIUS |
-| ADR-7 | UI остаётся на React (не переносим на Svelte); токены opensophy переносятся как CSS-переменные + свой набор компонентов | Переписывать весь фронт ради фреймворка — месяцы без пользы и потеря синка с upstream |
-| ADR-8 | Языки: EN (по умолчанию) + RU полностью, остальные — как есть из upstream; CI не пропускает новые ключи без RU | Ответ на обсуждение: ИБ-термины на EN, интерфейс доступен на RU, расширяемость через PR |
+### 3.3. Архитектурные решения (ADR)
+| # | Решение |
+|---|---|
+| ADR-0 | **Local-first**: никакой обязательной облачной зависимости; тест «закрытый контур» в CI блокирует merge |
+| ADR-1 | Источник правды для WAF — БД NPMOS; `local_policy.yaml` (v1beta2) **генерируется** |
+| ADR-2 | Применение политики: атомарная запись файла в общий volume + `autoPolicyLoad`; статус применения — из агента |
+| ADR-3 | Ручной YAML — режим эксперта: фрагменты мержатся с генерируемыми, валидация по схеме v1beta2, diff, откат |
+| ADR-4 | **Postgres обязателен** (решение команды): одна инсталляция Postgres для NPMOS, событий и `smartsync-tuning` (разные БД/схемы). SQLite остаётся только для миграции со старых установок |
+| ADR-5 | Единая модель `security_event` (источники: openappsec / crowdsec / mtls / access-list), партиции по дням, ретеншен |
+| ADR-6 | Собственный PKI (Root → Intermediate → клиентские), ключи CA зашифрованы |
+| ADR-7 | RBAC: роли + «ресурс:действие» (+ позже область объектов); OIDC-группы → роли |
+| ADR-8 | UI остаётся на React; редизайн = CSS-токены opensophy + sidebar вместо текущей навигации |
+| ADR-9 | Языки: EN по умолчанию + RU полностью; CI не пропускает ключи без RU |
+| ADR-10 | Модель данных с самого начала содержит `node_id` (узел NPMOS/агент) — чтобы позже добавить централизованное управление без миграций |
+| ADR-11 | Уведомления: каналы по приоритету **email → webhook → Telegram**; email через свой SMTP (локальный relay допустим) |
+| ADR-12 | Образы — Docker Hub (`<org>/npmos`), плюс офлайн-бандл для закрытых сетей |
 
 ---
 
-## 2. Фазы
+## 4. Фазы
 
-Оценки — в рабочих неделях при реализации ИИ-агентом и регулярном ревью/тестах. Каждая фаза заканчивается PR, чек-листом для ручного теста и демо-стендом через `deploy/`.
+Оценки — рабочие недели при реализации ИИ-агентом и регулярном совместном ревью. Каждая фаза: PR, чек-лист ручного теста, демо-стенд из `deploy/`, прохождение теста «закрытый контур».
 
 ### Фаза 0. Фундамент репозитория (≈1 нед.)
-- [ ] Определить, какому коммиту `ZoeyVid/NPMplus` соответствует текущая копия; заново подключить NPMplus в `app/` через `git subtree` от этого коммита (историю сохранить).
-- [ ] Перенести агент/smartsync/tuning/open-appsec-npm в `reference/` + `VERSIONS.md`; исключить из сборки и из поиска линтеров.
-- [ ] `CLAUDE.md`: карта модулей, конвенции, команды проверки, правило `npmos/` + `NPMOS:`.
-- [ ] CI: biome (backend+frontend), `tsc`, vitest, проверка локалей, `docker build` (amd64; arm64 — по ночам, сборка долгая).
-- [ ] `deploy/compose.dev.yaml`: NPMOS + агент standalone + tuning + postgres + crowdsec + тестовый upstream (whoami) + генератор атак для демо.
-- [ ] `scripts/upstream-sync.sh` + workflow, который раз в неделю проверяет, есть ли новые коммиты upstream.
-- [ ] Ребрендинг минимальный: имя образа/контейнера `npmos`, заголовок, ссылки (без массовых переименований в коде — это убьёт синк).
+- [ ] Определить коммит `ZoeyVid/NPMplus`, которому соответствует текущая копия; подключить NPMplus в `app/` через `git subtree`.
+- [ ] `reference/` + `VERSIONS.md`; исключить из сборки и линтеров.
+- [ ] `CLAUDE.md`: карта модулей, конвенции, команды проверки, правило `npmos/` + `NPMOS:`, **правило local-first**.
+- [ ] CI: biome, `tsc`, vitest, проверка локалей, `docker build` (amd64; arm64 — ночью).
+- [ ] **CI-тест «закрытый контур»** (каркас; наполняется сценариями в каждой фазе).
+- [ ] `deploy/compose.yaml` — стек по умолчанию, полностью локальный: NPMOS + Postgres + open-appsec agent (hybrid, без токена) + smartsync + shared-storage + tuning-svc + CrowdSec (без CAPI). `deploy/compose.dev.yaml` — плюс тестовый upstream и генератор атак.
+- [ ] Умолчания local-first в NPMOS: выключены проверка версии, Gravatar, загрузка IP-диапазонов.
+- [ ] Минимальный ребрендинг: образ `npmos` в Docker Hub, заголовок, ссылки.
 
-**Приёмка:** образ собирается в CI, `compose.dev` поднимается одной командой, проксирование и выпуск LE/самоподписанного работают как в NPMplus.
+**Приёмка:** образ собирается в CI; стек поднимается одной командой без интернета; проксирование работает.
 
-### Фаза 1. Перенос open-appsec-npm в NPMOS (≈2 нед.)
-Backend (`app/backend/npmos/waf/`):
-- [ ] Таблицы `npmos_waf_host` / `npmos_waf_location`: `enabled`, `mode` (inactive/detect-learn/prevent-learn), `minimum_confidence`, ссылки на практики/триггеры/ответ (на будущее).
-- [ ] Генератор `local_policy.yaml` v1beta2 из БД (default-политика + specificRules на каждый домен/локацию — как в форке, но в новом формате); атомарная запись (tmp + rename), бэкап предыдущих N версий.
-- [ ] Импорт: если найден существующий `local_policy.yaml` с правилами `npm-managed-*` (миграция с open-appsec-npm) — разобрать в БД.
-- [ ] Хуки на create/update/delete proxy-host → регенерация политики (debounce, одна запись на пачку изменений).
-- [ ] Статус агента: доступен ли, какая версия политики применена, когда; понятная ошибка в UI вместо HTML-строки из форка.
-- [ ] API `/api/npmos/waf/*` + Swagger-схемы.
+### Фаза 1. Перенос open-appsec-npm (≈2 нед.)
+- [ ] Таблицы `npmos_waf_host` / `npmos_waf_location`: enabled, mode, minimum_confidence (+ задел под практики/триггеры).
+- [ ] Генератор `local_policy.yaml` v1beta2: default + specificRules на каждый домен/локацию; во всех триггерах `cloud: false`, `local-tuning: true`; атомарная запись, бэкап N версий.
+- [ ] Импорт правил `npm-managed-*` из существующего файла (миграция с open-appsec-npm).
+- [ ] Хуки create/update/delete proxy-host → регенерация (с debounce).
+- [ ] Статус агента: доступен ли, когда и какая версия политики применена; понятные ошибки.
+- [ ] UI: вкладка «WAF» в модалке хоста и локаций, бейдж статуса в списке, страница «Политика (эксперт)» — YAML с валидацией, diff и откатом.
+- [ ] Загрузка advanced-модели (`.tgz`) через UI.
 
-Frontend:
-- [ ] Вкладка «WAF (open-appsec)» в модалке Proxy Host и в локациях: переключатель, режим, уровень уверенности.
-- [ ] Колонка/бейдж статуса WAF в списке хостов.
-- [ ] Страница «WAF → Политика (эксперт)»: YAML-редактор с подсветкой, валидацией по схеме, diff перед применением, откатом к версии.
-- [ ] Простая страница событий (временно — чтение последних событий из лог-файла агента с пагинацией на сервере; полноценный пайплайн — Фаза 4).
+**Приёмка:** WAF в prevent → SQLi/XSS получают 403, событие видно; detect → проходят и логируются; всё — без интернета.
 
-Инфраструктура: профиль `deploy/compose.waf.yaml` (NPMOS + агент standalone), документация по развёртыванию на RU/EN.
-
-**Приёмка:** включили WAF на хосте в prevent → SQLi/XSS-запрос из тестового скрипта получает 403, событие видно в UI; выключили → проходит; рестарт контейнеров не теряет настройки.
-
-### Фаза 2. Оболочка редизайна + i18n (≈1.5 нед., параллельно с макетами)
-Редизайн ведёт opensophy; со стороны разработки — инфраструктура, чтобы макеты сразу ложились в код:
-- [ ] Слой токенов: `npmos/ui/tokens.css` — переменные из «Токены дизайна» (цвета oklch, `--base-hue`, радиусы, тени, `.card`, `.inset-shadow`), светлая/тёмная тема, маппинг на переменные Tabler/Bootstrap, чтобы upstream-страницы сразу «перекрасились».
-- [ ] Новый layout: боковое меню (по мотивам `sidebar-example.md`, но на React), хедер с поиском, переключатель темы и языка.
-- [ ] Новая навигация (не перегружена, растёт вместе с фичами):
+### Фаза 2. Редизайн: CSS-токены + sidebar, i18n (≈1 нед.)
+Объём по решению команды: **CSS на токенах opensophy + sidebar вместо текущей верхней навигации**. Страницы не переписываем.
+- [ ] `npmos/ui/tokens.css`: переменные из «Токены дизайна» (oklch-цвета, `--base-hue`, радиусы, тени, `.card`, `.inset-shadow`), светлая/тёмная тема, маппинг на переменные Tabler/Bootstrap → все upstream-страницы перекрашиваются автоматически.
+- [ ] Sidebar на React по мотивам `sidebar-example.md` (группы, индикатор активного пункта, сворачивание, мобильная версия), переключатели темы и языка.
+- [ ] Структура меню:
   ```
   Обзор
-  Хосты          → Proxy · Redirection · Streams · 404
-  Безопасность   → WAF: Политики · События · Аналитика · Тюнинг │ CrowdSec │ Access Lists
-  Сертификаты    → TLS (ACME/свои) · PKI и mTLS
-  Администрирование → Пользователи · Роли · Аудит · Настройки
+  Хосты           → Proxy · Redirection · Streams · 404
+  Безопасность    → WAF: Политики · События · Аналитика · Обучение │ CrowdSec │ Access Lists
+  Сертификаты     → TLS · PKI и mTLS
+  Администрирование → Пользователи · Роли · Аудит · Уведомления · Настройки
   ```
-- [ ] Базовые компоненты `npmos/ui`: Button, Card, Table, Badge, Tabs, Drawer, Dialog, EmptyState, StatTile, Chart-обёртка.
-- [ ] i18n: довести `ru.json` до 100%, правило «новые ключи только в en+ru», CI-проверка через `check-locales.cjs`; перевод HelpDoc на RU; глоссарий ИБ-терминов (что оставляем на EN: WAF, mTLS, CA, CRL, prevent/detect…).
+- [ ] i18n: `ru.json` до 100%, CI-правило «новые ключи только en+ru», HelpDoc на RU, глоссарий терминов, остающихся на EN.
 
-**Приёмка:** все страницы работают в новой оболочке, обе темы, RU/EN переключаются без перезагрузки, нет непереведённых строк.
+**Приёмка (opensophy):** все страницы в новой оболочке, обе темы, RU/EN без перезагрузки, нет непереведённых строк.
 
 ### Фаза 3. RBAC (≈2 нед.)
-- [ ] Модель: `npmos_role`, `npmos_role_permission(resource, action)`, `npmos_user_role`; ресурсы: proxy_hosts, redirection_hosts, streams, dead_hosts, access_lists, certificates, pki, waf_policy, waf_events, waf_tuning, analytics, crowdsec, users, roles, settings, audit_log; действия: `view`, `manage` + особые (`pki:issue`, `pki:revoke`, `pki:export_key`, `waf:apply`, `waf_tuning:decide`).
-- [ ] Встроенные роли (нельзя удалить, можно клонировать): Administrator, Operator (хосты/сертификаты), Security Analyst (WAF/события/тюнинг, без хостов), Viewer (только чтение).
-- [ ] Миграция: текущие `user_permission` → автосгенерированные роли, поведение пользователей не меняется.
-- [ ] Адаптер проверок: `access.can('proxy_hosts:update')` остаётся тем же API для upstream-кода, внутри — новая модель (минимум правок upstream).
-- [ ] Область видимости: «все объекты / только свои» (как `visibility` сейчас); этап 2 — привязка роли к конкретным хостам.
-- [ ] OIDC: маппинг claim `groups` → роли (настраивается в GUI); авто-создание пользователя при первом входе — опционально.
-- [ ] UI: страница «Роли» (матрица ресурс × действие), назначение ролей пользователю, все изменения — в аудит-лог.
-- [ ] Позже (по запросу): LDAP/RADIUS как источник аутентификации.
+- [ ] `npmos_role`, `npmos_role_permission(resource, action)`, `npmos_user_role`; ресурсы: хосты всех типов, access_lists, certificates, pki, waf_policy, waf_events, waf_learning, analytics, crowdsec, notifications, users, roles, settings, audit_log; действия `view`/`manage` + особые (`pki:issue`, `pki:revoke`, `pki:export_key`, `waf:apply`, `waf_learning:label`).
+- [ ] Встроенные роли: Administrator, Operator, Security Analyst, Viewer.
+- [ ] Миграция текущих `user_permission` в роли без изменения поведения.
+- [ ] Адаптер `access.can(...)` — upstream-код не меняем.
+- [ ] Область: «все / только свои»; позже — конкретные хосты.
+- [ ] OIDC: claim `groups` → роли (локальный IdP, напр. Keycloak/Authentik, — тоже без облака).
+- [ ] UI «Роли»: матрица ресурс × действие; всё в аудит.
 
-**Приёмка:** роль «Analyst» видит WAF и события, не видит/не может менять хосты ни в UI, ни через API (проверяется тестами на API).
+**Приёмка:** Analyst видит WAF/события, не может менять хосты ни в UI, ни через API (покрыто тестами).
 
-### Фаза 4. События безопасности, логи и аналитика (≈2.5 нед.)
-**Решение по логам (вопрос из обсуждения):** сейчас в open-appsec-npm интеграции с БД нет — логи читаются из файлов агента целиком на каждый запрос. Делаем пайплайн:
-- [ ] Ingest-воркер в backend: агент пишет события в лог-файл (`/opt/openappsec/logs`, уже монтируется в compose) → воркер читает «хвост» с сохранением позиции (переживает ротацию) → нормализует в `security_event` → пишет в хранилище. Альтернативный вход — syslog (`logDestination.syslogService`) для удалённых агентов.
-- [ ] Храним только события безопасности (detect/prevent, action items), телеметрию агента — отбрасываем или в агрегаты.
-- [ ] Хранилище: по умолчанию отдельный SQLite-файл `events.db` (WAL), чтобы не нагружать основную БД; при настроенном Postgres — Postgres с партициями по дню.
-- [ ] Ретеншен (решает «засор логами»): сырые события — **30 дней** (настраивается), почасовые агрегаты — 365 дней; ежедневная очистка (DROP партиции / удаление пачками).
-- [ ] Логи UI: таблица с серверной пагинацией и фильтрами (время, хост, IP, действие, severity, тип атаки), карточка события (запрос, matched parameter/sample, правило), экспорт CSV/JSON, кнопка «добавить исключение» (Фаза 5) и «забанить IP в CrowdSec» (Фаза 7).
-- [ ] Аналитика (по образцу SaaS, как предложил Кирилл) — период 1ч/24ч/7д/30д:
-  - KPI: всего запросов (из статистики tuning / VTS), атак, заблокировано, уникальных источников;
-  - Attacks Timeline (detect vs prevent);
-  - Top Attacked Assets;
-  - Top Attack Sources (High и выше), с GeoIP, если подключены базы GoAccess/MaxMind;
-  - Attacks Level (распределение severity);
-  - Security Actions (prevent/detect/accept);
-  - Top Attack Types (SQLi, XSS, RCE, path traversal…), Top URI;
-  - «Последние заблокированные».
-- [ ] Виджеты на «Обзоре», уведомления (UI + опционально webhook/Telegram/email) о всплесках атак.
+### Фаза 4. События, логи, аналитика, уведомления (≈2.5 нед.)
+**Логи (замена облачных логов open-appsec):**
+- [ ] Основной поток: агент → `smartsync-tuning` (`local-tuning`) → Postgres `appsec` (нужен и для обучения). Параллельно ingest-воркер NPMOS читает «хвост» JSON-лога агента (с сохранением позиции и учётом ротации) или принимает syslog → нормализует в `security_event` (Postgres, партиции по дням). Только события безопасности, телеметрия — в агрегаты.
+- [ ] Ретеншен («не засорять логами»): сырые события **30 дней** (настраивается), почасовые агрегаты — 365 дней, удаление — DROP партиции. То же правило — для партиций `appsec` tuning-сервиса.
+- [ ] UI «События»: серверная пагинация, фильтры (время, хост, IP, действие, severity, тип атаки, оценка), карточка события (параметр, образец, индикаторы, `waapFinalScore`, правило), экспорт CSV/JSON. Кнопки: «Ложное срабатывание» / «Атака» (Фаза 8), «Исключение» (Фаза 5), «Бан в CrowdSec» (Фаза 7).
 
-**Приёмка:** под нагрузочным генератором атак (≥100 событий/с) UI не тормозит, графики сходятся с выборкой из сырых событий, старые события удаляются по ретеншену.
+**Аналитика (замена облачного дашборда), период 1ч/24ч/7д/30д:**
+- [ ] KPI: всего запросов (статистика tuning), атак, заблокировано, уникальных источников, «готовность» обучения по хостам.
+- [ ] Attacks Timeline (detect/prevent), Top Attacked Assets, Top Attack Sources (High+), Attacks Level, Security Actions, Top Attack Types, Top URI, «Последние заблокированные», страны (если загружена GeoIP).
 
-### Фаза 5. Визуальное управление политикой open-appsec (≈3 нед.)
-То, что в обсуждении «забыл как называется», — **конструктор политик / визуальный редактор конфигурации** (form-based policy editor). Ориентиры — Check Point SmartConsole, Cisco ESA: объекты отдельно, политика собирается ссылками на объекты, всё в одном месте.
-- [ ] Объекты (каждый — список + форма, без YAML):
-  - Threat Prevention Practices: режим, Web Attacks (min confidence), IPS/File Security/Anti-Bot/Schema Validation (с пометкой «Premium» где нужно), Snort-сигнатуры (загрузка файла);
-  - Access Control Practices: Rate Limit (правила URI/лимит/единица/действие);
-  - Log Triggers: что логировать, расширенное логирование, куда (локально — по умолчанию в наш пайплайн, syslog/CEF);
-  - Custom Responses: код/страница блокировки/редирект (+ брендированная страница NPMOS);
-  - Exceptions: условия (IP/CIDR, страна, URI, хост, параметр, заголовок, правило) → действие accept/drop/skip/suppress-log;
-  - Trusted Sources и Source Identifiers (X-Forwarded-For, cookie, JWT, header) — критично за CDN/Cloudflare.
-- [ ] Политика: default + правила по хостам/локациям; на странице хоста — выбор практик/триггеров/ответа вместо одного «уровня уверенности».
+**Уведомления (ADR-11):**
+- [ ] Каналы в порядке реализации: email (SMTP) → webhook (JSON, с подписью HMAC) → Telegram (бот; работает только при наличии выхода в интернет — помечено как опция).
+- [ ] Правила: всплеск атак, новая очередь разметки, ошибка применения политики, агент недоступен, истекающие сертификаты (Фаза 6).
+
+**Приёмка:** под генератором (≥100 событий/с) UI не тормозит, графики сходятся с сырыми данными, старые партиции удаляются, email/webhook приходят.
+
+### Фаза 5. Визуальный редактор политики open-appsec (≈3 нед.)
+Конструктор политик (ориентиры — Check Point SmartConsole, Cisco ESA): объекты отдельно, политика собирается ссылками на объекты, всё в одном месте.
+- [ ] Объекты: Threat Prevention Practices (Web Attacks, IPS/File Security/Anti-Bot/Schema Validation с пометкой «Premium», Snort-файлы), Access Control (Rate Limit), Log Triggers (только локальные назначения), Custom Responses (+ страница блокировки NPMOS), Exceptions (IP/CIDR, страна, URI, хост, параметр, заголовок, правило → accept/drop/skip/suppress-log), Trusted Sources, Source Identifiers (XFF, cookie, JWT, header).
+- [ ] Политика: default + правила по хостам/локациям; на хосте — выбор практик/триггеров/ответа.
 - [ ] Шаблоны: «Рекомендуемая», «Строгая», «Только мониторинг», «API».
-- [ ] Перед применением: предпросмотр diff итогового YAML, валидация; после — версия в истории, откат в один клик.
-- [ ] Из карточки события — «Создать исключение» с предзаполненными условиями.
-- [ ] Импорт/экспорт политики (YAML v1beta2), совместимость с документацией open-appsec.
+- [ ] Diff и валидация перед применением, история версий, откат.
+- [ ] «Создать исключение» из карточки события (предзаполнено).
+- [ ] Импорт/экспорт YAML v1beta2.
 
-**Приёмка:** любую из примеров `reference/openappsec/config/linux/v1beta2/*` можно воспроизвести через GUI и получить эквивалентный YAML; агент принимает результат.
+**Приёмка:** примеры из `reference/openappsec/config/linux/v1beta2/*` воспроизводятся через GUI в эквивалентный YAML; агент его принимает.
 
-### Фаза 6. PKI и mTLS (≈3 нед.)
-Подробности — в разделе 3. Объём:
-- [ ] Иерархия CA: создание Root CA (или импорт существующего), Intermediate CA (по одному на «домен доверия»: сотрудники, сервисы, партнёры), импорт внешнего CA только для проверки (как сейчас в NPMplus — сохраняем совместимость с provider `mtls`).
-- [ ] Клиентские сертификаты: выпуск по шаблону (CN, e-mail/SAN, OU, срок, алгоритм), выпуск по CSR (ключ не покидает устройство клиента), перевыпуск, отзыв с причиной.
-- [ ] Выдача: PKCS#12 (.p12) с паролем, PEM (cert+key+chain), одноразовая ссылка на скачивание с TTL и паролем, QR для мобильных; закрытый ключ клиента после выдачи по умолчанию **не хранится**.
-- [ ] Отзыв: CRL на каждый CA, автоматически подключается в nginx (`ssl_crl`) с перезагрузкой; публикация CRL по HTTP; (позже) OCSP-респондер.
-- [ ] Привязка к хостам/стримам: какие CA доверены, режим `on`/`optional`, глубина цепочки, правила доступа по полям сертификата (OU, CN, serial, отпечаток), на каких локациях mTLS обязателен, какие поля передавать в upstream заголовками.
-- [ ] Dashboard «как DNS в Cloudflare»: таблица сертификатов (кто, CA, статус, истекает через N дней, где используется), фильтры, массовые действия, предупреждения об истечении (30/7/1 день) + уведомления, аудит всех операций.
-- [ ] Права: выпуск/отзыв/экспорт — отдельные действия RBAC.
+### Фаза 6. PKI и mTLS (≈3 нед.) — детали в разделе 5
+- [ ] Root CA (создание/импорт), Intermediate CA по «доменам доверия», внешние CA только для проверки (совместимость с provider `mtls`).
+- [ ] Клиентские сертификаты: по шаблону, по CSR, перевыпуск, отзыв с причиной.
+- [ ] Выдача: `.p12` с паролем, PEM, одноразовая ссылка с TTL, QR; ключ клиента по умолчанию не хранится.
+- [ ] CRL на каждый CA → `ssl_crl` в nginx с перезагрузкой; публикация CRL по HTTP; позже — OCSP.
+- [ ] Серверные сертификаты из нашего CA для закрытых сетей (альтернатива ACME).
+- [ ] Привязка к хостам/стримам: CA, `on`/`optional`, глубина, правила по полям сертификата, обязательность по локациям, заголовки в upstream.
+- [ ] Dashboard «как DNS в Cloudflare»: статус, срок, где используется, фильтры, массовые действия, уведомления 30/7/1 день, аудит.
 
-**Приёмка:** выпущенный .p12 импортируется в Chrome/Firefox/Windows/macOS/Android/iOS, доступ к хосту с ним есть, без него — 400/403 с понятной страницей; после отзыва — доступ пропадает в течение минуты.
+**Приёмка:** `.p12` импортируется в Chrome/Firefox/Windows/macOS/Android/iOS; без сертификата — понятная страница отказа; после отзыва доступ пропадает ≤ 1 мин.
 
-### Фаза 7. CrowdSec в GUI (≈1.5 нед.)
-- [ ] Настройка bouncer (сейчас — правка `crowdsec.conf` вручную) через GUI: LAPI URL, ключ, AppSec, режим при сбое.
-- [ ] Просмотр решений (decisions) из LAPI, ручной бан/разбан, бан из карточки события WAF.
-- [ ] Поступление алертов CrowdSec в единый `security_event` и в аналитику.
-- [ ] Связка open-appsec → CrowdSec: готовая acquis-конфигурация для логов агента (уже описана в README NPMplus) + сценарий «N prevent-событий от IP → бан».
+### Фаза 7. CrowdSec — полностью локально (≈2 нед.)
+- [ ] CrowdSec в стеке без CAPI; коллекции (включая `ZoeyVid/npmplus` и парсер логов open-appsec) вшиты/загружаются архивом.
+- [ ] Раздел «CrowdSec» (замена Console): алерты, решения (decisions), машины, баунсеры, метрики, сценарии; ручной бан/разбан.
+- [ ] Настройка bouncer NPMOS из GUI (сейчас — `crowdsec.conf` вручную).
+- [ ] Встроенная интеграция агента с CrowdSec (`CROWDSEC_ENABLED`, режим prevent/detect) — переключатель в GUI.
+- [ ] Связка: N prevent-событий open-appsec от IP → бан (acquis + сценарий); «Бан» из карточки события; алерты CrowdSec — в `security_event` и аналитику.
+- [ ] Локальные блок-листы: импорт файла/URL (опция), синхронизация решений между узлами NPMOS.
 
-### Фаза 8. Обучение агента / Tuning Suggestions (≈2 нед., последняя — как и решили)
-- [ ] Подключение к `smartsync-tuning` standalone API (`/api/v2/assets/{asset}/tuning`, `/tuning/review`, `/statistics`, `/logs`).
-- [ ] Inbox предложений: тип, severity, метрики, затронутые параметры/URL, связанные логи; кнопки Benign / Malicious / Dismiss; история решений и откат.
-- [ ] Статус обучения по каждому хосту: readiness, elapsed time, legit/malicious, рекомендация «можно переводить в prevent».
-- [ ] Уведомления о новых предложениях.
-- [ ] Предварительно — исследование совместной работы с CrowdSec AppSec (двойная проверка запроса, порядок, производительность, ложные срабатывания) — оформить как ADR.
+### Фаза 8. Обучение агента и собственная разметка (≈3 нед., последняя — как решили)
+Цель — «чтобы мы могли классифицировать сами и учить агента», полностью локально.
 
-### Сквозные работы (на всех фазах)
-- Тесты: API-тесты на каждый новый эндпоинт (включая RBAC-отказы), unit-тесты генератора политики и PKI, e2e (Playwright) на ключевые сценарии.
-- Безопасность: CSRF/CSP как в NPMplus, все секреты (ключи CA, ключи LAPI) — зашифрованы, аудит каждого изменяющего действия, ревью безопасности перед релизом каждой фазы.
-- Документация: RU/EN руководство пользователя по каждой фиче, changelog.
-- Релизы: `npmos:<версия>` после каждой фазы, начиная с Фазы 1.
+**8.1. Очередь разметки (то, что агент «не знает»)**
+- [ ] Отбор из событий: «серая зона» — Detect при `waapFinalScore` между порогами (3–6) в режиме prevent; события Medium/High на хостах в режиме обучения; редкие индикаторы на параметрах, где их раньше не было.
+- [ ] Группировка похожих событий (хост + параметр + набор индикаторов / URL / источник), чтобы размечать пачкой, а не по одному запросу.
+- [ ] Плюс встроенные Tuning Suggestions от `smartsync-tuning` в той же очереди.
+- [ ] Уведомление о новых элементах очереди (email/webhook/Telegram).
+
+**8.2. Разметка → эффект (одно действие, три рычага)**
+Кнопки **«Легитимно» (benign)** / **«Атака» (malicious)** / **«Пропустить» (dismiss)**; в диалоге — на что распространяется решение: значение параметра / имя параметра / URL / источник. Затем NPMOS:
+1. **Обучение (медленно, ~30 мин + часы):** пишет решение в `tuning/decisions.data` — через API `smartsync-tuning` (если это его подсказка) или напрямую в shared-storage (для наших групп); агент подхватывает сам.
+2. **Мгновенно (опционально, предлагается галочкой):**
+   - benign → исключение в политике (accept/skip для параметра+URL), с автоматическим сроком жизни, пока модель не дообучится;
+   - malicious → исключение drop и/или бан источника в CrowdSec.
+3. **Доверенные источники:** «доверять этому IP/подсети при обучении» → Trusted Sources в политике (офис, QA, мониторинг) — ускоряет обучение.
+- [ ] Отмена решения (undo), история, кто и когда разметил (аудит, RBAC `waf_learning:label`).
+
+**8.3. Датасет и контроль качества**
+- [ ] Все разметки хранятся в Postgres (событие, признаки, метка, автор) — это наш локальный размеченный датасет.
+- [ ] Экран «Обучение»: по каждому хосту — готовность (readiness из tuning), доля ложных срабатываний до/после, сколько решений применено агентом, рекомендация «можно переводить в prevent».
+- [ ] R&D (не блокирует релиз): по накопленному датасету — локальная вторичная модель, которая **только предлагает** метки в очереди (не участвует в inline-вердикте). Отдельный ADR после сбора данных.
+
+**8.4. Предварительное исследование (спайк в начале фазы)**
+- [ ] Проверить на стенде: формат и путь `decisions.data` для standalone (tenant/asset ID), что `smartsync-tuning` не затирает наши решения при слиянии (`mergeTuneEvents`), фактическое время эффекта.
+- [ ] Совместная работа с CrowdSec AppSec: порядок проверок, латентность, ложные срабатывания — ADR.
+
+**Приёмка:** ложное срабатывание, размеченное как benign, перестаёт блокироваться (сразу — через исключение; без исключения — после цикла обучения), событие, размеченное как malicious, не попадает в обучение; всё без интернета.
+
+### Фаза 9 (по необходимости). Централизованное управление
+Несколько NPMOS/агентов под одной панелью: регистрация узлов, раздача политики, сбор событий с узлов (syslog/HTTP), общий shared-storage для smartsync. Делается позже; благодаря `node_id` (ADR-10) не потребует переделки модели данных. Решение — после первых внедрений.
+
+### Сквозные работы
+- Тесты: API (включая отказы RBAC), unit (генератор политики, PKI, разметка), e2e Playwright, **air-gap e2e**.
+- Безопасность: секреты зашифрованы, аудит всех изменений, security-review перед релизом фазы.
+- Документация RU/EN, changelog, релиз `npmos:<версия>` в Docker Hub после каждой фазы начиная с 1.
 
 ### Итоговая дорожная карта
 | Фаза | Содержание | Оценка | Зависит от |
 |---|---|---|---|
-| 0 | Фундамент репо, CI, dev-стенд | 1 нед. | — |
+| 0 | Фундамент, CI, локальный стек, air-gap тест | 1 нед. | — |
 | 1 | Перенос open-appsec-npm | 2 нед. | 0 |
-| 2 | Оболочка редизайна + i18n | 1.5 нед. | 0 (макеты — параллельно) |
+| 2 | CSS-токены + sidebar, i18n | 1 нед. | 0 (макеты — параллельно) |
 | 3 | RBAC | 2 нед. | 2 |
-| 4 | События, логи, аналитика | 2.5 нед. | 1, 3 |
+| 4 | События, логи, аналитика, уведомления | 2.5 нед. | 1, 3 |
 | 5 | Визуальный редактор политики | 3 нед. | 1, 3 |
-| 6 | PKI и mTLS | 3 нед. | 3 (можно параллельно с 4–5) |
-| 7 | CrowdSec в GUI | 1.5 нед. | 4 |
-| 8 | Tuning Suggestions | 2 нед. | 4, 5 |
-| | **Итого** | **≈18–19 нед.** последовательно, ≈12–14 при параллельной работе | |
+| 6 | PKI и mTLS | 3 нед. | 3 (параллельно с 4–5) |
+| 7 | CrowdSec локально | 2 нед. | 4 |
+| 8 | Обучение агента и разметка | 3 нед. | 4, 5, 7 |
+| 9 | Централизованное управление | по необходимости | 4 |
+| | **Итого (0–8)** | **≈19.5 нед.** последовательно, ≈13–15 при параллельной работе | |
+
+Порядок «RBAC до аналитики и mTLS» сохранён: новые разделы сразу создаются с правами, без переделки.
 
 ---
 
-## 3. mTLS — техническое описание (для ревью сетевиком)
+## 5. mTLS — техническое описание
 
-### 3.1. Как это работает в nginx
-- Сервер просит у клиента сертификат в TLS-handshake (`ssl_verify_client on|optional|optional_no_ca`), проверяет цепочку до CA из `ssl_client_certificate` (этот список CA ещё и отправляется клиенту как подсказка) или `ssl_trusted_certificate` (проверка без подсказки), глубина — `ssl_verify_depth`.
-- Отзыв: `ssl_crl` (файл CRL, PEM; при нескольких CA — конкатенация всех CRL, **для каждого CA в цепочке должен быть CRL**, иначе проверка падает) или `ssl_ocsp on` (nginx ≥ 1.19 умеет OCSP для клиентских сертификатов).
-- В приложение передаём: `$ssl_client_verify`, `$ssl_client_s_dn`, `$ssl_client_serial`, `$ssl_client_fingerprint`, `$ssl_client_escaped_cert` → заголовки `X-Client-Verify`, `X-Client-DN` и т.д. (входящие одноимённые заголовки от клиента — **обязательно затирать**).
-- Тонкости, которые надо учесть в реализации:
-  - mTLS задаётся на уровне `server` (SNI). Для «mTLS только на /admin» используем `optional` на сервере + проверку `$ssl_client_verify` в `location` (TLS 1.3 post-handshake auth nginx не поддерживает).
-  - HTTP/2 connection coalescing: браузер может переиспользовать соединение для другого хоста с тем же wildcard-сертификатом. nginx в этом случае отвечает `421 Misdirected Request`, если требования к клиентскому сертификату у хостов различаются, — проверить в тестах, задокументировать.
-  - HTTP/3 (QUIC) и ECH в NPMplus включаются опционально — проверить mTLS на них отдельно.
-  - Ошибки проверки (коды 495/496) перехватываем и отдаём понятную страницу вместо стандартной «400 Bad Request».
-  - Streams (TCP) — mTLS уже поддержан шаблоном `stream.conf`, переносим туда же CRL и выбор CA.
+### 5.1. nginx
+- `ssl_verify_client on|optional|optional_no_ca`; CA — `ssl_client_certificate` (отправляется клиенту как подсказка) или `ssl_trusted_certificate` (без подсказки); `ssl_verify_depth`.
+- Отзыв: `ssl_crl` (при нескольких CA — CRL нужен для **каждого** CA цепочки) или `ssl_ocsp on` (nginx ≥ 1.19; OCSP-респондер — свой, локальный).
+- В upstream: `$ssl_client_verify`, `$ssl_client_s_dn`, `$ssl_client_serial`, `$ssl_client_fingerprint`, `$ssl_client_escaped_cert` → заголовки `X-Client-*`; одноимённые входящие заголовки затираются.
+- Тонкости:
+  - mTLS задаётся на уровне `server` (SNI); «mTLS только на /admin» = `optional` + проверка `$ssl_client_verify` в `location` (post-handshake auth TLS 1.3 nginx не умеет).
+  - HTTP/2 connection coalescing при общем wildcard-сертификате → nginx отвечает 421; покрыть тестом.
+  - HTTP/3 и ECH — отдельные тесты.
+  - Ошибки 495/496 → своя понятная страница вместо «400 Bad Request».
+  - Streams (TCP) — уже поддержаны шаблоном, добавляем CRL и выбор CA.
 
-### 3.2. PKI
-- Иерархия: **Root CA** (10 лет, используется только для подписи Intermediate, ключ шифруется и по возможности экспортируется офлайн) → **Intermediate CA** (5 лет, `pathlen:0`) → **клиентские сертификаты** (по умолчанию 1 год, настраивается).
-- Алгоритмы: по умолчанию ECDSA P-256 (быстро, поддерживается везде); опция RSA-3072 для старых клиентов. Ed25519 для клиентских сертификатов браузеры поддерживают плохо — не предлагаем по умолчанию.
-- Расширения: клиентский — `extendedKeyUsage=clientAuth`, `keyUsage=digitalSignature`, SAN (email/URI/DNS), `CRL Distribution Points`, `AKI/SKI`; CA — `basicConstraints=CA:TRUE`, `keyUsage=keyCertSign,cRLSign`.
-- Серийные номера — 128 бит случайные; учёт всех выданных сертификатов в БД (serial, subject, отпечаток, статус, кто выпустил, где используется).
-- Хранение ключей CA: AES-256-GCM, ключ шифрования из `NPMOS_SECRET` (env) или автоматически созданного файла в `/data` с правами 600; ключи никогда не отдаются API без отдельного права `pki:export_key`.
-- Реализация: библиотека `@peculiar/x509` (WebCrypto, чистый JS) либо системный `openssl` (уже есть в образе) — выбрать в ADR после прототипа; PKCS#12 — через `openssl pkcs12` или `pkijs`.
-- Не ломаем существующее: загруженные в NPMplus CA (provider `mtls`) показываются в том же dashboard как «внешний CA (только проверка)».
+### 5.2. PKI
+- Root CA (10 лет, только подпись Intermediate, ключ шифруется, экспорт для офлайн-хранения) → Intermediate (5 лет, `pathlen:0`) → клиентские (по умолчанию 1 год).
+- ECDSA P-256 по умолчанию, RSA-3072 опционально; Ed25519 для клиентских не предлагаем (слабая поддержка в браузерах).
+- Клиентский: `extendedKeyUsage=clientAuth`, `keyUsage=digitalSignature`, SAN, CDP, AKI/SKI. CA: `basicConstraints=CA:TRUE`, `keyUsage=keyCertSign,cRLSign`.
+- Серийные номера — 128 бит случайные; реестр выданных сертификатов в БД.
+- Ключи CA: AES-256-GCM, ключ из `NPMOS_SECRET` или автосозданного файла в `/data` (600); выдача ключа — только с правом `pki:export_key`.
+- Реализация: `@peculiar/x509` (чистый JS) или системный `openssl` (уже в образе) — выбор в ADR после прототипа. Всё локально.
+- Загруженные в NPMplus CA (provider `mtls`) показываются в том же dashboard как «внешний CA (только проверка)».
 
 ---
 
-## 4. Риски и как их закрываем
+## 6. Риски
 | Риск | Митигация |
 |---|---|
-| Upstream NPMplus сильно меняет frontend → конфликты | Код в `npmos/`, точки подключения `NPMOS:`, ежемесячный синк, CI |
-| open-appsec не поддерживает NPMplus официально | Attachment уже собирается NPMplus из исходников; держим e2e-тест «атака блокируется» в CI с реальным агентом |
-| Формат политики/логов агента меняется | Генератор и ingest за адаптерами с версионированием (v1beta2), тесты на примерах из `reference/` |
-| Сборка образа (nginx+aws-lc+attachment) долгая | Кэш слоёв в CI, arm64 — ночью/по тегу |
-| ML-модель + CrowdSec AppSec → двойная обработка, латентность | Отдельное исследование до Фазы 8, переключатели per-host |
-| Утечка ключей CA | Шифрование, отдельное право, аудит, экспорт Root CA для офлайн-хранения |
-| Объём логов | Ретеншен, отдельное хранилище, агрегаты |
+| Скрытые обращения агента/CrowdSec в облако | Тест «закрытый контур» в CI + журнал DNS/egress; отключение CAPI, `cloud: false` |
+| Advanced-модель требует однократного скачивания с портала | Работа на базовой модели по умолчанию; загрузка `.tgz` через UI |
+| Upstream NPMplus меняет frontend | Код в `npmos/`, метки `NPMOS:`, ежемесячный синк |
+| open-appsec официально не поддерживает NPMplus | Attachment собирается из исходников; e2e «атака блокируется» с реальным агентом |
+| Формат политики/логов/decisions агента меняется | Адаптеры с версиями, тесты на примерах из `reference/`, фиксированные версии образов агента |
+| Медленный эффект разметки | Мгновенные исключения + понятная индикация «применится через ~30 мин» |
+| «Отравление» обучения неверной разметкой | Undo, аудит, RBAC на разметку, исключения с TTL |
+| Объём логов | Postgres-партиции, ретеншен, агрегаты |
+| Утечка ключей CA | Шифрование, отдельное право, аудит |
 
-## 5. Открытые вопросы к команде
-1. Минимально поддерживаемая БД для событий: достаточно ли SQLite по умолчанию, или сразу требуем Postgres (он всё равно нужен tuning-сервису)?
-2. Нужен ли режим «несколько агентов / несколько NPMOS» (централизованное управление) — влияет на syslog-ingest и модель asset.
-3. Каналы уведомлений: Telegram, email, webhook — что приоритетно?
-4. Имя проекта в UI/образе: `NPMOS`? Домен/реестр образов?
-5. Сроки ревью: кто принимает каждую фазу (opensophy — UI, Кирилл — WAF/сеть/mTLS)?
+## 7. Решения команды (ответы на вопросы)
+1. **БД:** сразу продовое решение — **Postgres обязателен** (он нужен tuning-сервису). → ADR-4.
+2. **Несколько агентов/NPMOS:** пока не определились. → Делаем один узел, но с `node_id` в модели данных (ADR-10); централизованное управление — Фаза 9 по необходимости.
+3. **Уведомления:** все важны, приоритет **email → webhook → Telegram**. → ADR-11, Фаза 4.
+4. **Имя:** NPMOS; образы — **Docker Hub**. Нужно только имя организации/аккаунта в Docker Hub для публикации (+ токен в секреты CI).
+5. **Приёмка:** все фазы принимают opensophy и Кирилл вместе; UI — в основном opensophy.
 
-## 6. Что нужно от команды для старта
-- Подтвердить порядок фаз (особенно: RBAC до аналитики и mTLS).
-- Макеты оболочки и 2–3 ключевых экранов (Обзор, Аналитика WAF, PKI dashboard) — к началу Фазы 2.
-- Стенд/VM для ручных тестов с реальным доменом (для LE и проверки mTLS на устройствах).
-- Ответы на открытые вопросы раздела 5.
+## 8. Что нужно для старта
+- Имя аккаунта/организации в Docker Hub и токен для CI (можно позже, к первому релизу).
+- Макет sidebar и пожелания по цветам/иконкам — к Фазе 2 (токены уже есть).
+- Стенд/VM для ручных тестов, в т.ч. **без доступа в интернет** — чтобы проверять local-first руками.
