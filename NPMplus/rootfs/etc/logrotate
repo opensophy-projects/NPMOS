@@ -1,7 +1,0 @@
-/data/nginx/logs/*.log {
-        daily
-        rotate 3
-        missingok
-        notifempty
-        copytruncate
-}
