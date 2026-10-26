@@ -94,6 +94,8 @@ Before compiling the services, you'll need to ensure the latest development vers
 * Boost
 * OpenSSL
 * PCRE2
+* Brotli
+* zlib
 * libxml2
 * GTest
 * GMock
@@ -107,7 +109,7 @@ An example of installing the packages on Alpine:
 
 ```bash
  $ apk update
- $ apk add boost-dev openssl-dev pcre2-dev libxml2-dev gtest-dev curl-dev hiredis-dev redis libmaxminddb-dev yq
+ $ apk add boost-dev openssl-dev pcre2-dev libxml2-dev gtest-dev curl-dev hiredis-dev redis libmaxminddb-dev yq brotli-dev zlib-dev
 ```
 
 ## Compiling and packaging the agent code
@@ -178,7 +180,7 @@ open-appsec code was audited by an independent third party in September-October 
 See the [full report](https://github.com/openappsec/openappsec/blob/main/LEXFO-CHP20221014-Report-Code_audit-OPEN-APPSEC-v1.2.pdf).
 
 ### Reporting security vulnerabilities
-If you've found a vulnerability or a potential vulnerability in open-appsec please let us know at security-alert@openappsec.io. We'll send a confirmation email to acknowledge your report within 24 hours, and we'll send an additional email when we've identified the issue positively or negatively.
+If you've found a vulnerability or a potential vulnerability in open-appsec please let us know at security-alert@checkpoint.com. We'll send a confirmation email to acknowledge your report within 24 hours, and we'll send an additional email when we've identified the issue positively or negatively.
 
 
 # License
