@@ -1,0 +1,15 @@
+{
+	"type": "object",
+	"description": "Token object",
+	"required": [
+		"expires"
+	],
+	"additionalProperties": false,
+	"properties": {
+		"expires": {
+			"description": "Token Expiry ISO Time String",
+			"example": "2025-02-04T20:40:46.340Z",
+			"type": "string"
+		}
+	}
+}

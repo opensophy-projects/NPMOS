@@ -1,0 +1,37 @@
+diff --git a/ssl/s3_both.cc b/ssl/s3_both.cc
+index 2d363eacb..1b46fc9f0 100644
+--- a/ssl/s3_both.cc
++++ b/ssl/s3_both.cc
+@@ -562,20 +562,25 @@ class CipherScorer {
+  public:
+   CipherScorer(bool has_aes_hw) : aes_is_fine_(has_aes_hw) {}
+ 
+-  typedef std::tuple<bool, bool> Score;
++  typedef int Score;
+ 
+   // MinScore returns a |Score| that will compare less than the score of all
+   // cipher suites.
+   Score MinScore() const {
+-    return Score(false, false);
++    return 0;
+   }
+ 
+   Score Evaluate(const SSL_CIPHER *a) const {
+-    return Score(
+-        // Something is always preferable to nothing.
+-        true,
+-        // Either AES is fine, or else ChaCha20 is preferred.
+-        aes_is_fine_ || a->algorithm_enc == SSL_CHACHA20POLY1305);
++    switch (a->algorithm_enc) {
++      case SSL_AES256GCM:
++        return 3;
++      case SSL_CHACHA20POLY1305:
++        return aes_is_fine_ ? 3 : 4;
++      case SSL_AES128GCM:
++        return 2;
++      default:
++        return 1;
++    }
+   }
+ 
+  private:
