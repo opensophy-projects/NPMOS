@@ -596,6 +596,432 @@
 	"notification.success": {
 		"defaultMessage": "Success"
 	},
+	"npmos.nav.administration": {
+		"defaultMessage": "Administration"
+	},
+	"npmos.nav.close-menu": {
+		"defaultMessage": "Close menu"
+	},
+	"npmos.nav.hosts": {
+		"defaultMessage": "Hosts"
+	},
+	"npmos.nav.language": {
+		"defaultMessage": "Language"
+	},
+	"npmos.nav.menu": {
+		"defaultMessage": "Navigation"
+	},
+	"npmos.nav.nothing-found": {
+		"defaultMessage": "Nothing found"
+	},
+	"npmos.nav.open-menu": {
+		"defaultMessage": "Open menu"
+	},
+	"npmos.nav.overview": {
+		"defaultMessage": "Overview"
+	},
+	"npmos.nav.search": {
+		"defaultMessage": "Search the menu…"
+	},
+	"npmos.nav.security": {
+		"defaultMessage": "Security"
+	},
+	"npmos.nav.skip": {
+		"defaultMessage": "Skip to content"
+	},
+	"npmos.nav.system": {
+		"defaultMessage": "System"
+	},
+	"npmos.nav.theme-dark": {
+		"defaultMessage": "Dark theme"
+	},
+	"npmos.nav.theme-light": {
+		"defaultMessage": "Light theme"
+	},
+	"npmos.nav.user-menu": {
+		"defaultMessage": "User menu"
+	},
+	"npmos.services": {
+		"defaultMessage": "Services"
+	},
+	"npmos.services.diagnostics": {
+		"defaultMessage": "Diagnostic archive"
+	},
+	"npmos.services.follow": {
+		"defaultMessage": "Refresh automatically"
+	},
+	"npmos.services.health.healthy": {
+		"defaultMessage": "healthy"
+	},
+	"npmos.services.health.starting": {
+		"defaultMessage": "starting"
+	},
+	"npmos.services.health.unhealthy": {
+		"defaultMessage": "unhealthy"
+	},
+	"npmos.services.logs": {
+		"defaultMessage": "Logs"
+	},
+	"npmos.services.logs-title": {
+		"defaultMessage": "Logs: {service}"
+	},
+	"npmos.services.no-logs": {
+		"defaultMessage": "No log lines"
+	},
+	"npmos.services.regenerate": {
+		"defaultMessage": "Regenerate nginx config"
+	},
+	"npmos.services.regenerate-confirm": {
+		"defaultMessage": "Regenerate"
+	},
+	"npmos.services.regenerate-text": {
+		"defaultMessage": "The nginx configs of all enabled hosts are written again from the database, then nginx is reloaded. Use it after a failed upgrade or manual changes in /data/nginx."
+	},
+	"npmos.services.regenerated": {
+		"defaultMessage": "nginx config regenerated"
+	},
+	"npmos.services.restart": {
+		"defaultMessage": "Restart"
+	},
+	"npmos.services.restart-confirm": {
+		"defaultMessage": "Restart {service}? It is unavailable for a few seconds."
+	},
+	"npmos.services.restart-npmos": {
+		"defaultMessage": "Restart {service}? The proxy and this interface are unavailable for a few seconds, the page reconnects by itself."
+	},
+	"npmos.services.restart-requested": {
+		"defaultMessage": "{service} is restarting"
+	},
+	"npmos.services.restart-title": {
+		"defaultMessage": "Restart service"
+	},
+	"npmos.services.service": {
+		"defaultMessage": "Service"
+	},
+	"npmos.services.state": {
+		"defaultMessage": "State"
+	},
+	"npmos.services.state.created": {
+		"defaultMessage": "created"
+	},
+	"npmos.services.state.dead": {
+		"defaultMessage": "dead"
+	},
+	"npmos.services.state.exited": {
+		"defaultMessage": "stopped"
+	},
+	"npmos.services.state.paused": {
+		"defaultMessage": "paused"
+	},
+	"npmos.services.state.removing": {
+		"defaultMessage": "removing"
+	},
+	"npmos.services.state.restarting": {
+		"defaultMessage": "restarting"
+	},
+	"npmos.services.state.running": {
+		"defaultMessage": "running"
+	},
+	"npmos.services.version": {
+		"defaultMessage": "Version"
+	},
+	"npmos.waf": {
+		"defaultMessage": "WAF"
+	},
+	"npmos.waf.agent": {
+		"defaultMessage": "open-appsec agent"
+	},
+	"npmos.waf.agent-mode": {
+		"defaultMessage": "Management"
+	},
+	"npmos.waf.agent-mode-local": {
+		"defaultMessage": "local, without cloud"
+	},
+	"npmos.waf.agent-settings": {
+		"defaultMessage": "Agent settings"
+	},
+	"npmos.waf.agent-settings.crowdsec": {
+		"defaultMessage": "IP reputation from CrowdSec"
+	},
+	"npmos.waf.agent-settings.crowdsec.detect": {
+		"defaultMessage": "Detect: only log banned IPs"
+	},
+	"npmos.waf.agent-settings.crowdsec.hint": {
+		"defaultMessage": "The agent checks client IPs against the decisions (bans) of the local CrowdSec. No cloud: only decisions of this stack."
+	},
+	"npmos.waf.agent-settings.crowdsec.prevent": {
+		"defaultMessage": "Prevent: block banned IPs"
+	},
+	"npmos.waf.agent-settings.fail-open": {
+		"defaultMessage": "Fail-open"
+	},
+	"npmos.waf.agent-settings.fail-open-timeout": {
+		"defaultMessage": "Agent answer timeout"
+	},
+	"npmos.waf.agent-settings.fail-open.off": {
+		"defaultMessage": "Fail-close: if the agent does not answer in time or is down, requests to protected hosts are rejected (security first)."
+	},
+	"npmos.waf.agent-settings.fail-open.on": {
+		"defaultMessage": "If the agent does not answer in time or is down, nginx lets the request through without inspection (availability first)."
+	},
+	"npmos.waf.agent-settings.pending": {
+		"defaultMessage": "Saved settings are not applied yet: the agent has not restarted since."
+	},
+	"npmos.waf.agent-settings.restart-warning": {
+		"defaultMessage": "The agent restarts to apply the settings (a few seconds). With fail-open on, traffic keeps flowing without inspection meanwhile; with fail-close, requests to protected hosts are rejected until the agent is back."
+	},
+	"npmos.waf.agent-settings.save": {
+		"defaultMessage": "Save and restart the agent"
+	},
+	"npmos.waf.agent-settings.saved": {
+		"defaultMessage": "Settings saved, the agent is restarting"
+	},
+	"npmos.waf.agent-unreachable": {
+		"defaultMessage": "The agent is not reachable. Check the appsec-agent service in System → Services."
+	},
+	"npmos.waf.apply": {
+		"defaultMessage": "Apply now"
+	},
+	"npmos.waf.description": {
+		"defaultMessage": "open-appsec machine-learning web application firewall"
+	},
+	"npmos.waf.disable": {
+		"defaultMessage": "Disable"
+	},
+	"npmos.waf.disable-title": {
+		"defaultMessage": "Disable WAF"
+	},
+	"npmos.waf.enable": {
+		"defaultMessage": "Enable"
+	},
+	"npmos.waf.enable-title": {
+		"defaultMessage": "Enable WAF"
+	},
+	"npmos.waf.events": {
+		"defaultMessage": "Events"
+	},
+	"npmos.waf.events.action": {
+		"defaultMessage": "Action"
+	},
+	"npmos.waf.events.all": {
+		"defaultMessage": "All events"
+	},
+	"npmos.waf.events.component": {
+		"defaultMessage": "Agent component"
+	},
+	"npmos.waf.events.description": {
+		"defaultMessage": "Security log of the open-appsec agent: attacks it detected or blocked and its own events"
+	},
+	"npmos.waf.events.empty-all": {
+		"defaultMessage": "No events yet"
+	},
+	"npmos.waf.events.empty-important": {
+		"defaultMessage": "No important events. Attacks on hosts protected by the WAF appear here."
+	},
+	"npmos.waf.events.event": {
+		"defaultMessage": "Event"
+	},
+	"npmos.waf.events.follow": {
+		"defaultMessage": "Live"
+	},
+	"npmos.waf.events.host": {
+		"defaultMessage": "Host"
+	},
+	"npmos.waf.events.important": {
+		"defaultMessage": "Important events"
+	},
+	"npmos.waf.events.matched": {
+		"defaultMessage": "What the WAF matched"
+	},
+	"npmos.waf.events.matched-location": {
+		"defaultMessage": "Location"
+	},
+	"npmos.waf.events.matched-parameter": {
+		"defaultMessage": "Parameter"
+	},
+	"npmos.waf.events.proxy-ip": {
+		"defaultMessage": "Proxy IP"
+	},
+	"npmos.waf.events.request": {
+		"defaultMessage": "Request"
+	},
+	"npmos.waf.events.search": {
+		"defaultMessage": "Search: IP, host, attack…"
+	},
+	"npmos.waf.events.severity": {
+		"defaultMessage": "Severity"
+	},
+	"npmos.waf.events.shown": {
+		"defaultMessage": "Shown {shown} of {total}"
+	},
+	"npmos.waf.events.source-ip": {
+		"defaultMessage": "Source IP"
+	},
+	"npmos.waf.events.time": {
+		"defaultMessage": "Time"
+	},
+	"npmos.waf.events.truncated": {
+		"defaultMessage": "Only the latest part of the agent's log files is read."
+	},
+	"npmos.waf.events.unavailable": {
+		"defaultMessage": "The agent's log directory is not readable: is the open-appsec agent running?"
+	},
+	"npmos.waf.expert": {
+		"defaultMessage": "Policy (expert)"
+	},
+	"npmos.waf.expert.check": {
+		"defaultMessage": "Check"
+	},
+	"npmos.waf.expert.comment": {
+		"defaultMessage": "Comment"
+	},
+	"npmos.waf.expert.description": {
+		"defaultMessage": "Your own fragments of local_policy.yaml (v1beta1) on top of what NPMOS generates from the WAF settings of the hosts: exceptions, trusted sources, own practices and rules"
+	},
+	"npmos.waf.expert.diff": {
+		"defaultMessage": "Changes of local_policy.yaml"
+	},
+	"npmos.waf.expert.in-force": {
+		"defaultMessage": "in force"
+	},
+	"npmos.waf.expert.no-diff": {
+		"defaultMessage": "The fragment is valid, local_policy.yaml stays the same"
+	},
+	"npmos.waf.expert.no-versions": {
+		"defaultMessage": "No fragments yet: the policy is generated from the WAF settings of the hosts only"
+	},
+	"npmos.waf.expert.rollback": {
+		"defaultMessage": "Roll back"
+	},
+	"npmos.waf.expert.rollback-confirm": {
+		"defaultMessage": "Make version {id} the current one? It is saved as a new version and applied at once."
+	},
+	"npmos.waf.expert.rules": {
+		"defaultMessage": "Lists (practices, log-triggers, custom-responses, exceptions, trusted-sources, source-identifiers, policies.specific-rules): an item with the name of a generated one replaces it, others are added. policies.default: your keys replace the generated ones; exceptions listed there apply to all protected hosts."
+	},
+	"npmos.waf.expert.save": {
+		"defaultMessage": "Save and apply"
+	},
+	"npmos.waf.expert.saved": {
+		"defaultMessage": "The policy was saved and sent to the agent"
+	},
+	"npmos.waf.expert.saved-on": {
+		"defaultMessage": "Saved"
+	},
+	"npmos.waf.expert.user": {
+		"defaultMessage": "User"
+	},
+	"npmos.waf.expert.versions": {
+		"defaultMessage": "Versions"
+	},
+	"npmos.waf.host-description": {
+		"defaultMessage": "The WAF analyses every request to this host with machine learning. Start in Detect-Learn: the model learns your normal traffic and only logs attacks; switch to Prevent-Learn when the events look right."
+	},
+	"npmos.waf.host-enabled": {
+		"defaultMessage": "Protect with open-appsec"
+	},
+	"npmos.waf.last-policy-update": {
+		"defaultMessage": "Policy applied"
+	},
+	"npmos.waf.last-update-status": {
+		"defaultMessage": "Last update"
+	},
+	"npmos.waf.location.inherit": {
+		"defaultMessage": "As the host"
+	},
+	"npmos.waf.location.off": {
+		"defaultMessage": "Off"
+	},
+	"npmos.waf.minimum-confidence": {
+		"defaultMessage": "Minimum confidence to block"
+	},
+	"npmos.waf.minimum-confidence.hint": {
+		"defaultMessage": "High is recommended. Lower values block more, with more false positives."
+	},
+	"npmos.waf.mode": {
+		"defaultMessage": "Enforcement mode"
+	},
+	"npmos.waf.mode.detect-learn": {
+		"defaultMessage": "Detect-Learn"
+	},
+	"npmos.waf.mode.detect-learn.hint": {
+		"defaultMessage": "Attacks are logged, nothing is blocked. The model keeps learning."
+	},
+	"npmos.waf.mode.prevent-learn": {
+		"defaultMessage": "Prevent-Learn"
+	},
+	"npmos.waf.mode.prevent-learn.hint": {
+		"defaultMessage": "Attacks are blocked with 403 and logged. The model keeps learning."
+	},
+	"npmos.waf.model": {
+		"defaultMessage": "Advanced ML model"
+	},
+	"npmos.waf.model.basic": {
+		"defaultMessage": "Basic model"
+	},
+	"npmos.waf.model.description": {
+		"defaultMessage": "open-appsec ships with a basic model. The advanced model (open-appsec-advanced-model.tgz, downloaded separately from open-appsec) detects more attacks with fewer false positives. It is unpacked when the agent starts; the upload restarts the agent."
+	},
+	"npmos.waf.model.present": {
+		"defaultMessage": "Uploaded: {size}, {date}"
+	},
+	"npmos.waf.model.upload": {
+		"defaultMessage": "Upload model (.tgz)"
+	},
+	"npmos.waf.model.uploaded": {
+		"defaultMessage": "Model uploaded, the agent is restarting"
+	},
+	"npmos.waf.off": {
+		"defaultMessage": "Disabled"
+	},
+	"npmos.waf.on": {
+		"defaultMessage": "Enabled"
+	},
+	"npmos.waf.pending-disable": {
+		"defaultMessage": "WAF is switched off but still active: NPMOS has to restart."
+	},
+	"npmos.waf.pending-enable": {
+		"defaultMessage": "WAF is switched on but not active yet: NPMOS has to restart."
+	},
+	"npmos.waf.policy": {
+		"defaultMessage": "Policy"
+	},
+	"npmos.waf.policy-applied": {
+		"defaultMessage": "The policy was sent to the agent"
+	},
+	"npmos.waf.policy-apply": {
+		"defaultMessage": "Apply now"
+	},
+	"npmos.waf.policy-generated": {
+		"defaultMessage": "Generated"
+	},
+	"npmos.waf.policy-hosts": {
+		"defaultMessage": "Protected hosts"
+	},
+	"npmos.waf.policy-not-applied": {
+		"defaultMessage": "not yet"
+	},
+	"npmos.waf.policy-not-sent": {
+		"defaultMessage": "agent did not answer, it will load the file itself"
+	},
+	"npmos.waf.policy-readonly": {
+		"defaultMessage": "Generated from the WAF settings of the proxy hosts; manual edits are not kept. File:"
+	},
+	"npmos.waf.policy-sent": {
+		"defaultMessage": "Sent to the agent"
+	},
+	"npmos.waf.policy-show": {
+		"defaultMessage": "Show YAML"
+	},
+	"npmos.waf.policy-version": {
+		"defaultMessage": "Policy version"
+	},
+	"npmos.waf.restart-warning": {
+		"defaultMessage": "NPMOS restarts to load or unload the nginx module: the proxy and this interface are unavailable for a few seconds."
+	},
+	"npmos.waf.restarting": {
+		"defaultMessage": "NPMOS is restarting, the page updates by itself…"
+	},
 	"object.actions-title": {
 		"defaultMessage": "{object} #{id}"
 	},
@@ -626,8 +1052,17 @@
 	"object.event.enabled": {
 		"defaultMessage": "Enabled {object}"
 	},
+	"object.event.exported": {
+		"defaultMessage": "Exported {object}"
+	},
+	"object.event.regenerated": {
+		"defaultMessage": "Regenerated {object}"
+	},
 	"object.event.renewed": {
 		"defaultMessage": "Renewed {object}"
+	},
+	"object.event.restarted": {
+		"defaultMessage": "Restarted {object}"
 	},
 	"object.event.updated": {
 		"defaultMessage": "Updated {object}"
@@ -751,6 +1186,9 @@
 	},
 	"save": {
 		"defaultMessage": "Save"
+	},
+	"service": {
+		"defaultMessage": "Service"
 	},
 	"setting": {
 		"defaultMessage": "Setting"
@@ -895,5 +1333,8 @@
 	},
 	"users": {
 		"defaultMessage": "Users"
+	},
+	"waf": {
+		"defaultMessage": "WAF"
 	}
 }

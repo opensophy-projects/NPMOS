@@ -55,6 +55,7 @@ pnpm vite
 
 ## Документация
 
+- [Как развернуть develop-версию и что проверить руками](docs/TESTING-DEVELOP.md)
 - [План разработки](docs/ROADMAP.md)
 - [Инвентаризация env-настроек](docs/ENV-INVENTORY.md)
 - [ADR-0001: сеть стека](docs/adr/0001-network.md)

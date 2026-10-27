@@ -2,6 +2,7 @@
 # NPMOS open-appsec agent, built from source (github.com/openappsec/openappsec) at a pinned commit.
 # Runtime layout matches the upstream image (build_system/docker/Dockerfile): /entry.sh and
 # /nano-service-installers/*.sh, so the same compose settings and entrypoint work.
+# Patches in patches/ are applied to the sources before the build.
 ARG ALPINE_VERSION=3.22
 ARG OPENAPPSEC_REF=634f840534e07952b1a449079a0d1b2e885c6aec
 
@@ -12,6 +13,9 @@ RUN apk add --no-cache build-base cmake git python3 bash linux-headers \
 ARG OPENAPPSEC_REF
 ADD --keep-git-dir=true https://github.com/openappsec/openappsec.git#${OPENAPPSEC_REF} /src
 WORKDIR /src
+# NPMOS patches (see each file): local-only hybrid mode without Fog registration
+COPY patches/ /patches/
+RUN git apply --verbose /patches/*.patch
 RUN cmake -DCMAKE_INSTALL_PREFIX=build_out . && \
     make -j"$(nproc)" install && \
     make package && \
@@ -28,6 +32,9 @@ COPY --from=build /out/self_managed_openappsec_manifest.json /tmp/self_managed_o
 COPY --from=build /out/nano-service-installers/ /nano-service-installers/
 COPY --from=build /out/entry.sh /entry.sh
 RUN chmod +x /entry.sh /nano-service-installers/* && ln -s entry.sh cp-nano-agent
+# settings from the NPMOS GUI (CrowdSec, fail-open), then the upstream entrypoint
+COPY npmos-entry.sh /npmos-entry.sh
+RUN chmod +x /npmos-entry.sh
 LABEL org.opencontainers.image.source="https://github.com/opensophy-projects/npmos" \
       org.opencontainers.image.description="open-appsec agent built from source for NPMOS"
-CMD ["/cp-nano-agent"]
+CMD ["/npmos-entry.sh"]

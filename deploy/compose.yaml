@@ -36,6 +36,8 @@ services:
       - npmos-data:/npmos-data
       - crowdsec-conf:/crowdsec-conf
       - crowdsec-data:/crowdsec-data
+      - appsec-conf:/appsec-conf
+      - appsec-localconfig:/appsec-localconfig
 
   npmos:
     <<: *managed
@@ -83,6 +85,7 @@ services:
       - appsec-shm:/dev/shm/check-point
       - appsec-localconfig:/ext/appsec
       - appsec-logs:/ext/appsec-logs:ro
+      - appsec-model:/ext/appsec-model
     networks:
       - edge
       - internal
@@ -96,20 +99,37 @@ services:
       - appsec-shared-storage
     network_mode: service:npmos
     ipc: service:npmos
-    command: /cp-nano-agent
+    # Hybrid mode (= --standalone in the open-appsec docs) applies the declarative local_policy.yaml
+    # written by NPMOS (offline mode only reads a compiled policy). Upstream hybrid mode registers at
+    # the Check Point Fog before it applies any policy, so without internet no policy is ever applied
+    # (checked with the official image). NPMOS_LOCAL_ONLY (our patch, deploy/openappsec/agent/patches)
+    # skips the registration; the Fog address points to a closed local port so that nothing else in
+    # the agent can reach the cloud either.
+    # npmos-entry.sh applies the agent settings of WAF -> Agent (CrowdSec, fail-open), then runs /cp-nano-agent
+    command: ["/npmos-entry.sh", "--hybrid-mode", "--fog", "http://127.0.0.1:1"]
     environment:
-      # No AGENT_TOKEN: hybrid mode, managed locally by NPMOS (no my.openappsec.io)
+      # No AGENT_TOKEN: managed locally by NPMOS (no my.openappsec.io)
+      NPMOS_LOCAL_ONLY: "true"
       SHARED_STORAGE_HOST: appsec-shared-storage
       LEARNING_HOST: appsec-smartsync
       TUNING_HOST: appsec-tuning-svc
+      # NPMOS also asks the agent to apply each new policy at once (set-apply-policy); this is the fallback
       autoPolicyLoad: "true"
-      nginxproxymanager: "true"
+      # not set: nginxproxymanager and user_email (open-appsec-npm docs) only tag the agent's report to the cloud
     volumes:
       - appsec-shm:/dev/shm/check-point
       - appsec-conf:/etc/cp/conf
       - appsec-data:/etc/cp/data
       - appsec-logs:/var/log/nano_agent
       - appsec-localconfig:/ext/appsec
+      # advanced ML model uploaded in WAF -> Agent, unpacked by the entrypoint at start
+      - appsec-model:/advanced-model:ro
+      - type: volume
+        source: secrets
+        target: /run/secrets/npmos
+        read_only: true
+        volume:
+          subpath: appsec-agent
 
   appsec-smartsync:
     <<: *managed
@@ -221,8 +241,43 @@ services:
     networks:
       - internal
 
-  # Docker API for the future npmos-control service (phase 1): restarts and status
-  # of npmos.managed containers only. Not reachable from any other service yet.
+  # Control plane: the backend's only way to the Docker API (System → Services in the GUI).
+  # Whitelist: list, restart and logs of this project's npmos.managed containers; token from
+  # npmos-init; every change is logged. Code: npmos/backend/npmos/control/server.js.
+  npmos-control:
+    <<: *managed
+    image: ${NPMOS_REGISTRY}/npmos:${NPMOS_VERSION}
+    container_name: npmos-control
+    depends_on:
+      npmos-init:
+        condition: service_completed_successfully
+      socket-proxy:
+        condition: service_started
+    entrypoint: ["node", "/app/npmos/control/server.js"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:7080/healthz').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - type: volume
+        source: secrets
+        target: /run/secrets
+        read_only: true
+        volume:
+          subpath: control
+    networks:
+      - internal
+      - control
+
+  # Docker API for npmos-control only (control network). Our haproxy whitelist allows reading
+  # containers and their logs and restarting them, nothing else (no create, exec, images, volumes);
+  # npmos-control narrows that down to this stack.
   socket-proxy:
     <<: *managed
     image: docker.io/tecnativa/docker-socket-proxy:${SOCKET_PROXY_VERSION}
@@ -230,11 +285,9 @@ services:
     environment:
       # IPv4 listener only: works on hosts without IPv6, the proxy is internal anyway
       DISABLE_IPV6: "1"
-      CONTAINERS: "1"
-      ALLOW_RESTARTS: "1"
-      POST: "0"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./socket-proxy/haproxy.cfg.template:/usr/local/etc/haproxy/haproxy.cfg.template:ro
     networks:
       - control
 
@@ -260,6 +313,7 @@ volumes:
   appsec-data: {}
   appsec-logs: {}
   appsec-localconfig: {}
+  appsec-model: {}
   appsec-storage: {}
   crowdsec-conf: {}
   crowdsec-data: {}

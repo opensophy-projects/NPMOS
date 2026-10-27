@@ -6,7 +6,8 @@ const migrateUp = async () => {
 	logger.info("Current database version:", version);
 	return await db().migrate.latest({
 		tableName: "migrations",
-		directory: "migrations",
+		// NPMOS: our tables (npmos_*) are created by npmos/migrations
+		directory: ["migrations", "npmos/migrations"],
 	});
 };
 

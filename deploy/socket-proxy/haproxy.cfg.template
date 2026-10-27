@@ -1,0 +1,56 @@
+# NPMOS: haproxy config of tecnativa/docker-socket-proxy (v0.5.0 template) with our own whitelist.
+# Mounted over /usr/local/etc/haproxy/haproxy.cfg.template by deploy/compose.yaml.
+global
+    log stdout format raw daemon "${LOG_LEVEL}"
+
+    pidfile /run/haproxy.pid
+    maxconn 4000
+
+    # Turn on stats unix socket
+    server-state-file /var/lib/haproxy/server-state
+
+defaults
+    mode http
+    log global
+    option httplog
+    option dontlognull
+    option http-server-close
+    option redispatch
+    retries 3
+    timeout http-request 10s
+    timeout queue 1m
+    timeout connect 10s
+    timeout client 10m
+    timeout server 10m
+    timeout http-keep-alive 10s
+    timeout check 10s
+    maxconn 3000
+
+    # Allow seamless reloads
+    load-server-state-from-file global
+
+    # Use provided example error pages
+    errorfile 400 /usr/local/etc/haproxy/errors/400.http
+    errorfile 403 /usr/local/etc/haproxy/errors/403.http
+    errorfile 408 /usr/local/etc/haproxy/errors/408.http
+    errorfile 500 /usr/local/etc/haproxy/errors/500.http
+    errorfile 502 /usr/local/etc/haproxy/errors/502.http
+    errorfile 503 /usr/local/etc/haproxy/errors/503.http
+    errorfile 504 /usr/local/etc/haproxy/errors/504.http
+
+backend dockerbackend
+    server dockersocket $SOCKET_PATH
+
+frontend dockerfrontend
+    bind ${BIND_CONFIG}
+
+    # NPMOS: fixed whitelist instead of the image's per-section switches. The image can only allow
+    # restarts together with POST=1, which also opens POST /containers/create (root on the host).
+    # Exactly what npmos-control needs (npmos/backend/npmos/control/server.js):
+    #   GET  /containers/json, /containers/<id>/json, /containers/<id>/logs
+    #   POST /containers/<id>/restart
+    http-request allow if METH_GET { path,url_dec -m reg -i ^(/v[\d\.]+)?/containers/json$ }
+    http-request allow if METH_GET { path,url_dec -m reg -i ^(/v[\d\.]+)?/containers/[a-zA-Z0-9][a-zA-Z0-9_.-]*/(json|logs)$ }
+    http-request allow if METH_POST { path,url_dec -m reg -i ^(/v[\d\.]+)?/containers/[a-zA-Z0-9][a-zA-Z0-9_.-]*/restart$ }
+    http-request deny
+    default_backend dockerbackend

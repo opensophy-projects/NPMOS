@@ -142,8 +142,9 @@ const setupCertbotPlugins = async () => {
  *
  * @returns {Promise}
  */
-const regenerateAllHosts = async () => {
-	if (process.env.REGENERATE_ALL === "true") {
+// NPMOS: also run on demand from System → Services (force)
+export const regenerateAllHosts = async (force = false) => {
+	if (force === true || process.env.REGENERATE_ALL === "true") {
 		const proxyHosts = await proxyModel
 			.query()
 			.where("is_deleted", 0)

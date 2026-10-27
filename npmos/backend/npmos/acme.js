@@ -86,4 +86,18 @@ const ensureAcmeAccount = async () => {
 	await pending;
 };
 
-export { ensureAcmeAccount };
+/**
+ * Certbot and ACME failures are the admin's to fix (DNS, ports, rate limits), but upstream returns
+ * them as a non-public CommandError, so the GUI showed "Internal Error". Pass certbot's output on.
+ * @param   {Error} err
+ * @returns {Error}
+ */
+const acmeError = (err) => {
+	if (err?.public) {
+		return err;
+	}
+	const detail = `${err?.message || err}`.trim() || "no output";
+	return new errs.ValidationError(`Certificate request failed: ${detail}`, err);
+};
+
+export { acmeError, ensureAcmeAccount };

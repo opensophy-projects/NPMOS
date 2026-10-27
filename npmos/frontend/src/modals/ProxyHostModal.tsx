@@ -1,4 +1,6 @@
 import { IconSettings } from "@tabler/icons-react";
+// NPMOS: invalidates the WAF queries after saving
+import { useQueryClient } from "@tanstack/react-query";
 import CodeEditor from "@uiw/react-textarea-code-editor";
 import cn from "classnames";
 import EasyModal, { type InnerModalProps } from "ez-modal-react";
@@ -22,7 +24,11 @@ import { useDirectorySuggestions, useProxyHost, useProxyHosts, useSetProxyHost, 
 import { intl, T } from "src/locale";
 import { MANAGE, PROXY_HOSTS } from "src/modules/Permissions";
 import { validateNumber, validateUpstreamUrl } from "src/modules/Validations";
-import { showObjectSuccess } from "src/notifications";
+import { showError, showObjectSuccess } from "src/notifications";
+// NPMOS: WAF tab (open-appsec settings of the host and its locations)
+import { setWafHost } from "src/npmos/api";
+import { fromWafForm, toWafForm, WafFields, wafUnchanged } from "src/npmos/components/WafFields";
+import { useWafHost } from "src/npmos/hooks";
 
 interface Props extends InnerModalProps {
 	id: number | "new";
@@ -35,6 +41,9 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove 
 	const { data: allProxyHosts } = useProxyHosts();
 	const suggestions = useDirectorySuggestions(allProxyHosts);
 	const { mutate: setProxyHost } = useSetProxyHost();
+	const queryClient = useQueryClient();
+	// NPMOS: a clone starts with the WAF settings of its source
+	const { data: wafData, isLoading: wafIsLoading } = useWafHost(id);
 	const [errorMsg, setErrorMsg] = useState<ReactNode | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [advVisible, setAdvVisible] = useState(false);
@@ -70,7 +79,8 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove 
 			delete meta.directory;
 		}
 
-		const { ...payload } = {
+		// NPMOS: npmosWaf is saved through its own API after the host
+		const { npmosWaf: _waf, ...payload } = {
 			id: id === "new" || isClone ? undefined : id,
 			...values,
 			meta,
@@ -94,7 +104,20 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove 
 					setErrorMsg(<T id={err.message} />);
 				}
 			},
-			onSuccess: () => {
+			onSuccess: async (saved: any) => {
+				// NPMOS: WAF settings after the host, so that new locations exist; a new host without
+				// changes keeps the defaults (no settings stored)
+				const paths = locations.map((l: any) => l.path).filter((p: string) => !!p);
+				const baseline = id === "new" || isClone ? toWafForm() : toWafForm(wafData);
+				if (saved?.id && !wafUnchanged(values.npmosWaf, baseline, paths)) {
+					try {
+						await setWafHost(saved.id, fromWafForm(values.npmosWaf, paths));
+					} catch (err: any) {
+						showError(err.message);
+					}
+					queryClient.invalidateQueries({ queryKey: ["npmos-waf-host", saved.id] });
+					queryClient.invalidateQueries({ queryKey: ["npmos-waf-hosts"] });
+				}
 				showObjectSuccess("proxy-host", "saved");
 				remove();
 			},
@@ -113,7 +136,8 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove 
 				</Alert>
 			)}
 			{isLoading || (userIsLoading && <Loading noLogo />)}
-			{!isLoading && !userIsLoading && data && currentUser && (
+			{/* NPMOS: wait for the WAF settings too */}
+			{!isLoading && !userIsLoading && !wafIsLoading && data && currentUser && (
 				<Formik
 					initialValues={
 						{
@@ -155,6 +179,8 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove 
 							npmplusXFrameOptions: data?.npmplusXFrameOptions || "SAMEORIGIN",
 							npmplusAuthRequest: data?.npmplusAuthRequest || "none",
 							npmplusAuthRequestUpstream: data?.npmplusAuthRequestUpstream || "",
+							// NPMOS: WAF tab
+							npmosWaf: toWafForm(wafData),
 						} as any
 					}
 					onSubmit={onSubmit}
@@ -210,6 +236,20 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove 
 													role="tab"
 												>
 													<T id="column.ssl" />
+												</a>
+											</li>
+											{/* NPMOS: WAF tab */}
+											<li className="nav-item" role="presentation">
+												<a
+													href="#tab-waf"
+													className="nav-link"
+													data-bs-toggle="tab"
+													aria-selected="false"
+													tabIndex={-1}
+													role="tab"
+												>
+													<T id="waf" />
+													{values?.npmosWaf?.enabled ? " *" : ""}
 												</a>
 											</li>
 											<li className="nav-item ms-auto" role="presentation">
@@ -913,6 +953,10 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove 
 													allowNew
 												/>
 												<SSLOptionsFields color="bg-lime" forProxyHost={true} />
+											</div>
+											{/* NPMOS: WAF tab */}
+											<div className="tab-pane" id="tab-waf" role="tabpanel">
+												<WafFields />
 											</div>
 											<div className="tab-pane" id="tab-advanced" role="tabpanel">
 												<NginxConfigField />

@@ -1,5 +1,14 @@
 #!/usr/bin/env sh
 
+# NPMOS: start from the image's nginx.conf every time. The edits below only go one way (e.g. the
+# open-appsec load_module is uncommented, never commented back), which upstream covers by recreating
+# the container; NPMOS applies settings switched in the GUI with a restart, which keeps the file.
+if [ -f /usr/local/nginx/conf/nginx.conf.npmos-orig ]; then
+    cp /usr/local/nginx/conf/nginx.conf.npmos-orig /usr/local/nginx/conf/nginx.conf
+else
+    cp /usr/local/nginx/conf/nginx.conf /usr/local/nginx/conf/nginx.conf.npmos-orig
+fi
+
 if [ "$ACME_KEY_TYPE" = "rsa" ]; then
     sed -i "s|key-type = ecdsa|key-type = rsa|g" /etc/certbot.ini
     if [ "$ACME_KEY_SIZE" != "4096" ]; then

@@ -29,7 +29,8 @@ const useSetSetting = () => {
 			}));
 			return () => queryClient.setQueryData(["setting", values.id], previousObject);
 		},
-		onError: (_, __, rollback: any) => rollback(),
+		// NPMOS: nothing to roll back when creating (onMutate returns no rollback) — threw a TypeError
+		onError: (_, __, rollback: any) => rollback?.(),
 		onSuccess: async ({ id }: Setting) => {
 			queryClient.invalidateQueries({ queryKey: ["setting", id] });
 			queryClient.invalidateQueries({ queryKey: ["audit-logs"] });

@@ -31,7 +31,7 @@
 | `NGINX_WORKER_PROCESSES`, `NGINX_WORKER_CONNECTIONS`, `NGINX_LOG_NOT_FOUND` | auto, 512, false | те же | GUI (Система → Nginx) | 4 |
 | `NGINX_FORCE_X25519MLKEM768`, `NGINX_DISABLE_TLS12`, `NGINX_TRUST_SECPR1`, `NGINX_TRUST_RSA_PKCS1` | | те же | GUI (Система → TLS) | 4 |
 | `DISABLE_NGINX_BEAUTIFIER` | `false` | `false` | NPMOS фиксирует | — |
-| `NGINX_LOAD_OPENAPPSEC_ATTACHMENT_MODULE` | `false` | `false` | GUI (WAF → Агент: «Включить WAF») | 1 |
+| `NGINX_LOAD_OPENAPPSEC_ATTACHMENT_MODULE` | `false` | `false` | GUI (WAF → Агент: «Включить WAF»), значение из БД пишется в `/data/npmos/runtime.env` | 1 ✅ |
 | `NGINX_LOAD_NJS_MODULE`, `NGINX_LOAD_GEOIP2_MODULE`, `NGINX_LOAD_LDAP_MODULE`, `NGINX_LOAD_NTLM_MODULE`, `NGINX_LOAD_VHOST_TRAFFIC_STATUS_MODULE` | `false` | `false` | GUI (Система → Модули nginx) | 4 |
 | `TRUST_CLOUDFLARE` | `false` | `false` (загрузка IP-диапазонов Cloudflare — только при явном включении) | GUI (Система → Сеть) | 4 |
 | `DISABLE_GRAVATAR` | `false` | **`true`** ✅ | GUI (Система → Внешние сервисы) | 4 |
@@ -44,7 +44,7 @@
 | `AUTH_REQUEST_*_UPSTREAM` (Anubis, Tinyauth, oauth2-proxy, VoidAuth, Authelia, Authentik) | — | — | GUI (Безопасность → Внешняя аутентификация) | 4 |
 | `ENABLE_PRERUN` | `false` | `false` | NPMOS фиксирует (скрипты до запуска противоречат «всё через GUI») | — |
 | `NODE_TLS_REJECT_UNAUTHORIZED` | — | — | Не используется; доверенные CA для OIDC/ACME добавляются в GUI | 6 |
-| `REGENERATE_ALL` | — | — | Кнопка «Пересоздать конфигурацию» в Система → Сервисы | 1 |
+| `REGENERATE_ALL` | — | — | Кнопка «Пересоздать конфигурацию» в Система → Сервисы | 1 ✅ |
 | `NC_AIO`, `NC_DOMAIN` | — | — | Интеграция Nextcloud AIO upstream; не трогаем | — |
 
 ## Агент open-appsec (`appsec-agent`)
@@ -54,11 +54,13 @@
 | `AGENT_TOKEN` | **не задаётся** (hybrid-режим без облака) | NPMOS фиксирует | 0 ✅ |
 | `user_email` | не задаётся | NPMOS фиксирует | 0 ✅ |
 | `autoPolicyLoad` | `true` (агент сам применяет `local_policy.yaml`, который генерирует NPMOS) | NPMOS фиксирует | 0 ✅ |
-| `nginxproxymanager` | `true` | NPMOS фиксирует; проверить, нужен ли с NPMplus | 1 |
+| `nginxproxymanager` | не задаётся (только помечает отчёт агента в облако) | NPMOS фиксирует | 1 ✅ |
 | `SHARED_STORAGE_HOST`, `LEARNING_HOST`, `TUNING_HOST` | имена сервисов compose | Bootstrap | 0 ✅ |
 | `https_proxy` | не задаётся | GUI (Система → Внешние сервисы), только если администратор включит онлайн-функции | 4 |
-| `CROWDSEC_ENABLED`, `CROWDSEC_API_URL`, `CROWDSEC_API_KEY` (встроенная интеграция агента) | выключено | GUI (WAF → Агент) | 7 |
-| Advanced ML-модель | файл `/advanced-model/open-appsec-advanced-model.tgz` | Загрузка файла в GUI (WAF → Агент) | 1 |
+| `CROWDSEC_ENABLED`, `CROWDSEC_MODE`, `CROWDSEC_API_URL`, `CROWDSEC_AUTH_METHOD`, `CROWDSEC_AUTH_DATA` (встроенная интеграция агента) | выключено; LAPI `crowdsec:8080`, ключ bouncer `appsec` от `npmos-init` | GUI (WAF → Агент → «Репутация IP из CrowdSec»); `npmos-entry.sh` образа агента выставляет их из `npmos-agent.env` | 1 ✅ |
+| Advanced ML-модель | файл `/advanced-model/open-appsec-advanced-model.tgz` (том `appsec-model`) | Загрузка файла в GUI (WAF → Агент) | 1 ✅ |
+| Fail-open/fail-close attachment и тайм-аут ответа агента (`agent.failOpenState.nginxModule`, `agent.failOpenTimeout.nginxModule` в `settings.json` агента) | fail-open, 50 мс | GUI (WAF → Агент) | 1 ✅ |
+| Уровень отладки агента | по умолчанию | GUI (Система → Диагностика) | 4 |
 
 Режим (prevent/detect), `minimum-confidence`, практики, триггеры и исключения — это не env, а `local_policy.yaml`. Его целиком генерирует NPMOS из своей БД (фазы 1 и 5).
 

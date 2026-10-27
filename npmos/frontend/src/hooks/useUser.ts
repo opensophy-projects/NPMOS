@@ -42,7 +42,8 @@ const useSetUser = () => {
 			}));
 			return () => queryClient.setQueryData(["user", values.id], previousObject);
 		},
-		onError: (_, __, rollback: any) => rollback(),
+		// NPMOS: nothing to roll back when creating (onMutate returns no rollback) — threw a TypeError
+		onError: (_, __, rollback: any) => rollback?.(),
 		onSuccess: async ({ id }: User) => {
 			queryClient.invalidateQueries({ queryKey: ["user", id] });
 			queryClient.invalidateQueries({ queryKey: ["users"] });

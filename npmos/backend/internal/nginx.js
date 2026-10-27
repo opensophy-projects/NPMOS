@@ -5,6 +5,8 @@ import _ from "lodash";
 import errs from "../lib/error.js";
 import utils from "../lib/utils.js";
 import { debug, nginx as logger } from "../logger.js";
+// NPMOS: the WAF policy has rules per proxy host, regenerate it whenever a host config changes
+import { scheduleRegenerate as scheduleWafPolicy } from "../npmos/waf/policy.js";
 import internalProxyHostAccessList from "./proxy-host-access-list.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -445,6 +447,10 @@ const internalNginx = {
 
 		await rm(config_file, { force: true });
 		await rm(`${config_file}.err`, { force: true });
+		// NPMOS: called by configure, delete and disable of every host
+		if (host_type === "proxy_host") {
+			scheduleWafPolicy();
+		}
 	},
 
 	/**

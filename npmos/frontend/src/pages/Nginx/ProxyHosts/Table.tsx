@@ -21,6 +21,8 @@ import {
 import { TableLayout } from "src/components/Table/TableLayout";
 import { intl, T } from "src/locale";
 import { MANAGE, PROXY_HOSTS } from "src/modules/Permissions";
+// NPMOS: WAF column
+import { WafBadge } from "src/npmos/components/WafBadge";
 
 interface Props {
 	data: ProxyHost[];
@@ -94,6 +96,13 @@ export default function Table({
 				cell: (info: any) => {
 					return <CertificateFormatter certificate={info.row.original.certificate} />;
 				},
+			}),
+			// NPMOS: open-appsec mode of the host
+			columnHelper.accessor((row: any) => row.id, {
+				id: "npmosWaf",
+				header: intl.formatMessage({ id: "waf" }),
+				enableSorting: false,
+				cell: (info: any) => <WafBadge hostId={info.row.original.id} />,
 			}),
 			columnHelper.accessor(
 				(row: any) => {

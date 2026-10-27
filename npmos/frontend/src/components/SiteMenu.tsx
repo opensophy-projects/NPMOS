@@ -3,8 +3,10 @@ import {
 	IconDeviceDesktop,
 	IconHome,
 	IconLock,
+	IconServer,
 	IconSettings,
 	IconShield,
+	IconShieldCheck,
 	IconUser,
 } from "@tabler/icons-react";
 import cn from "classnames";
@@ -101,6 +103,23 @@ const menuItems: MenuItem[] = [
 		label: "settings",
 		permissionSection: ADMIN,
 	},
+	// NPMOS: WAF and System → Services (the whole menu moves to the sidebar in phase 2)
+	{
+		icon: IconShieldCheck,
+		label: "npmos.waf",
+		permissionSection: ADMIN,
+		items: [
+			{ to: "/waf/events", label: "npmos.waf.events", permissionSection: ADMIN },
+			{ to: "/waf/policy", label: "npmos.waf.expert", permissionSection: ADMIN },
+			{ to: "/waf/agent", label: "npmos.waf.agent", permissionSection: ADMIN },
+		],
+	},
+	{
+		to: "/system/services",
+		icon: IconServer,
+		label: "npmos.services",
+		permissionSection: ADMIN,
+	},
 ];
 
 const getMenuItem = (item: MenuItem, onClick?: () => void) => {
@@ -148,7 +167,8 @@ const getMenuDropown = (item: MenuItem, onClick?: () => void) => {
 					role="button"
 				>
 					<span className="nav-link-icon d-md-none d-lg-inline-block">
-						<IconDeviceDesktop height={24} width={24} />
+						{/* NPMOS: dropdowns other than Hosts (WAF) have their own icon */}
+						{React.createElement(item.icon || IconDeviceDesktop, { height: 24, width: 24 })}
 					</span>
 					<span className="nav-link-title">
 						<T id={item.label} />

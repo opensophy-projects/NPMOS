@@ -521,6 +521,432 @@
 	"notification.success": {
 		"defaultMessage": "Успешно"
 	},
+	"npmos.nav.administration": {
+		"defaultMessage": "Администрирование"
+	},
+	"npmos.nav.close-menu": {
+		"defaultMessage": "Закрыть меню"
+	},
+	"npmos.nav.hosts": {
+		"defaultMessage": "Хосты"
+	},
+	"npmos.nav.language": {
+		"defaultMessage": "Язык"
+	},
+	"npmos.nav.menu": {
+		"defaultMessage": "Навигация"
+	},
+	"npmos.nav.nothing-found": {
+		"defaultMessage": "Ничего не найдено"
+	},
+	"npmos.nav.open-menu": {
+		"defaultMessage": "Открыть меню"
+	},
+	"npmos.nav.overview": {
+		"defaultMessage": "Обзор"
+	},
+	"npmos.nav.search": {
+		"defaultMessage": "Поиск по меню…"
+	},
+	"npmos.nav.security": {
+		"defaultMessage": "Безопасность"
+	},
+	"npmos.nav.skip": {
+		"defaultMessage": "Перейти к содержимому"
+	},
+	"npmos.nav.system": {
+		"defaultMessage": "Система"
+	},
+	"npmos.nav.theme-dark": {
+		"defaultMessage": "Тёмная тема"
+	},
+	"npmos.nav.theme-light": {
+		"defaultMessage": "Светлая тема"
+	},
+	"npmos.nav.user-menu": {
+		"defaultMessage": "Меню пользователя"
+	},
+	"npmos.services": {
+		"defaultMessage": "Сервисы"
+	},
+	"npmos.services.diagnostics": {
+		"defaultMessage": "Диагностический архив"
+	},
+	"npmos.services.follow": {
+		"defaultMessage": "Обновлять автоматически"
+	},
+	"npmos.services.health.healthy": {
+		"defaultMessage": "исправен"
+	},
+	"npmos.services.health.starting": {
+		"defaultMessage": "запускается"
+	},
+	"npmos.services.health.unhealthy": {
+		"defaultMessage": "неисправен"
+	},
+	"npmos.services.logs": {
+		"defaultMessage": "Логи"
+	},
+	"npmos.services.logs-title": {
+		"defaultMessage": "Логи: {service}"
+	},
+	"npmos.services.no-logs": {
+		"defaultMessage": "Записей нет"
+	},
+	"npmos.services.regenerate": {
+		"defaultMessage": "Пересоздать конфигурацию nginx"
+	},
+	"npmos.services.regenerate-confirm": {
+		"defaultMessage": "Пересоздать"
+	},
+	"npmos.services.regenerate-text": {
+		"defaultMessage": "Конфигурация nginx всех включённых хостов будет заново записана из базы данных, затем nginx перечитает её. Нужно после неудачного обновления или ручных правок в /data/nginx."
+	},
+	"npmos.services.regenerated": {
+		"defaultMessage": "Конфигурация nginx пересоздана"
+	},
+	"npmos.services.restart": {
+		"defaultMessage": "Перезапустить"
+	},
+	"npmos.services.restart-confirm": {
+		"defaultMessage": "Перезапустить {service}? Сервис будет недоступен несколько секунд."
+	},
+	"npmos.services.restart-npmos": {
+		"defaultMessage": "Перезапустить {service}? Прокси и этот интерфейс будут недоступны несколько секунд, страница переподключится сама."
+	},
+	"npmos.services.restart-requested": {
+		"defaultMessage": "{service} перезапускается"
+	},
+	"npmos.services.restart-title": {
+		"defaultMessage": "Перезапуск сервиса"
+	},
+	"npmos.services.service": {
+		"defaultMessage": "Сервис"
+	},
+	"npmos.services.state": {
+		"defaultMessage": "Состояние"
+	},
+	"npmos.services.state.created": {
+		"defaultMessage": "создан"
+	},
+	"npmos.services.state.dead": {
+		"defaultMessage": "не работает"
+	},
+	"npmos.services.state.exited": {
+		"defaultMessage": "остановлен"
+	},
+	"npmos.services.state.paused": {
+		"defaultMessage": "приостановлен"
+	},
+	"npmos.services.state.removing": {
+		"defaultMessage": "удаляется"
+	},
+	"npmos.services.state.restarting": {
+		"defaultMessage": "перезапускается"
+	},
+	"npmos.services.state.running": {
+		"defaultMessage": "работает"
+	},
+	"npmos.services.version": {
+		"defaultMessage": "Версия"
+	},
+	"npmos.waf": {
+		"defaultMessage": "WAF"
+	},
+	"npmos.waf.agent": {
+		"defaultMessage": "Агент open-appsec"
+	},
+	"npmos.waf.agent-mode": {
+		"defaultMessage": "Управление"
+	},
+	"npmos.waf.agent-mode-local": {
+		"defaultMessage": "локально, без облака"
+	},
+	"npmos.waf.agent-settings": {
+		"defaultMessage": "Настройки агента"
+	},
+	"npmos.waf.agent-settings.crowdsec": {
+		"defaultMessage": "Репутация IP из CrowdSec"
+	},
+	"npmos.waf.agent-settings.crowdsec.detect": {
+		"defaultMessage": "Detect: только записывать в журнал"
+	},
+	"npmos.waf.agent-settings.crowdsec.hint": {
+		"defaultMessage": "Агент проверяет IP клиентов по решениям (банам) локального CrowdSec. Без облака: только решения этого стека."
+	},
+	"npmos.waf.agent-settings.crowdsec.prevent": {
+		"defaultMessage": "Prevent: блокировать забаненные IP"
+	},
+	"npmos.waf.agent-settings.fail-open": {
+		"defaultMessage": "Fail-open"
+	},
+	"npmos.waf.agent-settings.fail-open-timeout": {
+		"defaultMessage": "Время ответа агента"
+	},
+	"npmos.waf.agent-settings.fail-open.off": {
+		"defaultMessage": "Fail-close: если агент не ответил вовремя или недоступен, запросы к защищённым хостам отклоняются (важнее безопасность)."
+	},
+	"npmos.waf.agent-settings.fail-open.on": {
+		"defaultMessage": "Если агент не ответил вовремя или недоступен, nginx пропускает запрос без проверки (важнее доступность)."
+	},
+	"npmos.waf.agent-settings.pending": {
+		"defaultMessage": "Сохранённые настройки ещё не применены: агент с тех пор не перезапускался."
+	},
+	"npmos.waf.agent-settings.restart-warning": {
+		"defaultMessage": "Чтобы применить настройки, агент перезапустится (несколько секунд). При включённом fail-open трафик в это время идёт без проверки; при fail-close запросы к защищённым хостам отклоняются, пока агент не поднимется."
+	},
+	"npmos.waf.agent-settings.save": {
+		"defaultMessage": "Сохранить и перезапустить агент"
+	},
+	"npmos.waf.agent-settings.saved": {
+		"defaultMessage": "Настройки сохранены, агент перезапускается"
+	},
+	"npmos.waf.agent-unreachable": {
+		"defaultMessage": "Агент недоступен. Проверьте сервис appsec-agent в разделе «Сервисы»."
+	},
+	"npmos.waf.apply": {
+		"defaultMessage": "Применить сейчас"
+	},
+	"npmos.waf.description": {
+		"defaultMessage": "Межсетевой экран веб-приложений open-appsec на машинном обучении"
+	},
+	"npmos.waf.disable": {
+		"defaultMessage": "Выключить"
+	},
+	"npmos.waf.disable-title": {
+		"defaultMessage": "Выключить WAF"
+	},
+	"npmos.waf.enable": {
+		"defaultMessage": "Включить"
+	},
+	"npmos.waf.enable-title": {
+		"defaultMessage": "Включить WAF"
+	},
+	"npmos.waf.events": {
+		"defaultMessage": "События"
+	},
+	"npmos.waf.events.action": {
+		"defaultMessage": "Действие"
+	},
+	"npmos.waf.events.all": {
+		"defaultMessage": "Все события"
+	},
+	"npmos.waf.events.component": {
+		"defaultMessage": "Компонент агента"
+	},
+	"npmos.waf.events.description": {
+		"defaultMessage": "Журнал безопасности агента open-appsec: обнаруженные и заблокированные атаки и события самого агента"
+	},
+	"npmos.waf.events.empty-all": {
+		"defaultMessage": "Событий пока нет"
+	},
+	"npmos.waf.events.empty-important": {
+		"defaultMessage": "Важных событий нет. Здесь появятся атаки на хосты под защитой WAF."
+	},
+	"npmos.waf.events.event": {
+		"defaultMessage": "Событие"
+	},
+	"npmos.waf.events.follow": {
+		"defaultMessage": "Обновлять"
+	},
+	"npmos.waf.events.host": {
+		"defaultMessage": "Хост"
+	},
+	"npmos.waf.events.important": {
+		"defaultMessage": "Важные события"
+	},
+	"npmos.waf.events.matched": {
+		"defaultMessage": "Что обнаружил WAF"
+	},
+	"npmos.waf.events.matched-location": {
+		"defaultMessage": "Где"
+	},
+	"npmos.waf.events.matched-parameter": {
+		"defaultMessage": "Параметр"
+	},
+	"npmos.waf.events.proxy-ip": {
+		"defaultMessage": "IP прокси"
+	},
+	"npmos.waf.events.request": {
+		"defaultMessage": "Запрос"
+	},
+	"npmos.waf.events.search": {
+		"defaultMessage": "Поиск: IP, хост, атака…"
+	},
+	"npmos.waf.events.severity": {
+		"defaultMessage": "Важность"
+	},
+	"npmos.waf.events.shown": {
+		"defaultMessage": "Показано {shown} из {total}"
+	},
+	"npmos.waf.events.source-ip": {
+		"defaultMessage": "IP источника"
+	},
+	"npmos.waf.events.time": {
+		"defaultMessage": "Время"
+	},
+	"npmos.waf.events.truncated": {
+		"defaultMessage": "Читается только последняя часть файлов логов агента."
+	},
+	"npmos.waf.events.unavailable": {
+		"defaultMessage": "Каталог логов агента недоступен: запущен ли агент open-appsec?"
+	},
+	"npmos.waf.expert": {
+		"defaultMessage": "Политика (эксперт)"
+	},
+	"npmos.waf.expert.check": {
+		"defaultMessage": "Проверить"
+	},
+	"npmos.waf.expert.comment": {
+		"defaultMessage": "Комментарий"
+	},
+	"npmos.waf.expert.description": {
+		"defaultMessage": "Свои фрагменты local_policy.yaml (v1beta1) поверх того, что NPMOS генерирует из WAF-настроек хостов: исключения, доверенные источники, свои практики и правила"
+	},
+	"npmos.waf.expert.diff": {
+		"defaultMessage": "Изменения local_policy.yaml"
+	},
+	"npmos.waf.expert.in-force": {
+		"defaultMessage": "действует"
+	},
+	"npmos.waf.expert.no-diff": {
+		"defaultMessage": "Фрагмент корректен, local_policy.yaml не меняется"
+	},
+	"npmos.waf.expert.no-versions": {
+		"defaultMessage": "Фрагментов пока нет: политика генерируется только из WAF-настроек хостов"
+	},
+	"npmos.waf.expert.rollback": {
+		"defaultMessage": "Откатить"
+	},
+	"npmos.waf.expert.rollback-confirm": {
+		"defaultMessage": "Сделать версию {id} текущей? Она сохранится как новая версия и сразу применится."
+	},
+	"npmos.waf.expert.rules": {
+		"defaultMessage": "Списки (practices, log-triggers, custom-responses, exceptions, trusted-sources, source-identifiers, policies.specific-rules): элемент с именем сгенерированного заменяет его, остальные добавляются. policies.default: ваши ключи заменяют сгенерированные; перечисленные там исключения действуют на все защищённые хосты."
+	},
+	"npmos.waf.expert.save": {
+		"defaultMessage": "Сохранить и применить"
+	},
+	"npmos.waf.expert.saved": {
+		"defaultMessage": "Политика сохранена и отправлена агенту"
+	},
+	"npmos.waf.expert.saved-on": {
+		"defaultMessage": "Сохранена"
+	},
+	"npmos.waf.expert.user": {
+		"defaultMessage": "Пользователь"
+	},
+	"npmos.waf.expert.versions": {
+		"defaultMessage": "Версии"
+	},
+	"npmos.waf.host-description": {
+		"defaultMessage": "WAF анализирует каждый запрос к этому хосту с помощью машинного обучения. Начните с Detect-Learn: модель изучает обычный трафик сайта и только записывает атаки. Когда события выглядят правильно, переключите на Prevent-Learn."
+	},
+	"npmos.waf.host-enabled": {
+		"defaultMessage": "Защищать с помощью open-appsec"
+	},
+	"npmos.waf.last-policy-update": {
+		"defaultMessage": "Политика применена"
+	},
+	"npmos.waf.last-update-status": {
+		"defaultMessage": "Последнее обновление"
+	},
+	"npmos.waf.location.inherit": {
+		"defaultMessage": "Как у хоста"
+	},
+	"npmos.waf.location.off": {
+		"defaultMessage": "Выключено"
+	},
+	"npmos.waf.minimum-confidence": {
+		"defaultMessage": "Минимальная уверенность для блокировки"
+	},
+	"npmos.waf.minimum-confidence.hint": {
+		"defaultMessage": "Рекомендуется High. Чем ниже, тем больше блокировок и ложных срабатываний."
+	},
+	"npmos.waf.mode": {
+		"defaultMessage": "Режим защиты"
+	},
+	"npmos.waf.mode.detect-learn": {
+		"defaultMessage": "Detect-Learn"
+	},
+	"npmos.waf.mode.detect-learn.hint": {
+		"defaultMessage": "Атаки записываются в журнал, ничего не блокируется. Модель продолжает обучаться."
+	},
+	"npmos.waf.mode.prevent-learn": {
+		"defaultMessage": "Prevent-Learn"
+	},
+	"npmos.waf.mode.prevent-learn.hint": {
+		"defaultMessage": "Атаки блокируются (ответ 403) и записываются в журнал. Модель продолжает обучаться."
+	},
+	"npmos.waf.model": {
+		"defaultMessage": "Расширенная ML-модель"
+	},
+	"npmos.waf.model.basic": {
+		"defaultMessage": "Базовая модель"
+	},
+	"npmos.waf.model.description": {
+		"defaultMessage": "В open-appsec встроена базовая модель. Расширенная (open-appsec-advanced-model.tgz, скачивается отдельно у open-appsec) находит больше атак при меньшем числе ложных срабатываний. Распаковывается при старте агента; после загрузки агент перезапускается."
+	},
+	"npmos.waf.model.present": {
+		"defaultMessage": "Загружена: {size}, {date}"
+	},
+	"npmos.waf.model.upload": {
+		"defaultMessage": "Загрузить модель (.tgz)"
+	},
+	"npmos.waf.model.uploaded": {
+		"defaultMessage": "Модель загружена, агент перезапускается"
+	},
+	"npmos.waf.off": {
+		"defaultMessage": "Выключен"
+	},
+	"npmos.waf.on": {
+		"defaultMessage": "Включён"
+	},
+	"npmos.waf.pending-disable": {
+		"defaultMessage": "WAF выключен, но ещё работает: нужен перезапуск NPMOS."
+	},
+	"npmos.waf.pending-enable": {
+		"defaultMessage": "WAF включён, но ещё не работает: нужен перезапуск NPMOS."
+	},
+	"npmos.waf.policy": {
+		"defaultMessage": "Политика"
+	},
+	"npmos.waf.policy-applied": {
+		"defaultMessage": "Политика отправлена агенту"
+	},
+	"npmos.waf.policy-apply": {
+		"defaultMessage": "Применить сейчас"
+	},
+	"npmos.waf.policy-generated": {
+		"defaultMessage": "Сгенерирована"
+	},
+	"npmos.waf.policy-hosts": {
+		"defaultMessage": "Защищённых хостов"
+	},
+	"npmos.waf.policy-not-applied": {
+		"defaultMessage": "ещё нет"
+	},
+	"npmos.waf.policy-not-sent": {
+		"defaultMessage": "агент не ответил, он подхватит файл сам"
+	},
+	"npmos.waf.policy-readonly": {
+		"defaultMessage": "Сгенерирована из настроек WAF у proxy-хостов, ручные правки не сохраняются. Файл:"
+	},
+	"npmos.waf.policy-sent": {
+		"defaultMessage": "Отправлена агенту"
+	},
+	"npmos.waf.policy-show": {
+		"defaultMessage": "Показать YAML"
+	},
+	"npmos.waf.policy-version": {
+		"defaultMessage": "Версия политики"
+	},
+	"npmos.waf.restart-warning": {
+		"defaultMessage": "NPMOS перезапустится, чтобы подключить или отключить модуль nginx: прокси и этот интерфейс будут недоступны несколько секунд."
+	},
+	"npmos.waf.restarting": {
+		"defaultMessage": "NPMOS перезапускается, страница обновится сама…"
+	},
 	"object.actions-title": {
 		"defaultMessage": "{object} #{id}"
 	},
@@ -551,8 +977,17 @@
 	"object.event.enabled": {
 		"defaultMessage": "{object} включен"
 	},
+	"object.event.exported": {
+		"defaultMessage": "{object}: выгрузка"
+	},
+	"object.event.regenerated": {
+		"defaultMessage": "{object}: конфигурация пересоздана"
+	},
 	"object.event.renewed": {
 		"defaultMessage": "{object} продлен"
+	},
+	"object.event.restarted": {
+		"defaultMessage": "{object} перезапущен"
 	},
 	"object.event.updated": {
 		"defaultMessage": "{object} обновлен"
@@ -652,6 +1087,9 @@
 	},
 	"save": {
 		"defaultMessage": "Сохранить"
+	},
+	"service": {
+		"defaultMessage": "Сервис"
 	},
 	"setting": {
 		"defaultMessage": "Настройка"
@@ -775,5 +1213,8 @@
 	},
 	"users": {
 		"defaultMessage": "Пользователи"
+	},
+	"waf": {
+		"defaultMessage": "WAF"
 	}
 }

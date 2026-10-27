@@ -71,4 +71,165 @@ echo "$body" | grep -qiE "^X-(Real-Ip|Forwarded-For): .*$client_ip" || fail "cli
 step "update check stays off"
 $CURL "$ADMIN/api/version/check" | grep -q '"latest": *"unknown"' || fail "update check is not disabled"
 
+# --- phase 1 ---
+
+step "System → Services: npmos-control lists the stack"
+services=$($CURL "$ADMIN/api/npmos/services")
+for s in npmos postgres npmos-control; do
+  echo "$services" | grep -q "\"service\": *\"$s\"" || fail "service $s is not listed: $services"
+done
+
+step "System → Services: service logs are readable"
+$CURL "$ADMIN/api/npmos/services/npmos/logs?tail=20" | grep -q '"line"' || fail "no npmos logs"
+
+step "System → Services: the control path cannot be restarted"
+code=$(curl -sS -k -b $JAR -o /dev/null -w '%{http_code}' -X POST "$ADMIN/api/npmos/services/socket-proxy/restart")
+[ "$code" = 400 ] || fail "socket-proxy restart: expected 400, got $code"
+
+step "System → Services: restart postgres, the backend reconnects"
+$CURL -X POST "$ADMIN/api/npmos/services/postgres/restart" | grep -q '"restarted": *true' || fail "postgres restart failed"
+for i in $(seq 1 30); do
+  $CURL "$ADMIN/api/users/me" 2>/dev/null | grep -q "$EMAIL" && break
+  [ "$i" = 30 ] && fail "backend did not reconnect to postgres"
+  sleep 2
+done
+$CURL "$ADMIN/api/audit-log" | grep -q '"action": *"restarted"' || fail "restart is not in the audit log"
+
+step "System → Services: regenerate nginx config, the proxy host still answers"
+$CURL -X POST "$ADMIN/api/npmos/nginx/regenerate" | grep -q '"regenerated": *true' || fail "regenerate failed"
+curl -sS --max-time 10 -H 'Host: test.local' "$HTTP/" | grep -q '^Hostname:' || fail "proxy host is down after regenerate"
+
+step "System → Services: diagnostic archive"
+$CURL -o /tmp/diagnostics.zip "$ADMIN/api/npmos/diagnostics"
+[ "$(head -c 2 /tmp/diagnostics.zip)" = PK ] || fail "diagnostic archive is not a zip"
+
+step "WAF: protecting a proxy host generates its rule in local_policy.yaml"
+$CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf/hosts/1" \
+  -d '{"enabled": true, "mode": "prevent-learn", "minimum_confidence": "high"}' > /dev/null
+for i in $(seq 1 10); do
+  $CURL "$ADMIN/api/npmos/waf/policy" | grep -q 'host: test.local\\n *name: npm-managed-specific-rule-proxyhost-1\\n' && break
+  [ "$i" = 10 ] && fail "no rule for test.local in the policy: $($CURL "$ADMIN/api/npmos/waf/policy")"
+  sleep 1
+done
+$CURL "$ADMIN/api/npmos/waf/policy" | grep -q 'mode: prevent-learn' || fail "the rule is not in prevent-learn"
+
+if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
+  step "WAF: switch open-appsec on in the GUI (npmos restarts with the nginx attachment)"
+  $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf" -d '{"enabled": true, "apply": true}' \
+    | grep -q '"restarting": *true' || fail "WAF switch did not restart npmos"
+  # npmos-control answers first, then restarts npmos and the agent in its namespaces
+  sleep 5
+  wait_api
+  for i in $(seq 1 30); do
+    $CURL "$ADMIN/api/npmos/waf" | grep -q '"active": *true' && break
+    [ "$i" = 30 ] && fail "attachment is not active: $($CURL "$ADMIN/api/npmos/waf")"
+    sleep 2
+  done
+
+  step "WAF: the open-appsec agent applies its policy without internet (local-only mode)"
+  for i in $(seq 1 90); do
+    $CURL "$ADMIN/api/npmos/waf" | grep -q '"lastPolicyUpdate": *"' && break
+    [ "$i" = 90 ] && fail "agent did not apply a policy: $($CURL "$ADMIN/api/npmos/waf")"
+    sleep 2
+  done
+
+  status() { curl -s -o /dev/null -w '%{http_code}' --max-time 10 -H 'Host: test.local' "$HTTP$1"; }
+  SQLI="/?id=1%27%20OR%20%271%27=%271"
+  XSS="/?q=%3Cscript%3Ealert(document.cookie)%3C/script%3E"
+
+  step "WAF: prevent-learn blocks SQLi and XSS with 403, normal requests pass"
+  for i in $(seq 1 60); do
+    [ "$(status "$SQLI")" = 403 ] && break
+    [ "$i" = 60 ] && fail "SQLi was not blocked (last status $(status "$SQLI"))"
+    sleep 2
+  done
+  [ "$(status "$XSS")" = 403 ] || fail "XSS was not blocked"
+  [ "$(status "/?q=hello")" = 200 ] || fail "a normal request was blocked"
+
+  # events of the agent's security log, newest first
+  event() {
+    for i in $(seq 1 30); do
+      $CURL "$ADMIN/api/npmos/waf/events?view=important&query=test.local" | grep -q "\"action\": *\"$1\"" && return 0
+      sleep 2
+    done
+    fail "no $1 event for test.local in WAF -> Events: $($CURL "$ADMIN/api/npmos/waf/events?view=all&limit=5")"
+  }
+
+  step "WAF -> Events: the blocked attack is an important event (Prevent)"
+  event Prevent
+
+  # Agent settings from the GUI: saving restarts the agent, its entrypoint applies them.
+  # $1: JSON body, $2: what is checked
+  agent_settings() {
+    step "WAF -> Agent: $2"
+    $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf/agent" -d "$1" \
+      | grep -q '"restarting": *true' || fail "saving agent settings did not restart the agent"
+    for i in $(seq 1 60); do
+      agent=$($CURL "$ADMIN/api/npmos/waf/agent")
+      echo "$agent" | grep -q '"restartRequired": *false' && break
+      [ "$i" = 60 ] && fail "the agent did not apply its settings: $agent"
+      sleep 2
+    done
+    for i in $(seq 1 60); do
+      $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true' && break
+      [ "$i" = 60 ] && fail "the agent did not come back after the restart: $($CURL "$ADMIN/api/npmos/waf")"
+      sleep 2
+    done
+    for i in $(seq 1 60); do
+      [ "$(status "$SQLI")" = 403 ] && break
+      [ "$i" = 60 ] && fail "SQLi is not blocked after the agent's restart"
+      sleep 2
+    done
+    since=$(date -u +%Y-%m-%dT%H:%M:%S)
+    status "$XSS" > /dev/null
+    for i in $(seq 1 30); do
+      # an event newer than the restart (times are ISO, compared as text)
+      $CURL "$ADMIN/api/npmos/waf/events?view=important&query=test.local&limit=1" \
+        | grep -o '"time": *"[^"]*"' | cut -d'"' -f4 | awk -v s="$since" '$0 >= s {f=1} END {exit !f}' && return 0
+      sleep 2
+    done
+    fail "attacks after the agent's restart are not in WAF -> Events: $($CURL "$ADMIN/api/npmos/waf/events?view=all&limit=3")"
+  }
+
+  agent_settings '{"crowdsec": {"enabled": false, "mode": "prevent"}, "fail_open": {"enabled": true, "timeout_ms": 100}}' \
+    "fail-open timeout from the GUI is applied at the agent's restart, attacks are still blocked and logged"
+  agent_settings '{"crowdsec": {"enabled": true, "mode": "prevent"}, "fail_open": {"enabled": true, "timeout_ms": 100}}' \
+    "IP reputation from the local CrowdSec on, attacks are still blocked and logged"
+
+  step "WAF -> Policy (expert): an exception for the tester's IP lets the attack through"
+  $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf/policy/custom" -d "{
+    \"content\": \"exceptions:\\n  - name: smoke-trusted\\n    action: accept\\n    condition:\\n      - key: sourceIp\\n        value: $client_ip\\npolicies:\\n  default:\\n    exceptions:\\n      - smoke-trusted\\n\",
+    \"comment\": \"smoke\"}" > /dev/null
+  $CURL "$ADMIN/api/npmos/waf/policy" | grep -q 'name: smoke-trusted' || fail "the exception is not in the policy"
+  for i in $(seq 1 60); do
+    [ "$(status "$SQLI")" = 200 ] && break
+    [ "$i" = 60 ] && fail "SQLi from the trusted IP is still blocked"
+    sleep 2
+  done
+
+  step "WAF -> Policy (expert): without the fragment (a new empty version) the attack is blocked again"
+  $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf/policy/custom" \
+    -d '{"content": "", "comment": "smoke: empty"}' > /dev/null
+  for i in $(seq 1 60); do
+    [ "$(status "$SQLI")" = 403 ] && break
+    [ "$i" = 60 ] && fail "SQLi is not blocked after the exception was removed"
+    sleep 2
+  done
+  $CURL "$ADMIN/api/npmos/waf/policy/custom" | grep -q '"comment": *"smoke: empty"' || fail "versions are not listed"
+
+  step "WAF: detect-learn lets attacks through"
+  $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf/hosts/1" \
+    -d '{"enabled": true, "mode": "detect-learn", "minimum_confidence": "high"}' > /dev/null
+  for i in $(seq 1 60); do
+    [ "$(status "$SQLI")" = 200 ] && break
+    [ "$i" = 60 ] && fail "SQLi is still blocked in detect-learn"
+    sleep 2
+  done
+
+  step "WAF -> Events: the detected attack is an important event (Detect)"
+  event Detect
+else
+  echo "    (agent not running, WAF scenarios skipped)"
+fi
+
 echo "OK: closed-network smoke passed"
