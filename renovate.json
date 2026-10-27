@@ -76,6 +76,16 @@
         "crowdsecurity/crowdsec"
       ],
       "groupName": "crowdsec"
+    },
+    {
+      "description": "Alpine of the open-appsec agent build is pinned: CMake 4 (Alpine 3.23+) rejects the pinned sources; bump by hand with OPENAPPSEC_REF",
+      "matchFileNames": [
+        "deploy/openappsec/agent/Dockerfile"
+      ],
+      "matchDepNames": [
+        "docker.io/library/alpine"
+      ],
+      "enabled": false
     }
   ]
 }
