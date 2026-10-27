@@ -110,6 +110,7 @@ const menuItems: MenuItem[] = [
 		permissionSection: ADMIN,
 		items: [
 			{ to: "/waf/events", label: "npmos.waf.events", permissionSection: ADMIN },
+			{ to: "/waf/policy", label: "npmos.waf.expert", permissionSection: ADMIN },
 			{ to: "/waf/agent", label: "npmos.waf.agent", permissionSection: ADMIN },
 		],
 	},

@@ -174,6 +174,27 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
   step "WAF -> Events: the blocked attack is an important event (Prevent)"
   event Prevent
 
+  step "WAF -> Policy (expert): an exception for the tester's IP lets the attack through"
+  $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf/policy/custom" -d "{
+    \"content\": \"exceptions:\\n  - name: smoke-trusted\\n    action: accept\\n    condition:\\n      - key: sourceIp\\n        value: $client_ip\\npolicies:\\n  default:\\n    exceptions:\\n      - smoke-trusted\\n\",
+    \"comment\": \"smoke\"}" > /dev/null
+  $CURL "$ADMIN/api/npmos/waf/policy" | grep -q 'name: smoke-trusted' || fail "the exception is not in the policy"
+  for i in $(seq 1 60); do
+    [ "$(status "$SQLI")" = 200 ] && break
+    [ "$i" = 60 ] && fail "SQLi from the trusted IP is still blocked"
+    sleep 2
+  done
+
+  step "WAF -> Policy (expert): without the fragment (a new empty version) the attack is blocked again"
+  $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf/policy/custom" \
+    -d '{"content": "", "comment": "smoke: empty"}' > /dev/null
+  for i in $(seq 1 60); do
+    [ "$(status "$SQLI")" = 403 ] && break
+    [ "$i" = 60 ] && fail "SQLi is not blocked after the exception was removed"
+    sleep 2
+  done
+  $CURL "$ADMIN/api/npmos/waf/policy/custom" | grep -q '"comment": *"smoke: empty"' || fail "versions are not listed"
+
   step "WAF: detect-learn lets attacks through"
   $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf/hosts/1" \
     -d '{"enabled": true, "mode": "detect-learn", "minimum_confidence": "high"}' > /dev/null

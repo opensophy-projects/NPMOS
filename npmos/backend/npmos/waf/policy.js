@@ -15,6 +15,7 @@ import _ from "lodash";
 import YAML from "yaml";
 import db from "../../db.js";
 import { debug, global as logger } from "../../logger.js";
+import { getCurrentCustom, mergeCustom, parseCustom } from "./custom.js";
 
 const POLICY_FILE = process.env.NPMOS_APPSEC_POLICY_FILE || "/ext/appsec/local_policy.yaml";
 const BACKUP_DIR = "/data/npmos/waf/policy-backups";
@@ -121,9 +122,10 @@ const addRules = (policy, n, hosts, mode, minimumConfidence) => {
 const parseJson = (value) => (typeof value === "string" ? JSON.parse(value) : value) || [];
 
 /**
- * @returns {Promise<{policy: object, hosts: number}>}
+ * @param   {{custom?: object}} [options]  parsed expert fragment instead of the one in force
+ * @returns {Promise<{policy: object, hosts: number, customId: number|null}>}
  */
-const buildPolicy = async () => {
+const buildPolicy = async ({ custom } = {}) => {
 	const knex = db();
 	const proxyHosts = await knex("proxy_host")
 		.select("id", "domain_names", "locations")
@@ -157,10 +159,30 @@ const buildPolicy = async () => {
 			);
 		}
 	}
-	return { policy, hosts };
+	if (custom) {
+		return { policy: mergeCustom(policy, custom), hosts, customId: null };
+	}
+	const current = await getCurrentCustom();
+	if (!current) {
+		return { policy, hosts, customId: null };
+	}
+	try {
+		const parsed = parseCustom(current.content);
+		if (!Object.keys(parsed).length) {
+			return { policy, hosts, customId: null };
+		}
+		return { policy: mergeCustom(policy, parsed), hosts, customId: current.id };
+	} catch (err) {
+		// validated when saved; only a hand-edited database gets here
+		logger.error(`WAF: expert policy version ${current.id} is not applied: ${err.message}`);
+		return { policy, hosts, customId: null };
+	}
 };
 
-const render = (policy) => `${HEADER}${YAML.stringify(policy, { lineWidth: 0 })}`;
+const CUSTOM_HEADER = "# + expert fragments (WAF -> Policy), merged over the generated rules.\n";
+
+const render = (policy, withCustom = false) =>
+	`${HEADER}${withCustom ? CUSTOM_HEADER : ""}${YAML.stringify(policy, { lineWidth: 0 })}`;
 
 const readPolicyFile = async () => {
 	try {
@@ -230,8 +252,8 @@ const notifyAgent = async () => {
  * @returns {Promise<{changed: boolean, hosts: number}>}
  */
 const regenerate = async ({ force = false } = {}) => {
-	const { policy, hosts } = await buildPolicy();
-	const content = render(policy);
+	const { policy, hosts, customId } = await buildPolicy();
+	const content = render(policy, customId !== null);
 	const current = await readPolicyFile();
 	const changed = current !== content;
 	if (changed) {

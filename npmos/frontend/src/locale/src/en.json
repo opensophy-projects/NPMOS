@@ -821,6 +821,54 @@
 	"npmos.waf.events.unavailable": {
 		"defaultMessage": "The agent's log directory is not readable: is the open-appsec agent running?"
 	},
+	"npmos.waf.expert": {
+		"defaultMessage": "Policy (expert)"
+	},
+	"npmos.waf.expert.check": {
+		"defaultMessage": "Check"
+	},
+	"npmos.waf.expert.comment": {
+		"defaultMessage": "Comment"
+	},
+	"npmos.waf.expert.description": {
+		"defaultMessage": "Your own fragments of local_policy.yaml (v1beta1) on top of what NPMOS generates from the WAF settings of the hosts: exceptions, trusted sources, own practices and rules"
+	},
+	"npmos.waf.expert.diff": {
+		"defaultMessage": "Changes of local_policy.yaml"
+	},
+	"npmos.waf.expert.in-force": {
+		"defaultMessage": "in force"
+	},
+	"npmos.waf.expert.no-diff": {
+		"defaultMessage": "The fragment is valid, local_policy.yaml stays the same"
+	},
+	"npmos.waf.expert.no-versions": {
+		"defaultMessage": "No fragments yet: the policy is generated from the WAF settings of the hosts only"
+	},
+	"npmos.waf.expert.rollback": {
+		"defaultMessage": "Roll back"
+	},
+	"npmos.waf.expert.rollback-confirm": {
+		"defaultMessage": "Make version {id} the current one? It is saved as a new version and applied at once."
+	},
+	"npmos.waf.expert.rules": {
+		"defaultMessage": "Lists (practices, log-triggers, custom-responses, exceptions, trusted-sources, source-identifiers, policies.specific-rules): an item with the name of a generated one replaces it, others are added. policies.default: your keys replace the generated ones; exceptions listed there apply to all protected hosts."
+	},
+	"npmos.waf.expert.save": {
+		"defaultMessage": "Save and apply"
+	},
+	"npmos.waf.expert.saved": {
+		"defaultMessage": "The policy was saved and sent to the agent"
+	},
+	"npmos.waf.expert.saved-on": {
+		"defaultMessage": "Saved"
+	},
+	"npmos.waf.expert.user": {
+		"defaultMessage": "User"
+	},
+	"npmos.waf.expert.versions": {
+		"defaultMessage": "Versions"
+	},
 	"npmos.waf.host-description": {
 		"defaultMessage": "The WAF analyses every request to this host with machine learning. Start in Detect-Learn: the model learns your normal traffic and only logs attacks; switch to Prevent-Learn when the events look right."
 	},

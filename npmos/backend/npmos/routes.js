@@ -6,6 +6,7 @@ import { debug, express as logger } from "../logger.js";
 import internalServices from "./services.js";
 import internalWafAgent from "./waf/agent-settings.js";
 import internalWafEvents from "./waf/events.js";
+import internalWafExpert from "./waf/expert.js";
 import internalWafHosts from "./waf/hosts.js";
 import internalWaf from "./waf/index.js";
 
@@ -38,6 +39,14 @@ router.param("host_id", (req, res, next, id) => {
 		return res.status(400).send({ error: { code: 400, message: "Invalid host id" } });
 	}
 	req.params.host_id = Number.parseInt(id, 10);
+	next();
+});
+
+router.param("version_id", (req, res, next, id) => {
+	if (!/^[1-9][0-9]{0,9}$/.test(id)) {
+		return res.status(400).send({ error: { code: 400, message: "Invalid version id" } });
+	}
+	req.params.version_id = Number.parseInt(id, 10);
 	next();
 });
 
@@ -257,6 +266,52 @@ router
 			}),
 		),
 	);
+
+/**
+ * GET /api/npmos/waf/policy/custom — expert YAML fragment in force, its versions
+ * PUT /api/npmos/waf/policy/custom — {content, comment?}: new version, applied at once
+ */
+const customPolicy = {
+	type: "object",
+	additionalProperties: false,
+	required: ["content"],
+	properties: {
+		content: { type: "string", maxLength: 262144 },
+		comment: { type: "string", maxLength: 255 },
+	},
+};
+
+router
+	.route("/waf/policy/custom")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalWafExpert.get(res.locals.access)))
+	.put(
+		handle(async (req, res) => internalWafExpert.save(res.locals.access, await validator(customPolicy, req.body))),
+	);
+
+/**
+ * POST /api/npmos/waf/policy/custom/check — {content}: validation and diff against the file in force
+ */
+router
+	.route("/waf/policy/custom/check")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) => {
+			const data = await validator(customPolicy, req.body);
+			return internalWafExpert.check(res.locals.access, data.content);
+		}),
+	);
+
+/**
+ * POST /api/npmos/waf/policy/custom/:version_id/rollback
+ */
+router
+	.route("/waf/policy/custom/:version_id/rollback")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(handle((req, res) => internalWafExpert.rollback(res.locals.access, req.params.version_id)));
 
 /**
  * POST /api/npmos/nginx/regenerate

@@ -177,3 +177,36 @@ export const uploadWafModel = async (file: File): Promise<WafAgentModel & { rest
 	}
 	return payload;
 };
+
+export interface WafCustomVersion {
+	id: number;
+	comment: string;
+	createdOn: string;
+	user: string | null;
+	size: number;
+}
+
+export interface WafCustomPolicy {
+	id: number | null;
+	content: string;
+	versions: WafCustomVersion[];
+	policy: WafPolicyState;
+}
+
+export interface WafCustomCheck {
+	valid: boolean;
+	error?: string;
+	changed?: boolean;
+	diff?: { op: " " | "+" | "-"; line: string }[];
+}
+
+export const getWafCustomPolicy = (): Promise<WafCustomPolicy> => api.get({ url: "/npmos/waf/policy/custom" });
+
+export const checkWafCustomPolicy = (content: string): Promise<WafCustomCheck> =>
+	api.post({ url: "/npmos/waf/policy/custom/check", data: { content } });
+
+export const saveWafCustomPolicy = (content: string, comment: string): Promise<WafCustomPolicy> =>
+	api.put({ url: "/npmos/waf/policy/custom", data: { content, comment } });
+
+export const rollbackWafCustomPolicy = (id: number): Promise<WafCustomPolicy> =>
+	api.post({ url: `/npmos/waf/policy/custom/${id}/rollback` });

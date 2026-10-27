@@ -3,6 +3,7 @@ import {
 	getServiceLogs,
 	getServices,
 	getWafAgent,
+	getWafCustomPolicy,
 	getWafEvents,
 	getWafHost,
 	getWafHosts,
@@ -11,6 +12,7 @@ import {
 	type Service,
 	type ServiceLogLine,
 	type WafAgentState,
+	type WafCustomPolicy,
 	type WafEvents,
 	type WafEventsView,
 	type WafHost,
@@ -78,4 +80,10 @@ export const useWafAgent = () =>
 		queryKey: ["npmos-waf-agent"],
 		queryFn: getWafAgent,
 		refetchInterval: 10000,
+	});
+
+export const useWafCustomPolicy = () =>
+	useQuery<WafCustomPolicy, Error>({
+		queryKey: ["npmos-waf-custom-policy"],
+		queryFn: getWafCustomPolicy,
 	});

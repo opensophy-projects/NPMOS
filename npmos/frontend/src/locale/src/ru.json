@@ -746,6 +746,54 @@
 	"npmos.waf.events.unavailable": {
 		"defaultMessage": "Каталог логов агента недоступен: запущен ли агент open-appsec?"
 	},
+	"npmos.waf.expert": {
+		"defaultMessage": "Политика (эксперт)"
+	},
+	"npmos.waf.expert.check": {
+		"defaultMessage": "Проверить"
+	},
+	"npmos.waf.expert.comment": {
+		"defaultMessage": "Комментарий"
+	},
+	"npmos.waf.expert.description": {
+		"defaultMessage": "Свои фрагменты local_policy.yaml (v1beta1) поверх того, что NPMOS генерирует из WAF-настроек хостов: исключения, доверенные источники, свои практики и правила"
+	},
+	"npmos.waf.expert.diff": {
+		"defaultMessage": "Изменения local_policy.yaml"
+	},
+	"npmos.waf.expert.in-force": {
+		"defaultMessage": "действует"
+	},
+	"npmos.waf.expert.no-diff": {
+		"defaultMessage": "Фрагмент корректен, local_policy.yaml не меняется"
+	},
+	"npmos.waf.expert.no-versions": {
+		"defaultMessage": "Фрагментов пока нет: политика генерируется только из WAF-настроек хостов"
+	},
+	"npmos.waf.expert.rollback": {
+		"defaultMessage": "Откатить"
+	},
+	"npmos.waf.expert.rollback-confirm": {
+		"defaultMessage": "Сделать версию {id} текущей? Она сохранится как новая версия и сразу применится."
+	},
+	"npmos.waf.expert.rules": {
+		"defaultMessage": "Списки (practices, log-triggers, custom-responses, exceptions, trusted-sources, source-identifiers, policies.specific-rules): элемент с именем сгенерированного заменяет его, остальные добавляются. policies.default: ваши ключи заменяют сгенерированные; перечисленные там исключения действуют на все защищённые хосты."
+	},
+	"npmos.waf.expert.save": {
+		"defaultMessage": "Сохранить и применить"
+	},
+	"npmos.waf.expert.saved": {
+		"defaultMessage": "Политика сохранена и отправлена агенту"
+	},
+	"npmos.waf.expert.saved-on": {
+		"defaultMessage": "Сохранена"
+	},
+	"npmos.waf.expert.user": {
+		"defaultMessage": "Пользователь"
+	},
+	"npmos.waf.expert.versions": {
+		"defaultMessage": "Версии"
+	},
 	"npmos.waf.host-description": {
 		"defaultMessage": "WAF анализирует каждый запрос к этому хосту с помощью машинного обучения. Начните с Detect-Learn: модель изучает обычный трафик сайта и только записывает атаки. Когда события выглядят правильно, переключите на Prevent-Learn."
 	},
