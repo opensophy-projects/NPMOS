@@ -11,24 +11,24 @@ NPMOS — форк NPMplus с встроенными open-appsec (ML-WAF) и Cro
 
 | Путь | Что | Правила |
 |---|---|---|
-| `app/` | NPMplus (git subtree, upstream `ZoeyVid/NPMplus`) + наши изменения | см. «Изменения в upstream-коде» |
-| `app/backend/npmos/`, `app/frontend/src/npmos/` | Наш код (модули NPMOS) | Новый код — сюда |
-| `deploy/` | `compose.yaml` (прод, локальный стек), `compose.dev.yaml`, образ `crowdsec/`, `init/`, `test/` | |
+| `npmos/` | NPMplus (git subtree, upstream `ZoeyVid/NPMplus`) + наши изменения | см. «Изменения в upstream-коде» |
+| `npmos/backend/npmos/`, `npmos/frontend/src/npmos/` | Наш код (модули NPMOS) | Новый код — сюда |
+| `deploy/` | `compose.yaml` (прод, локальный стек), `compose.dev.yaml`, `.env` (версии), `init/`, `openappsec/` (наши образы), `test/` | |
 | `reference/` | Исходники open-appsec-npm, open-appsec, smartsync(-tuning) — только для чтения | Не собирается, не линтится, не правится. Обновление: `scripts/update-reference.sh` |
 | `design/` | Токены дизайна, пример sidebar | |
 | `docs/` | План, ADR, инвентаризация env | |
 
-## Изменения в upstream-коде (`app/`)
+## Изменения в upstream-коде (`npmos/`)
 
 - Предпочитать новый код в `npmos/`-каталогах и точечные «крючки» в upstream-файлах.
 - Каждое изменение upstream-файла помечается комментарием `NPMOS:` с причиной (`// NPMOS: …`, `# NPMOS: …`). По этим меткам разрешаются конфликты при обновлении.
 - Стиль — как в окружающем коде: биом-форматирование (табы, ширина 120), ESM, `async/await`.
-- Новые строки интерфейса — только в `en.json` и `ru.json` (`app/frontend/src/locale/src/`).
+- Новые строки интерфейса — только в `en.json` и `ru.json` (`npmos/frontend/src/locale/src/`).
 
 ## Обновление NPMplus
 
 ```bash
-git subtree pull --prefix=app https://github.com/ZoeyVid/NPMplus <tag> --squash
+git subtree pull --prefix=npmos https://github.com/ZoeyVid/NPMplus <tag> --squash
 ```
 
 Берём только релизные теги NPMplus (`YYYY-MM-DD-rN`): они ставятся не на `develop`, а `develop` может содержать незавершённые изменения. После обновления: разрешить конфликты по меткам `NPMOS:`, поменять `NPMPLUS_BASE` в `deploy/dev/Dockerfile` на тот же тег, прогнать проверки и закрытый контур. Текущий тег: **2026-10-22-r1**.
@@ -37,9 +37,9 @@ git subtree pull --prefix=app https://github.com/ZoeyVid/NPMplus <tag> --squash
 
 ```bash
 # backend
-cd app/backend && pnpm install --frozen-lockfile && pnpm biome ci . --assist-enabled=false
+cd npmos/backend && pnpm install --frozen-lockfile && pnpm biome ci . --assist-enabled=false
 # frontend
-cd app/frontend && pnpm install --frozen-lockfile && pnpm biome ci . --assist-enabled=false \
+cd npmos/frontend && pnpm install --frozen-lockfile && pnpm biome ci . --assist-enabled=false \
   && node check-locales.cjs && pnpm formatjs compile-folder src/locale/src src/locale/lang \
   && pnpm tsc --noEmit && pnpm vitest run
 # shell, compose
@@ -55,7 +55,7 @@ scripts/test-airgap.sh
 
 | Образ | Источник | Сборка |
 |---|---|---|
-| `npmos` | `app/Dockerfile` (+ стадия `crowdsec-seed`) | долго: nginx, aws-lc, attachment из исходников |
+| `npmos` | `npmos/Dockerfile` (+ стадия `crowdsec-seed`) | долго: nginx, aws-lc, attachment из исходников |
 | `npmos-appsec-agent` | `deploy/openappsec/agent` (openappsec из исходников) | долго: C++ |
 | `npmos-appsec-{smartsync,shared-storage,tuning}` | `deploy/openappsec/go-service` | минуты |
 | CrowdSec, Postgres, socket-proxy | официальные образы, версии в `deploy/.env` | — |
@@ -67,10 +67,10 @@ scripts/test-airgap.sh
 ```bash
 docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml up -d --build   # backend + стек
 docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml watch           # синхронизация backend
-cd app/frontend && pnpm install && pnpm vite                                     # http://localhost:5173
+cd npmos/frontend && pnpm install && pnpm vite                                     # http://localhost:5173
 ```
 
-- Dev-образ `npmos:dev` = upstream-образ того же тега + наши `app/backend` и `app/rootfs`. Собирается за секунды. Прод-образ собирается из `app/Dockerfile` в CI.
+- Dev-образ `npmos:dev` = upstream-образ того же тега + наши `npmos/backend` и `npmos/rootfs`. Собирается за секунды. Прод-образ собирается из `npmos/Dockerfile` в CI.
 - Vite проксирует `/api` на `NPMOS_API` (по умолчанию `https://127.0.0.1:81`) и подменяет Origin.
 - Без IPv6 на хосте: `NPMOS_DISABLE_IPV6=true`.
 - Генератор атак для проверки WAF: `--profile attack`.

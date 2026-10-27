@@ -1,5 +1,5 @@
 #!/bin/sh
-# Builds an offline CrowdSec seed inside a crowdsecurity/crowdsec build stage (see app/Dockerfile).
+# Builds an offline CrowdSec seed inside a crowdsecurity/crowdsec build stage (see npmos/Dockerfile).
 # Output: /seed/etc (full /etc/crowdsec with hub index, hub content and installed items)
 #         /seed/data (/var/lib/crowdsec/data with the data files hub items need).
 # npmos-init copies it into the crowdsec volumes on first start, so the unmodified official

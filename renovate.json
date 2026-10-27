@@ -4,7 +4,7 @@
     "config:recommended"
   ],
   "ignorePaths": [
-    "app/**",
+    "npmos/**",
     "reference/**"
   ],
   "customManagers": [
@@ -71,7 +71,7 @@
   ],
   "packageRules": [
     {
-      "description": "CROWDSEC_VERSION is also pinned in app/Dockerfile and deploy/dev/Dockerfile (CI checks they match)",
+      "description": "CROWDSEC_VERSION is also pinned in npmos/Dockerfile and deploy/dev/Dockerfile (CI checks they match)",
       "matchDepNames": [
         "crowdsecurity/crowdsec"
       ],

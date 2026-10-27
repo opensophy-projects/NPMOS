@@ -33,7 +33,7 @@ for image in "${images[@]}"; do
     npmos)
       docker build --build-arg "CROWDSEC_VERSION=$CROWDSEC_VERSION" \
         --build-arg "FLAGS=${FLAGS:--march=x86-64-v2 -mtune=generic -fcf-protection=full}" \
-        -t "$REGISTRY/npmos:$TAG" app ;;
+        -t "$REGISTRY/npmos:$TAG" npmos ;;
     appsec-agent)
       docker build --build-arg "OPENAPPSEC_REF=$OPENAPPSEC_REF" \
         -t "$REGISTRY/npmos-appsec-agent:$TAG" deploy/openappsec/agent ;;

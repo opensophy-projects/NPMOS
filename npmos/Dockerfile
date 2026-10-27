@@ -226,12 +226,12 @@ RUN apk upgrade --no-cache -a && \
 COPY backend /app
 
 
-# NPMOS: offline CrowdSec seed (hub snapshot) for the official crowdsec image, see app/npmos/crowdsec/seed.sh
+# NPMOS: offline CrowdSec seed (hub snapshot) for the official crowdsec image, see npmos/crowdsec-seed/seed.sh
 FROM docker.io/crowdsecurity/crowdsec:${CROWDSEC_VERSION} AS crowdsec-seed
 ARG HUB_BRANCH=master
 ARG HUB_ITEMS="parsers crowdsecurity/docker-logs crowdsecurity/cri-logs; collections ZoeyVid/npmplus crowdsecurity/appsec-virtual-patching crowdsecurity/appsec-generic-rules"
 ARG HUB_URL_TEMPLATE=
-COPY npmos/crowdsec/seed.sh /seed.sh
+COPY crowdsec-seed/seed.sh /seed.sh
 RUN --mount=type=secret,id=ca_bundle,required=false sh /seed.sh
 
 FROM alpine:3.24.1@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b

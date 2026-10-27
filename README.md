@@ -42,7 +42,7 @@ NPMOS_REGISTRY=local NPMOS_VERSION=dev docker compose -f deploy/compose.yaml up 
 docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml up -d --build
 
 # интерфейс с горячей перезагрузкой: правки CSS/компонентов видны сразу
-cd app/frontend
+cd npmos/frontend
 pnpm install
 pnpm vite
 ```
@@ -63,7 +63,7 @@ pnpm vite
 
 | Папка | Что это |
 |---|---|
-| `app/` | Основа NPMOS: NPMplus (git subtree) и наши изменения |
+| `npmos/` | Основа NPMOS: NPMplus (git subtree) и наши изменения |
 | `deploy/` | Compose-файлы стека, образы open-appsec, bootstrap (`init/`), тест закрытого контура |
 | `reference/` | Исходники open-appsec-npm, open-appsec, smartsync, smartsync-tuning — справочно ([версии](reference/VERSIONS.md)) |
 | `design/` | Токены дизайна и пример sidebar |

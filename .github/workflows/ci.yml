@@ -1,4 +1,4 @@
-# NPMOS CI. Upstream workflows under app/.github are not run (GitHub reads only the root .github).
+# NPMOS CI. Upstream workflows under npmos/.github are not run (GitHub reads only the root .github).
 #
 # Images built by NPMOS: npmos (multi-arch) and npmos-appsec-{agent,smartsync,shared-storage,tuning}
 # (amd64; arm64 is experimental, upstream open-appsec ships amd64 only).
@@ -38,13 +38,13 @@ jobs:
         with:
           version: latest
       - name: backend
-        working-directory: app/backend
+        working-directory: npmos/backend
         run: |
           pnpm install --frozen-lockfile
           # import ordering (biome assist) is not enforced: upstream code does not follow it
           pnpm biome ci . --assist-enabled=false
       - name: frontend
-        working-directory: app/frontend
+        working-directory: npmos/frontend
         run: |
           pnpm install --frozen-lockfile
           pnpm biome ci . --assist-enabled=false
@@ -53,7 +53,7 @@ jobs:
           pnpm tsc --noEmit
           pnpm vitest run
       - name: shell scripts
-        run: shellcheck -x -S warning scripts/*.sh deploy/*/*.sh deploy/openappsec/*/*.sh app/npmos/crowdsec/*.sh
+        run: shellcheck -x -S warning scripts/*.sh deploy/*/*.sh deploy/openappsec/*/*.sh npmos/crowdsec-seed/*.sh
       - name: compose files
         run: |
           docker compose -f deploy/compose.yaml config -q
@@ -65,7 +65,7 @@ jobs:
       - name: version consistency
         run: |
           env_cs=$(sed -n 's/^CROWDSEC_VERSION=//p' deploy/.env)
-          for f in app/Dockerfile deploy/dev/Dockerfile; do
+          for f in npmos/Dockerfile deploy/dev/Dockerfile; do
             df_cs=$(sed -n 's/^ARG CROWDSEC_VERSION=//p' "$f")
             [ "$env_cs" = "$df_cs" ] || { echo "::error file=$f::CROWDSEC_VERSION $df_cs != deploy/.env $env_cs"; exit 1; }
           done
@@ -94,7 +94,7 @@ jobs:
           echo "VERSION=$v" >> "$GITHUB_ENV"
           grep -E "^[A-Z_]+=" deploy/openappsec/sources.env >> "$GITHUB_ENV"
           echo "CROWDSEC_VERSION=$(sed -n 's/^CROWDSEC_VERSION=//p' deploy/.env)" >> "$GITHUB_ENV"
-          for f in app/frontend/package.json app/backend/package.json; do
+          for f in npmos/frontend/package.json npmos/backend/package.json; do
             jq --arg v "$v" '.version = $v' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
           done
       - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
@@ -103,7 +103,7 @@ jobs:
       - name: build npmos
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
-          context: app
+          context: npmos
           load: true
           tags: docker.io/${{ env.NAMESPACE }}/npmos:${{ env.VERSION }}
           cache-from: type=gha,scope=npmos-amd64
@@ -198,7 +198,7 @@ jobs:
             refs/tags/v*) echo "TAGS=${GITHUB_REF#refs/tags/v} latest" >> "$GITHUB_ENV" ;;
             *) echo "TAGS=develop" >> "$GITHUB_ENV" ;;
           esac
-          for f in app/frontend/package.json app/backend/package.json; do
+          for f in npmos/frontend/package.json npmos/backend/package.json; do
             jq --arg v "$v" '.version = $v' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
           done
       - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
@@ -213,7 +213,7 @@ jobs:
       - name: build (and push arch tags)
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
-          context: app
+          context: npmos
           push: ${{ env.PUBLISH == 'true' }}
           tags: docker.io/${{ env.NAMESPACE }}/npmos:${{ env.VERSION }}-arm64
           cache-from: type=gha,scope=npmos-arm64

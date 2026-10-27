@@ -146,7 +146,7 @@
 ### 3.1. Структура монорепо
 ```
 /
-├── app/                      # NPMOS = форк NPMplus (git subtree), только это собирается в образ
+├── npmos/                    # NPMOS = форк NPMplus (git subtree), только это собирается в образ
 │   ├── backend/
 │   │   ├── internal/…        # upstream NPMplus (минимум правок)
 │   │   └── npmos/            # НАШ код: waf/, events/, learning/, pki/, rbac/, crowdsec/, notify/
@@ -204,10 +204,10 @@
 
 | Что | Как проверено |
 |---|---|
-| NPMplus в `app/` (subtree, релиз `2026-10-22-r1`), `reference/` + `VERSIONS.md`, `CLAUDE.md`, `ENV-INVENTORY.md`, ADR-0001 | ревью |
+| NPMplus в `npmos/` (subtree, релиз `2026-10-22-r1`), `reference/` + `VERSIONS.md`, `CLAUDE.md`, `ENV-INVENTORY.md`, ADR-0001 | ревью |
 | Линтеры, типы, тесты, shellcheck, compose, согласованность версий | CI, job «Lint, types, tests» — зелёный |
 | Секреты Docker Hub (`DOCKERHUB_NAMESPACE`, `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`) | CI, шаг «registry credentials» — зелёный |
-| Прод-образ `npmos` из `app/Dockerfile`, включая стадию `crowdsec-seed` с полным набором коллекций (`ZoeyVid/npmplus`, appsec) | CI, прогон #4, job «Images» |
+| Прод-образ `npmos` из `npmos/Dockerfile`, включая стадию `crowdsec-seed` с полным набором коллекций (`ZoeyVid/npmplus`, appsec) | CI, прогон #4, job «Images» |
 | Свои образы `npmos-appsec-agent` (openappsec из исходников, ~17 мин), `-smartsync`, `-shared-storage`, `-tuning` | CI, прогон #4, job «Images» |
 | Полный закрытый контур на наших образах: все 9 сервисов поднимаются и остаются запущенными без интернета | CI, прогон #4, шаг «closed-network test (full stack)» |
 | Local-first: нет Gravatar, проверки обновлений и обращений к ACME при старте; NPMOS стартует без интернета | закрытый контур (CI), поиск фоновых обращений в логах |
@@ -231,7 +231,7 @@
 - Раздача снимков hub CrowdSec из NPMOS (адрес уже настроен) — фаза 7.
 
 #### 0.1. Основа — выполнено
-- [x] Определить коммит `ZoeyVid/NPMplus`, которому соответствует текущая копия: тег `2026-10-14-r1` (043ddf5), совпадение побайтное. NPMplus подключён в `app/` через `git subtree`.
+- [x] Определить коммит `ZoeyVid/NPMplus`, которому соответствует текущая копия: тег `2026-10-14-r1` (043ddf5), совпадение побайтное. NPMplus подключён в `npmos/` через `git subtree`.
 - [x] `reference/` + `VERSIONS.md` (обновление — `scripts/update-reference.sh`); из сборки и линтеров исключено.
 - [x] `CLAUDE.md`: карта модулей, конвенции, команды проверки, правило `npmos/` + `NPMOS:`, правило local-first.
 - [x] CI (`.github/workflows/ci.yml`): biome, `tsc`, vitest, проверка локалей, shellcheck, проверка compose-файлов, сборка образов amd64 (arm64 — при публикации или вручную), публикация в Docker Hub (при заданных `vars.DOCKERHUB_NAMESPACE` и секретах).
@@ -244,7 +244,7 @@
 #### 0.2. Доведение до продового решения (по находкам фазы 0)
 Образы: **NPMOS и open-appsec — свои** (собираем из исходников и публикуем в Docker Hub `opensophy/*`), **CrowdSec — официальный** `crowdsecurity/crowdsec` без модификаций.
 
-- [x] **CrowdSec на официальном образе без интернета.** Снимок hub собирается `app/npmos/crowdsec/seed.sh` в стадии `crowdsec-seed` образа NPMOS; источник hub при работе — сам NPMOS (обновление при старте не уходит в CDN). Официальный `docker_start.sh` при старте ставит парсеры из hub и падает без сети. Решение — не менять образ, а заранее наполнить его тома:
+- [x] **CrowdSec на официальном образе без интернета.** Снимок hub собирается `npmos/crowdsec-seed/seed.sh` в стадии `crowdsec-seed` образа NPMOS; источник hub при работе — сам NPMOS (обновление при старте не уходит в CDN). Официальный `docker_start.sh` при старте ставит парсеры из hub и падает без сети. Решение — не менять образ, а заранее наполнить его тома:
   - снимок hub (индекс + контент + data-файлы + предустановленные парсеры и коллекции) собирается в CI в стадии сборки образа NPMOS из того же тега `crowdsecurity/crowdsec`;
   - `npmos-init` при первом старте кладёт снимок в тома `crowdsec-conf`/`crowdsec-data`, если они пусты;
   - в `config.yaml` фиксируется `hub_branch`, чтобы не было обращения к version.crowdsec.net;
@@ -252,9 +252,9 @@
   - Ключ bouncer передаётся штатно через `/run/secrets/bouncer_key_npmos`.
 - [x] **Свои образы open-appsec** (`deploy/openappsec/`, коммиты в `sources.env`; Go-сервисы с `*_FILE` и shared-storage без root) из исходников с фиксированными коммитами: `npmos-appsec-agent` (openappsec, `make docker`), `npmos-appsec-smartsync`, `npmos-appsec-shared-storage` (+ `smartsync-shared-files` в `reference/`), `npmos-appsec-tuning`. CI собирает их и публикует, поэтому прод не зависит от ghcr.io.
 - [x] **Версии зафиксированы** (`deploy/.env`, проверка в CI, `renovate.json`; для PR с обновлениями нужно установить GitHub-приложение Renovate): никаких `latest` в `deploy/compose.yaml`. Все образы пинятся тегом выпуска NPMOS, сторонние (postgres, socket-proxy, crowdsec) — точной версией. Обновления вносит Renovate в PR.
-- [x] **ACME без обращений при старте** (`app/backend/npmos/acme.js`; убрана и проверка `ACME_PROFILE` при старте): регистрация аккаунта переносится в backend и выполняется при первом запросе сертификата Let's Encrypt/ZeroSSL. При старте NPMOS больше не обращается к ACME.
+- [x] **ACME без обращений при старте** (`npmos/backend/npmos/acme.js`; убрана и проверка `ACME_PROFILE` при старте): регистрация аккаунта переносится в backend и выполняется при первом запросе сертификата Let's Encrypt/ZeroSSL. При старте NPMOS больше не обращается к ACME.
 - [x] **`COOKIE_SECRET`** генерирует `npmos-init`; сессии переживают рестарт.
-- [x] ~~Отправить в NPMplus исправление бага с дубликатом email~~ — upstream уже исправил это в `develop` (ad399896) тем же способом; придёт со следующим релизным тегом, тогда снимаем метку `NPMOS:`. `app/` обновлён до последнего релиза `2026-10-22-r1`.
+- [x] ~~Отправить в NPMplus исправление бага с дубликатом email~~ — upstream уже исправил это в `develop` (ad399896) тем же способом; придёт со следующим релизным тегом, тогда снимаем метку `NPMOS:`. `npmos/` обновлён до последнего релиза `2026-10-22-r1`.
 - [x] **ADR по сети** (`docs/adr/0001-network.md`; IP клиента проверяется в закрытом контуре): bridge с публикацией портов вместо `network_mode: host`. Описано, когда нужен host-режим и что нужно для IPv6.
 - [ ] **Закрытый контур на полном стеке в CI:** все сервисы, включая агент, smartsync, tuning, CrowdSec из снимка (генерация политики агента из NPMOS — фаза 1). Сейчас в песочнице разработки ghcr.io недоступен, и open-appsec вживую не проверен.
 - [x] **Публикация в Docker Hub** (настроена в CI, секреты заведены) `opensophy/npmos*`: на ветке `work` — тег `develop`, при git-теге `vX.Y.Z` — `X.Y.Z` и `latest`; мультиархитектурный манифест amd64+arm64.
