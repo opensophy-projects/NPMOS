@@ -37,6 +37,7 @@ services:
       - crowdsec-conf:/crowdsec-conf
       - crowdsec-data:/crowdsec-data
       - appsec-conf:/appsec-conf
+      - appsec-localconfig:/appsec-localconfig
 
   npmos:
     <<: *managed
@@ -97,11 +98,12 @@ services:
       - appsec-shared-storage
     network_mode: service:npmos
     ipc: service:npmos
-    # Hybrid mode applies the declarative local_policy.yaml written by NPMOS (offline mode only
-    # reads a compiled policy). Upstream hybrid mode registers at the Check Point Fog before it
-    # applies any policy, so without internet no policy is ever applied. NPMOS_LOCAL_ONLY (our
-    # patch, deploy/openappsec/agent/patches) skips the registration; the Fog address points to a
-    # closed local port so that nothing else in the agent can reach the cloud either.
+    # Hybrid mode (= --standalone in the open-appsec docs) applies the declarative local_policy.yaml
+    # written by NPMOS (offline mode only reads a compiled policy). Upstream hybrid mode registers at
+    # the Check Point Fog before it applies any policy, so without internet no policy is ever applied
+    # (checked with the official image). NPMOS_LOCAL_ONLY (our patch, deploy/openappsec/agent/patches)
+    # skips the registration; the Fog address points to a closed local port so that nothing else in
+    # the agent can reach the cloud either.
     command: ["/cp-nano-agent", "--hybrid-mode", "--fog", "http://127.0.0.1:1"]
     environment:
       # No AGENT_TOKEN: managed locally by NPMOS (no my.openappsec.io)
@@ -109,8 +111,9 @@ services:
       SHARED_STORAGE_HOST: appsec-shared-storage
       LEARNING_HOST: appsec-smartsync
       TUNING_HOST: appsec-tuning-svc
+      # NPMOS also asks the agent to apply each new policy at once (set-apply-policy); this is the fallback
       autoPolicyLoad: "true"
-      nginxproxymanager: "true"
+      # not set: nginxproxymanager and user_email (open-appsec-npm docs) only tag the agent's report to the cloud
     volumes:
       - appsec-shm:/dev/shm/check-point
       - appsec-conf:/etc/cp/conf

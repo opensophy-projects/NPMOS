@@ -6,42 +6,48 @@ import internalCertificate from "./internal/certificate.js";
 import internalIpRanges from "./internal/ip_ranges.js";
 import { global as logger } from "./logger.js";
 import { migrateUp } from "./migrate.js";
+// NPMOS: open-appsec policy from the database
+import { bootstrap as bootstrapWafPolicy } from "./npmos/waf/policy.js";
 import { getCompiledSchema } from "./schema/index.js";
 import setup from "./setup.js";
 
 async function appStart() {
-	return migrateUp()
-		.then(setup)
-		.then(getCompiledSchema)
-		.then(() => {
-			if (process.env.TRUST_CLOUDFLARE === "false") {
-				logger.info("Cloudflares IPs are NOT trusted");
-				return;
-			}
-			logger.info("Cloudflares IPs are trusted");
-			internalIpRanges.initTimer();
-			return internalIpRanges.fetch();
-		})
-		.then(() => {
-			internalCertificate.initTimer();
-			internalNginx.reload();
+	return (
+		migrateUp()
+			.then(setup)
+			// NPMOS: never fails the start (errors are logged and shown in the GUI)
+			.then(bootstrapWafPolicy)
+			.then(getCompiledSchema)
+			.then(() => {
+				if (process.env.TRUST_CLOUDFLARE === "false") {
+					logger.info("Cloudflares IPs are NOT trusted");
+					return;
+				}
+				logger.info("Cloudflares IPs are trusted");
+				internalIpRanges.initTimer();
+				return internalIpRanges.fetch();
+			})
+			.then(() => {
+				internalCertificate.initTimer();
+				internalNginx.reload();
 
-			const server = app.listen("/run/npmplus.sock", () => {
-				logger.info(`Backend PID ${process.pid} listening on unix socket...`);
+				const server = app.listen("/run/npmplus.sock", () => {
+					logger.info(`Backend PID ${process.pid} listening on unix socket...`);
 
-				process.on("SIGTERM", () => {
-					logger.info(`PID ${process.pid} received SIGTERM`);
-					server.close(() => {
-						logger.info("Stopping.");
-						process.exit(0);
+					process.on("SIGTERM", () => {
+						logger.info(`PID ${process.pid} received SIGTERM`);
+						server.close(() => {
+							logger.info("Stopping.");
+							process.exit(0);
+						});
 					});
 				});
-			});
-		})
-		.catch((err) => {
-			logger.error(`Startup Error: ${err.message}`, err);
-			setTimeout(appStart, 1000);
-		});
+			})
+			.catch((err) => {
+				logger.error(`Startup Error: ${err.message}`, err);
+				setTimeout(appStart, 1000);
+			})
+	);
 }
 
 try {

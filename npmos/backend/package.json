@@ -27,7 +27,8 @@
 		"otplib": "13.4.1",
 		"pg": "8.22.0",
 		"signale": "1.4.0",
-		"swagger-ui-express": "5.0.1"
+		"swagger-ui-express": "5.0.1",
+		"yaml": "2.8.1"
 	},
 	"devDependencies": {
 		"@apidevtools/swagger-parser": "12.1.0",

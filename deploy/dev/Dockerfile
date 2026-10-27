@@ -11,8 +11,21 @@ ARG HUB_URL_TEMPLATE=
 COPY crowdsec-seed/seed.sh /seed.sh
 RUN --mount=type=secret,id=ca_bundle,required=false sh /seed.sh
 
+# Backend dependencies NPMOS adds to upstream's (node_modules of the upstream image lack them).
+# Versions come from our package.json; all of them are pure JS without dependencies of their own.
+FROM docker.io/library/node:24-alpine AS backend-deps
+ARG NPMOS_BACKEND_DEPS="yaml"
+COPY backend/package.json /src/package.json
+WORKDIR /deps
+RUN --mount=type=secret,id=ca_bundle,required=false \
+    if [ -f /run/secrets/ca_bundle ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/ca_bundle; fi && \
+    for dep in $NPMOS_BACKEND_DEPS; do \
+      echo "$dep@$(node -p "require('/src/package.json').dependencies['$dep']")"; \
+    done | xargs npm install --no-save --no-package-lock --omit=dev --ignore-scripts
+
 FROM ${NPMPLUS_BASE}
 COPY backend /app
+COPY --from=backend-deps /deps/node_modules/ /app/node_modules/
 COPY rootfs /
 COPY --from=crowdsec-seed /seed /opt/npmos/crowdsec-seed
 RUN sed -i "s|placeholder|$(jq -r .version /app/package.json)|g" /usr/local/nginx/conf/conf.d/crowdsec.conf.disabled && \

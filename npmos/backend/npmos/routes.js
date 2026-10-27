@@ -4,6 +4,7 @@ import jwtdecode from "../lib/express/jwt-decode.js";
 import validator from "../lib/validator/index.js";
 import { debug, express as logger } from "../logger.js";
 import internalServices from "./services.js";
+import internalWafHosts from "./waf/hosts.js";
 import internalWaf from "./waf/index.js";
 
 const router = express.Router({
@@ -29,6 +30,14 @@ const handle =
 			next(err);
 		}
 	};
+
+router.param("host_id", (req, res, next, id) => {
+	if (!/^[1-9][0-9]{0,9}$/.test(id)) {
+		return res.status(400).send({ error: { code: 400, message: "Invalid host id" } });
+	}
+	req.params.host_id = Number.parseInt(id, 10);
+	next();
+});
 
 router.param("service", (_req, res, next, service) => {
 	if (!SERVICE_NAME.test(service)) {
@@ -103,6 +112,80 @@ router
 			return internalWaf.setEnabled(res.locals.access, data.enabled, data.apply ?? true);
 		}),
 	);
+
+const wafSettings = {
+	type: "object",
+	required: ["enabled", "mode", "minimum_confidence"],
+	properties: {
+		enabled: { type: "boolean" },
+		mode: { type: "string" },
+		minimum_confidence: { type: "string" },
+	},
+};
+
+/**
+ * GET /api/npmos/waf/hosts — {<proxy host id>: {enabled, mode, minimum_confidence}}
+ */
+router
+	.route("/waf/hosts")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalWafHosts.list(res.locals.access)));
+
+/**
+ * GET /api/npmos/waf/hosts/:host_id
+ * PUT /api/npmos/waf/hosts/:host_id — {enabled, mode, minimum_confidence, locations?: [{path, inherit, ...}]}
+ */
+router
+	.route("/waf/hosts/:host_id")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((req, res) => internalWafHosts.get(res.locals.access, req.params.host_id)))
+	.put(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: wafSettings.required,
+					properties: {
+						...wafSettings.properties,
+						locations: {
+							type: "array",
+							items: {
+								type: "object",
+								additionalProperties: false,
+								required: ["path", "inherit"],
+								properties: {
+									path: { type: "string" },
+									inherit: { type: "boolean" },
+									...wafSettings.properties,
+								},
+							},
+						},
+					},
+				},
+				req.body,
+			);
+			return internalWafHosts.set(res.locals.access, req.params.host_id, data);
+		}),
+	);
+
+/**
+ * GET  /api/npmos/waf/policy — generated local_policy.yaml (text) and its state
+ * POST /api/npmos/waf/policy/apply — regenerate and make the agent apply it now
+ */
+router
+	.route("/waf/policy")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalWaf.getPolicy(res.locals.access)));
+
+router
+	.route("/waf/policy/apply")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(handle((_, res) => internalWaf.applyPolicy(res.locals.access)));
 
 /**
  * POST /api/npmos/nginx/regenerate

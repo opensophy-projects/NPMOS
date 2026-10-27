@@ -6,6 +6,7 @@ import internalAuditLog from "../../internal/audit-log.js";
 import control from "../control/client.js";
 import { getRunningValue, getSetting, setSetting } from "../settings.js";
 import { getAgentStatus } from "./agent.js";
+import { getPolicyState, readPolicyFile, regenerateNow } from "./policy.js";
 
 const internalWaf = {
 	/**
@@ -15,7 +16,13 @@ const internalWaf = {
 		await access.can("npmos_services:list");
 		const enabled = await getSetting("waf.enabled");
 		const active = getRunningValue("waf.enabled");
-		return { enabled, active, restartRequired: enabled !== active, agent: await getAgentStatus() };
+		return {
+			enabled,
+			active,
+			restartRequired: enabled !== active,
+			agent: await getAgentStatus(),
+			policy: getPolicyState(),
+		};
 	},
 
 	/**
@@ -39,6 +46,29 @@ const internalWaf = {
 			await control.restartService("npmos", access.token.getUserId(1));
 		}
 		return { enabled, active, restartRequired: enabled !== active, restarting };
+	},
+
+	/**
+	 * @param {Access} access
+	 */
+	getPolicy: async (access) => {
+		await access.can("npmos_services:list");
+		return { ...getPolicyState(), content: await readPolicyFile() };
+	},
+
+	/**
+	 * Regenerates local_policy.yaml and asks the agent to apply it now.
+	 * @param {Access} access
+	 */
+	applyPolicy: async (access) => {
+		await access.can("npmos_services:manage");
+		const result = await regenerateNow({ force: true });
+		await internalAuditLog.add(access, {
+			action: "regenerated",
+			object_type: "waf",
+			meta: { name: "local_policy.yaml" },
+		});
+		return { ...result, ...getPolicyState() };
 	},
 };
 
