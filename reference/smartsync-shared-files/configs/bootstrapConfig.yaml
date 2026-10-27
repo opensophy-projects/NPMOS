@@ -1,0 +1,19 @@
+server:
+  port: 80
+  alternative_port: 8080
+  timeout: "15s"
+  configurationServer: "" # configuration server can be either etcd or empty
+log:
+  level: "debug"
+tracer:
+  host: localhost:6831
+  enabled: false
+filesystem_db:
+  root: "/db/"
+  ttl: "2h"
+errors:
+  filepath: "configs/error-responses.json"
+  code: 1111
+
+# note that all values of variables which are defined here will be overwritten by environment variables
+# in your configmap/secret/deployment yaml files

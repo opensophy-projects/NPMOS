@@ -1,0 +1,81 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "ignorePaths": [
+    "npmos/**",
+    "reference/**"
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "CROWDSEC_VERSION in deploy/.env",
+      "managerFilePatterns": [
+        "/^deploy/\\.env$/"
+      ],
+      "matchStrings": [
+        "CROWDSEC_VERSION=(?<currentValue>\\S+)"
+      ],
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "crowdsecurity/crowdsec"
+    },
+    {
+      "customType": "regex",
+      "description": "POSTGRES_VERSION in deploy/.env",
+      "managerFilePatterns": [
+        "/^deploy/\\.env$/"
+      ],
+      "matchStrings": [
+        "POSTGRES_VERSION=(?<currentValue>\\S+)"
+      ],
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "postgres"
+    },
+    {
+      "customType": "regex",
+      "description": "SOCKET_PROXY_VERSION in deploy/.env",
+      "managerFilePatterns": [
+        "/^deploy/\\.env$/"
+      ],
+      "matchStrings": [
+        "SOCKET_PROXY_VERSION=(?<currentValue>\\S+)"
+      ],
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "tecnativa/docker-socket-proxy"
+    },
+    {
+      "customType": "regex",
+      "description": "WHOAMI_VERSION in deploy/.env",
+      "managerFilePatterns": [
+        "/^deploy/\\.env$/"
+      ],
+      "matchStrings": [
+        "WHOAMI_VERSION=(?<currentValue>\\S+)"
+      ],
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "traefik/whoami"
+    },
+    {
+      "customType": "regex",
+      "description": "CURL_VERSION in deploy/.env",
+      "managerFilePatterns": [
+        "/^deploy/\\.env$/"
+      ],
+      "matchStrings": [
+        "CURL_VERSION=(?<currentValue>\\S+)"
+      ],
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "curlimages/curl"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "CROWDSEC_VERSION is also pinned in npmos/Dockerfile and deploy/dev/Dockerfile (CI checks they match)",
+      "matchDepNames": [
+        "crowdsecurity/crowdsec"
+      ],
+      "groupName": "crowdsec"
+    }
+  ]
+}

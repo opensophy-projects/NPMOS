@@ -1,0 +1,31 @@
+# Closed-network ("закрытый контур") test overlay: no network has a route outside Docker.
+# Used by scripts/test-airgap.sh; every phase adds scenarios to smoke.sh.
+
+services:
+  test-upstream:
+    image: docker.io/traefik/whoami:${WHOAMI_VERSION}
+    container_name: npmos-test-upstream
+    networks:
+      - internal
+
+  tester:
+    image: docker.io/curlimages/curl:${CURL_VERSION}
+    profiles:
+      - test
+    # writes the cookie jar to the test-state volume
+    user: "0"
+    # fail loudly if the script is not mounted (a missing bind source becomes an empty directory)
+    entrypoint: ["/bin/sh", "-c", 'test -f /smoke.sh || { echo "smoke.sh not mounted" >&2; exit 1; }; exec /bin/sh /smoke.sh "$$@"', "--"]
+    volumes:
+      # relative paths resolve from deploy/, the directory of the first compose file
+      - ./test/smoke.sh:/smoke.sh:ro
+      - test-state:/state
+    networks:
+      - edge
+
+networks:
+  edge:
+    internal: true
+
+volumes:
+  test-state: {}
