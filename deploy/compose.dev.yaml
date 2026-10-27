@@ -11,6 +11,9 @@ services:
   npmos-init:
     image: npmos:dev
 
+  npmos-control:
+    image: npmos:dev
+
   npmos:
     image: npmos:dev
     build:

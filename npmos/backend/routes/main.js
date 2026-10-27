@@ -17,6 +17,8 @@ import tokensRoutes from "./tokens.js";
 import oidcRoutes from "./oidc.js";
 import usersRoutes from "./users.js";
 import versionRoutes from "./version.js";
+// NPMOS: our API lives in npmos/routes.js
+import npmosRoutes from "../npmos/routes.js";
 
 const router = express.Router({
 	caseSensitive: true,
@@ -60,6 +62,8 @@ router.use("/api/nginx/dead-hosts", deadHostsRoutes);
 router.use("/api/nginx/streams", streamsRoutes);
 router.use("/api/nginx/access-lists", accessListsRoutes);
 router.use("/api/nginx/certificates", certificatesHostsRoutes);
+// NPMOS: /api/npmos/*
+router.use("/api/npmos", npmosRoutes);
 
 /**
  * API 404 for all other routes

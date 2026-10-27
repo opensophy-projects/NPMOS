@@ -71,4 +71,28 @@ echo "$body" | grep -qiE "^X-(Real-Ip|Forwarded-For): .*$client_ip" || fail "cli
 step "update check stays off"
 $CURL "$ADMIN/api/version/check" | grep -q '"latest": *"unknown"' || fail "update check is not disabled"
 
+# --- phase 1 ---
+
+step "System → Services: npmos-control lists the stack"
+services=$($CURL "$ADMIN/api/npmos/services")
+for s in npmos postgres npmos-control; do
+  echo "$services" | grep -q "\"service\": *\"$s\"" || fail "service $s is not listed: $services"
+done
+
+step "System → Services: service logs are readable"
+$CURL "$ADMIN/api/npmos/services/npmos/logs?tail=20" | grep -q '"line"' || fail "no npmos logs"
+
+step "System → Services: the control path cannot be restarted"
+code=$(curl -sS -k -b $JAR -o /dev/null -w '%{http_code}' -X POST "$ADMIN/api/npmos/services/socket-proxy/restart")
+[ "$code" = 400 ] || fail "socket-proxy restart: expected 400, got $code"
+
+step "System → Services: restart postgres, the backend reconnects"
+$CURL -X POST "$ADMIN/api/npmos/services/postgres/restart" | grep -q '"restarted": *true' || fail "postgres restart failed"
+for i in $(seq 1 30); do
+  $CURL "$ADMIN/api/users/me" 2>/dev/null | grep -q "$EMAIL" && break
+  [ "$i" = 30 ] && fail "backend did not reconnect to postgres"
+  sleep 2
+done
+$CURL "$ADMIN/api/audit-log" | grep -q '"action": *"restarted"' || fail "restart is not in the audit log"
+
 echo "OK: closed-network smoke passed"
