@@ -28,6 +28,7 @@ const Streams = lazy(() => import("src/pages/Nginx/Streams"));
 // NPMOS: our pages live in src/npmos/pages
 const Services = lazy(() => import("src/npmos/pages/Services"));
 const WafAgent = lazy(() => import("src/npmos/pages/WafAgent"));
+const WafEvents = lazy(() => import("src/npmos/pages/WafEvents"));
 
 function Router() {
 	const health = useHealth();
@@ -76,6 +77,7 @@ function Router() {
 							{/* NPMOS: our pages */}
 							<Route path="/system/services" element={<Services />} />
 							<Route path="/waf/agent" element={<WafAgent />} />
+							<Route path="/waf/events" element={<WafEvents />} />
 							<Route path="/" element={<Dashboard />} />
 						</Routes>
 					</Suspense>

@@ -146,6 +146,18 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
   [ "$(status "$XSS")" = 403 ] || fail "XSS was not blocked"
   [ "$(status "/?q=hello")" = 200 ] || fail "a normal request was blocked"
 
+  # events of the agent's security log, newest first
+  event() {
+    for i in $(seq 1 30); do
+      $CURL "$ADMIN/api/npmos/waf/events?view=important&query=test.local" | grep -q "\"action\": *\"$1\"" && return 0
+      sleep 2
+    done
+    fail "no $1 event for test.local in WAF -> Events: $($CURL "$ADMIN/api/npmos/waf/events?view=all&limit=5")"
+  }
+
+  step "WAF -> Events: the blocked attack is an important event (Prevent)"
+  event Prevent
+
   step "WAF: detect-learn lets attacks through"
   $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf/hosts/1" \
     -d '{"enabled": true, "mode": "detect-learn", "minimum_confidence": "high"}' > /dev/null
@@ -154,6 +166,9 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
     [ "$i" = 60 ] && fail "SQLi is still blocked in detect-learn"
     sleep 2
   done
+
+  step "WAF -> Events: the detected attack is an important event (Detect)"
+  event Detect
 else
   echo "    (agent not running, WAF scenarios skipped)"
 fi

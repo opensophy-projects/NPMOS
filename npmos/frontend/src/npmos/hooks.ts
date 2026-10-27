@@ -2,12 +2,15 @@ import { useQuery } from "@tanstack/react-query";
 import {
 	getServiceLogs,
 	getServices,
+	getWafEvents,
 	getWafHost,
 	getWafHosts,
 	getWafPolicy,
 	getWafStatus,
 	type Service,
 	type ServiceLogLine,
+	type WafEvents,
+	type WafEventsView,
 	type WafHost,
 	type WafPolicyState,
 	type WafSettings,
@@ -58,4 +61,12 @@ export const useWafPolicy = () =>
 		queryKey: ["npmos-waf-policy"],
 		queryFn: getWafPolicy,
 		refetchInterval: 10000,
+	});
+
+export const useWafEvents = (view: WafEventsView, query: string, follow: boolean) =>
+	useQuery<WafEvents, Error>({
+		queryKey: ["npmos-waf-events", view, query],
+		queryFn: () => getWafEvents({ view, query: query || undefined }),
+		refetchInterval: follow ? 5000 : false,
+		placeholderData: (previous) => previous,
 	});

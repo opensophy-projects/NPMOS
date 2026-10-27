@@ -638,6 +638,75 @@
 	"npmos.waf.enable-title": {
 		"defaultMessage": "Включить WAF"
 	},
+	"npmos.waf.events": {
+		"defaultMessage": "События"
+	},
+	"npmos.waf.events.action": {
+		"defaultMessage": "Действие"
+	},
+	"npmos.waf.events.all": {
+		"defaultMessage": "Все события"
+	},
+	"npmos.waf.events.component": {
+		"defaultMessage": "Компонент агента"
+	},
+	"npmos.waf.events.description": {
+		"defaultMessage": "Журнал безопасности агента open-appsec: обнаруженные и заблокированные атаки и события самого агента"
+	},
+	"npmos.waf.events.empty-all": {
+		"defaultMessage": "Событий пока нет"
+	},
+	"npmos.waf.events.empty-important": {
+		"defaultMessage": "Важных событий нет. Здесь появятся атаки на хосты под защитой WAF."
+	},
+	"npmos.waf.events.event": {
+		"defaultMessage": "Событие"
+	},
+	"npmos.waf.events.follow": {
+		"defaultMessage": "Обновлять"
+	},
+	"npmos.waf.events.host": {
+		"defaultMessage": "Хост"
+	},
+	"npmos.waf.events.important": {
+		"defaultMessage": "Важные события"
+	},
+	"npmos.waf.events.matched": {
+		"defaultMessage": "Что обнаружил WAF"
+	},
+	"npmos.waf.events.matched-location": {
+		"defaultMessage": "Где"
+	},
+	"npmos.waf.events.matched-parameter": {
+		"defaultMessage": "Параметр"
+	},
+	"npmos.waf.events.proxy-ip": {
+		"defaultMessage": "IP прокси"
+	},
+	"npmos.waf.events.request": {
+		"defaultMessage": "Запрос"
+	},
+	"npmos.waf.events.search": {
+		"defaultMessage": "Поиск: IP, хост, атака…"
+	},
+	"npmos.waf.events.severity": {
+		"defaultMessage": "Важность"
+	},
+	"npmos.waf.events.shown": {
+		"defaultMessage": "Показано {shown} из {total}"
+	},
+	"npmos.waf.events.source-ip": {
+		"defaultMessage": "IP источника"
+	},
+	"npmos.waf.events.time": {
+		"defaultMessage": "Время"
+	},
+	"npmos.waf.events.truncated": {
+		"defaultMessage": "Читается только последняя часть файлов логов агента."
+	},
+	"npmos.waf.events.unavailable": {
+		"defaultMessage": "Каталог логов агента недоступен: запущен ли агент open-appsec?"
+	},
 	"npmos.waf.host-description": {
 		"defaultMessage": "WAF анализирует каждый запрос к этому хосту с помощью машинного обучения. Начните с Detect-Learn: модель изучает обычный трафик сайта и только записывает атаки. Когда события выглядят правильно, переключите на Prevent-Learn."
 	},

@@ -713,6 +713,75 @@
 	"npmos.waf.enable-title": {
 		"defaultMessage": "Enable WAF"
 	},
+	"npmos.waf.events": {
+		"defaultMessage": "Events"
+	},
+	"npmos.waf.events.action": {
+		"defaultMessage": "Action"
+	},
+	"npmos.waf.events.all": {
+		"defaultMessage": "All events"
+	},
+	"npmos.waf.events.component": {
+		"defaultMessage": "Agent component"
+	},
+	"npmos.waf.events.description": {
+		"defaultMessage": "Security log of the open-appsec agent: attacks it detected or blocked and its own events"
+	},
+	"npmos.waf.events.empty-all": {
+		"defaultMessage": "No events yet"
+	},
+	"npmos.waf.events.empty-important": {
+		"defaultMessage": "No important events. Attacks on hosts protected by the WAF appear here."
+	},
+	"npmos.waf.events.event": {
+		"defaultMessage": "Event"
+	},
+	"npmos.waf.events.follow": {
+		"defaultMessage": "Live"
+	},
+	"npmos.waf.events.host": {
+		"defaultMessage": "Host"
+	},
+	"npmos.waf.events.important": {
+		"defaultMessage": "Important events"
+	},
+	"npmos.waf.events.matched": {
+		"defaultMessage": "What the WAF matched"
+	},
+	"npmos.waf.events.matched-location": {
+		"defaultMessage": "Location"
+	},
+	"npmos.waf.events.matched-parameter": {
+		"defaultMessage": "Parameter"
+	},
+	"npmos.waf.events.proxy-ip": {
+		"defaultMessage": "Proxy IP"
+	},
+	"npmos.waf.events.request": {
+		"defaultMessage": "Request"
+	},
+	"npmos.waf.events.search": {
+		"defaultMessage": "Search: IP, host, attack…"
+	},
+	"npmos.waf.events.severity": {
+		"defaultMessage": "Severity"
+	},
+	"npmos.waf.events.shown": {
+		"defaultMessage": "Shown {shown} of {total}"
+	},
+	"npmos.waf.events.source-ip": {
+		"defaultMessage": "Source IP"
+	},
+	"npmos.waf.events.time": {
+		"defaultMessage": "Time"
+	},
+	"npmos.waf.events.truncated": {
+		"defaultMessage": "Only the latest part of the agent's log files is read."
+	},
+	"npmos.waf.events.unavailable": {
+		"defaultMessage": "The agent's log directory is not readable: is the open-appsec agent running?"
+	},
 	"npmos.waf.host-description": {
 		"defaultMessage": "The WAF analyses every request to this host with machine learning. Start in Detect-Learn: the model learns your normal traffic and only logs attacks; switch to Prevent-Learn when the events look right."
 	},

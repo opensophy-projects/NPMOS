@@ -4,6 +4,7 @@ import jwtdecode from "../lib/express/jwt-decode.js";
 import validator from "../lib/validator/index.js";
 import { debug, express as logger } from "../logger.js";
 import internalServices from "./services.js";
+import internalWafEvents from "./waf/events.js";
 import internalWafHosts from "./waf/hosts.js";
 import internalWaf from "./waf/index.js";
 
@@ -186,6 +187,24 @@ router
 	.options((_, res) => res.sendStatus(204))
 	.all(jwtdecode())
 	.post(handle((_, res) => internalWaf.applyPolicy(res.locals.access)));
+
+/**
+ * GET /api/npmos/waf/events?view=important|all&host=<domain>&query=<text>&limit=200 — newest first
+ */
+router
+	.route("/waf/events")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(
+		handle((req, res) =>
+			internalWafEvents.list(res.locals.access, {
+				view: String(req.query.view || "important"),
+				host: String(req.query.host || ""),
+				query: String(req.query.query || "").slice(0, 200),
+				limit: Number.parseInt(req.query.limit, 10) || 200,
+			}),
+		),
+	);
 
 /**
  * POST /api/npmos/nginx/regenerate

@@ -102,3 +102,41 @@ export const getWafPolicy = (): Promise<WafPolicyState & { content: string | nul
 
 export const applyWafPolicy = (): Promise<WafPolicyState & { changed: boolean }> =>
 	api.post({ url: "/npmos/waf/policy/apply" });
+
+export type WafEventsView = "important" | "all";
+
+export interface WafEvent {
+	time: string | null;
+	name: string;
+	severity: string;
+	priority: string;
+	level: string;
+	service: string;
+	asset: string;
+	/** Prevent / Detect / ... */
+	action: string;
+	incidentType: string;
+	sourceIp: string;
+	proxyIp: string;
+	host: string;
+	method: string;
+	uri: string;
+	matchedLocation: string;
+	matchedParameter: string;
+	matchedSample: string;
+	/** agent component that wrote it */
+	source: string;
+	raw: Record<string, any>;
+}
+
+export interface WafEvents {
+	events: WafEvent[];
+	total: number;
+	/** only the tail of the agent's log files was read */
+	truncated: boolean;
+	/** the agent's log directory is readable */
+	available: boolean;
+}
+
+export const getWafEvents = (params: { view: WafEventsView; host?: string; query?: string; limit?: number }) =>
+	api.get({ url: "/npmos/waf/events", params }) as Promise<WafEvents>;
