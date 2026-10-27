@@ -713,11 +713,44 @@
 	"npmos.waf.enable-title": {
 		"defaultMessage": "Enable WAF"
 	},
+	"npmos.waf.host-description": {
+		"defaultMessage": "The WAF analyses every request to this host with machine learning. Start in Detect-Learn: the model learns your normal traffic and only logs attacks; switch to Prevent-Learn when the events look right."
+	},
+	"npmos.waf.host-enabled": {
+		"defaultMessage": "Protect with open-appsec"
+	},
 	"npmos.waf.last-policy-update": {
 		"defaultMessage": "Policy applied"
 	},
 	"npmos.waf.last-update-status": {
 		"defaultMessage": "Last update"
+	},
+	"npmos.waf.location.inherit": {
+		"defaultMessage": "As the host"
+	},
+	"npmos.waf.location.off": {
+		"defaultMessage": "Off"
+	},
+	"npmos.waf.minimum-confidence": {
+		"defaultMessage": "Minimum confidence to block"
+	},
+	"npmos.waf.minimum-confidence.hint": {
+		"defaultMessage": "High is recommended. Lower values block more, with more false positives."
+	},
+	"npmos.waf.mode": {
+		"defaultMessage": "Enforcement mode"
+	},
+	"npmos.waf.mode.detect-learn": {
+		"defaultMessage": "Detect-Learn"
+	},
+	"npmos.waf.mode.detect-learn.hint": {
+		"defaultMessage": "Attacks are logged, nothing is blocked. The model keeps learning."
+	},
+	"npmos.waf.mode.prevent-learn": {
+		"defaultMessage": "Prevent-Learn"
+	},
+	"npmos.waf.mode.prevent-learn.hint": {
+		"defaultMessage": "Attacks are blocked with 403 and logged. The model keeps learning."
 	},
 	"npmos.waf.off": {
 		"defaultMessage": "Disabled"
@@ -731,8 +764,35 @@
 	"npmos.waf.pending-enable": {
 		"defaultMessage": "WAF is switched on but not active yet: NPMOS has to restart."
 	},
+	"npmos.waf.policy": {
+		"defaultMessage": "Policy"
+	},
+	"npmos.waf.policy-applied": {
+		"defaultMessage": "The policy was sent to the agent"
+	},
+	"npmos.waf.policy-apply": {
+		"defaultMessage": "Apply now"
+	},
+	"npmos.waf.policy-generated": {
+		"defaultMessage": "Generated"
+	},
+	"npmos.waf.policy-hosts": {
+		"defaultMessage": "Protected hosts"
+	},
 	"npmos.waf.policy-not-applied": {
 		"defaultMessage": "not yet"
+	},
+	"npmos.waf.policy-not-sent": {
+		"defaultMessage": "agent did not answer, it will load the file itself"
+	},
+	"npmos.waf.policy-readonly": {
+		"defaultMessage": "Generated from the WAF settings of the proxy hosts; manual edits are not kept. File:"
+	},
+	"npmos.waf.policy-sent": {
+		"defaultMessage": "Sent to the agent"
+	},
+	"npmos.waf.policy-show": {
+		"defaultMessage": "Show YAML"
 	},
 	"npmos.waf.policy-version": {
 		"defaultMessage": "Policy version"

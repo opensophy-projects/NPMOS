@@ -47,15 +47,58 @@ export interface AgentStatus {
 	mode?: "local";
 }
 
+export interface WafPolicyState {
+	file: string;
+	generatedAt: string | null;
+	hosts: number;
+	applied: { ok: boolean; at: string; error: string | null } | null;
+}
+
 export interface WafStatus {
 	enabled: boolean;
 	active: boolean;
 	restartRequired: boolean;
 	restarting?: boolean;
 	agent?: AgentStatus;
+	policy?: WafPolicyState;
 }
+
+export type WafMode = "detect-learn" | "prevent-learn";
+export type WafConfidence = "medium" | "high" | "critical";
+
+export interface WafSettings {
+	enabled: boolean;
+	mode: WafMode;
+	minimumConfidence: WafConfidence;
+}
+
+export interface WafLocationSettings extends WafSettings {
+	path: string;
+	/** no own settings: the location is protected like its host */
+	inherit: boolean;
+}
+
+export interface WafHost extends WafSettings {
+	locations: WafLocationSettings[];
+}
+
+export const WAF_DEFAULTS: WafSettings = { enabled: false, mode: "detect-learn", minimumConfidence: "high" };
 
 export const getWafStatus = (): Promise<WafStatus> => api.get({ url: "/npmos/waf" });
 
 export const setWafEnabled = (enabled: boolean, apply = true): Promise<WafStatus> =>
 	api.put({ url: "/npmos/waf", data: { enabled, apply } });
+
+/** WAF settings of all visible proxy hosts, by proxy host id (hosts without settings are missing) */
+export const getWafHosts = (): Promise<Record<string, WafSettings>> => api.get({ url: "/npmos/waf/hosts" });
+
+export const getWafHost = (id: number): Promise<WafHost> => api.get({ url: `/npmos/waf/hosts/${id}` });
+
+export const setWafHost = (id: number, data: WafSettings & { locations?: WafLocationSettings[] }): Promise<WafHost> =>
+	api.put({ url: `/npmos/waf/hosts/${id}`, data });
+
+export const getWafPolicy = (): Promise<WafPolicyState & { content: string | null }> =>
+	api.get({ url: "/npmos/waf/policy" });
+
+export const applyWafPolicy = (): Promise<WafPolicyState & { changed: boolean }> =>
+	api.post({ url: "/npmos/waf/policy/apply" });

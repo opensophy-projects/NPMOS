@@ -1,5 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
-import { getServiceLogs, getServices, getWafStatus, type Service, type ServiceLogLine, type WafStatus } from "./api";
+import {
+	getServiceLogs,
+	getServices,
+	getWafHost,
+	getWafHosts,
+	getWafPolicy,
+	getWafStatus,
+	type Service,
+	type ServiceLogLine,
+	type WafHost,
+	type WafPolicyState,
+	type WafSettings,
+	type WafStatus,
+} from "./api";
 
 export const useServices = (options = {}) =>
 	useQuery<Service[], Error>({
@@ -22,4 +35,27 @@ export const useWafStatus = (options = {}) =>
 		queryFn: getWafStatus,
 		refetchInterval: 10000,
 		...options,
+	});
+
+export const useWafHosts = (options = {}) =>
+	useQuery<Record<string, WafSettings>, Error>({
+		queryKey: ["npmos-waf-hosts"],
+		queryFn: getWafHosts,
+		staleTime: 15000,
+		...options,
+	});
+
+/** id "new" (or a clone of nothing): no request, the form starts from the defaults */
+export const useWafHost = (id: number | "new") =>
+	useQuery<WafHost, Error>({
+		queryKey: ["npmos-waf-host", id],
+		queryFn: () => getWafHost(id as number),
+		enabled: id !== "new",
+	});
+
+export const useWafPolicy = () =>
+	useQuery<WafPolicyState & { content: string | null }, Error>({
+		queryKey: ["npmos-waf-policy"],
+		queryFn: getWafPolicy,
+		refetchInterval: 10000,
 	});

@@ -638,11 +638,44 @@
 	"npmos.waf.enable-title": {
 		"defaultMessage": "Включить WAF"
 	},
+	"npmos.waf.host-description": {
+		"defaultMessage": "WAF анализирует каждый запрос к этому хосту с помощью машинного обучения. Начните с Detect-Learn: модель изучает обычный трафик сайта и только записывает атаки. Когда события выглядят правильно, переключите на Prevent-Learn."
+	},
+	"npmos.waf.host-enabled": {
+		"defaultMessage": "Защищать с помощью open-appsec"
+	},
 	"npmos.waf.last-policy-update": {
 		"defaultMessage": "Политика применена"
 	},
 	"npmos.waf.last-update-status": {
 		"defaultMessage": "Последнее обновление"
+	},
+	"npmos.waf.location.inherit": {
+		"defaultMessage": "Как у хоста"
+	},
+	"npmos.waf.location.off": {
+		"defaultMessage": "Выключено"
+	},
+	"npmos.waf.minimum-confidence": {
+		"defaultMessage": "Минимальная уверенность для блокировки"
+	},
+	"npmos.waf.minimum-confidence.hint": {
+		"defaultMessage": "Рекомендуется High. Чем ниже, тем больше блокировок и ложных срабатываний."
+	},
+	"npmos.waf.mode": {
+		"defaultMessage": "Режим защиты"
+	},
+	"npmos.waf.mode.detect-learn": {
+		"defaultMessage": "Detect-Learn"
+	},
+	"npmos.waf.mode.detect-learn.hint": {
+		"defaultMessage": "Атаки записываются в журнал, ничего не блокируется. Модель продолжает обучаться."
+	},
+	"npmos.waf.mode.prevent-learn": {
+		"defaultMessage": "Prevent-Learn"
+	},
+	"npmos.waf.mode.prevent-learn.hint": {
+		"defaultMessage": "Атаки блокируются (ответ 403) и записываются в журнал. Модель продолжает обучаться."
 	},
 	"npmos.waf.off": {
 		"defaultMessage": "Выключен"
@@ -656,8 +689,35 @@
 	"npmos.waf.pending-enable": {
 		"defaultMessage": "WAF включён, но ещё не работает: нужен перезапуск NPMOS."
 	},
+	"npmos.waf.policy": {
+		"defaultMessage": "Политика"
+	},
+	"npmos.waf.policy-applied": {
+		"defaultMessage": "Политика отправлена агенту"
+	},
+	"npmos.waf.policy-apply": {
+		"defaultMessage": "Применить сейчас"
+	},
+	"npmos.waf.policy-generated": {
+		"defaultMessage": "Сгенерирована"
+	},
+	"npmos.waf.policy-hosts": {
+		"defaultMessage": "Защищённых хостов"
+	},
 	"npmos.waf.policy-not-applied": {
 		"defaultMessage": "ещё нет"
+	},
+	"npmos.waf.policy-not-sent": {
+		"defaultMessage": "агент не ответил, он подхватит файл сам"
+	},
+	"npmos.waf.policy-readonly": {
+		"defaultMessage": "Сгенерирована из настроек WAF у proxy-хостов, ручные правки не сохраняются. Файл:"
+	},
+	"npmos.waf.policy-sent": {
+		"defaultMessage": "Отправлена агенту"
+	},
+	"npmos.waf.policy-show": {
+		"defaultMessage": "Показать YAML"
 	},
 	"npmos.waf.policy-version": {
 		"defaultMessage": "Версия политики"

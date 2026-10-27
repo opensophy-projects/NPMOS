@@ -3,11 +3,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import { Button, HasPermission, LoadingPage } from "src/components";
-import { T } from "src/locale";
-import { ADMIN, VIEW } from "src/modules/Permissions";
-import { type AgentStatus, setWafEnabled, type WafStatus } from "../../api";
+import { intl, T } from "src/locale";
+import { ADMIN, MANAGE, VIEW } from "src/modules/Permissions";
+import { showSuccess } from "src/notifications";
+import { type AgentStatus, applyWafPolicy, setWafEnabled, type WafPolicyState, type WafStatus } from "../../api";
 import { useWafStatus } from "../../hooks";
 import { showConfirmModal } from "../../modals/ConfirmModal";
+import { showWafPolicyModal } from "../../modals/WafPolicyModal";
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
 	return (
@@ -48,6 +50,59 @@ function AgentCard({ agent }: { agent?: AgentStatus }) {
 						<Row label="npmos.waf.last-update-status">{agent.lastUpdateStatus || "—"}</Row>
 					</div>
 				)}
+			</div>
+		</div>
+	);
+}
+
+const when = (iso?: string | null) => (iso ? new Date(iso).toLocaleString() : "—");
+
+function PolicyCard({ policy }: { policy?: WafPolicyState }) {
+	const queryClient = useQueryClient();
+	const [applying, setApplying] = useState(false);
+	const apply = async () => {
+		setApplying(true);
+		try {
+			await applyWafPolicy();
+			showSuccess(intl.formatMessage({ id: "npmos.waf.policy-applied" }));
+		} finally {
+			setApplying(false);
+			queryClient.invalidateQueries({ queryKey: ["npmos-waf"] });
+		}
+	};
+	return (
+		<div className="card mt-4">
+			<div className="card-header">
+				<h3 className="card-title">
+					<T id="npmos.waf.policy" />
+				</h3>
+				<div className="card-actions btn-actions">
+					<Button size="sm" onClick={showWafPolicyModal}>
+						<T id="npmos.waf.policy-show" />
+					</Button>
+					<HasPermission section={ADMIN} permission={MANAGE} hideError>
+						<Button size="sm" actionType="primary" className="ms-2" isLoading={applying} onClick={apply}>
+							<T id="npmos.waf.policy-apply" />
+						</Button>
+					</HasPermission>
+				</div>
+			</div>
+			<div className="card-body">
+				<div className="datagrid">
+					<Row label="npmos.waf.policy-hosts">{policy?.hosts ?? "—"}</Row>
+					<Row label="npmos.waf.policy-generated">{when(policy?.generatedAt)}</Row>
+					<Row label="npmos.waf.policy-sent">
+						{!policy?.applied ? (
+							"—"
+						) : policy.applied.ok ? (
+							<span className="badge bg-green-lt">{when(policy.applied.at)}</span>
+						) : (
+							<span className="badge bg-orange-lt" title={policy.applied.error || ""}>
+								<T id="npmos.waf.policy-not-sent" /> ({policy.applied.error})
+							</span>
+						)}
+					</Row>
+				</div>
 			</div>
 		</div>
 	);
@@ -153,6 +208,7 @@ function WafAgentPage() {
 		<>
 			<WafCard status={data} />
 			<AgentCard agent={data.agent} />
+			<PolicyCard policy={data.policy} />
 		</>
 	);
 }
