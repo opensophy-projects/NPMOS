@@ -113,15 +113,49 @@ for i in $(seq 1 10); do
 done
 $CURL "$ADMIN/api/npmos/waf/policy" | grep -q 'mode: prevent-learn' || fail "the rule is not in prevent-learn"
 
-step "WAF: the open-appsec agent applies its policy without internet (local-only mode)"
 if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
+  step "WAF: switch open-appsec on in the GUI (npmos restarts with the nginx attachment)"
+  $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf" -d '{"enabled": true, "apply": true}' \
+    | grep -q '"restarting": *true' || fail "WAF switch did not restart npmos"
+  # npmos-control answers first, then restarts npmos and the agent in its namespaces
+  sleep 5
+  wait_api
+  for i in $(seq 1 30); do
+    $CURL "$ADMIN/api/npmos/waf" | grep -q '"active": *true' && break
+    [ "$i" = 30 ] && fail "attachment is not active: $($CURL "$ADMIN/api/npmos/waf")"
+    sleep 2
+  done
+
+  step "WAF: the open-appsec agent applies its policy without internet (local-only mode)"
   for i in $(seq 1 90); do
     $CURL "$ADMIN/api/npmos/waf" | grep -q '"lastPolicyUpdate": *"' && break
     [ "$i" = 90 ] && fail "agent did not apply a policy: $($CURL "$ADMIN/api/npmos/waf")"
     sleep 2
   done
+
+  status() { curl -s -o /dev/null -w '%{http_code}' --max-time 10 -H 'Host: test.local' "$HTTP$1"; }
+  SQLI="/?id=1%27%20OR%20%271%27=%271"
+  XSS="/?q=%3Cscript%3Ealert(document.cookie)%3C/script%3E"
+
+  step "WAF: prevent-learn blocks SQLi and XSS with 403, normal requests pass"
+  for i in $(seq 1 60); do
+    [ "$(status "$SQLI")" = 403 ] && break
+    [ "$i" = 60 ] && fail "SQLi was not blocked (last status $(status "$SQLI"))"
+    sleep 2
+  done
+  [ "$(status "$XSS")" = 403 ] || fail "XSS was not blocked"
+  [ "$(status "/?q=hello")" = 200 ] || fail "a normal request was blocked"
+
+  step "WAF: detect-learn lets attacks through"
+  $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf/hosts/1" \
+    -d '{"enabled": true, "mode": "detect-learn", "minimum_confidence": "high"}' > /dev/null
+  for i in $(seq 1 60); do
+    [ "$(status "$SQLI")" = 200 ] && break
+    [ "$i" = 60 ] && fail "SQLi is still blocked in detect-learn"
+    sleep 2
+  done
 else
-  echo "    (agent not running, skipped)"
+  echo "    (agent not running, WAF scenarios skipped)"
 fi
 
 echo "OK: closed-network smoke passed"
