@@ -186,7 +186,7 @@ jobs:
     name: npmos image (arm64)
     needs: checks
     if: github.event_name == 'push' && (github.ref == 'refs/heads/work' || startsWith(github.ref, 'refs/tags/v')) || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-26.04-arm
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: versions
@@ -258,7 +258,7 @@ jobs:
     needs: checks
     if: github.event_name == 'workflow_dispatch'
     continue-on-error: true
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-26.04-arm
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: grep -E "^[A-Z_]+=" deploy/openappsec/sources.env >> "$GITHUB_ENV"
