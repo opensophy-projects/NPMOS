@@ -8,7 +8,7 @@ import dayjs from "dayjs";
 import _ from "lodash";
 import dnsPlugins from "../certbot/dns-plugins.json" with { type: "json" };
 import { installPlugin } from "../lib/certbot.js";
-import { ensureAcmeAccount } from "../npmos/acme.js";
+import { acmeError, ensureAcmeAccount } from "../npmos/acme.js";
 import error from "../lib/error.js";
 import utils from "../lib/utils.js";
 import { debug, ssl as logger } from "../logger.js";
@@ -160,7 +160,8 @@ const internalCertificate = {
 		} catch (err) {
 			// Delete the certificate here. This is a hard delete, since it never existed properly
 			await certificateModel.query().deleteById(certificate.id);
-			throw err;
+			// NPMOS: show certbot's output instead of "Internal Error"
+			throw acmeError(err);
 		}
 
 		data.meta = _.assign({}, data.meta || {}, certificate.meta);
@@ -758,7 +759,10 @@ const internalCertificate = {
 				? internalCertificate.renewCertbotWithDnsChallenge
 				: internalCertificate.renewCertbot;
 
-			await renewMethod(certificate);
+			// NPMOS: show certbot's output instead of "Internal Error"
+			await renewMethod(certificate).catch((err) => {
+				throw acmeError(err);
+			});
 			const certInfo = await internalCertificate.getCertificateInfoFromFile(
 				`${internalCertificate.getLiveCertPath(certificate.id)}/fullchain.pem`,
 			);

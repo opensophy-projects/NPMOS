@@ -47,7 +47,8 @@ const useSetAccessList = () => {
 			}));
 			return () => queryClient.setQueryData(["access-list", values.id], previousObject);
 		},
-		onError: (_, __, rollback: any) => rollback(),
+		// NPMOS: nothing to roll back when creating (onMutate returns no rollback) — threw a TypeError
+		onError: (_, __, rollback: any) => rollback?.(),
 		onSuccess: async ({ id }: AccessList) => {
 			queryClient.invalidateQueries({ queryKey: ["access-list", id] });
 			queryClient.invalidateQueries({ queryKey: ["access-lists"] });

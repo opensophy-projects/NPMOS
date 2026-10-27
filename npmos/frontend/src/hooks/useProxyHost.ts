@@ -68,7 +68,8 @@ const useSetProxyHost = () => {
 			}));
 			return () => queryClient.setQueryData(["proxy-host", values.id], previousObject);
 		},
-		onError: (_, __, rollback: any) => rollback(),
+		// NPMOS: nothing to roll back when creating (onMutate returns no rollback) — threw a TypeError
+		onError: (_, __, rollback: any) => rollback?.(),
 		onSuccess: async ({ id }: ProxyHost) => {
 			queryClient.invalidateQueries({ queryKey: ["proxy-host", id] });
 			queryClient.invalidateQueries({ queryKey: ["proxy-hosts"] });

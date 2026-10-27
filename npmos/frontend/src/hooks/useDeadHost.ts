@@ -47,7 +47,8 @@ const useSetDeadHost = () => {
 			}));
 			return () => queryClient.setQueryData(["dead-host", values.id], previousObject);
 		},
-		onError: (_, __, rollback: any) => rollback(),
+		// NPMOS: nothing to roll back when creating (onMutate returns no rollback) — threw a TypeError
+		onError: (_, __, rollback: any) => rollback?.(),
 		onSuccess: async ({ id }: DeadHost) => {
 			queryClient.invalidateQueries({ queryKey: ["dead-host", id] });
 			queryClient.invalidateQueries({ queryKey: ["dead-hosts"] });

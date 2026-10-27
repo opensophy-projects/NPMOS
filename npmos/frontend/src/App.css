@@ -121,3 +121,7 @@ label.row {
     margin-left: 0;
   }
 }
+/* NPMOS: keep line breaks of multi-line backend errors (e.g. certbot output) */
+.alert-danger {
+  white-space: pre-line;
+}

@@ -46,7 +46,8 @@ const useSetStream = () => {
 			}));
 			return () => queryClient.setQueryData(["stream", values.id], previousObject);
 		},
-		onError: (_, __, rollback: any) => rollback(),
+		// NPMOS: nothing to roll back when creating (onMutate returns no rollback) — threw a TypeError
+		onError: (_, __, rollback: any) => rollback?.(),
 		onSuccess: async ({ id }: Stream) => {
 			queryClient.invalidateQueries({ queryKey: ["stream", id] });
 			queryClient.invalidateQueries({ queryKey: ["streams"] });
