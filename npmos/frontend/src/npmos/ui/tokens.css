@@ -296,6 +296,42 @@ h3,
 	border-color: var(--border);
 }
 
+/* an input group is one field: one inset shadow on the group, no seam between icon and input */
+.input-group {
+	border-radius: var(--tblr-border-radius);
+	box-shadow: var(--shadow-inset);
+}
+.input-group > .form-control,
+.input-group > .form-select,
+.input-group > .input-group-text {
+	box-shadow: none;
+}
+/* small inputs have a smaller radius than the icon part: one radius for the whole group */
+.input-group > :first-child {
+	border-top-left-radius: var(--tblr-border-radius);
+	border-bottom-left-radius: var(--tblr-border-radius);
+}
+.input-group > :last-child {
+	border-top-right-radius: var(--tblr-border-radius);
+	border-bottom-right-radius: var(--tblr-border-radius);
+}
+/* flat group (icon + input): the frame and background belong to the group, the parts are
+   transparent; Tabler forces a blue focus border on the parts with !important */
+.input-group-flat {
+	border: 1px solid var(--border);
+	background: var(--background-inset);
+}
+.input-group-flat > .form-control,
+.input-group-flat > .input-group-text,
+.input-group-flat:focus-within > .form-control,
+.input-group-flat:focus-within > .input-group-text {
+	border-color: transparent !important;
+	background-color: transparent;
+}
+.input-group-flat:focus-within {
+	border-color: color-mix(in oklab, var(--accent) 60%, transparent);
+}
+
 .form-control:focus,
 .form-select:focus {
 	border-color: color-mix(in oklab, var(--accent) 60%, transparent);
