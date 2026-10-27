@@ -103,4 +103,15 @@ step "System → Services: diagnostic archive"
 $CURL -o /tmp/diagnostics.zip "$ADMIN/api/npmos/diagnostics"
 [ "$(head -c 2 /tmp/diagnostics.zip)" = PK ] || fail "diagnostic archive is not a zip"
 
+step "WAF: the open-appsec agent applies its policy without internet (local-only mode)"
+if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
+  for i in $(seq 1 90); do
+    $CURL "$ADMIN/api/npmos/waf" | grep -q '"lastPolicyUpdate": *"' && break
+    [ "$i" = 90 ] && fail "agent did not apply a policy: $($CURL "$ADMIN/api/npmos/waf")"
+    sleep 2
+  done
+else
+  echo "    (agent not running, skipped)"
+fi
+
 echo "OK: closed-network smoke passed"

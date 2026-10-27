@@ -50,4 +50,13 @@ if [ -z "$(ls -A /crowdsec-data 2> /dev/null)" ]; then
   echo "npmos-init: CrowdSec data seeded"
 fi
 
+# open-appsec agent installed before NPMOS_LOCAL_ONLY (phase 0) keeps the cloud Fog address in its
+# config volume across upgrades; point it to the closed local port (see appsec-agent in compose.yaml)
+agent_details=/appsec-conf/agent_details.json
+if [ -s "$agent_details" ] && [ "$(jq -r '."Fog domain"' "$agent_details")" != 127.0.0.1 ]; then
+  jq '."Fog domain" = "127.0.0.1" | ."Fog port" = 1 | ."Encrypted connection" = false' "$agent_details" > "$agent_details.tmp"
+  mv "$agent_details.tmp" "$agent_details"
+  echo "npmos-init: open-appsec agent switched to local-only"
+fi
+
 echo "npmos-init: ready"

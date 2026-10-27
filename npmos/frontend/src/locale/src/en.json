@@ -680,6 +680,69 @@
 	"npmos.services.version": {
 		"defaultMessage": "Version"
 	},
+	"npmos.waf": {
+		"defaultMessage": "WAF"
+	},
+	"npmos.waf.agent": {
+		"defaultMessage": "open-appsec agent"
+	},
+	"npmos.waf.agent-mode": {
+		"defaultMessage": "Management"
+	},
+	"npmos.waf.agent-mode-local": {
+		"defaultMessage": "local, without cloud"
+	},
+	"npmos.waf.agent-unreachable": {
+		"defaultMessage": "The agent is not reachable. Check the appsec-agent service in System → Services."
+	},
+	"npmos.waf.apply": {
+		"defaultMessage": "Apply now"
+	},
+	"npmos.waf.description": {
+		"defaultMessage": "open-appsec machine-learning web application firewall"
+	},
+	"npmos.waf.disable": {
+		"defaultMessage": "Disable"
+	},
+	"npmos.waf.disable-title": {
+		"defaultMessage": "Disable WAF"
+	},
+	"npmos.waf.enable": {
+		"defaultMessage": "Enable"
+	},
+	"npmos.waf.enable-title": {
+		"defaultMessage": "Enable WAF"
+	},
+	"npmos.waf.last-policy-update": {
+		"defaultMessage": "Policy applied"
+	},
+	"npmos.waf.last-update-status": {
+		"defaultMessage": "Last update"
+	},
+	"npmos.waf.off": {
+		"defaultMessage": "Disabled"
+	},
+	"npmos.waf.on": {
+		"defaultMessage": "Enabled"
+	},
+	"npmos.waf.pending-disable": {
+		"defaultMessage": "WAF is switched off but still active: NPMOS has to restart."
+	},
+	"npmos.waf.pending-enable": {
+		"defaultMessage": "WAF is switched on but not active yet: NPMOS has to restart."
+	},
+	"npmos.waf.policy-not-applied": {
+		"defaultMessage": "not yet"
+	},
+	"npmos.waf.policy-version": {
+		"defaultMessage": "Policy version"
+	},
+	"npmos.waf.restart-warning": {
+		"defaultMessage": "NPMOS restarts to load or unload the nginx module: the proxy and this interface are unavailable for a few seconds."
+	},
+	"npmos.waf.restarting": {
+		"defaultMessage": "NPMOS is restarting, the page updates by itself…"
+	},
 	"object.actions-title": {
 		"defaultMessage": "{object} #{id}"
 	},
@@ -991,5 +1054,8 @@
 	},
 	"users": {
 		"defaultMessage": "Users"
+	},
+	"waf": {
+		"defaultMessage": "WAF"
 	}
 }

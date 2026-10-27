@@ -36,3 +36,26 @@ export const regenerateNginx = (): Promise<{ regenerated: boolean }> => api.post
 
 export const downloadDiagnostics = () =>
 	api.download({ url: "/npmos/diagnostics" }, `npmos-diagnostics-${new Date().toISOString().slice(0, 19)}.zip`);
+
+export interface AgentStatus {
+	reachable: boolean;
+	error?: string;
+	policyVersion?: string | null;
+	lastPolicyUpdate?: string | null;
+	lastUpdate?: string | null;
+	lastUpdateStatus?: string | null;
+	mode?: "local";
+}
+
+export interface WafStatus {
+	enabled: boolean;
+	active: boolean;
+	restartRequired: boolean;
+	restarting?: boolean;
+	agent?: AgentStatus;
+}
+
+export const getWafStatus = (): Promise<WafStatus> => api.get({ url: "/npmos/waf" });
+
+export const setWafEnabled = (enabled: boolean, apply = true): Promise<WafStatus> =>
+	api.put({ url: "/npmos/waf", data: { enabled, apply } });

@@ -1,0 +1,35 @@
+--- a/components/security_apps/orchestration/include/hybrid_communication.h
++++ b/components/security_apps/orchestration/include/hybrid_communication.h
+@@ -41,6 +41,8 @@
+ {
+ public:
+     void init() override;
++    // NPMOS: no Fog registration in local-only mode (NPMOS_LOCAL_ONLY=true)
++    Maybe<void> authenticateAgent() override;
+     Maybe<void> getUpdate(CheckUpdateRequest &request) override;
+     Maybe<std::string> downloadAttributeFile(
+         const GetResourceFile &resourse_file,
+--- a/components/security_apps/orchestration/update_communication/hybrid_communication.cc
++++ b/components/security_apps/orchestration/update_communication/hybrid_communication.cc
+@@ -47,6 +47,21 @@
+     }
+ }
+ 
++// NPMOS: local-only hybrid mode. Hybrid mode applies the declarative local policy, but the
++// orchestration loop starts only after the agent has registered at the Fog. Without internet that
++// never happens and no policy is ever applied. NPMOS manages the agent locally and sets
++// NPMOS_LOCAL_ONLY=true: the agent then never contacts the Fog and starts orchestration at once.
++Maybe<void>
++HybridCommunication::authenticateAgent()
++{
++    const char *local_only = getenv("NPMOS_LOCAL_ONLY");
++    if (local_only != nullptr && string(local_only) == "true") {
++        dbgInfo(D_ORCHESTRATOR) << "NPMOS local-only mode: skipping registration at the Fog";
++        return Maybe<void>();
++    }
++    return FogAuthenticator::authenticateAgent();
++}
++
+ Maybe<void>
+ HybridCommunication::getUpdate(CheckUpdateRequest &request)
+ {

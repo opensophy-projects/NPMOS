@@ -90,6 +90,7 @@ const listManaged = async () => {
 		status: c.Status,
 		created: c.Created,
 		restartable: !NOT_RESTARTABLE.includes(c.Labels[SERVICE_LABEL]),
+		networkMode: c.HostConfig?.NetworkMode || null,
 	}));
 };
 
@@ -198,7 +199,18 @@ const server = http.createServer(async (req, res) => {
 				result = await logs(service, intParam(url.searchParams.get("tail"), 200, MAX_LOG_LINES), since);
 			} else if (req.method === "POST" && action === "restart") {
 				const container = await restart(service);
-				const doRestart = () => docker("POST", `/containers/${container.id}/restart?t=10`);
+				const doRestart = async () => {
+					await docker("POST", `/containers/${container.id}/restart?t=10`);
+					// containers in this one's network (and IPC) namespace, e.g. the open-appsec agent in
+					// npmos's, keep the old namespace after a restart and lose the network: restart them too
+					const dependents = (await listManaged()).filter(
+						(c) => c.networkMode === `container:${container.id}`,
+					);
+					for (const dependent of dependents) {
+						await docker("POST", `/containers/${dependent.id}/restart?t=10`);
+						audit({ ...entry, result: "restarted dependent", dependent: dependent.service });
+					}
+				};
 				if (container.service === "npmos") {
 					// answer first: restarting npmos cuts the backend's own request
 					after = doRestart;

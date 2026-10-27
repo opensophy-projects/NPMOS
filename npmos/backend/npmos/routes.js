@@ -1,8 +1,10 @@
 // NPMOS API: /api/npmos/*
 import express from "express";
 import jwtdecode from "../lib/express/jwt-decode.js";
+import validator from "../lib/validator/index.js";
 import { debug, express as logger } from "../logger.js";
 import internalServices from "./services.js";
+import internalWaf from "./waf/index.js";
 
 const router = express.Router({
 	caseSensitive: true,
@@ -77,6 +79,30 @@ router
 	.options((_, res) => res.sendStatus(204))
 	.all(jwtdecode())
 	.post(handle((req, res) => internalServices.restart(res.locals.access, req.params.service), 202));
+
+/**
+ * GET /api/npmos/waf — {enabled, active, restartRequired}
+ * PUT /api/npmos/waf — {enabled: boolean, apply?: boolean}
+ */
+router
+	.route("/waf")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalWaf.getStatus(res.locals.access)))
+	.put(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					required: ["enabled"],
+					additionalProperties: false,
+					properties: { enabled: { type: "boolean" }, apply: { type: "boolean" } },
+				},
+				req.body,
+			);
+			return internalWaf.setEnabled(res.locals.access, data.enabled, data.apply ?? true);
+		}),
+	);
 
 /**
  * POST /api/npmos/nginx/regenerate

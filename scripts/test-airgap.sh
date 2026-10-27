@@ -60,7 +60,7 @@ fi
 echo "==> no phone-home attempts in logs"
 # Messages that only appear when a component tries to reach a cloud service by default
 if "${compose[@]}" logs --no-color "${services[@]}" 2>&1 \
-  | grep -E "Fetching IP Ranges|Error downloading gravatar|Failed to fetch remote version|Registering ACME account|certbot.ini register|api\.crowdsec\.net|version\.crowdsec\.net|my\.openappsec\.io"; then
+  | grep -E "Fetching IP Ranges|Error downloading gravatar|Failed to fetch remote version|Registering ACME account|certbot.ini register|api\.crowdsec\.net|version\.crowdsec\.net|my\.openappsec\.io|cloud\.ngen\.checkpoint\.com"; then
   echo "FAIL: a component tried to reach a cloud service"
   exit 1
 fi

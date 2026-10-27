@@ -36,6 +36,7 @@ services:
       - npmos-data:/npmos-data
       - crowdsec-conf:/crowdsec-conf
       - crowdsec-data:/crowdsec-data
+      - appsec-conf:/appsec-conf
 
   npmos:
     <<: *managed
@@ -96,9 +97,15 @@ services:
       - appsec-shared-storage
     network_mode: service:npmos
     ipc: service:npmos
-    command: /cp-nano-agent
+    # Hybrid mode applies the declarative local_policy.yaml written by NPMOS (offline mode only
+    # reads a compiled policy). Upstream hybrid mode registers at the Check Point Fog before it
+    # applies any policy, so without internet no policy is ever applied. NPMOS_LOCAL_ONLY (our
+    # patch, deploy/openappsec/agent/patches) skips the registration; the Fog address points to a
+    # closed local port so that nothing else in the agent can reach the cloud either.
+    command: ["/cp-nano-agent", "--hybrid-mode", "--fog", "http://127.0.0.1:1"]
     environment:
-      # No AGENT_TOKEN: hybrid mode, managed locally by NPMOS (no my.openappsec.io)
+      # No AGENT_TOKEN: managed locally by NPMOS (no my.openappsec.io)
+      NPMOS_LOCAL_ONLY: "true"
       SHARED_STORAGE_HOST: appsec-shared-storage
       LEARNING_HOST: appsec-smartsync
       TUNING_HOST: appsec-tuning-svc

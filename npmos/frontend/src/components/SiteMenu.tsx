@@ -6,6 +6,7 @@ import {
 	IconServer,
 	IconSettings,
 	IconShield,
+	IconShieldCheck,
 	IconUser,
 } from "@tabler/icons-react";
 import cn from "classnames";
@@ -102,7 +103,13 @@ const menuItems: MenuItem[] = [
 		label: "settings",
 		permissionSection: ADMIN,
 	},
-	// NPMOS: System → Services (the whole menu moves to the sidebar in phase 2)
+	// NPMOS: WAF and System → Services (the whole menu moves to the sidebar in phase 2)
+	{
+		to: "/waf/agent",
+		icon: IconShieldCheck,
+		label: "npmos.waf",
+		permissionSection: ADMIN,
+	},
 	{
 		to: "/system/services",
 		icon: IconServer,

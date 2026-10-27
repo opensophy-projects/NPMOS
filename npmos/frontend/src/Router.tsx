@@ -27,6 +27,7 @@ const DeadHosts = lazy(() => import("src/pages/Nginx/DeadHosts"));
 const Streams = lazy(() => import("src/pages/Nginx/Streams"));
 // NPMOS: our pages live in src/npmos/pages
 const Services = lazy(() => import("src/npmos/pages/Services"));
+const WafAgent = lazy(() => import("src/npmos/pages/WafAgent"));
 
 function Router() {
 	const health = useHealth();
@@ -72,8 +73,9 @@ function Router() {
 							<Route path="/nginx/redirection" element={<RedirectionHosts />} />
 							<Route path="/nginx/404" element={<DeadHosts />} />
 							<Route path="/nginx/stream" element={<Streams />} />
-							{/* NPMOS: System → Services */}
+							{/* NPMOS: our pages */}
 							<Route path="/system/services" element={<Services />} />
+							<Route path="/waf/agent" element={<WafAgent />} />
 							<Route path="/" element={<Dashboard />} />
 						</Routes>
 					</Suspense>

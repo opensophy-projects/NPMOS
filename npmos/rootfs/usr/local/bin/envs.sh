@@ -38,6 +38,18 @@ if [ -s /tmp/env.sha512sum ] && [ "$(cat /tmp/env.sha512sum)" != "$(sha512sum < 
 fi
 sha512sum < /data/.env > /tmp/env.sha512sum
 
+# NPMOS: settings switched in the GUI override env. The backend writes this file
+# (npmos/backend/npmos/settings.js); it is not sourced, only whitelisted true/false values are read.
+if [ -s /data/npmos/runtime.env ]; then
+    while IFS='=' read -r key value; do
+        case "$key=$value" in
+            NGINX_LOAD_OPENAPPSEC_ATTACHMENT_MODULE=true | NGINX_LOAD_OPENAPPSEC_ATTACHMENT_MODULE=false)
+                export "$key=$value"
+                ;;
+        esac
+    done < /data/npmos/runtime.env
+fi
+
 
 if [ -n "$NC_AIO" ] && ! echo "$NC_AIO" | grep -q "^true$\|^false$"; then
     echo "NC_AIO needs to be true or false."

@@ -605,6 +605,69 @@
 	"npmos.services.version": {
 		"defaultMessage": "Версия"
 	},
+	"npmos.waf": {
+		"defaultMessage": "WAF"
+	},
+	"npmos.waf.agent": {
+		"defaultMessage": "Агент open-appsec"
+	},
+	"npmos.waf.agent-mode": {
+		"defaultMessage": "Управление"
+	},
+	"npmos.waf.agent-mode-local": {
+		"defaultMessage": "локально, без облака"
+	},
+	"npmos.waf.agent-unreachable": {
+		"defaultMessage": "Агент недоступен. Проверьте сервис appsec-agent в разделе «Сервисы»."
+	},
+	"npmos.waf.apply": {
+		"defaultMessage": "Применить сейчас"
+	},
+	"npmos.waf.description": {
+		"defaultMessage": "Межсетевой экран веб-приложений open-appsec на машинном обучении"
+	},
+	"npmos.waf.disable": {
+		"defaultMessage": "Выключить"
+	},
+	"npmos.waf.disable-title": {
+		"defaultMessage": "Выключить WAF"
+	},
+	"npmos.waf.enable": {
+		"defaultMessage": "Включить"
+	},
+	"npmos.waf.enable-title": {
+		"defaultMessage": "Включить WAF"
+	},
+	"npmos.waf.last-policy-update": {
+		"defaultMessage": "Политика применена"
+	},
+	"npmos.waf.last-update-status": {
+		"defaultMessage": "Последнее обновление"
+	},
+	"npmos.waf.off": {
+		"defaultMessage": "Выключен"
+	},
+	"npmos.waf.on": {
+		"defaultMessage": "Включён"
+	},
+	"npmos.waf.pending-disable": {
+		"defaultMessage": "WAF выключен, но ещё работает: нужен перезапуск NPMOS."
+	},
+	"npmos.waf.pending-enable": {
+		"defaultMessage": "WAF включён, но ещё не работает: нужен перезапуск NPMOS."
+	},
+	"npmos.waf.policy-not-applied": {
+		"defaultMessage": "ещё нет"
+	},
+	"npmos.waf.policy-version": {
+		"defaultMessage": "Версия политики"
+	},
+	"npmos.waf.restart-warning": {
+		"defaultMessage": "NPMOS перезапустится, чтобы подключить или отключить модуль nginx: прокси и этот интерфейс будут недоступны несколько секунд."
+	},
+	"npmos.waf.restarting": {
+		"defaultMessage": "NPMOS перезапускается, страница обновится сама…"
+	},
 	"object.actions-title": {
 		"defaultMessage": "{object} #{id}"
 	},
@@ -871,5 +934,8 @@
 	},
 	"users": {
 		"defaultMessage": "Пользователи"
+	},
+	"waf": {
+		"defaultMessage": "WAF"
 	}
 }
