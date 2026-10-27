@@ -49,6 +49,7 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm biome ci . --assist-enabled=false
           node check-locales.cjs
+          node ../../scripts/check-i18n.mjs
           pnpm formatjs compile-folder src/locale/src src/locale/lang
           pnpm tsc --noEmit
           pnpm vitest run

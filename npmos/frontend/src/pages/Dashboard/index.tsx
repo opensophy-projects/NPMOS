@@ -1,3 +1,4 @@
+// NPMOS: section buttons and switches use the accent colour (phase 2)
 import { IconArrowsCross, IconBolt, IconBoltOff, IconDisc } from "@tabler/icons-react";
 import { useNavigate } from "react-router-dom";
 import { HasPermission } from "src/components";
@@ -30,7 +31,7 @@ const Dashboard = () => {
 									<div className="card-body">
 										<div className="row align-items-center">
 											<div className="col-auto">
-												<span className="bg-green text-white avatar">
+												<span className="bg-primary-lt avatar">
 													<IconBolt />
 												</span>
 											</div>
@@ -57,7 +58,7 @@ const Dashboard = () => {
 									<div className="card-body">
 										<div className="row align-items-center">
 											<div className="col-auto">
-												<span className="bg-yellow text-white avatar">
+												<span className="bg-primary-lt avatar">
 													<IconArrowsCross />
 												</span>
 											</div>
@@ -85,7 +86,7 @@ const Dashboard = () => {
 									<div className="card-body">
 										<div className="row align-items-center">
 											<div className="col-auto">
-												<span className="bg-blue text-white avatar">
+												<span className="bg-primary-lt avatar">
 													<IconDisc />
 												</span>
 											</div>
@@ -110,7 +111,7 @@ const Dashboard = () => {
 									<div className="card-body">
 										<div className="row align-items-center">
 											<div className="col-auto">
-												<span className="bg-red text-white avatar">
+												<span className="bg-primary-lt avatar">
 													<IconBoltOff />
 												</span>
 											</div>

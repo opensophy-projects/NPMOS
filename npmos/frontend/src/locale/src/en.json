@@ -596,6 +596,72 @@
 	"notification.success": {
 		"defaultMessage": "Success"
 	},
+	"npmos.2fa.error-disable": {
+		"defaultMessage": "Failed to disable 2FA"
+	},
+	"npmos.2fa.error-enable": {
+		"defaultMessage": "Failed to enable 2FA"
+	},
+	"npmos.2fa.error-load": {
+		"defaultMessage": "Failed to load 2FA status"
+	},
+	"npmos.2fa.error-regenerate": {
+		"defaultMessage": "Failed to regenerate backup codes"
+	},
+	"npmos.2fa.error-start": {
+		"defaultMessage": "Failed to start 2FA setup"
+	},
+	"npmos.common.example": {
+		"defaultMessage": "e.g. {value}"
+	},
+	"npmos.common.example-path": {
+		"defaultMessage": "e.g. 10.0.0.1/path/"
+	},
+	"npmos.common.keep-env": {
+		"defaultMessage": "keep empty to reuse env value"
+	},
+	"npmos.common.loading": {
+		"defaultMessage": "Loading…"
+	},
+	"npmos.common.location": {
+		"defaultMessage": "Location"
+	},
+	"npmos.common.location-settings": {
+		"defaultMessage": "Location settings"
+	},
+	"npmos.common.move-down": {
+		"defaultMessage": "Move down"
+	},
+	"npmos.common.move-up": {
+		"defaultMessage": "Move up"
+	},
+	"npmos.common.ms": {
+		"defaultMessage": "ms"
+	},
+	"npmos.common.no-items": {
+		"defaultMessage": "There are no items"
+	},
+	"npmos.common.please-wait": {
+		"defaultMessage": "Please wait…"
+	},
+	"npmos.common.remove": {
+		"defaultMessage": "Remove"
+	},
+	"npmos.common.unhealthy-subtitle": {
+		"defaultMessage": "We'll keep checking and hope to be back soon!"
+	},
+	"npmos.common.unhealthy-title": {
+		"defaultMessage": "The API is not healthy."
+	},
+	"npmos.common.unknown": {
+		"defaultMessage": "Unknown"
+	},
+	"npmos.common.unknown-error": {
+		"defaultMessage": "Unknown error"
+	},
+	"npmos.common.warning": {
+		"defaultMessage": "Warning"
+	},
 	"npmos.nav.administration": {
 		"defaultMessage": "Administration"
 	},
@@ -743,6 +809,9 @@
 	"npmos.waf.agent-settings.crowdsec": {
 		"defaultMessage": "IP reputation from CrowdSec"
 	},
+	"npmos.waf.agent-settings.crowdsec-mode": {
+		"defaultMessage": "CrowdSec mode"
+	},
 	"npmos.waf.agent-settings.crowdsec.detect": {
 		"defaultMessage": "Detect: only log banned IPs"
 	},
@@ -781,6 +850,12 @@
 	},
 	"npmos.waf.apply": {
 		"defaultMessage": "Apply now"
+	},
+	"npmos.waf.badge.detect": {
+		"defaultMessage": "Detect"
+	},
+	"npmos.waf.badge.prevent": {
+		"defaultMessage": "Prevent"
 	},
 	"npmos.waf.description": {
 		"defaultMessage": "open-appsec machine-learning web application firewall"

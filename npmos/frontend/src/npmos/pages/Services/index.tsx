@@ -176,7 +176,7 @@ function ServicesCard() {
 			{isLoading && <LoadingPage />}
 			{isError && (
 				<Alert variant="danger" className="m-3">
-					{error?.message || "Unknown error"}
+					{error?.message || <T id="npmos.common.unknown-error" />}
 				</Alert>
 			)}
 			{data && <ServicesTable services={data} />}

@@ -99,7 +99,7 @@ function PolicyCard({ policy }: { policy?: WafPolicyState }) {
 						) : policy.applied.ok ? (
 							<span className="badge bg-green-lt">{when(policy.applied.at)}</span>
 						) : (
-							<span className="badge bg-orange-lt" title={policy.applied.error || ""}>
+							<span className="badge bg-yellow-lt" title={policy.applied.error || ""}>
 								<T id="npmos.waf.policy-not-sent" /> ({policy.applied.error})
 							</span>
 						)}
@@ -203,9 +203,10 @@ function WafCard({ status }: { status: WafStatus }) {
 }
 
 function WafAgentPage() {
-	const { data, isLoading, isError, error } = useWafStatus();
+	const { data, isLoading, error } = useWafStatus();
 	if (isLoading) return <LoadingPage />;
-	if (isError || !data) return <Alert variant="danger">{error?.message || "Unknown error"}</Alert>;
+	// a failed refetch (npmos restarting to apply the WAF switch) keeps the last known state
+	if (!data) return <Alert variant="danger">{error?.message || <T id="npmos.common.unknown-error" />}</Alert>;
 	return (
 		<>
 			<WafCard status={data} />

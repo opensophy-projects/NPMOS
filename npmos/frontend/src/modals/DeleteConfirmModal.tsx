@@ -1,10 +1,11 @@
+// NPMOS: hardcoded strings moved to the locale (en, ru)
 import { useQueryClient } from "@tanstack/react-query";
 import EasyModal, { type InnerModalProps } from "ez-modal-react";
 import { type ReactNode, useState } from "react";
 import { Alert } from "react-bootstrap";
 import Modal from "react-bootstrap/Modal";
 import { Button } from "src/components";
-import { T } from "src/locale";
+import { intl, T } from "src/locale";
 
 interface ShowProps {
 	title?: ReactNode;
@@ -55,7 +56,7 @@ const DeleteConfirmModal = EasyModal.create(
 					<div className="text-center mb-3">
 						<svg
 							role="img"
-							aria-label="warning icon"
+							aria-label={intl.formatMessage({ id: "npmos.common.warning" })}
 							xmlns="http://www.w3.org/2000/svg"
 							className="icon mb-2 text-danger icon-lg"
 							width="24"

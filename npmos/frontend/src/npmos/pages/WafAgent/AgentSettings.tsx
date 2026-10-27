@@ -79,7 +79,7 @@ function SettingsCard() {
 					</div>
 					<select
 						className="form-select"
-						aria-label="CrowdSec mode"
+						aria-label={intl.formatMessage({ id: "npmos.waf.agent-settings.crowdsec-mode" })}
 						value={form.crowdsec.mode}
 						disabled={!form.crowdsec.enabled}
 						onChange={(e) =>
@@ -128,7 +128,9 @@ function SettingsCard() {
 								setForm({ ...form, failOpen: { ...form.failOpen, timeoutMs: Number(e.target.value) } })
 							}
 						/>
-						<span className="input-group-text">ms</span>
+						<span className="input-group-text">
+							<T id="npmos.common.ms" />
+						</span>
 					</div>
 				</div>
 			</div>

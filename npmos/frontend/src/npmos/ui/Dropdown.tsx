@@ -1,6 +1,6 @@
 // Dropdown of opensophy.com (ui-registry/Dropdown): inset trigger, card menu, keyboard support.
 import cn from "classnames";
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type CSSProperties, type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
 import styles from "./Shell.module.css";
 
 export interface DropdownItem {
@@ -20,17 +20,40 @@ interface Props {
 	triggerClassName?: string;
 	items: DropdownItem[];
 	header?: ReactNode;
-	/** open upwards (bottom of the sidebar) */
+	/** prefer opening upwards (bottom of the sidebar); flips when there is no room */
 	up?: boolean;
 	inline?: boolean;
+	/** extra classes of the menu (e.g. the compact language list) */
+	menuClassName?: string;
 	ariaLabel: string;
 }
 
-export function Dropdown({ trigger, triggerClassName, items, header, up, inline, ariaLabel }: Props) {
+export function Dropdown({ trigger, triggerClassName, items, header, up, inline, menuClassName, ariaLabel }: Props) {
 	const [open, setOpen] = useState(false);
 	const box = useRef<HTMLDivElement>(null);
 	const button = useRef<HTMLButtonElement>(null);
 	const refs = useRef<(HTMLButtonElement | null)[]>([]);
+	const [place, setPlace] = useState<{ up: boolean; right: boolean; maxHeight: number }>({
+		up: !!up,
+		right: false,
+		maxHeight: 320,
+	});
+
+	// open towards the side with room and never past the viewport
+	useLayoutEffect(() => {
+		if (!open || !box.current) return;
+		const rect = box.current.getBoundingClientRect();
+		const gap = 12;
+		const above = rect.top - gap;
+		const below = window.innerHeight - rect.bottom - gap;
+		const wanted = Math.min(320, (items.length + (header ? 1 : 0)) * 36 + 8);
+		const goUp = up ? above >= wanted || above > below : below < wanted && above > below;
+		setPlace({
+			up: goUp,
+			right: rect.left + rect.width / 2 > window.innerWidth / 2 && rect.width < 200,
+			maxHeight: Math.max(120, goUp ? above : below),
+		});
+	}, [open, up, items.length, header]);
 
 	useEffect(() => {
 		if (!open) return;
@@ -81,7 +104,16 @@ export function Dropdown({ trigger, triggerClassName, items, header, up, inline,
 				{trigger}
 			</button>
 			{open && (
-				<div className={cn(styles.menu, up && styles.menuUp)} role="menu">
+				<div
+					className={cn(
+						styles.menu,
+						place.up && styles.menuUp,
+						place.right && styles.menuRight,
+						menuClassName,
+					)}
+					style={{ "--menu-max": `${place.maxHeight}px` } as CSSProperties}
+					role="menu"
+				>
 					{header}
 					{items.map((item, i) => (
 						<div key={item.key} style={{ display: "contents" }}>

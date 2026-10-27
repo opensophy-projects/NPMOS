@@ -1,3 +1,4 @@
+// NPMOS: section buttons and switches use the accent colour (phase 2)
 import { IconDotsVertical, IconEdit, IconPower, IconTrash } from "@tabler/icons-react";
 import {
 	createColumnHelper,
@@ -223,7 +224,7 @@ export default function Table({
 					tableInstance={tableInstance}
 					onNew={onNew}
 					isFiltered={isFiltered}
-					color="yellow"
+					color="primary"
 					permissionSection={REDIRECTION_HOSTS}
 				/>
 			}

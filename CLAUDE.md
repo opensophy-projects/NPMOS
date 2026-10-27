@@ -23,7 +23,7 @@ NPMOS — форк NPMplus с встроенными open-appsec (ML-WAF) и Cro
 - Предпочитать новый код в `npmos/`-каталогах и точечные «крючки» в upstream-файлах.
 - Каждое изменение upstream-файла помечается комментарием `NPMOS:` с причиной (`// NPMOS: …`, `# NPMOS: …`). По этим меткам разрешаются конфликты при обновлении.
 - Стиль — как в окружающем коде: биом-форматирование (табы, ширина 120), ESM, `async/await`.
-- Новые строки интерфейса — только в `en.json` и `ru.json` (`npmos/frontend/src/locale/src/`).
+- Новые строки интерфейса — только в `en.json` и `ru.json` (`npmos/frontend/src/locale/src/`). Текст прямо в TSX запрещён: `scripts/check-i18n.mjs` (в CI) проверяет, что у каждого ключа `en` есть перевод `ru` и что в разметке нет английского текста.
 
 ## Обновление NPMplus
 
@@ -40,7 +40,7 @@ git subtree pull --prefix=npmos https://github.com/ZoeyVid/NPMplus <tag> --squas
 cd npmos/backend && pnpm install --frozen-lockfile && pnpm biome ci . --assist-enabled=false
 # frontend
 cd npmos/frontend && pnpm install --frozen-lockfile && pnpm biome ci . --assist-enabled=false \
-  && node check-locales.cjs && pnpm formatjs compile-folder src/locale/src src/locale/lang \
+  && node check-locales.cjs && node ../../scripts/check-i18n.mjs && pnpm formatjs compile-folder src/locale/src src/locale/lang \
   && pnpm tsc --noEmit && pnpm vitest run
 # shell, compose
 shellcheck -S warning scripts/*.sh deploy/*/*.sh

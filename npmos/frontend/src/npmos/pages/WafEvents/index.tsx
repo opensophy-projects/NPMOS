@@ -113,7 +113,7 @@ function WafEventsPage() {
 			) : isError || !data ? (
 				<div className="card-body">
 					<Alert variant="danger" className="mb-0">
-						{error?.message || "Unknown error"}
+						{error?.message || <T id="npmos.common.unknown-error" />}
 					</Alert>
 				</div>
 			) : (

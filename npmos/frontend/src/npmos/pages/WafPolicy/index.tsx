@@ -129,7 +129,8 @@ function WafPolicyPage() {
 	}, [data, content]);
 
 	if (isLoading || content === null) return <LoadingPage noLogo />;
-	if (isError || !data) return <Alert variant="danger">{error?.message || "Unknown error"}</Alert>;
+	if (isError || !data)
+		return <Alert variant="danger">{error?.message || <T id="npmos.common.unknown-error" />}</Alert>;
 
 	const changed = content !== data.content;
 	const after = async (result: WafCustomPolicy, message: string) => {

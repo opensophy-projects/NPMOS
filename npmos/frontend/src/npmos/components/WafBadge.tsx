@@ -13,8 +13,12 @@ export function WafBadge({ hostId }: { hostId: number }) {
 		);
 	}
 	return waf.mode === "prevent-learn" ? (
-		<span className="badge bg-red-lt">Prevent</span>
+		<span className="badge bg-red-lt">
+			<T id="npmos.waf.badge.prevent" />
+		</span>
 	) : (
-		<span className="badge bg-orange-lt">Detect</span>
+		<span className="badge bg-yellow-lt">
+			<T id="npmos.waf.badge.detect" />
+		</span>
 	);
 }

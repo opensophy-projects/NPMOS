@@ -1,3 +1,5 @@
+// NPMOS: section buttons and switches use the accent colour (phase 2)
+// NPMOS: hardcoded strings moved to the locale (en, ru)
 import cn from "classnames";
 import EasyModal, { type InnerModalProps } from "ez-modal-react";
 import { Field, Form, Formik } from "formik";
@@ -14,7 +16,7 @@ import {
 	SSLOptionsFields,
 } from "src/components";
 import { useDirectorySuggestions, useRedirectionHost, useRedirectionHosts, useSetRedirectionHost } from "src/hooks";
-import { T } from "src/locale";
+import { intl, T } from "src/locale";
 import { validateString } from "src/modules/Validations";
 import { showObjectSuccess } from "src/notifications";
 
@@ -86,7 +88,7 @@ const RedirectionHostModal = EasyModal.create(({ id, visible, remove }: Props) =
 		<Modal show={visible} onHide={remove}>
 			{!isLoading && error && (
 				<Alert variant="danger" className="m-3">
-					{error?.message || "Unknown error"}
+					{error?.message || <T id="npmos.common.unknown-error" />}
 				</Alert>
 			)}
 			{isLoading && <Loading noLogo />}
@@ -159,7 +161,7 @@ const RedirectionHostModal = EasyModal.create(({ id, visible, remove }: Props) =
 												<a
 													href="#tab-advanced"
 													className="nav-link"
-													title="Settings"
+													title={intl.formatMessage({ id: "settings" })}
 													data-bs-toggle="tab"
 													aria-selected="false"
 													tabIndex={-1}
@@ -344,7 +346,7 @@ const RedirectionHostModal = EasyModal.create(({ id, visible, remove }: Props) =
 													label="ssl-certificate"
 													allowNew
 												/>
-												<SSLOptionsFields color="bg-yellow" />
+												<SSLOptionsFields color="bg-primary" />
 											</div>
 											<div className="tab-pane" id="tab-advanced" role="tabpanel">
 												<NginxConfigField />
@@ -369,7 +371,7 @@ const RedirectionHostModal = EasyModal.create(({ id, visible, remove }: Props) =
 								<Button
 									type="submit"
 									actionType="primary"
-									className="ms-auto bg-yellow"
+									className="ms-auto btn-primary"
 									data-bs-dismiss="modal"
 									isLoading={isSubmitting}
 									disabled={isSubmitting}

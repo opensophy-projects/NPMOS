@@ -1,9 +1,9 @@
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { ErrorNotFound, LoadingPage, SiteFooter, Unhealthy } from "src/components";
+import { ErrorNotFound, LoadingPage, Unhealthy } from "src/components";
 import { useAuthState } from "src/context";
 import { useHealth } from "src/hooks";
-// NPMOS: the sidebar shell of opensophy.com/docs replaces the header, top menu and container (phase 2)
+// NPMOS: the sidebar shell of opensophy.com/docs replaces the header, top menu, container and footer (phase 2)
 import { Shell } from "src/npmos/ui/Shell";
 
 const Setup = lazy(() => import("src/pages/Setup"));
@@ -71,7 +71,6 @@ function Router() {
 						<Route path="/" element={<Dashboard />} />
 					</Routes>
 				</Suspense>
-				<SiteFooter />
 			</Shell>
 		</BrowserRouter>
 	);

@@ -52,6 +52,7 @@ export function LocaleSwitch() {
 				up
 				ariaLabel={intl.formatMessage({ id: "npmos.nav.language" })}
 				triggerClassName={styles.toggle}
+				menuClassName={styles.menuCompact}
 				trigger={current.toUpperCase()}
 				items={localeOptions.map((option) => {
 					const code = option[0] as string;

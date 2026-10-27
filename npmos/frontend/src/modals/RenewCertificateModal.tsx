@@ -1,3 +1,4 @@
+// NPMOS: hardcoded strings moved to the locale (en, ru)
 import { useQueryClient } from "@tanstack/react-query";
 import EasyModal, { type InnerModalProps } from "ez-modal-react";
 import { type ReactNode, useEffect, useState } from "react";
@@ -68,10 +69,14 @@ const RenewCertificateModal = EasyModal.create(({ id, visible, remove }: Props) 
 				{isLoading && <Loading noLogo />}
 				{!isLoading && error && (
 					<Alert variant="danger" className="m-3">
-						{error?.message || "Unknown error"}
+						{error?.message || <T id="npmos.common.unknown-error" />}
 					</Alert>
 				)}
-				{data && isSubmitting && !errorMsg ? <p className="text-center mt-3">Please wait ...</p> : null}
+				{data && isSubmitting && !errorMsg ? (
+					<p className="text-center mt-3">
+						<T id="npmos.common.please-wait" />
+					</p>
+				) : null}
 			</Modal.Body>
 			<Modal.Footer>
 				<Button data-bs-dismiss="modal" onClick={remove} disabled={isSubmitting}>

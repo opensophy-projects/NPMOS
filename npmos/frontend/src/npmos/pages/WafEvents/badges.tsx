@@ -3,10 +3,11 @@ import { useLocaleState } from "src/context";
 import { formatDateTime } from "src/locale";
 
 const SEVERITY: Record<string, string> = {
-	critical: "bg-red-lt",
-	high: "bg-orange-lt",
+	// alerts are red, warnings yellow, the rest neutral (the accent is for actions)
+	critical: "bg-red text-red-fg",
+	high: "bg-red-lt",
 	medium: "bg-yellow-lt",
-	low: "bg-azure-lt",
+	low: "bg-secondary-lt",
 	info: "bg-secondary-lt",
 };
 

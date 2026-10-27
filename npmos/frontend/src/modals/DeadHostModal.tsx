@@ -1,3 +1,5 @@
+// NPMOS: section buttons and switches use the accent colour (phase 2)
+// NPMOS: hardcoded strings moved to the locale (en, ru)
 import EasyModal, { type InnerModalProps } from "ez-modal-react";
 import { Form, Formik } from "formik";
 import { type ReactNode, useState } from "react";
@@ -13,7 +15,7 @@ import {
 	SSLOptionsFields,
 } from "src/components";
 import { useDeadHost, useDeadHosts, useDirectorySuggestions, useSetDeadHost } from "src/hooks";
-import { T } from "src/locale";
+import { intl, T } from "src/locale";
 import { showObjectSuccess } from "src/notifications";
 
 const showDeadHostModal = (id: number | "new") => {
@@ -84,7 +86,7 @@ const DeadHostModal = EasyModal.create(({ id, visible, remove }: Props) => {
 		<Modal show={visible} onHide={remove}>
 			{!isLoading && error && (
 				<Alert variant="danger" className="m-3">
-					{error?.message || "Unknown error"}
+					{error?.message || <T id="npmos.common.unknown-error" />}
 				</Alert>
 			)}
 			{isLoading && <Loading noLogo />}
@@ -146,7 +148,7 @@ const DeadHostModal = EasyModal.create(({ id, visible, remove }: Props) => {
 												<a
 													href="#tab-advanced"
 													className="nav-link"
-													title="Settings"
+													title={intl.formatMessage({ id: "settings" })}
 													data-bs-toggle="tab"
 													aria-selected="false"
 													tabIndex={-1}
@@ -169,7 +171,7 @@ const DeadHostModal = EasyModal.create(({ id, visible, remove }: Props) => {
 													label="ssl-certificate"
 													allowNew
 												/>
-												<SSLOptionsFields color="bg-red" />
+												<SSLOptionsFields color="bg-primary" />
 											</div>
 											<div className="tab-pane" id="tab-advanced" role="tabpanel">
 												<NginxConfigField />
@@ -194,7 +196,7 @@ const DeadHostModal = EasyModal.create(({ id, visible, remove }: Props) => {
 								<Button
 									type="submit"
 									actionType="primary"
-									className="ms-auto bg-red"
+									className="ms-auto btn-primary"
 									data-bs-dismiss="modal"
 									isLoading={isSubmitting}
 									disabled={isSubmitting}

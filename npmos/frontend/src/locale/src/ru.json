@@ -65,6 +65,18 @@
 	"access-list.auth-count": {
 		"defaultMessage": "{count} {count, plural, one {пользователь} few {пользователя} many {пользователей} other {пользователя}}"
 	},
+	"access-list.custom": {
+		"defaultMessage": "Свой"
+	},
+	"access-list.custom.subtitle": {
+		"defaultMessage": "Использовать собственный тип списка доступа"
+	},
+	"access-list.global": {
+		"defaultMessage": "Глобальный"
+	},
+	"access-list.global.subtitle": {
+		"defaultMessage": "Как в глобальном списке доступа"
+	},
 	"access-list.help-rules-last": {
 		"defaultMessage": "Если есть хотя бы одно правило, правило 'запретить всё' будет добавлено последним"
 	},
@@ -260,6 +272,9 @@
 	"column.custom-locations": {
 		"defaultMessage": "Свои маршруты"
 	},
+	"column.description": {
+		"defaultMessage": "Описание"
+	},
 	"column.destination": {
 		"defaultMessage": "Назначение"
 	},
@@ -326,6 +341,12 @@
 	"dead-host": {
 		"defaultMessage": "404-хост"
 	},
+	"dead-host.directory": {
+		"defaultMessage": "Группа"
+	},
+	"dead-host.no-directory": {
+		"defaultMessage": "Без группы"
+	},
 	"dead-hosts": {
 		"defaultMessage": "404-хосты"
 	},
@@ -365,6 +386,15 @@
 	"domains.http2-support": {
 		"defaultMessage": "Поддержка HTTP/2"
 	},
+	"domains.http3-support": {
+		"defaultMessage": "Поддержка HTTP/3"
+	},
+	"domains.mtls-verify-client-optional": {
+		"defaultMessage": "Сделать mTLS необязательным"
+	},
+	"domains.reuse-key": {
+		"defaultMessage": "Повторно использовать ключ (не рекомендуется)"
+	},
 	"domains.trust-forwarded-proto": {
 		"defaultMessage": "Доверять X-Forwarded-Proto"
 	},
@@ -398,6 +428,9 @@
 	"error.invalid-email": {
 		"defaultMessage": "Неверный адрес эл. почты"
 	},
+	"error.invalid-upstream-url": {
+		"defaultMessage": "Нужен корректный URL со схемой, хостом и портом (без пути)"
+	},
 	"error.max-character-length": {
 		"defaultMessage": "Максимальная длина {max} {max, plural, one {символ} few {символа} many {символов} other {символа}}"
 	},
@@ -422,8 +455,20 @@
 	"expires.on": {
 		"defaultMessage": "Истекает: {date}"
 	},
+	"footer.github": {
+		"defaultMessage": "Репозиторий на GitHub"
+	},
 	"footer.github-fork": {
 		"defaultMessage": "Сделать форк на GitHub"
+	},
+	"help": {
+		"defaultMessage": "Справка"
+	},
+	"host.auth-request": {
+		"defaultMessage": "Auth Request"
+	},
+	"host.auth-request-upstream": {
+		"defaultMessage": "Upstream для Auth Request"
 	},
 	"host.flags.block-exploits": {
 		"defaultMessage": "Блокировать известные эксплойты"
@@ -431,11 +476,35 @@
 	"host.flags.cache-assets": {
 		"defaultMessage": "Кэшировать ресурсы"
 	},
+	"host.flags.disable-crowdsec-appsec": {
+		"defaultMessage": "Отключить CrowdSec AppSec"
+	},
+	"host.flags.disable-request-buffering": {
+		"defaultMessage": "Отключить буферизацию запросов"
+	},
+	"host.flags.disable-response-buffering": {
+		"defaultMessage": "Отключить буферизацию ответов"
+	},
+	"host.flags.disable-uri-sanitisation": {
+		"defaultMessage": "Отключить очистку URI (не рекомендуется)"
+	},
+	"host.flags.fancyindex": {
+		"defaultMessage": "Включить fancyindex"
+	},
 	"host.flags.preserve-path": {
 		"defaultMessage": "Сохранять путь"
 	},
 	"host.flags.protocols": {
 		"defaultMessage": "Протоколы"
+	},
+	"host.flags.send-noindex": {
+		"defaultMessage": "Отправлять заголовок noindex и блокировать некоторые user agent"
+	},
+	"host.flags.spoof-host-header": {
+		"defaultMessage": "Подменять заголовок Host (не рекомендуется)"
+	},
+	"host.flags.upstream-compression": {
+		"defaultMessage": "Разрешить сжатие на стороне upstream (не рекомендуется)"
 	},
 	"host.flags.websockets-upgrade": {
 		"defaultMessage": "Поддержка WebSocket"
@@ -482,6 +551,9 @@
 	"login.title": {
 		"defaultMessage": "Авторизация"
 	},
+	"mtls-certificate": {
+		"defaultMessage": "Сертификат mTLS"
+	},
 	"nginx-config.label": {
 		"defaultMessage": "Своя Nginx-конфигурация"
 	},
@@ -490,6 +562,9 @@
 	},
 	"no-permission-error": {
 		"defaultMessage": "У вас нет доступа для просмотра."
+	},
+	"no-tls": {
+		"defaultMessage": "Без TLS"
 	},
 	"notfound.action": {
 		"defaultMessage": "Вернуться на главную"
@@ -520,6 +595,72 @@
 	},
 	"notification.success": {
 		"defaultMessage": "Успешно"
+	},
+	"npmos.2fa.error-disable": {
+		"defaultMessage": "Не удалось отключить 2FA"
+	},
+	"npmos.2fa.error-enable": {
+		"defaultMessage": "Не удалось включить 2FA"
+	},
+	"npmos.2fa.error-load": {
+		"defaultMessage": "Не удалось получить состояние 2FA"
+	},
+	"npmos.2fa.error-regenerate": {
+		"defaultMessage": "Не удалось создать новые резервные коды"
+	},
+	"npmos.2fa.error-start": {
+		"defaultMessage": "Не удалось начать настройку 2FA"
+	},
+	"npmos.common.example": {
+		"defaultMessage": "напр. {value}"
+	},
+	"npmos.common.example-path": {
+		"defaultMessage": "напр. 10.0.0.1/path/"
+	},
+	"npmos.common.keep-env": {
+		"defaultMessage": "оставьте пустым, чтобы взять значение из env"
+	},
+	"npmos.common.loading": {
+		"defaultMessage": "Загрузка…"
+	},
+	"npmos.common.location": {
+		"defaultMessage": "Location"
+	},
+	"npmos.common.location-settings": {
+		"defaultMessage": "Настройки location"
+	},
+	"npmos.common.move-down": {
+		"defaultMessage": "Ниже"
+	},
+	"npmos.common.move-up": {
+		"defaultMessage": "Выше"
+	},
+	"npmos.common.ms": {
+		"defaultMessage": "мс"
+	},
+	"npmos.common.no-items": {
+		"defaultMessage": "Записей нет"
+	},
+	"npmos.common.please-wait": {
+		"defaultMessage": "Подождите…"
+	},
+	"npmos.common.remove": {
+		"defaultMessage": "Удалить"
+	},
+	"npmos.common.unhealthy-subtitle": {
+		"defaultMessage": "Проверяем снова, страница обновится сама, как только API ответит."
+	},
+	"npmos.common.unhealthy-title": {
+		"defaultMessage": "API недоступен."
+	},
+	"npmos.common.unknown": {
+		"defaultMessage": "Неизвестно"
+	},
+	"npmos.common.unknown-error": {
+		"defaultMessage": "Неизвестная ошибка"
+	},
+	"npmos.common.warning": {
+		"defaultMessage": "Предупреждение"
 	},
 	"npmos.nav.administration": {
 		"defaultMessage": "Администрирование"
@@ -668,6 +809,9 @@
 	"npmos.waf.agent-settings.crowdsec": {
 		"defaultMessage": "Репутация IP из CrowdSec"
 	},
+	"npmos.waf.agent-settings.crowdsec-mode": {
+		"defaultMessage": "Режим CrowdSec"
+	},
 	"npmos.waf.agent-settings.crowdsec.detect": {
 		"defaultMessage": "Detect: только записывать в журнал"
 	},
@@ -706,6 +850,12 @@
 	},
 	"npmos.waf.apply": {
 		"defaultMessage": "Применить сейчас"
+	},
+	"npmos.waf.badge.detect": {
+		"defaultMessage": "Обнаружение"
+	},
+	"npmos.waf.badge.prevent": {
+		"defaultMessage": "Блокировка"
 	},
 	"npmos.waf.description": {
 		"defaultMessage": "Межсетевой экран веб-приложений open-appsec на машинном обучении"
@@ -1001,6 +1151,9 @@
 	"options": {
 		"defaultMessage": "Параметры"
 	},
+	"or": {
+		"defaultMessage": "или"
+	},
 	"password": {
 		"defaultMessage": "Пароль"
 	},
@@ -1034,8 +1187,23 @@
 	"proxy-host": {
 		"defaultMessage": "Прокси-хост"
 	},
+	"proxy-host.access-lists": {
+		"defaultMessage": "Списки доступа"
+	},
+	"proxy-host.directory": {
+		"defaultMessage": "Группа"
+	},
 	"proxy-host.forward-host": {
 		"defaultMessage": "Целевой хост"
+	},
+	"proxy-host.forward-host-path": {
+		"defaultMessage": "Адрес назначения: хост / IP / путь"
+	},
+	"proxy-host.global-access-lists": {
+		"defaultMessage": "Глобальные списки доступа"
+	},
+	"proxy-host.no-directory": {
+		"defaultMessage": "Без группы"
 	},
 	"proxy-hosts": {
 		"defaultMessage": "Прокси-хосты"
@@ -1049,11 +1217,17 @@
 	"redirection-host": {
 		"defaultMessage": "Редирект-хост"
 	},
+	"redirection-host.directory": {
+		"defaultMessage": "Группа"
+	},
 	"redirection-host.forward-domain": {
 		"defaultMessage": "Целевой домен"
 	},
 	"redirection-host.forward-http-code": {
 		"defaultMessage": "HTTP-код"
+	},
+	"redirection-host.no-directory": {
+		"defaultMessage": "Без группы"
 	},
 	"redirection-hosts": {
 		"defaultMessage": "Редирект-хосты"
@@ -1130,11 +1304,23 @@
 	"sign-in": {
 		"defaultMessage": "Войти"
 	},
+	"sign-in-with-oidc": {
+		"defaultMessage": "Войти через OIDC"
+	},
 	"ssl-certificate": {
 		"defaultMessage": "TLS-сертификат"
 	},
 	"stream": {
 		"defaultMessage": "Поток"
+	},
+	"stream.description": {
+		"defaultMessage": "Описание"
+	},
+	"stream.description.placeholder": {
+		"defaultMessage": "Необязательное описание, чтобы отличать этот поток"
+	},
+	"stream.directory": {
+		"defaultMessage": "Группа"
 	},
 	"stream.forward-host": {
 		"defaultMessage": "Целевой хост"
@@ -1145,14 +1331,23 @@
 	"stream.incoming-port": {
 		"defaultMessage": "Входящий порт"
 	},
+	"stream.no-directory": {
+		"defaultMessage": "Без группы"
+	},
 	"streams": {
 		"defaultMessage": "Потоки"
 	},
 	"streams.count": {
 		"defaultMessage": "{count} {count, plural, one {поток} few {потока} many {потоков} other {потока}}"
 	},
+	"streams.pp": {
+		"defaultMessage": "Proxy Protocol v1"
+	},
 	"streams.tcp": {
 		"defaultMessage": "TCP"
+	},
+	"streams.tls": {
+		"defaultMessage": "TLS до upstream"
 	},
 	"streams.udp": {
 		"defaultMessage": "UDP"

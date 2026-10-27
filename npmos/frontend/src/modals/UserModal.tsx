@@ -1,3 +1,4 @@
+// NPMOS: hardcoded strings moved to the locale (en, ru)
 import EasyModal, { type InnerModalProps } from "ez-modal-react";
 import { Field, Form, Formik } from "formik";
 import { useState } from "react";
@@ -62,7 +63,7 @@ const UserModal = EasyModal.create(({ id, visible, remove }: Props) => {
 		<Modal show={visible} onHide={remove}>
 			{!isLoading && error && (
 				<Alert variant="danger" className="m-3">
-					{error?.message || "Unknown error"}
+					{error?.message || <T id="npmos.common.unknown-error" />}
 				</Alert>
 			)}
 			{(isLoading || currentIsLoading) && <Loading noLogo />}
