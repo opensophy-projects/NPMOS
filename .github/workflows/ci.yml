@@ -101,7 +101,7 @@ jobs:
         with:
           driver-opts: env.BUILDKIT_STEP_LOG_MAX_SIZE=-1
       - name: build npmos
-        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: npmos
           load: true
@@ -112,7 +112,7 @@ jobs:
             CROWDSEC_VERSION=${{ env.CROWDSEC_VERSION }}
             FLAGS=-march=x86-64-v2 -mtune=generic -fcf-protection=full
       - name: build npmos-appsec-agent
-        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: deploy/openappsec/agent
           load: true
@@ -121,7 +121,7 @@ jobs:
           cache-to: type=gha,mode=max,scope=appsec-agent-amd64
           build-args: OPENAPPSEC_REF=${{ env.OPENAPPSEC_REF }}
       - name: build npmos-appsec-smartsync
-        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: deploy/openappsec/go-service
           load: true
@@ -132,7 +132,7 @@ jobs:
             REPO=https://github.com/openappsec/smartsync.git
             REF=${{ env.SMARTSYNC_REF }}
       - name: build npmos-appsec-shared-storage
-        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: deploy/openappsec/go-service
           load: true
@@ -143,7 +143,7 @@ jobs:
             REPO=https://github.com/openappsec/smartsync-shared-files.git
             REF=${{ env.SHARED_FILES_REF }}
       - name: build npmos-appsec-tuning
-        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: deploy/openappsec/go-service
           load: true
@@ -211,7 +211,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: build (and push arch tags)
-        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: npmos
           push: ${{ env.PUBLISH == 'true' }}
@@ -264,7 +264,7 @@ jobs:
       - run: grep -E "^[A-Z_]+=" deploy/openappsec/sources.env >> "$GITHUB_ENV"
       - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
       - name: build npmos-appsec-agent (arm64)
-        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: deploy/openappsec/agent
           build-args: OPENAPPSEC_REF=${{ env.OPENAPPSEC_REF }}
