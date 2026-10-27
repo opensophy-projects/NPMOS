@@ -78,4 +78,35 @@ router
 	.all(jwtdecode())
 	.post(handle((req, res) => internalServices.restart(res.locals.access, req.params.service), 202));
 
+/**
+ * POST /api/npmos/nginx/regenerate
+ */
+router
+	.route("/nginx/regenerate")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(handle((_, res) => internalServices.regenerate(res.locals.access)));
+
+/**
+ * GET /api/npmos/diagnostics — zip archive
+ */
+router
+	.route("/diagnostics")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(async (req, res, next) => {
+		try {
+			await res.locals.access.can("npmos_services:manage");
+			res.attachment(`npmos-diagnostics-${new Date().toISOString().replace(/[:.]/g, "-")}.zip`);
+			await internalServices.diagnostics(res.locals.access, res);
+		} catch (err) {
+			debug(logger, `${req.method.toUpperCase()} ${req.originalUrl}: ${err}`);
+			if (res.headersSent) {
+				res.destroy(err);
+			} else {
+				next(err);
+			}
+		}
+	});
+
 export default router;

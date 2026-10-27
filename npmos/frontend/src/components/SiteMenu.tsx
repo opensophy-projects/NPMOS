@@ -3,6 +3,7 @@ import {
 	IconDeviceDesktop,
 	IconHome,
 	IconLock,
+	IconServer,
 	IconSettings,
 	IconShield,
 	IconUser,
@@ -99,6 +100,13 @@ const menuItems: MenuItem[] = [
 		to: "/settings",
 		icon: IconSettings,
 		label: "settings",
+		permissionSection: ADMIN,
+	},
+	// NPMOS: System → Services (the whole menu moves to the sidebar in phase 2)
+	{
+		to: "/system/services",
+		icon: IconServer,
+		label: "npmos.services",
 		permissionSection: ADMIN,
 	},
 ];

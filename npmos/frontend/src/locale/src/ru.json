@@ -521,6 +521,90 @@
 	"notification.success": {
 		"defaultMessage": "Успешно"
 	},
+	"npmos.services": {
+		"defaultMessage": "Сервисы"
+	},
+	"npmos.services.diagnostics": {
+		"defaultMessage": "Диагностический архив"
+	},
+	"npmos.services.follow": {
+		"defaultMessage": "Обновлять автоматически"
+	},
+	"npmos.services.health.healthy": {
+		"defaultMessage": "исправен"
+	},
+	"npmos.services.health.starting": {
+		"defaultMessage": "запускается"
+	},
+	"npmos.services.health.unhealthy": {
+		"defaultMessage": "неисправен"
+	},
+	"npmos.services.logs": {
+		"defaultMessage": "Логи"
+	},
+	"npmos.services.logs-title": {
+		"defaultMessage": "Логи: {service}"
+	},
+	"npmos.services.no-logs": {
+		"defaultMessage": "Записей нет"
+	},
+	"npmos.services.regenerate": {
+		"defaultMessage": "Пересоздать конфигурацию nginx"
+	},
+	"npmos.services.regenerate-confirm": {
+		"defaultMessage": "Пересоздать"
+	},
+	"npmos.services.regenerate-text": {
+		"defaultMessage": "Конфигурация nginx всех включённых хостов будет заново записана из базы данных, затем nginx перечитает её. Нужно после неудачного обновления или ручных правок в /data/nginx."
+	},
+	"npmos.services.regenerated": {
+		"defaultMessage": "Конфигурация nginx пересоздана"
+	},
+	"npmos.services.restart": {
+		"defaultMessage": "Перезапустить"
+	},
+	"npmos.services.restart-confirm": {
+		"defaultMessage": "Перезапустить {service}? Сервис будет недоступен несколько секунд."
+	},
+	"npmos.services.restart-npmos": {
+		"defaultMessage": "Перезапустить {service}? Прокси и этот интерфейс будут недоступны несколько секунд, страница переподключится сама."
+	},
+	"npmos.services.restart-requested": {
+		"defaultMessage": "{service} перезапускается"
+	},
+	"npmos.services.restart-title": {
+		"defaultMessage": "Перезапуск сервиса"
+	},
+	"npmos.services.service": {
+		"defaultMessage": "Сервис"
+	},
+	"npmos.services.state": {
+		"defaultMessage": "Состояние"
+	},
+	"npmos.services.state.created": {
+		"defaultMessage": "создан"
+	},
+	"npmos.services.state.dead": {
+		"defaultMessage": "не работает"
+	},
+	"npmos.services.state.exited": {
+		"defaultMessage": "остановлен"
+	},
+	"npmos.services.state.paused": {
+		"defaultMessage": "приостановлен"
+	},
+	"npmos.services.state.removing": {
+		"defaultMessage": "удаляется"
+	},
+	"npmos.services.state.restarting": {
+		"defaultMessage": "перезапускается"
+	},
+	"npmos.services.state.running": {
+		"defaultMessage": "работает"
+	},
+	"npmos.services.version": {
+		"defaultMessage": "Версия"
+	},
 	"object.actions-title": {
 		"defaultMessage": "{object} #{id}"
 	},
@@ -551,8 +635,17 @@
 	"object.event.enabled": {
 		"defaultMessage": "{object} включен"
 	},
+	"object.event.exported": {
+		"defaultMessage": "{object}: выгрузка"
+	},
+	"object.event.regenerated": {
+		"defaultMessage": "{object}: конфигурация пересоздана"
+	},
 	"object.event.renewed": {
 		"defaultMessage": "{object} продлен"
+	},
+	"object.event.restarted": {
+		"defaultMessage": "{object} перезапущен"
 	},
 	"object.event.updated": {
 		"defaultMessage": "{object} обновлен"
@@ -652,6 +745,9 @@
 	},
 	"save": {
 		"defaultMessage": "Сохранить"
+	},
+	"service": {
+		"defaultMessage": "Сервис"
 	},
 	"setting": {
 		"defaultMessage": "Настройка"

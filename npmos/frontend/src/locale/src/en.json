@@ -596,6 +596,90 @@
 	"notification.success": {
 		"defaultMessage": "Success"
 	},
+	"npmos.services": {
+		"defaultMessage": "Services"
+	},
+	"npmos.services.diagnostics": {
+		"defaultMessage": "Diagnostic archive"
+	},
+	"npmos.services.follow": {
+		"defaultMessage": "Refresh automatically"
+	},
+	"npmos.services.health.healthy": {
+		"defaultMessage": "healthy"
+	},
+	"npmos.services.health.starting": {
+		"defaultMessage": "starting"
+	},
+	"npmos.services.health.unhealthy": {
+		"defaultMessage": "unhealthy"
+	},
+	"npmos.services.logs": {
+		"defaultMessage": "Logs"
+	},
+	"npmos.services.logs-title": {
+		"defaultMessage": "Logs: {service}"
+	},
+	"npmos.services.no-logs": {
+		"defaultMessage": "No log lines"
+	},
+	"npmos.services.regenerate": {
+		"defaultMessage": "Regenerate nginx config"
+	},
+	"npmos.services.regenerate-confirm": {
+		"defaultMessage": "Regenerate"
+	},
+	"npmos.services.regenerate-text": {
+		"defaultMessage": "The nginx configs of all enabled hosts are written again from the database, then nginx is reloaded. Use it after a failed upgrade or manual changes in /data/nginx."
+	},
+	"npmos.services.regenerated": {
+		"defaultMessage": "nginx config regenerated"
+	},
+	"npmos.services.restart": {
+		"defaultMessage": "Restart"
+	},
+	"npmos.services.restart-confirm": {
+		"defaultMessage": "Restart {service}? It is unavailable for a few seconds."
+	},
+	"npmos.services.restart-npmos": {
+		"defaultMessage": "Restart {service}? The proxy and this interface are unavailable for a few seconds, the page reconnects by itself."
+	},
+	"npmos.services.restart-requested": {
+		"defaultMessage": "{service} is restarting"
+	},
+	"npmos.services.restart-title": {
+		"defaultMessage": "Restart service"
+	},
+	"npmos.services.service": {
+		"defaultMessage": "Service"
+	},
+	"npmos.services.state": {
+		"defaultMessage": "State"
+	},
+	"npmos.services.state.created": {
+		"defaultMessage": "created"
+	},
+	"npmos.services.state.dead": {
+		"defaultMessage": "dead"
+	},
+	"npmos.services.state.exited": {
+		"defaultMessage": "stopped"
+	},
+	"npmos.services.state.paused": {
+		"defaultMessage": "paused"
+	},
+	"npmos.services.state.removing": {
+		"defaultMessage": "removing"
+	},
+	"npmos.services.state.restarting": {
+		"defaultMessage": "restarting"
+	},
+	"npmos.services.state.running": {
+		"defaultMessage": "running"
+	},
+	"npmos.services.version": {
+		"defaultMessage": "Version"
+	},
 	"object.actions-title": {
 		"defaultMessage": "{object} #{id}"
 	},
@@ -626,8 +710,17 @@
 	"object.event.enabled": {
 		"defaultMessage": "Enabled {object}"
 	},
+	"object.event.exported": {
+		"defaultMessage": "Exported {object}"
+	},
+	"object.event.regenerated": {
+		"defaultMessage": "Regenerated {object}"
+	},
 	"object.event.renewed": {
 		"defaultMessage": "Renewed {object}"
+	},
+	"object.event.restarted": {
+		"defaultMessage": "Restarted {object}"
 	},
 	"object.event.updated": {
 		"defaultMessage": "Updated {object}"
@@ -751,6 +844,9 @@
 	},
 	"save": {
 		"defaultMessage": "Save"
+	},
+	"service": {
+		"defaultMessage": "Service"
 	},
 	"setting": {
 		"defaultMessage": "Setting"

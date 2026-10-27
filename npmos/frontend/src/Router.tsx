@@ -25,6 +25,8 @@ const ProxyHosts = lazy(() => import("src/pages/Nginx/ProxyHosts"));
 const RedirectionHosts = lazy(() => import("src/pages/Nginx/RedirectionHosts"));
 const DeadHosts = lazy(() => import("src/pages/Nginx/DeadHosts"));
 const Streams = lazy(() => import("src/pages/Nginx/Streams"));
+// NPMOS: our pages live in src/npmos/pages
+const Services = lazy(() => import("src/npmos/pages/Services"));
 
 function Router() {
 	const health = useHealth();
@@ -70,6 +72,8 @@ function Router() {
 							<Route path="/nginx/redirection" element={<RedirectionHosts />} />
 							<Route path="/nginx/404" element={<DeadHosts />} />
 							<Route path="/nginx/stream" element={<Streams />} />
+							{/* NPMOS: System → Services */}
+							<Route path="/system/services" element={<Services />} />
 							<Route path="/" element={<Dashboard />} />
 						</Routes>
 					</Suspense>

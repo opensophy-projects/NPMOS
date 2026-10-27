@@ -95,4 +95,12 @@ for i in $(seq 1 30); do
 done
 $CURL "$ADMIN/api/audit-log" | grep -q '"action": *"restarted"' || fail "restart is not in the audit log"
 
+step "System → Services: regenerate nginx config, the proxy host still answers"
+$CURL -X POST "$ADMIN/api/npmos/nginx/regenerate" | grep -q '"regenerated": *true' || fail "regenerate failed"
+curl -sS --max-time 10 -H 'Host: test.local' "$HTTP/" | grep -q '^Hostname:' || fail "proxy host is down after regenerate"
+
+step "System → Services: diagnostic archive"
+$CURL -o /tmp/diagnostics.zip "$ADMIN/api/npmos/diagnostics"
+[ "$(head -c 2 /tmp/diagnostics.zip)" = PK ] || fail "diagnostic archive is not a zip"
+
 echo "OK: closed-network smoke passed"
