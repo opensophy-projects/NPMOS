@@ -201,17 +201,8 @@ function LoginForm() {
 
 export default function Login() {
 	const { twoFactorChallenge } = useAuthState();
-	const health = useHealth();
-
-	const getVersion = () => {
-		if (!health.data) {
-			return "";
-		}
-		return health.data.version;
-	};
-
 	return (
-		<AuthLayout version={getVersion()}>
+		<AuthLayout>
 			<div className="card card-md">
 				<div className="card-body">{twoFactorChallenge ? <TwoFactorForm /> : <LoginForm />}</div>
 			</div>

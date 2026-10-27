@@ -31,7 +31,3 @@
 	align-items: center;
 	gap: 0.25rem;
 }
-.version {
-	color: var(--foreground-muted);
-	font-size: 0.75rem;
-}

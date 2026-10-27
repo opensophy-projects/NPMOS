@@ -1,10 +1,10 @@
 // Login and first-run setup: the panel sits exactly in the middle of the screen, the brand above
-// it, theme, language and version below it.
+// it, theme and language below it.
 import type { ReactNode } from "react";
 import styles from "./Auth.module.css";
 import { Brand, LocaleSwitch, ThemeToggle } from "./Controls";
 
-export function AuthLayout({ children, version }: { children: ReactNode; version?: string }) {
+export function AuthLayout({ children }: { children: ReactNode }) {
 	return (
 		<div className={styles.screen}>
 			<div className={styles.top}>
@@ -16,7 +16,6 @@ export function AuthLayout({ children, version }: { children: ReactNode; version
 					<ThemeToggle />
 					<LocaleSwitch />
 				</div>
-				{version ? <div className={styles.version}>{version}</div> : null}
 			</div>
 		</div>
 	);

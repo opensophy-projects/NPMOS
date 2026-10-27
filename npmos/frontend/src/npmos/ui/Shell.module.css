@@ -55,8 +55,7 @@
 	overflow: hidden;
 	padding-top: 3rem;
 	border: 1px solid var(--border);
-	/* the main background, so the inset frame of cards reads as on the theme/language buttons */
-	background: var(--background);
+	background: var(--background-inset);
 	box-shadow: var(--shadow-inset);
 }
 
@@ -505,6 +504,8 @@
 }
 /* language list: short, scrolls inside */
 .menuCompact {
+	border: 1px solid var(--border-strong);
+	box-shadow: none;
 	min-width: 9rem;
 	max-width: 11rem;
 	max-height: min(14rem, var(--menu-max, 14rem));

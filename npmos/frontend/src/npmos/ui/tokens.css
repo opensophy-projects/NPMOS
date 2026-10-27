@@ -267,6 +267,10 @@ h3,
 .card .card::before {
 	content: none;
 }
+/* the last table row would draw its square bottom border across the rounded surface corner */
+.card .table > :last-child > tr:last-child > * {
+	border-bottom-width: 0;
+}
 /* no light or motion on cards: coloured status stripes and hover lifts */
 .card-status-top,
 .card-status-start,
