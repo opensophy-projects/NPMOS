@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.7
+# syntax=docker/dockerfile:1.28
 # NPMOS build of the open-appsec learning services (Go), from source at a pinned commit:
 #   smartsync              REPO=https://github.com/openappsec/smartsync.git
 #   smartsync-shared-files REPO=https://github.com/openappsec/smartsync-shared-files.git
