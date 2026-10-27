@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.7
+# syntax=docker/dockerfile:1.28
 # NPMOS open-appsec agent, built from source (github.com/openappsec/openappsec) at a pinned commit.
 # Runtime layout matches the upstream image (build_system/docker/Dockerfile): /entry.sh and
 # /nano-service-installers/*.sh, so the same compose settings and entrypoint work.
