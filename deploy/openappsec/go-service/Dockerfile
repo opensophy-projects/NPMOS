@@ -8,7 +8,7 @@
 #   - /npmos-entry.sh: VAR_FILE=/path sets VAR from a file (secrets without shell wrappers);
 #   - /db owned by appuser, so shared-storage does not need to run as root.
 ARG GO_VERSION=1.18
-ARG ALPINE_VERSION=3.22
+ARG ALPINE_VERSION=3.24
 
 FROM docker.io/library/golang:${GO_VERSION}-alpine AS build
 ARG REPO
