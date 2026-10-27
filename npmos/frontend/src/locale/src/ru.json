@@ -521,6 +521,51 @@
 	"notification.success": {
 		"defaultMessage": "Успешно"
 	},
+	"npmos.nav.administration": {
+		"defaultMessage": "Администрирование"
+	},
+	"npmos.nav.close-menu": {
+		"defaultMessage": "Закрыть меню"
+	},
+	"npmos.nav.hosts": {
+		"defaultMessage": "Хосты"
+	},
+	"npmos.nav.language": {
+		"defaultMessage": "Язык"
+	},
+	"npmos.nav.menu": {
+		"defaultMessage": "Навигация"
+	},
+	"npmos.nav.nothing-found": {
+		"defaultMessage": "Ничего не найдено"
+	},
+	"npmos.nav.open-menu": {
+		"defaultMessage": "Открыть меню"
+	},
+	"npmos.nav.overview": {
+		"defaultMessage": "Обзор"
+	},
+	"npmos.nav.search": {
+		"defaultMessage": "Поиск по меню…"
+	},
+	"npmos.nav.security": {
+		"defaultMessage": "Безопасность"
+	},
+	"npmos.nav.skip": {
+		"defaultMessage": "Перейти к содержимому"
+	},
+	"npmos.nav.system": {
+		"defaultMessage": "Система"
+	},
+	"npmos.nav.theme-dark": {
+		"defaultMessage": "Тёмная тема"
+	},
+	"npmos.nav.theme-light": {
+		"defaultMessage": "Светлая тема"
+	},
+	"npmos.nav.user-menu": {
+		"defaultMessage": "Меню пользователя"
+	},
 	"npmos.services": {
 		"defaultMessage": "Сервисы"
 	},

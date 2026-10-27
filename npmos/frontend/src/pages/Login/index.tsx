@@ -1,12 +1,13 @@
 import { Field, Form, Formik } from "formik";
 import { useEffect, useRef, useState } from "react";
 import Alert from "react-bootstrap/Alert";
-import { Button, LocalePicker, Page, ThemeSwitcher } from "src/components";
+import { Button, Page } from "src/components";
 import { useAuthState } from "src/context";
 import { useHealth } from "src/hooks";
 import { intl, T } from "src/locale";
 import { validateEmail, validateString } from "src/modules/Validations";
-import styles from "./index.module.css";
+// NPMOS: brand, theme and language of the opensophy shell (phase 2)
+import { Brand, LocaleSwitch, ThemeToggle } from "src/npmos/ui/Controls";
 
 function TwoFactorForm() {
 	const codeRef = useRef<HTMLInputElement>(null);
@@ -65,7 +66,7 @@ function TwoFactorForm() {
 							<Button type="button" fullWidth onClick={cancelTwoFactor} disabled={isSubmitting}>
 								<T id="cancel" />
 							</Button>
-							<Button type="submit" fullWidth color="azure" isLoading={isSubmitting}>
+							<Button type="submit" fullWidth actionType="primary" isLoading={isSubmitting}>
 								<T id="login.2fa-verify" />
 							</Button>
 						</div>
@@ -174,7 +175,7 @@ function LoginForm() {
 								</Field>
 							</div>
 							<div className="form-footer">
-								<Button type="submit" fullWidth color="azure" isLoading={isSubmitting}>
+								<Button type="submit" fullWidth actionType="primary" isLoading={isSubmitting}>
 									<T id="sign-in" />
 								</Button>
 							</div>
@@ -189,7 +190,7 @@ function LoginForm() {
 			)}
 			{health.data?.oidc && (
 				<div className="form-footer my-0">
-					<Button type="button" fullWidth color="azure" onClick={redirectToOIDC}>
+					<Button type="button" fullWidth actionType="primary" onClick={redirectToOIDC}>
 						<T id="sign-in-with-oidc" />
 					</Button>
 				</div>
@@ -213,10 +214,10 @@ export default function Login() {
 		<Page className="page page-center">
 			<div className="container container-tight py-4">
 				<div className="d-flex justify-content-between align-items-center mb-4 ps-4 pe-3">
-					<img className={styles.logo} src="/images/logo-text-horizontal-grey.png" alt="NPMOS" />
+					<Brand />
 					<div className="d-flex align-items-center gap-1">
-						<LocalePicker />
-						<ThemeSwitcher />
+						<ThemeToggle />
+						<LocaleSwitch />
 					</div>
 				</div>
 				<div className="card card-md">

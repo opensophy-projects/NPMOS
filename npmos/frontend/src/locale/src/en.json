@@ -596,6 +596,51 @@
 	"notification.success": {
 		"defaultMessage": "Success"
 	},
+	"npmos.nav.administration": {
+		"defaultMessage": "Administration"
+	},
+	"npmos.nav.close-menu": {
+		"defaultMessage": "Close menu"
+	},
+	"npmos.nav.hosts": {
+		"defaultMessage": "Hosts"
+	},
+	"npmos.nav.language": {
+		"defaultMessage": "Language"
+	},
+	"npmos.nav.menu": {
+		"defaultMessage": "Navigation"
+	},
+	"npmos.nav.nothing-found": {
+		"defaultMessage": "Nothing found"
+	},
+	"npmos.nav.open-menu": {
+		"defaultMessage": "Open menu"
+	},
+	"npmos.nav.overview": {
+		"defaultMessage": "Overview"
+	},
+	"npmos.nav.search": {
+		"defaultMessage": "Search the menu…"
+	},
+	"npmos.nav.security": {
+		"defaultMessage": "Security"
+	},
+	"npmos.nav.skip": {
+		"defaultMessage": "Skip to content"
+	},
+	"npmos.nav.system": {
+		"defaultMessage": "System"
+	},
+	"npmos.nav.theme-dark": {
+		"defaultMessage": "Dark theme"
+	},
+	"npmos.nav.theme-light": {
+		"defaultMessage": "Light theme"
+	},
+	"npmos.nav.user-menu": {
+		"defaultMessage": "User menu"
+	},
 	"npmos.services": {
 		"defaultMessage": "Services"
 	},

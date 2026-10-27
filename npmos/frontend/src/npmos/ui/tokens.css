@@ -1,0 +1,228 @@
+/*
+ * NPMOS design tokens: the opensophy design system (opensophy.com/docs, design/tokens.md) and
+ * their mapping onto the Tabler/Bootstrap variables, so the upstream pages are recoloured
+ * without being rewritten. Loaded after tabler.min.css: equal selectors, later wins.
+ */
+@import "@fontsource/inter/latin-400.css";
+@import "@fontsource/inter/latin-500.css";
+@import "@fontsource/inter/latin-600.css";
+@import "@fontsource/inter/cyrillic-400.css";
+@import "@fontsource/inter/cyrillic-500.css";
+@import "@fontsource/inter/cyrillic-600.css";
+
+:root {
+	--base-hue: 265;
+	--radius-base: 0.275rem;
+
+	--font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	--font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+	--tracking-tight: -0.035rem;
+	--tracking-normal: -0.01rem;
+
+	--radius-xs: calc(var(--radius-base) * 1);
+	--radius-sm: calc(var(--radius-base) * 2);
+	--radius-md: calc(var(--radius-base) * 3);
+	--radius-lg: calc(var(--radius-base) * 4);
+	--radius-xl: calc(var(--radius-base) * 6);
+
+	--shadow-sm: 0px 1px 1px -0.5px rgba(0, 0, 0, 0.06), 0px 3px 3px -1.5px rgba(0, 0, 0, 0.06);
+	--shadow-2xl:
+		0px 1px 1px -0.5px rgba(0, 0, 0, 0.06), 0px 3px 3px -1.5px rgba(0, 0, 0, 0.06),
+		0px 6px 6px -3px rgba(0, 0, 0, 0.06), 0px 12px 12px -6px rgba(0, 0, 0, 0.06),
+		0px 24px 24px -12px rgba(0, 0, 0, 0.06), 0px 48px 48px -24px rgba(0, 0, 0, 0.06);
+	--shadow-card:
+		0 -0.5px rgba(255, 255, 255, 0.08), 0 4px 8px rgba(0, 0, 0, 0.06),
+		0 0 0 0.5px oklch(from var(--highlight) l c h / 8%), 0 1px 6px -4px #000;
+	--shadow-inset:
+		inset 0px 1px 1px -0.5px rgba(0, 0, 0, 0.06), inset 0px 3px 3px -1.5px rgba(0, 0, 0, 0.06),
+		inset 0px 6px 6px -3px rgba(0, 0, 0, 0.06), inset 0 -0.5px rgba(255, 255, 255, 0.08),
+		inset 0 0 0 0.5px oklch(from var(--highlight) l c h / 8%);
+
+	--accent: #f43f5e;
+	--accent-rgb: 244, 63, 94;
+	--accent-secondary: oklch(0.4 0.18 5);
+}
+
+/* light theme */
+:root,
+[data-bs-theme="light"] {
+	--background-inset: oklch(0.9764 0.0013 var(--base-hue));
+	--background: oklch(1 0 0);
+	--background-muted: oklch(0.9264 0.002 var(--base-hue));
+	--foreground: oklch(0.1881 0.006 var(--base-hue));
+	--foreground-muted: oklch(0.5493 0.0081 var(--base-hue));
+	--border: oklch(0 0.0013 var(--base-hue) / 0.08);
+	--highlight: oklch(0 0.0013 var(--base-hue));
+
+	/* forms and tables need a visible line; the opensophy border is a hairline */
+	--border-strong: oklch(0 0.0013 var(--base-hue) / 0.12);
+	--foreground-rgb: 27, 28, 31;
+}
+
+/* dark theme */
+[data-bs-theme="dark"] {
+	--background-inset: #0d0d0d;
+	--background: #090909;
+	--background-muted: oklch(0.22 0.006 var(--base-hue));
+	--foreground: oklch(0.9674 0.0013 var(--base-hue));
+	--foreground-muted: oklch(0.669 0.0107 var(--base-hue));
+	--border: oklch(1 0.013 var(--base-hue) / 0.05);
+	--highlight: oklch(1 0.013 var(--base-hue));
+
+	--border-strong: oklch(1 0.013 var(--base-hue) / 0.1);
+	--foreground-rgb: 242, 243, 245;
+}
+
+/* Tabler/Bootstrap → tokens (both themes) */
+:root,
+[data-bs-theme="light"],
+[data-bs-theme="dark"] {
+	--tblr-font-sans-serif: var(--font-sans);
+	--tblr-font-monospace: var(--font-mono);
+	--tblr-font-weight-headings: 500;
+
+	--tblr-primary: var(--accent);
+	--tblr-primary-rgb: var(--accent-rgb);
+	--tblr-primary-fg: #ffffff;
+	--tblr-primary-darken: color-mix(in oklab, var(--accent), #000 12%);
+	--tblr-primary-lt: color-mix(in oklab, var(--accent) 10%, transparent);
+	--tblr-primary-text-emphasis: var(--accent);
+	--tblr-primary-bg-subtle: color-mix(in oklab, var(--accent) 10%, transparent);
+	--tblr-primary-border-subtle: color-mix(in oklab, var(--accent) 40%, transparent);
+	--tblr-link-color: var(--accent);
+	--tblr-link-color-rgb: var(--accent-rgb);
+	--tblr-link-hover-color: color-mix(in oklab, var(--accent), var(--foreground) 15%);
+	--tblr-focus-ring-color: rgba(var(--accent-rgb), 0.25);
+
+	--tblr-body-color: var(--foreground);
+	--tblr-body-color-rgb: var(--foreground-rgb);
+	--tblr-emphasis-color: var(--foreground);
+	--tblr-heading-color: var(--foreground);
+	--tblr-secondary: var(--foreground-muted);
+	--tblr-secondary-color: var(--foreground-muted);
+	--tblr-muted: var(--foreground-muted);
+	--tblr-tertiary-color: color-mix(in oklab, var(--foreground-muted) 70%, transparent);
+
+	--tblr-body-bg: var(--background);
+	--tblr-bg-surface: var(--background);
+	--tblr-bg-surface-primary: var(--background);
+	--tblr-bg-surface-secondary: var(--background-inset);
+	--tblr-bg-surface-tertiary: var(--background-inset);
+	--tblr-bg-forms: var(--background-inset);
+	--tblr-secondary-bg: var(--background-muted);
+	--tblr-tertiary-bg: var(--background-inset);
+	--tblr-disabled-bg: var(--background-muted);
+	--tblr-active-bg: var(--background-muted);
+
+	--tblr-border-color: var(--border-strong);
+	--tblr-border-color-translucent: var(--border);
+
+	--tblr-border-radius: var(--radius-sm);
+	--tblr-border-radius-sm: var(--radius-xs);
+	--tblr-border-radius-lg: var(--radius-md);
+	--tblr-border-radius-xl: var(--radius-lg);
+
+	--tblr-shadow-card: var(--shadow-card);
+	--tblr-shadow-input: none;
+	--tblr-shadow-dropdown: var(--shadow-2xl);
+}
+
+body {
+	font-family: var(--font-sans);
+	letter-spacing: var(--tracking-normal);
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	background: var(--background);
+	color: var(--foreground);
+}
+
+h1,
+h2,
+h3,
+.h1,
+.h2,
+.h3,
+.page-title,
+.card-title {
+	letter-spacing: var(--tracking-tight);
+	font-weight: 500;
+}
+
+:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 2px;
+}
+
+::selection {
+	background-color: color-mix(in srgb, var(--accent) 30%, transparent);
+	color: var(--foreground);
+}
+
+/* utilities of the design system */
+.os-inset-shadow {
+	position: relative;
+	isolation: isolate;
+	box-shadow: var(--shadow-inset);
+}
+
+.os-card {
+	box-shadow: var(--shadow-card);
+}
+
+/* Tabler components in the opensophy look */
+.card {
+	--tblr-card-border-color: var(--border);
+}
+
+.form-control,
+.form-select,
+.input-group-text {
+	box-shadow: var(--shadow-inset);
+	border-color: var(--border);
+}
+
+.form-control:focus,
+.form-select:focus {
+	border-color: color-mix(in oklab, var(--accent) 60%, transparent);
+}
+
+.btn {
+	font-weight: 500;
+	letter-spacing: var(--tracking-normal);
+}
+
+.dropdown-menu {
+	--tblr-dropdown-bg: var(--background);
+	--tblr-dropdown-border-color: var(--border);
+	--tblr-dropdown-link-active-bg: color-mix(in oklab, var(--accent) 10%, transparent);
+	--tblr-dropdown-link-active-color: var(--accent);
+	--tblr-dropdown-link-hover-bg: var(--background-muted);
+	box-shadow: var(--shadow-card), var(--shadow-2xl);
+	border-radius: var(--radius-sm);
+}
+
+.modal-content {
+	--tblr-modal-bg: var(--background);
+	--tblr-modal-border-color: var(--border);
+	border-radius: var(--radius-lg);
+}
+
+.table {
+	--tblr-table-border-color: var(--border-strong);
+}
+
+/* the footer of the upstream pages sits at the end of the content panel */
+.footer {
+	--tblr-footer-bg: transparent;
+	margin-top: auto;
+	padding-inline: 0;
+	border-top: 1px solid var(--border);
+	background: transparent;
+	color: var(--foreground-muted);
+	font-size: 0.75rem;
+}
+.footer .container-xl {
+	max-width: none;
+	padding-inline: 0;
+}

@@ -1,4 +1,4 @@
-import { createContext, type ReactNode, useContext, useState } from "react";
+import { createContext, Fragment, type ReactNode, useContext, useState } from "react";
 import { getLocale } from "src/locale";
 
 // Context
@@ -23,7 +23,12 @@ function LocaleProvider({ children }: Props) {
 
 	const value = { locale, setLocale };
 
-	return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>;
+	// NPMOS: the tree is rendered again with the new messages, the language changes without a reload
+	return (
+		<LocaleContext.Provider value={value}>
+			<Fragment key={locale}>{children}</Fragment>
+		</LocaleContext.Provider>
+	);
 }
 
 function useLocaleState() {
