@@ -11,7 +11,7 @@ Group ID: $(id -g)
 
 # NPMOS: local-first — no ACME account registration at startup (it contacted the ACME server on
 # every start and blocked startup when offline). The backend registers on the first certificate
-# request: app/backend/npmos/acme.js.
+# request: npmos/backend/npmos/acme.js.
 
 if [ "$ACME_OCSP_STAPLING" = "true" ]; then
     certbot-ocsp-fetcher.sh -c /data/tls/certbot/live -o /data/tls/certbot/live --no-reload-webserver --force-update || true
