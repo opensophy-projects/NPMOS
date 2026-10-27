@@ -1,21 +1,35 @@
-// Toolbar of the hosts table: search, filters, view options, export/import, "Add", bulk actions.
+// Toolbar of the hosts table as in the Cloudflare DNS page: search, filters (field, operator,
+// value), display options, export/import, "Add", active filters and bulk actions.
 import {
-	IconAdjustmentsHorizontal,
+	IconCheck,
 	IconDownload,
 	IconFilter,
-	IconLayoutColumns,
 	IconPlus,
 	IconSearch,
+	IconSettings,
+	IconTrash,
 	IconUpload,
 	IconX,
 } from "@tabler/icons-react";
 import cn from "classnames";
-import { forwardRef } from "react";
+import { forwardRef, useState } from "react";
 import type { AccessList, Certificate } from "src/api/backend";
 import { intl, T } from "src/locale";
 import { Dropdown } from "../../ui/Dropdown";
+import { Popover } from "../../ui/Popover";
 import styles from "./Hosts.module.css";
-import { activeFilterCount, type FilterKey, type Filters, HOST_TYPES, type HostType, type WafState } from "./rows";
+import {
+	FILTER_FIELDS,
+	type FilterField,
+	type FilterOp,
+	type FilterRule,
+	type Filters,
+	HOST_TYPES,
+	type HostType,
+	isTextField,
+	opsFor,
+	type WafState,
+} from "./rows";
 
 const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id }, values);
 
@@ -37,204 +51,365 @@ export interface View {
 	hidden: Column[];
 	compact: boolean;
 }
+export const DEFAULT_VIEW: View = { hidden: [], compact: false };
 
+/** search field in the inset frame of cards */
 export const Search = forwardRef<HTMLInputElement, { value: string; onChange: (value: string) => void }>(
 	function Search({ value, onChange }, ref) {
 		return (
-			<label className={styles.search}>
-				<IconSearch size={16} />
-				<input
-					ref={ref}
-					type="search"
-					value={value}
-					placeholder={t("npmos.hosts.search")}
-					aria-label={t("npmos.hosts.search")}
-					onChange={(e) => onChange(e.target.value)}
-					onKeyDown={(e) => {
-						if (e.key === "Escape") onChange("");
-					}}
-				/>
-				<kbd className={styles.kbd}>/</kbd>
-			</label>
+			<div className={styles.searchFrame}>
+				<label className={styles.search}>
+					<IconSearch size={16} />
+					<input
+						ref={ref}
+						type="search"
+						value={value}
+						placeholder={t("npmos.hosts.search")}
+						aria-label={t("npmos.hosts.search")}
+						onChange={(e) => onChange(e.target.value)}
+						onKeyDown={(e) => {
+							if (e.key === "Escape") onChange("");
+						}}
+					/>
+					<kbd className={styles.kbd}>/</kbd>
+				</label>
+			</div>
 		);
 	},
 );
 
-export function FilterButton({ filters, open, onClick }: { filters: Filters; open: boolean; onClick: () => void }) {
-	const count = activeFilterCount(filters);
-	return (
-		<button type="button" className={cn(styles.tool, open && styles.toolOn)} onClick={onClick} aria-expanded={open}>
-			<IconFilter size={16} />
-			<T id="npmos.hosts.filters" />
-			{count > 0 && <span className={styles.count}>{count}</span>}
-		</button>
-	);
-}
+// ---- filters ----
 
-interface Option {
-	value: string;
-	label: string;
-}
-
-export function FiltersPanel({
-	filters,
-	onChange,
-	accessLists,
-	groups,
-	types,
-}: {
-	filters: Filters;
-	onChange: (filters: Filters) => void;
+export interface FilterOptions {
 	accessLists: AccessList[];
 	groups: string[];
 	types: HostType[];
-}) {
-	const groupsOf: { key: FilterKey; label: string; options: Option[] }[] = [
-		{
-			key: "type",
-			label: t("npmos.hosts.column.type"),
-			options: types.map((type) => ({ value: type, label: t(`npmos.hosts.type.${type}`) })),
-		},
-		{
-			key: "status",
-			label: t("column.status"),
-			options: [
+}
+
+const FIELD_LABEL: Record<FilterField, string> = {
+	name: "column.name",
+	type: "npmos.hosts.column.type",
+	target: "column.destination",
+	status: "column.status",
+	tls: "column.ssl",
+	waf: "WAF",
+	mtls: "mTLS",
+	access: "column.access",
+	group: "proxy-host.directory",
+};
+const fieldLabel = (field: FilterField) =>
+	field === "waf" || field === "mtls" ? FIELD_LABEL[field] : t(FIELD_LABEL[field]);
+
+/** values of a list field with their labels */
+export function fieldValues(field: FilterField, options: FilterOptions): { value: string; label: string }[] {
+	switch (field) {
+		case "type":
+			return options.types.map((type) => ({ value: type, label: t(`npmos.hosts.type.${type}`) }));
+		case "status":
+			return [
 				{ value: "online", label: t("online") },
 				{ value: "error", label: t("npmos.hosts.status.error") },
 				{ value: "disabled", label: t("disabled") },
-			],
-		},
-		{
-			key: "tls",
-			label: "TLS",
-			options: [
+			];
+		case "tls":
+			return [
 				{ value: "none", label: t("no-tls") },
 				{ value: "letsencrypt", label: "Let's Encrypt" },
 				{ value: "custom", label: t("certificates.custom") },
 				{ value: "expiring", label: t("npmos.hosts.tls.expiring") },
-			],
-		},
-		{
-			key: "waf",
-			label: "WAF",
-			options: (["off", "detect", "prevent"] as WafState[]).map((v) => ({
+			];
+		case "waf":
+			return (["off", "detect", "prevent"] as WafState[]).map((v) => ({
 				value: v,
 				label: t(`npmos.hosts.waf.${v}`),
-			})),
-		},
-		{
-			key: "mtls",
-			label: "mTLS",
-			options: ["off", "required", "optional"].map((v) => ({ value: v, label: t(`npmos.hosts.mtls.${v}`) })),
-		},
-		{
-			key: "access",
-			label: t("column.access"),
-			options: [
+			}));
+		case "mtls":
+			return ["off", "required", "optional"].map((v) => ({ value: v, label: t(`npmos.hosts.mtls.${v}`) }));
+		case "access":
+			return [
 				{ value: "public", label: t("access-list.public") },
-				...accessLists.map((l) => ({ value: String(l.id), label: l.name })),
-			],
-		},
-		{
-			key: "group",
-			label: t("proxy-host.directory"),
-			options: groups.map((g) => ({ value: g, label: g })),
-		},
-	];
-	const toggle = (key: FilterKey, value: string) => {
-		const current = filters[key] as string[];
-		const next = current.includes(value) ? current.filter((v) => v !== value) : [...current, value];
-		onChange({ ...filters, [key]: next });
-	};
+				...options.accessLists.map((l) => ({ value: String(l.id), label: l.name })),
+			];
+		case "group":
+			return options.groups.map((g) => ({ value: g, label: g }));
+		default:
+			return [];
+	}
+}
+
+const valueLabel = (rule: FilterRule, options: FilterOptions) =>
+	isTextField(rule.field)
+		? `«${rule.value}»`
+		: (fieldValues(rule.field, options).find((v) => v.value === rule.value)?.label ?? rule.value);
+
+const newRule = (field: FilterField = "name"): FilterRule => ({ field, op: opsFor(field)[0], value: "" });
+
+function FilterEditor({
+	filters,
+	options,
+	onApply,
+}: {
+	filters: Filters;
+	options: FilterOptions;
+	onApply: (rules: FilterRule[]) => void;
+}) {
+	const [rules, setRules] = useState<FilterRule[]>(() => (filters.rules.length ? filters.rules : [newRule()]));
+	const change = (index: number, patch: Partial<FilterRule>) =>
+		setRules((list) =>
+			list.map((rule, i) => {
+				if (i !== index) return rule;
+				const next = { ...rule, ...patch };
+				// another field: its own operators and values
+				if (patch.field && patch.field !== rule.field) {
+					next.op = opsFor(patch.field)[0];
+					next.value = isTextField(patch.field) ? "" : (fieldValues(patch.field, options)[0]?.value ?? "");
+				}
+				return next;
+			}),
+		);
+	const apply = () => onApply(rules.filter((r) => r.value.trim()));
 	return (
-		<div className={styles.filters}>
-			{groupsOf
-				.filter((g) => g.options.length)
-				.map((group) => (
-					<div key={group.key} className={styles.filterGroup}>
-						<span className={styles.filterLabel}>{group.label}</span>
-						<div className={styles.filterOptions}>
-							{group.options.map((o) => {
-								const on = (filters[group.key] as string[]).includes(o.value);
-								return (
-									<button
-										key={o.value}
-										type="button"
-										className={cn(styles.filterChip, on && styles.filterChipOn)}
-										aria-pressed={on}
-										onClick={() => toggle(group.key, o.value)}
-									>
-										{o.label}
-									</button>
-								);
-							})}
+		<form
+			onSubmit={(e) => {
+				e.preventDefault();
+				apply();
+			}}
+		>
+			<div className={styles.rules}>
+				{rules.map((rule, index) => {
+					const values = fieldValues(rule.field, options);
+					return (
+						<div key={index} className={styles.rule}>
+							<select
+								className="form-select form-select-sm"
+								aria-label={t("npmos.hosts.filter.field")}
+								value={rule.field}
+								onChange={(e) => change(index, { field: e.target.value as FilterField })}
+							>
+								{FILTER_FIELDS.map((field) => (
+									<option key={field} value={field}>
+										{fieldLabel(field)}
+									</option>
+								))}
+							</select>
+							<select
+								className="form-select form-select-sm"
+								aria-label={t("npmos.hosts.filter.operator")}
+								value={rule.op}
+								onChange={(e) => change(index, { op: e.target.value as FilterOp })}
+							>
+								{opsFor(rule.field).map((op) => (
+									<option key={op} value={op}>
+										{t(`npmos.hosts.filter.op.${op}`)}
+									</option>
+								))}
+							</select>
+							{isTextField(rule.field) ? (
+								<input
+									className="form-control form-control-sm"
+									aria-label={t("npmos.hosts.filter.value")}
+									placeholder={t(
+										rule.field === "name"
+											? "npmos.hosts.filter.name-placeholder"
+											: "npmos.hosts.filter.target-placeholder",
+									)}
+									value={rule.value}
+									onChange={(e) => change(index, { value: e.target.value })}
+								/>
+							) : (
+								<select
+									className="form-select form-select-sm"
+									aria-label={t("npmos.hosts.filter.value")}
+									value={rule.value}
+									onChange={(e) => change(index, { value: e.target.value })}
+								>
+									{!rule.value && <option value="">—</option>}
+									{values.map((v) => (
+										<option key={v.value} value={v.value}>
+											{v.label}
+										</option>
+									))}
+								</select>
+							)}
+							<button
+								type="button"
+								className={styles.ruleDelete}
+								aria-label={t("npmos.hosts.filter.remove")}
+								onClick={() =>
+									setRules((list) =>
+										list.length > 1 ? list.filter((_, i) => i !== index) : [newRule()],
+									)
+								}
+							>
+								<IconTrash size={16} />
+							</button>
 						</div>
-					</div>
-				))}
-			{activeFilterCount(filters) > 0 && (
+					);
+				})}
+			</div>
+			<div className={styles.rulesFoot}>
 				<button
 					type="button"
-					className={styles.reset}
-					onClick={() =>
-						onChange({
-							...filters,
-							type: [],
-							status: [],
-							tls: [],
-							waf: [],
-							mtls: [],
-							access: [],
-							group: [],
-						})
-					}
+					className={styles.addRule}
+					onClick={() => setRules((list) => [...list, newRule()])}
 				>
-					<IconX size={14} />
-					<T id="npmos.hosts.filters.reset" />
+					<IconPlus size={16} />
+					<T id="npmos.hosts.filter.add" />
 				</button>
+				<span className={styles.hint}>
+					<T id="npmos.hosts.filter.enter" />
+				</span>
+				<button type="submit" className="btn btn-primary btn-sm">
+					<T id="npmos.hosts.filter.apply" />
+				</button>
+			</div>
+		</form>
+	);
+}
+
+export function FiltersPopover({
+	filters,
+	options,
+	onChange,
+}: {
+	filters: Filters;
+	options: FilterOptions;
+	onChange: (rules: FilterRule[]) => void;
+}) {
+	const count = filters.rules.length;
+	return (
+		<Popover
+			ariaLabel={t("npmos.hosts.filters")}
+			title={<T id="npmos.hosts.filters" />}
+			width="40rem"
+			triggerClassName={cn(styles.tool, count > 0 && styles.toolOn)}
+			activeClassName={styles.toolOn}
+			trigger={
+				<>
+					<IconFilter size={16} />
+					<span className={styles.toolText}>
+						<T id="npmos.hosts.filters" />
+					</span>
+					{count > 0 && <span className={styles.count}>{count}</span>}
+				</>
+			}
+		>
+			{(close) => (
+				<FilterEditor
+					filters={filters}
+					options={options}
+					onApply={(rules) => {
+						onChange(rules);
+						close();
+					}}
+				/>
 			)}
+		</Popover>
+	);
+}
+
+/** applied filters as chips under the toolbar */
+export function ActiveFilters({
+	filters,
+	options,
+	onChange,
+}: {
+	filters: Filters;
+	options: FilterOptions;
+	onChange: (rules: FilterRule[]) => void;
+}) {
+	if (!filters.rules.length) return null;
+	return (
+		<div className={styles.active}>
+			{filters.rules.map((rule, index) => (
+				<span key={`${rule.field}:${rule.op}:${rule.value}`} className={styles.activeChip}>
+					<span className={styles.activeField}>{fieldLabel(rule.field)}</span>
+					<span className={styles.activeOp}>{t(`npmos.hosts.filter.op.${rule.op}`)}</span>
+					{valueLabel(rule, options)}
+					<button
+						type="button"
+						aria-label={t("npmos.hosts.filter.remove")}
+						onClick={() => onChange(filters.rules.filter((_, i) => i !== index))}
+					>
+						<IconX size={12} />
+					</button>
+				</span>
+			))}
+			<button type="button" className={styles.reset} onClick={() => onChange([])}>
+				<T id="npmos.hosts.filters.reset" />
+			</button>
 		</div>
 	);
 }
 
-export function ViewMenu({ view, onChange }: { view: View; onChange: (view: View) => void }) {
+// ---- display options ----
+
+function Check({ on, label, onClick }: { on: boolean; label: React.ReactNode; onClick: () => void }) {
 	return (
-		<Dropdown
-			floating
-			inline
+		<button type="button" role="menuitemcheckbox" aria-checked={on} className={styles.checkItem} onClick={onClick}>
+			<span className={styles.checkMark}>{on && <IconCheck size={16} />}</span>
+			{label}
+		</button>
+	);
+}
+
+export function ViewPopover({ view, onChange }: { view: View; onChange: (view: View) => void }) {
+	const changed = view.hidden.length > 0 || view.compact;
+	return (
+		<Popover
 			ariaLabel={t("npmos.hosts.view")}
-			title={t("npmos.hosts.view")}
+			title={<T id="npmos.hosts.view.columns" />}
+			titleAction={
+				<button
+					type="button"
+					className={styles.reset}
+					disabled={!changed}
+					onClick={() => onChange(DEFAULT_VIEW)}
+				>
+					<T id="npmos.hosts.view.reset" />
+				</button>
+			}
+			width="16rem"
 			triggerClassName={styles.tool}
+			activeClassName={styles.toolOn}
 			trigger={
 				<>
-					<IconLayoutColumns size={16} />
+					<IconSettings size={16} />
 					<span className={styles.toolText}>
 						<T id="npmos.hosts.view" />
 					</span>
 				</>
 			}
-			items={[
-				...COLUMNS.map((column) => ({
-					key: column,
-					label: columnLabel(column),
-					active: !view.hidden.includes(column),
-					onSelect: () =>
-						onChange({
-							...view,
-							hidden: view.hidden.includes(column)
-								? view.hidden.filter((c) => c !== column)
-								: [...view.hidden, column],
-						}),
-				})),
-				{
-					key: "compact",
-					divider: true,
-					icon: <IconAdjustmentsHorizontal size={16} />,
-					label: <T id="npmos.hosts.view.compact" />,
-					active: view.compact,
-					onSelect: () => onChange({ ...view, compact: !view.compact }),
-				},
-			]}
-		/>
+		>
+			{() => (
+				<div className={styles.checks}>
+					<Check on label={<T id="column.name" />} onClick={() => undefined} />
+					{COLUMNS.map((column) => (
+						<Check
+							key={column}
+							on={!view.hidden.includes(column)}
+							label={columnLabel(column)}
+							onClick={() =>
+								onChange({
+									...view,
+									hidden: view.hidden.includes(column)
+										? view.hidden.filter((c) => c !== column)
+										: [...view.hidden, column],
+								})
+							}
+						/>
+					))}
+					<div className={styles.checksTitle}>
+						<T id="npmos.hosts.view.other" />
+					</div>
+					<Check
+						on={view.compact}
+						label={<T id="npmos.hosts.view.compact" />}
+						onClick={() => onChange({ ...view, compact: !view.compact })}
+					/>
+				</div>
+			)}
+		</Popover>
 	);
 }
 

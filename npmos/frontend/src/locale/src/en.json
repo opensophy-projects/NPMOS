@@ -611,6 +611,9 @@
 	"npmos.2fa.error-start": {
 		"defaultMessage": "Failed to start 2FA setup"
 	},
+	"npmos.common.close": {
+		"defaultMessage": "Close"
+	},
 	"npmos.common.example": {
 		"defaultMessage": "e.g. {value}"
 	},
@@ -684,19 +687,22 @@
 		"defaultMessage": "Copy domain"
 	},
 	"npmos.hosts.done.access": {
-		"defaultMessage": "Access saved"
+		"defaultMessage": "access saved"
 	},
 	"npmos.hosts.done.certificate": {
-		"defaultMessage": "Certificate saved"
+		"defaultMessage": "certificate saved"
 	},
 	"npmos.hosts.done.deleted": {
-		"defaultMessage": "Hosts deleted"
+		"defaultMessage": "deleted"
 	},
 	"npmos.hosts.done.disabled": {
-		"defaultMessage": "Disabled"
+		"defaultMessage": "disabled"
 	},
 	"npmos.hosts.done.enabled": {
-		"defaultMessage": "Enabled"
+		"defaultMessage": "enabled"
+	},
+	"npmos.hosts.done.many": {
+		"defaultMessage": "{action}: {count} hosts"
 	},
 	"npmos.hosts.done.mtls": {
 		"defaultMessage": "mTLS saved"
@@ -718,6 +724,45 @@
 	},
 	"npmos.hosts.export.json-selected": {
 		"defaultMessage": "Export JSON (selected: {count})"
+	},
+	"npmos.hosts.filter.add": {
+		"defaultMessage": "Add filter"
+	},
+	"npmos.hosts.filter.apply": {
+		"defaultMessage": "Apply"
+	},
+	"npmos.hosts.filter.enter": {
+		"defaultMessage": "Press Enter to apply"
+	},
+	"npmos.hosts.filter.field": {
+		"defaultMessage": "Field"
+	},
+	"npmos.hosts.filter.name-placeholder": {
+		"defaultMessage": "domain or port"
+	},
+	"npmos.hosts.filter.op.has": {
+		"defaultMessage": "contains"
+	},
+	"npmos.hosts.filter.op.is": {
+		"defaultMessage": "is"
+	},
+	"npmos.hosts.filter.op.not": {
+		"defaultMessage": "is not"
+	},
+	"npmos.hosts.filter.op.nothas": {
+		"defaultMessage": "does not contain"
+	},
+	"npmos.hosts.filter.operator": {
+		"defaultMessage": "Operator"
+	},
+	"npmos.hosts.filter.remove": {
+		"defaultMessage": "Remove filter"
+	},
+	"npmos.hosts.filter.target-placeholder": {
+		"defaultMessage": "address, port"
+	},
+	"npmos.hosts.filter.value": {
+		"defaultMessage": "Value"
 	},
 	"npmos.hosts.filters": {
 		"defaultMessage": "Filters"
@@ -779,6 +824,9 @@
 	"npmos.hosts.reachability": {
 		"defaultMessage": "Check reachability"
 	},
+	"npmos.hosts.rec.all": {
+		"defaultMessage": "Show all ({count})"
+	},
 	"npmos.hosts.rec.expired": {
 		"defaultMessage": "Certificate expired on {count, plural, one {# host} other {# hosts}}"
 	},
@@ -790,6 +838,9 @@
 	},
 	"npmos.hosts.rec.expiring.hint": {
 		"defaultMessage": "Let's Encrypt renews by itself; custom certificates have to be replaced."
+	},
+	"npmos.hosts.rec.less": {
+		"defaultMessage": "Show fewer"
 	},
 	"npmos.hosts.rec.nginx-error": {
 		"defaultMessage": "nginx could not apply {count, plural, one {# host} other {# hosts}}"
@@ -894,10 +945,19 @@
 		"defaultMessage": "Forward a TCP/UDP port"
 	},
 	"npmos.hosts.view": {
-		"defaultMessage": "View"
+		"defaultMessage": "Display options"
+	},
+	"npmos.hosts.view.columns": {
+		"defaultMessage": "Columns"
 	},
 	"npmos.hosts.view.compact": {
 		"defaultMessage": "Compact rows"
+	},
+	"npmos.hosts.view.other": {
+		"defaultMessage": "Other"
+	},
+	"npmos.hosts.view.reset": {
+		"defaultMessage": "Reset"
 	},
 	"npmos.hosts.waf.detect": {
 		"defaultMessage": "Detect"
@@ -961,6 +1021,15 @@
 	},
 	"npmos.nav.user-menu": {
 		"defaultMessage": "User menu"
+	},
+	"npmos.notice.alert": {
+		"defaultMessage": "Problem"
+	},
+	"npmos.notice.info": {
+		"defaultMessage": "Tip"
+	},
+	"npmos.notice.warning": {
+		"defaultMessage": "Warning"
 	},
 	"npmos.services": {
 		"defaultMessage": "Services"

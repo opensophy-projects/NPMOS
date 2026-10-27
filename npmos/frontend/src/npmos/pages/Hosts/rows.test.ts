@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-	emptyFilters,
 	exportData,
+	type FilterRule,
 	filtersFromParams,
 	filtersToParams,
 	matches,
@@ -120,25 +120,67 @@ describe("hosts rows", () => {
 		expect(byId("redirect-3").waf).toBeNull();
 	});
 
-	it("filters by search and facets", () => {
-		const f = (patch: object) => rows.filter((r) => matches(r, { ...emptyFilters(), ...patch })).map((r) => r.key);
-		expect(f({ q: "10.0.0.6" })).toEqual(["proxy-2"]);
-		expect(f({ q: "5432" })).toEqual(["stream-4"]);
-		expect(f({ type: ["redirect", "dead"] })).toEqual(["redirect-3", "dead-5"]);
-		expect(f({ tls: ["expiring"] })).toEqual(["proxy-2"]);
-		expect(f({ tls: ["none"] })).toEqual(["redirect-3", "stream-4", "dead-5"]);
-		expect(f({ waf: ["off"] })).toEqual(["proxy-2"]);
-		expect(f({ access: ["7"] })).toEqual(["proxy-2"]);
-		expect(f({ status: ["error", "disabled"] })).toEqual(["proxy-2", "stream-4"]);
-		expect(f({ group: ["prod"] })).toEqual(["proxy-1"]);
+	it("filters by search and rules", () => {
+		const f = (q: string, rules: [string, string, string][] = []) =>
+			rows
+				.filter((r) =>
+					matches(r, { q, rules: rules.map(([field, op, value]) => ({ field, op, value }) as FilterRule) }),
+				)
+				.map((r) => r.key);
+		expect(f("10.0.0.6")).toEqual(["proxy-2"]);
+		expect(f("5432")).toEqual(["stream-4"]);
+		// "is" on one field: alternatives
+		expect(
+			f("", [
+				["type", "is", "redirect"],
+				["type", "is", "dead"],
+			]),
+		).toEqual(["redirect-3", "dead-5"]);
+		expect(
+			f("", [
+				["type", "not", "proxy"],
+				["type", "not", "stream"],
+			]),
+		).toEqual(["redirect-3", "dead-5"]);
+		expect(f("", [["tls", "is", "expiring"]])).toEqual(["proxy-2"]);
+		expect(f("", [["tls", "is", "none"]])).toEqual(["redirect-3", "stream-4", "dead-5"]);
+		expect(f("", [["waf", "is", "off"]])).toEqual(["proxy-2"]);
+		expect(f("", [["access", "is", "7"]])).toEqual(["proxy-2"]);
+		expect(
+			f("", [
+				["status", "is", "error"],
+				["status", "is", "disabled"],
+			]),
+		).toEqual(["proxy-2", "stream-4"]);
+		expect(f("", [["group", "is", "prod"]])).toEqual(["proxy-1"]);
+		expect(f("", [["name", "has", "admin"]])).toEqual(["proxy-2"]);
+		expect(f("", [["name", "nothas", "example"]])).toEqual(["stream-4"]);
+		expect(f("", [["target", "has", "new.example"]])).toEqual(["redirect-3"]);
+		// rules on different fields: all must hold
+		expect(
+			f("", [
+				["type", "is", "proxy"],
+				["waf", "is", "prevent"],
+			]),
+		).toEqual(["proxy-1"]);
 	});
 
 	it("keeps filters in the URL", () => {
-		const filters = { ...emptyFilters(), q: "app", type: ["proxy" as const], waf: ["off" as const] };
+		const filters = {
+			q: "app",
+			rules: [
+				{ field: "type", op: "is", value: "proxy" },
+				{ field: "target", op: "has", value: "http://10.0.0.5:8080" },
+			] as FilterRule[],
+		};
 		const params = filtersToParams(filters, new URLSearchParams("sort=tls"));
-		expect(params.toString()).toBe("sort=tls&q=app&type=proxy&waf=off");
+		expect(params.getAll("f")).toEqual(["type:is:proxy", "target:has:http://10.0.0.5:8080"]);
+		expect(params.get("sort")).toBe("tls");
 		expect(filtersFromParams(params)).toEqual(filters);
-		expect(filtersFromParams(new URLSearchParams("type=bogus,stream")).type).toEqual(["stream"]);
+		// unknown fields, wrong operators and empty values are dropped
+		expect(
+			filtersFromParams(new URLSearchParams("f=bogus:is:x&f=type:has:proxy&f=waf:is:&f=waf:not:off")).rules,
+		).toEqual([{ field: "waf", op: "not", value: "off" }]);
 	});
 
 	it("sorts", () => {

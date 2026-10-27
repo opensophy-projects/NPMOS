@@ -384,3 +384,28 @@ h3,
 .btn.btn-link:hover {
 	color: var(--tblr-link-hover-color);
 }
+
+/* toasts (react-toastify): the notice block is the whole toast */
+.Toastify__toast {
+	min-height: 0;
+	margin-bottom: 0.5rem;
+	padding: 0;
+	border-radius: var(--radius-lg);
+	background: transparent;
+	box-shadow: var(--shadow-2xl);
+	color: inherit;
+	font-family: inherit;
+}
+.Toastify__toast-body {
+	margin: 0;
+	padding: 0;
+}
+.Toastify__toast-body > div {
+	flex: 1;
+}
+.Toastify__toast-container {
+	width: min(24rem, calc(100vw - 2rem));
+}
+.Toastify__toast-body {
+	white-space: pre-line;
+}

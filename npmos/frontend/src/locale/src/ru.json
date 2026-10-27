@@ -611,6 +611,9 @@
 	"npmos.2fa.error-start": {
 		"defaultMessage": "Не удалось начать настройку 2FA"
 	},
+	"npmos.common.close": {
+		"defaultMessage": "Закрыть"
+	},
 	"npmos.common.example": {
 		"defaultMessage": "напр. {value}"
 	},
@@ -684,25 +687,28 @@
 		"defaultMessage": "Скопировать домен"
 	},
 	"npmos.hosts.done.access": {
-		"defaultMessage": "Доступ сохранён"
+		"defaultMessage": "доступ сохранён"
 	},
 	"npmos.hosts.done.certificate": {
-		"defaultMessage": "Сертификат сохранён"
+		"defaultMessage": "сертификат сохранён"
 	},
 	"npmos.hosts.done.deleted": {
-		"defaultMessage": "Хосты удалены"
+		"defaultMessage": "удалён"
 	},
 	"npmos.hosts.done.disabled": {
-		"defaultMessage": "Выключено"
+		"defaultMessage": "выключен"
 	},
 	"npmos.hosts.done.enabled": {
-		"defaultMessage": "Включено"
+		"defaultMessage": "включён"
+	},
+	"npmos.hosts.done.many": {
+		"defaultMessage": "{action}: хостов {count}"
 	},
 	"npmos.hosts.done.mtls": {
 		"defaultMessage": "mTLS сохранён"
 	},
 	"npmos.hosts.done.waf": {
-		"defaultMessage": "Режим WAF сохранён"
+		"defaultMessage": "режим WAF сохранён"
 	},
 	"npmos.hosts.empty": {
 		"defaultMessage": "Хостов пока нет. Добавьте первый кнопкой «Добавить»."
@@ -718,6 +724,45 @@
 	},
 	"npmos.hosts.export.json-selected": {
 		"defaultMessage": "Экспорт JSON (выбрано: {count})"
+	},
+	"npmos.hosts.filter.add": {
+		"defaultMessage": "Добавить фильтр"
+	},
+	"npmos.hosts.filter.apply": {
+		"defaultMessage": "Применить"
+	},
+	"npmos.hosts.filter.enter": {
+		"defaultMessage": "Enter — применить"
+	},
+	"npmos.hosts.filter.field": {
+		"defaultMessage": "Поле"
+	},
+	"npmos.hosts.filter.name-placeholder": {
+		"defaultMessage": "домен или порт"
+	},
+	"npmos.hosts.filter.op.has": {
+		"defaultMessage": "содержит"
+	},
+	"npmos.hosts.filter.op.is": {
+		"defaultMessage": "равно"
+	},
+	"npmos.hosts.filter.op.not": {
+		"defaultMessage": "не равно"
+	},
+	"npmos.hosts.filter.op.nothas": {
+		"defaultMessage": "не содержит"
+	},
+	"npmos.hosts.filter.operator": {
+		"defaultMessage": "Условие"
+	},
+	"npmos.hosts.filter.remove": {
+		"defaultMessage": "Убрать фильтр"
+	},
+	"npmos.hosts.filter.target-placeholder": {
+		"defaultMessage": "адрес, порт"
+	},
+	"npmos.hosts.filter.value": {
+		"defaultMessage": "Значение"
 	},
 	"npmos.hosts.filters": {
 		"defaultMessage": "Фильтры"
@@ -779,6 +824,9 @@
 	"npmos.hosts.reachability": {
 		"defaultMessage": "Проверить доступность"
 	},
+	"npmos.hosts.rec.all": {
+		"defaultMessage": "Показать все ({count})"
+	},
 	"npmos.hosts.rec.expired": {
 		"defaultMessage": "Сертификат истёк: хостов {count}"
 	},
@@ -790,6 +838,9 @@
 	},
 	"npmos.hosts.rec.expiring.hint": {
 		"defaultMessage": "Let's Encrypt продлевается сам; свои сертификаты нужно заменить."
+	},
+	"npmos.hosts.rec.less": {
+		"defaultMessage": "Свернуть"
 	},
 	"npmos.hosts.rec.nginx-error": {
 		"defaultMessage": "nginx не смог применить хостов: {count}"
@@ -896,8 +947,17 @@
 	"npmos.hosts.view": {
 		"defaultMessage": "Вид"
 	},
+	"npmos.hosts.view.columns": {
+		"defaultMessage": "Колонки"
+	},
 	"npmos.hosts.view.compact": {
 		"defaultMessage": "Компактные строки"
+	},
+	"npmos.hosts.view.other": {
+		"defaultMessage": "Другое"
+	},
+	"npmos.hosts.view.reset": {
+		"defaultMessage": "Сбросить"
 	},
 	"npmos.hosts.waf.detect": {
 		"defaultMessage": "Обнаружение"
@@ -961,6 +1021,15 @@
 	},
 	"npmos.nav.user-menu": {
 		"defaultMessage": "Меню пользователя"
+	},
+	"npmos.notice.alert": {
+		"defaultMessage": "Проблема"
+	},
+	"npmos.notice.info": {
+		"defaultMessage": "Совет"
+	},
+	"npmos.notice.warning": {
+		"defaultMessage": "Предупреждение"
 	},
 	"npmos.services": {
 		"defaultMessage": "Сервисы"

@@ -65,17 +65,19 @@ import {
 	type WafState,
 } from "./rows";
 import {
+	ActiveFilters,
 	AddMenu,
 	BulkBar,
 	COLUMNS,
 	type Column,
 	columnLabel,
-	FilterButton,
-	FiltersPanel,
+	DEFAULT_VIEW,
+	type FilterOptions,
+	FiltersPopover,
 	Search,
 	TransferMenu,
 	type View,
-	ViewMenu,
+	ViewPopover,
 } from "./Toolbar";
 
 const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id }, values);
@@ -127,7 +129,7 @@ const loadView = (userId?: number): View => {
 	} catch {
 		// private mode, broken value: defaults
 	}
-	return { hidden: [], compact: false };
+	return DEFAULT_VIEW;
 };
 
 function HostsPage() {
@@ -154,7 +156,6 @@ function HostsPage() {
 	const sortKey = (params.get("sort") as SortKey) || "name";
 	const sortDesc = params.get("desc") === "1";
 	const sort: Sort = useMemo(() => ({ key: sortKey, desc: sortDesc }), [sortKey, sortDesc]);
-	const [showFilters, setShowFilters] = useState(() => filters.type.length + filters.status.length > 0);
 	const [selected, setSelected] = useState<Set<string>>(new Set());
 	const [view, setViewState] = useState<View>(() => loadView(me?.id));
 	const searchRef = useRef<HTMLInputElement>(null);
@@ -233,6 +234,8 @@ function HostsPage() {
 		});
 	}, [rows]);
 
+	const filterOptions: FilterOptions = { accessLists: accessLists.data ?? [], groups, types: viewTypes };
+
 	const queries = [proxy, redirect, stream, dead].filter((_, i) => can(HOST_TYPES[i], VIEW));
 	if (!me || queries.some((q) => q.isLoading)) return <LoadingPage />;
 	const failed = queries.find((q) => q.isError);
@@ -257,7 +260,14 @@ function HostsPage() {
 		}
 		refresh(targets.map((r) => r.type));
 		if (errors.length) showError(errors.join("\n"));
-		else if (success) showSuccess(success);
+		else if (success) {
+			// say which host changed: "app.example.com — WAF mode saved"
+			showSuccess(
+				targets.length === 1
+					? `${targets[0].names[0]} — ${success}`
+					: t("npmos.hosts.done.many", { count: targets.length, action: success }),
+			);
+		}
 	};
 
 	const changeWaf = (row: HostRow, state: WafState) => {
@@ -480,12 +490,16 @@ function HostsPage() {
 
 			{failed && <Alert variant="danger">{failed.error?.message || <T id="npmos.common.unknown-error" />}</Alert>}
 
-			<Recommendations items={recs} onShow={(filter) => setFilters({ ...emptyFilters(), ...filter })} />
+			<Recommendations items={recs} onShow={(rules) => setFilters({ q: "", rules })} />
 
 			<div className={styles.toolbar}>
 				<Search ref={searchRef} value={filters.q} onChange={(q) => setFilters({ ...filters, q })} />
-				<FilterButton filters={filters} open={showFilters} onClick={() => setShowFilters(!showFilters)} />
-				<ViewMenu view={view} onChange={setView} />
+				<FiltersPopover
+					filters={filters}
+					options={filterOptions}
+					onChange={(rules) => setFilters({ ...filters, rules })}
+				/>
+				<ViewPopover view={view} onChange={setView} />
 				<TransferMenu
 					onExport={onExport}
 					onImport={() => importRef.current?.click()}
@@ -506,15 +520,11 @@ function HostsPage() {
 				<AddMenu types={manageTypes} onAdd={(type) => EDIT[type]("new")} />
 			</div>
 
-			{showFilters && (
-				<FiltersPanel
-					filters={filters}
-					onChange={setFilters}
-					accessLists={accessLists.data ?? []}
-					groups={groups}
-					types={viewTypes}
-				/>
-			)}
+			<ActiveFilters
+				filters={filters}
+				options={filterOptions}
+				onChange={(rules) => setFilters({ ...filters, rules })}
+			/>
 
 			<div className={cn("card", styles.tableCard)}>
 				{selectedRows.length > 0 ? (

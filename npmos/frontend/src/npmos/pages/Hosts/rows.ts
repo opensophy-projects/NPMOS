@@ -158,92 +158,121 @@ export function toRows(sources: Sources, now = Date.now()): HostRow[] {
 	return rows;
 }
 
-// ---- filters (kept in the URL) ----
+// ---- filters (kept in the URL), as in the Cloudflare DNS table: field, operator, value ----
 
 export type TlsFilter = TlsKind | "expiring";
 
-export interface Filters {
-	q: string;
-	type: HostType[];
-	status: HostStatus[];
-	tls: TlsFilter[];
-	waf: WafState[];
-	mtls: MtlsState[];
-	/** "public" or an access list id */
-	access: string[];
-	group: string[];
+/** fields with a fixed list of values */
+export const ENUM_FIELDS = ["type", "status", "tls", "waf", "mtls", "access", "group"] as const;
+/** free-text fields */
+export const TEXT_FIELDS = ["name", "target"] as const;
+export type FilterField = (typeof ENUM_FIELDS)[number] | (typeof TEXT_FIELDS)[number];
+export const FILTER_FIELDS: FilterField[] = [
+	"name",
+	"type",
+	"target",
+	"status",
+	"tls",
+	"waf",
+	"mtls",
+	"access",
+	"group",
+];
+export const isTextField = (field: FilterField) => (TEXT_FIELDS as readonly string[]).includes(field);
+
+/** is / is not for lists; contains / does not contain for text */
+export type FilterOp = "is" | "not" | "has" | "nothas";
+export const opsFor = (field: FilterField): FilterOp[] => (isTextField(field) ? ["has", "nothas"] : ["is", "not"]);
+
+export interface FilterRule {
+	field: FilterField;
+	op: FilterOp;
+	value: string;
 }
 
-export const FILTER_KEYS = ["type", "status", "tls", "waf", "mtls", "access", "group"] as const;
-export type FilterKey = (typeof FILTER_KEYS)[number];
+export interface Filters {
+	/** the search field */
+	q: string;
+	rules: FilterRule[];
+}
 
-export const emptyFilters = (): Filters => ({
-	q: "",
-	type: [],
-	status: [],
-	tls: [],
-	waf: [],
-	mtls: [],
-	access: [],
-	group: [],
-});
+export const emptyFilters = (): Filters => ({ q: "", rules: [] });
 
+/** `f=field:op:value` (repeated); the value may contain ":" */
 export function filtersFromParams(params: URLSearchParams): Filters {
-	const list = (key: string) =>
-		(params.get(key) ?? "")
-			.split(",")
-			.map((v) => v.trim())
-			.filter(Boolean);
-	return {
-		q: params.get("q") ?? "",
-		type: list("type").filter((t): t is HostType => (HOST_TYPES as readonly string[]).includes(t)),
-		status: list("status") as HostStatus[],
-		tls: list("tls") as TlsFilter[],
-		waf: list("waf") as WafState[],
-		mtls: list("mtls") as MtlsState[],
-		access: list("access"),
-		group: list("group"),
-	};
+	const rules: FilterRule[] = [];
+	for (const raw of params.getAll("f")) {
+		const [field, op, ...rest] = raw.split(":");
+		const value = rest.join(":");
+		if (!(FILTER_FIELDS as string[]).includes(field) || !value) continue;
+		if (!opsFor(field as FilterField).includes(op as FilterOp)) continue;
+		rules.push({ field: field as FilterField, op: op as FilterOp, value });
+	}
+	return { q: params.get("q") ?? "", rules };
 }
 
 export function filtersToParams(filters: Filters, params = new URLSearchParams()): URLSearchParams {
 	const next = new URLSearchParams(params);
 	if (filters.q) next.set("q", filters.q);
 	else next.delete("q");
-	for (const key of FILTER_KEYS) {
-		if (filters[key].length) next.set(key, filters[key].join(","));
-		else next.delete(key);
+	next.delete("f");
+	for (const rule of filters.rules) {
+		if (rule.value) next.append("f", `${rule.field}:${rule.op}:${rule.value}`);
 	}
 	return next;
 }
 
-export const activeFilterCount = (filters: Filters) => FILTER_KEYS.filter((key) => filters[key].length).length;
-
 const isExpiring = (row: HostRow) => row.expiresInDays !== null && row.expiresInDays < EXPIRING_DAYS;
 
+/** does the row have this value in the field (enum fields) or contain the text (text fields) */
+function fieldMatches(row: HostRow, field: FilterField, value: string): boolean {
+	switch (field) {
+		case "name":
+			return row.names.some((n) => n.toLowerCase().includes(value.toLowerCase()));
+		case "target":
+			return row.target.toLowerCase().includes(value.toLowerCase());
+		case "type":
+			return row.type === value;
+		case "status":
+			return row.status === value;
+		case "tls":
+			return value === "expiring" ? isExpiring(row) : row.tls === value;
+		case "waf":
+			return row.waf === value;
+		case "mtls":
+			return row.mtls === value;
+		case "access":
+			if (row.accessPublic === null) return false;
+			return value === "public"
+				? row.accessPublic
+				: !row.accessPublic && row.accessListIds.includes(Number(value));
+		case "group":
+			return row.group === value;
+	}
+}
+
+/**
+ * Search plus rules. Rules "is" on the same field are alternatives (type is Proxy or Redirect),
+ * every other rule must hold.
+ */
 export function matches(row: HostRow, filters: Filters): boolean {
 	const q = filters.q.trim().toLowerCase();
 	if (q) {
 		const haystack = [...row.names, row.target, row.group, ...row.protocols].join(" ").toLowerCase();
 		if (!haystack.includes(q)) return false;
 	}
-	if (filters.type.length && !filters.type.includes(row.type)) return false;
-	if (filters.status.length && !filters.status.includes(row.status)) return false;
-	if (filters.tls.length) {
-		const ok = filters.tls.some((tls) => (tls === "expiring" ? isExpiring(row) : row.tls === tls));
-		if (!ok) return false;
+	const alternatives = new Map<FilterField, boolean>();
+	for (const rule of filters.rules) {
+		const hit = fieldMatches(row, rule.field, rule.value);
+		if (rule.op === "is") {
+			alternatives.set(rule.field, (alternatives.get(rule.field) ?? false) || hit);
+		} else if (rule.op === "has") {
+			if (!hit) return false;
+		} else if (hit) {
+			return false;
+		}
 	}
-	if (filters.waf.length && (row.waf === null || !filters.waf.includes(row.waf))) return false;
-	if (filters.mtls.length && !filters.mtls.includes(row.mtls)) return false;
-	if (filters.access.length) {
-		if (row.accessPublic === null) return false;
-		const ok = filters.access.some((a) =>
-			a === "public" ? row.accessPublic : !row.accessPublic && row.accessListIds.includes(Number(a)),
-		);
-		if (!ok) return false;
-	}
-	if (filters.group.length && !filters.group.includes(row.group)) return false;
-	return true;
+	return [...alternatives.values()].every(Boolean);
 }
 
 // ---- sorting ----
@@ -322,8 +351,8 @@ export interface Recommendation {
 	/** alert: red, warning: yellow, info: neutral */
 	level: "alert" | "warning" | "info";
 	rows: HostRow[];
-	/** filters that show the affected hosts */
-	filter: Partial<Filters>;
+	/** filter rules that show the affected hosts */
+	filter: FilterRule[];
 }
 
 export function recommendations(rows: HostRow[], wafGloballyEnabled: boolean | undefined): Recommendation[] {
@@ -335,13 +364,13 @@ export function recommendations(rows: HostRow[], wafGloballyEnabled: boolean | u
 			id: "expired",
 			level: "alert",
 			rows: active.filter((r) => r.expiresInDays !== null && r.expiresInDays < 0),
-			filter: { tls: ["expiring"] },
+			filter: [{ field: "tls", op: "is", value: "expiring" }],
 		},
 		{
 			id: "nginx-error",
 			level: "alert",
 			rows: active.filter((r) => r.status === "error"),
-			filter: { status: ["error"] },
+			filter: [{ field: "status", op: "is", value: "error" }],
 		},
 		{
 			id: "expiring",
@@ -349,26 +378,35 @@ export function recommendations(rows: HostRow[], wafGloballyEnabled: boolean | u
 			rows: active.filter(
 				(r) => r.expiresInDays !== null && r.expiresInDays >= 0 && r.expiresInDays < EXPIRING_DAYS,
 			),
-			filter: { tls: ["expiring"] },
+			filter: [{ field: "tls", op: "is", value: "expiring" }],
 		},
-		{ id: "no-tls", level: "warning", rows: web.filter((r) => r.tls === "none"), filter: { tls: ["none"] } },
+		{
+			id: "no-tls",
+			level: "warning",
+			rows: web.filter((r) => r.tls === "none"),
+			filter: [{ field: "tls", op: "is", value: "none" }],
+		},
 		{
 			id: "waf-global-off",
 			level: "warning",
 			rows: wafGloballyEnabled === false ? proxies.filter((r) => r.waf !== "off") : [],
-			filter: { type: ["proxy"] },
+			filter: [{ field: "type", op: "is", value: "proxy" }],
 		},
 		{
 			id: "waf-off",
 			level: "info",
 			rows: proxies.filter((r) => r.waf === "off" && r.accessPublic),
-			filter: { type: ["proxy"], waf: ["off"], access: ["public"] },
+			filter: [
+				{ field: "type", op: "is", value: "proxy" },
+				{ field: "waf", op: "is", value: "off" },
+				{ field: "access", op: "is", value: "public" },
+			],
 		},
 		{
 			id: "waf-detect",
 			level: "info",
 			rows: proxies.filter((r) => r.waf === "detect"),
-			filter: { waf: ["detect"] },
+			filter: [{ field: "waf", op: "is", value: "detect" }],
 		},
 	];
 	return list.filter((r) => r.rows.length);

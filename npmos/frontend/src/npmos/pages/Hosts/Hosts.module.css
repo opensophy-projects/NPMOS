@@ -29,9 +29,19 @@
 	align-items: center;
 	gap: 0.5rem;
 }
-.search {
+/* search in the inset frame of cards (as the theme/language buttons) */
+.searchFrame {
 	display: flex;
 	flex: 1 1 18rem;
+	min-width: 0;
+	padding: 0.25rem;
+	border-radius: var(--radius-lg);
+	background: var(--card-frame);
+	box-shadow: var(--shadow-inset);
+}
+.search {
+	display: flex;
+	flex: 1;
 	align-items: center;
 	gap: 0.5rem;
 	min-width: 0;
@@ -40,8 +50,8 @@
 	padding: 0 0.625rem;
 	border: 1px solid var(--border);
 	border-radius: var(--radius-sm);
-	background: var(--background-inset);
-	box-shadow: var(--shadow-inset);
+	background: var(--background);
+	box-shadow: var(--shadow-card);
 	color: var(--foreground-muted);
 }
 .search:focus-within {
@@ -111,53 +121,126 @@
 	}
 }
 
-/* ---- filters ---- */
-.filters {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: flex-start;
-	gap: 0.75rem 1.5rem;
-	padding: 0.75rem 1rem;
-	border: 1px solid var(--border);
-	border-radius: var(--radius-lg);
-	background: var(--background);
-}
-.filterGroup {
+/* ---- filters: rules (field, operator, value) ---- */
+.rules {
 	display: flex;
 	flex-direction: column;
+	gap: 0.5rem;
+}
+.rule {
+	display: grid;
+	grid-template-columns: 9rem 9rem minmax(0, 1fr) 2rem;
+	align-items: center;
+	gap: 0.5rem;
+}
+@media (max-width: 640px) {
+	.rule {
+		grid-template-columns: 1fr 1fr;
+	}
+}
+.ruleDelete,
+.addRule {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
 	gap: 0.375rem;
-}
-.filterLabel {
+	height: 2rem;
+	border: 0;
+	border-radius: var(--radius-sm);
+	background: none;
 	color: var(--foreground-muted);
-	font-size: 0.75rem;
-	font-weight: 500;
-	text-transform: uppercase;
-	letter-spacing: 0.04em;
 }
-.filterOptions {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 0.25rem;
-}
-.filterChip {
-	padding: 0.125rem 0.625rem;
-	border: 1px solid var(--border-strong);
-	border-radius: 9999px;
-	background: var(--background);
-	color: var(--foreground-muted);
-	font-size: 0.8125rem;
-	transition:
-		border-color 150ms ease-out,
-		color 150ms ease-out;
-}
-.filterChip:hover {
+.ruleDelete:hover,
+.addRule:hover {
+	background: var(--background-muted);
 	color: var(--foreground);
 }
-.filterChipOn,
-.filterChipOn:hover {
-	border-color: color-mix(in oklab, var(--accent) 60%, transparent);
-	background: color-mix(in oklab, var(--accent) 10%, transparent);
+.addRule {
+	padding: 0 0.5rem;
+	color: var(--foreground);
+	font-size: 0.875rem;
+	font-weight: 500;
+}
+.rulesFoot {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	margin-top: 0.75rem;
+}
+.hint {
+	margin-left: auto;
+	color: var(--foreground-muted);
+	font-size: 0.8125rem;
+}
+.active {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.375rem;
+}
+.activeChip {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.375rem;
+	padding: 0.125rem 0.25rem 0.125rem 0.625rem;
+	border: 1px solid color-mix(in oklab, var(--accent) 40%, transparent);
+	border-radius: 9999px;
+	background: color-mix(in oklab, var(--accent) 8%, transparent);
+	color: var(--foreground);
+	font-size: 0.8125rem;
+}
+.activeField {
+	font-weight: 500;
+}
+.activeOp {
+	color: var(--foreground-muted);
+}
+.activeChip button {
+	display: inline-flex;
+	padding: 0.125rem;
+	border: 0;
+	border-radius: 9999px;
+	background: none;
+	color: var(--foreground-muted);
+}
+.activeChip button:hover {
+	background: var(--background-muted);
+	color: var(--foreground);
+}
+
+/* ---- display options ---- */
+.checks {
+	display: flex;
+	flex-direction: column;
+	gap: 0.125rem;
+}
+.checkItem {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.375rem 0.5rem;
+	border: 0;
+	border-radius: var(--radius-xs);
+	background: none;
+	color: var(--foreground);
+	font-size: 0.875rem;
+	text-align: left;
+}
+.checkItem:hover {
+	background: var(--background-muted);
+}
+.checkMark {
+	display: inline-flex;
+	width: 1rem;
 	color: var(--accent);
+}
+.checksTitle {
+	margin: 0.5rem 0 0.25rem;
+	padding: 0.5rem 0.5rem 0;
+	border-top: 1px solid var(--border);
+	color: var(--foreground);
+	font-size: 0.875rem;
+	font-weight: 500;
 }
 .reset {
 	display: inline-flex;
@@ -173,26 +256,29 @@
 .reset:hover {
 	color: var(--foreground);
 }
+.reset:disabled {
+	opacity: 0.4;
+}
 
 /* ---- recommendations ---- */
 .recs {
-	margin: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
 }
 .recsHead {
 	display: flex;
 	align-items: center;
 	gap: 0.5rem;
-	width: 100%;
-	padding: 0.625rem 1rem;
+	align-self: flex-start;
+	padding: 0;
 	border: 0;
 	background: none;
 	color: var(--foreground);
-	font-size: 0.875rem;
+	font-size: 0.9375rem;
 	font-weight: 500;
-	text-align: left;
 }
 .recsChevron {
-	margin-left: auto;
 	color: var(--foreground-muted);
 	transition: transform 150ms ease-out;
 }
@@ -200,44 +286,27 @@
 	transform: rotate(180deg);
 }
 .recsList {
-	margin: 0;
-	padding: 0.25rem 1rem 0.75rem;
-	border-top: 1px solid var(--border);
-	list-style: none;
+	display: grid;
+	justify-items: stretch;
+	gap: 0.5rem;
 }
-.rec {
-	display: flex;
-	gap: 0.625rem;
-	padding: 0.5rem 0 0;
-}
-.recDot {
-	flex: none;
-	width: 0.5rem;
-	height: 0.5rem;
-	margin-top: 0.375rem;
-	border-radius: 9999px;
-	background: var(--foreground-muted);
-}
-.recDot.alert {
-	background: var(--tblr-red);
-}
-.recDot.warning {
-	background: var(--tblr-yellow);
+.recsList > button {
+	justify-self: start;
 }
 .recTitle {
-	font-size: 0.875rem;
+	color: var(--foreground);
 	font-weight: 500;
-}
-.recHint {
-	color: var(--foreground-muted);
-	font-size: 0.8125rem;
 }
 .recLink {
 	padding: 0;
 	border: 0;
 	background: none;
 	color: var(--accent);
-	font-size: inherit;
+	font-size: 0.875rem;
+	font-weight: 500;
+	white-space: nowrap;
+}
+.recLink:hover {
 	text-decoration: underline;
 	text-underline-offset: 2px;
 }
