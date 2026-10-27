@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { ErrorNotFound, LoadingPage, Unhealthy } from "src/components";
 import { useAuthState } from "src/context";
 import { useHealth } from "src/hooks";
@@ -14,10 +14,8 @@ const Certificates = lazy(() => import("src/pages/Certificates"));
 const Access = lazy(() => import("src/pages/Access"));
 const AuditLog = lazy(() => import("src/pages/AuditLog"));
 const Users = lazy(() => import("src/pages/Users"));
-const ProxyHosts = lazy(() => import("src/pages/Nginx/ProxyHosts"));
-const RedirectionHosts = lazy(() => import("src/pages/Nginx/RedirectionHosts"));
-const DeadHosts = lazy(() => import("src/pages/Nginx/DeadHosts"));
-const Streams = lazy(() => import("src/pages/Nginx/Streams"));
+// NPMOS: proxy, redirection, stream and 404 hosts are one table (src/npmos/pages/Hosts)
+const Hosts = lazy(() => import("src/npmos/pages/Hosts"));
 // NPMOS: our pages live in src/npmos/pages
 const Services = lazy(() => import("src/npmos/pages/Services"));
 const WafAgent = lazy(() => import("src/npmos/pages/WafAgent"));
@@ -59,11 +57,13 @@ function Router() {
 						<Route path="/audit-log" element={<AuditLog />} />
 						<Route path="/settings" element={<Settings />} />
 						<Route path="/users" element={<Users />} />
-						<Route path="/nginx/proxy" element={<ProxyHosts />} />
-						<Route path="/nginx/redirection" element={<RedirectionHosts />} />
-						<Route path="/nginx/404" element={<DeadHosts />} />
-						<Route path="/nginx/stream" element={<Streams />} />
+						{/* NPMOS: the upstream host pages open the hosts table filtered by type */}
+						<Route path="/nginx/proxy" element={<Navigate to="/hosts?type=proxy" replace />} />
+						<Route path="/nginx/redirection" element={<Navigate to="/hosts?type=redirect" replace />} />
+						<Route path="/nginx/404" element={<Navigate to="/hosts?type=dead" replace />} />
+						<Route path="/nginx/stream" element={<Navigate to="/hosts?type=stream" replace />} />
 						{/* NPMOS: our pages */}
+						<Route path="/hosts" element={<Hosts />} />
 						<Route path="/system/services" element={<Services />} />
 						<Route path="/waf/agent" element={<WafAgent />} />
 						<Route path="/waf/events" element={<WafEvents />} />

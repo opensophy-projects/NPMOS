@@ -533,6 +533,10 @@
 		background-color 150ms ease-out,
 		color 150ms ease-out;
 }
+.menuItem:disabled {
+	opacity: 0.5;
+	pointer-events: none;
+}
 .menuItem:hover,
 .menuItem:focus-visible {
 	background: var(--background-muted);

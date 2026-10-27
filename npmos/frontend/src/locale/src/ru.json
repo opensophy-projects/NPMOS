@@ -662,6 +662,261 @@
 	"npmos.common.warning": {
 		"defaultMessage": "Предупреждение"
 	},
+	"npmos.hosts.actions": {
+		"defaultMessage": "Действия"
+	},
+	"npmos.hosts.add": {
+		"defaultMessage": "Добавить"
+	},
+	"npmos.hosts.bulk.certificate": {
+		"defaultMessage": "Сертификат"
+	},
+	"npmos.hosts.bulk.delete-text": {
+		"defaultMessage": "Будут удалены хосты ({count}):"
+	},
+	"npmos.hosts.bulk.delete-title": {
+		"defaultMessage": "Удалить хосты"
+	},
+	"npmos.hosts.column.type": {
+		"defaultMessage": "Тип"
+	},
+	"npmos.hosts.copy-domain": {
+		"defaultMessage": "Скопировать домен"
+	},
+	"npmos.hosts.done.access": {
+		"defaultMessage": "Доступ сохранён"
+	},
+	"npmos.hosts.done.certificate": {
+		"defaultMessage": "Сертификат сохранён"
+	},
+	"npmos.hosts.done.deleted": {
+		"defaultMessage": "Хосты удалены"
+	},
+	"npmos.hosts.done.disabled": {
+		"defaultMessage": "Выключено"
+	},
+	"npmos.hosts.done.enabled": {
+		"defaultMessage": "Включено"
+	},
+	"npmos.hosts.done.mtls": {
+		"defaultMessage": "mTLS сохранён"
+	},
+	"npmos.hosts.done.waf": {
+		"defaultMessage": "Режим WAF сохранён"
+	},
+	"npmos.hosts.empty": {
+		"defaultMessage": "Хостов пока нет. Добавьте первый кнопкой «Добавить»."
+	},
+	"npmos.hosts.export.csv": {
+		"defaultMessage": "Экспорт CSV (показанные хосты)"
+	},
+	"npmos.hosts.export.csv-selected": {
+		"defaultMessage": "Экспорт CSV (выбрано: {count})"
+	},
+	"npmos.hosts.export.json": {
+		"defaultMessage": "Экспорт JSON (показанные хосты)"
+	},
+	"npmos.hosts.export.json-selected": {
+		"defaultMessage": "Экспорт JSON (выбрано: {count})"
+	},
+	"npmos.hosts.filters": {
+		"defaultMessage": "Фильтры"
+	},
+	"npmos.hosts.filters.reset": {
+		"defaultMessage": "Сбросить фильтры"
+	},
+	"npmos.hosts.import": {
+		"defaultMessage": "Импорт хостов (JSON)"
+	},
+	"npmos.hosts.import.confirm": {
+		"defaultMessage": "Импортировать"
+	},
+	"npmos.hosts.import.done": {
+		"defaultMessage": "Импортировано хостов: {count}"
+	},
+	"npmos.hosts.import.dropped": {
+		"defaultMessage": "Ссылок на сертификаты и списки доступа, которых здесь нет, будет убрано: {count}."
+	},
+	"npmos.hosts.import.empty": {
+		"defaultMessage": "В файле нет хостов, которые вы можете создать"
+	},
+	"npmos.hosts.import.invalid": {
+		"defaultMessage": "Это не файл экспорта хостов NPMOS"
+	},
+	"npmos.hosts.import.text": {
+		"defaultMessage": "Из файла будет создано хостов: {count}."
+	},
+	"npmos.hosts.mtls.ca": {
+		"defaultMessage": "CA: {name}"
+	},
+	"npmos.hosts.mtls.needs-tls": {
+		"defaultMessage": "Для mTLS нужен TLS-сертификат на хосте"
+	},
+	"npmos.hosts.mtls.no-ca": {
+		"defaultMessage": "CA пока нет: загрузите его в «Сертификатах»"
+	},
+	"npmos.hosts.mtls.off": {
+		"defaultMessage": "Выкл"
+	},
+	"npmos.hosts.mtls.optional": {
+		"defaultMessage": "Необязательно"
+	},
+	"npmos.hosts.mtls.optional.hint": {
+		"defaultMessage": "Сертификат проверяется, если клиент его прислал"
+	},
+	"npmos.hosts.mtls.required": {
+		"defaultMessage": "Обязательно"
+	},
+	"npmos.hosts.mtls.required.hint": {
+		"defaultMessage": "Пропускаются только клиенты с сертификатом этого CA"
+	},
+	"npmos.hosts.no-access": {
+		"defaultMessage": "У вас нет доступа к хостам"
+	},
+	"npmos.hosts.open-site": {
+		"defaultMessage": "Открыть сайт"
+	},
+	"npmos.hosts.reachability": {
+		"defaultMessage": "Проверить доступность"
+	},
+	"npmos.hosts.rec.expired": {
+		"defaultMessage": "Сертификат истёк: хостов {count}"
+	},
+	"npmos.hosts.rec.expired.hint": {
+		"defaultMessage": "Браузеры не откроют эти сайты. Продлите сертификат или выпустите новый."
+	},
+	"npmos.hosts.rec.expiring": {
+		"defaultMessage": "Сертификат истекает в ближайшие 14 дней: хостов {count}"
+	},
+	"npmos.hosts.rec.expiring.hint": {
+		"defaultMessage": "Let's Encrypt продлевается сам; свои сертификаты нужно заменить."
+	},
+	"npmos.hosts.rec.nginx-error": {
+		"defaultMessage": "nginx не смог применить хостов: {count}"
+	},
+	"npmos.hosts.rec.nginx-error.hint": {
+		"defaultMessage": "В конфигурации ошибка; причина — в подсказке статуса."
+	},
+	"npmos.hosts.rec.no-tls": {
+		"defaultMessage": "Хостов без TLS: {count}"
+	},
+	"npmos.hosts.rec.no-tls.hint": {
+		"defaultMessage": "Трафик и пароли идут открытым текстом. Выпустите сертификат в колонке TLS."
+	},
+	"npmos.hosts.rec.show": {
+		"defaultMessage": "Показать"
+	},
+	"npmos.hosts.rec.waf-detect": {
+		"defaultMessage": "WAF только обнаруживает атаки: хостов {count}"
+	},
+	"npmos.hosts.rec.waf-detect.hint": {
+		"defaultMessage": "Когда в событиях нет ложных срабатываний, переключите на «Блокировку»."
+	},
+	"npmos.hosts.rec.waf-global-off": {
+		"defaultMessage": "WAF выключен для всего NPMOS"
+	},
+	"npmos.hosts.rec.waf-global-off.hint": {
+		"defaultMessage": "Режимы на хостах не действуют, пока WAF не включён в «Безопасность → WAF → Агент»."
+	},
+	"npmos.hosts.rec.waf-off": {
+		"defaultMessage": "WAF выключен на публичных прокси-хостах: {count}"
+	},
+	"npmos.hosts.rec.waf-off.hint": {
+		"defaultMessage": "Включите «Обнаружение», чтобы видеть атаки, ничего не блокируя."
+	},
+	"npmos.hosts.recommendations": {
+		"defaultMessage": "Рекомендации"
+	},
+	"npmos.hosts.search": {
+		"defaultMessage": "Поиск: домен, адрес, порт, группа"
+	},
+	"npmos.hosts.select-all": {
+		"defaultMessage": "Выбрать все показанные хосты"
+	},
+	"npmos.hosts.selected": {
+		"defaultMessage": "Выбрано: {count}"
+	},
+	"npmos.hosts.selection.clear": {
+		"defaultMessage": "Снять выбор"
+	},
+	"npmos.hosts.status.error": {
+		"defaultMessage": "Ошибка"
+	},
+	"npmos.hosts.subtitle": {
+		"defaultMessage": "Прокси, редиректы, потоки и 404-хосты в одной таблице: куда идёт трафик и как он защищён."
+	},
+	"npmos.hosts.summary": {
+		"defaultMessage": "Показано {shown} из {total}"
+	},
+	"npmos.hosts.title": {
+		"defaultMessage": "Хосты"
+	},
+	"npmos.hosts.tls.days": {
+		"defaultMessage": "{days} дн."
+	},
+	"npmos.hosts.tls.expired": {
+		"defaultMessage": "истёк"
+	},
+	"npmos.hosts.tls.expiring": {
+		"defaultMessage": "Истекает (< 14 дней)"
+	},
+	"npmos.hosts.tls.issue": {
+		"defaultMessage": "Выпустить Let's Encrypt"
+	},
+	"npmos.hosts.tls.requesting": {
+		"defaultMessage": "Запрашиваем сертификат, это может занять минуту…"
+	},
+	"npmos.hosts.transfer": {
+		"defaultMessage": "Экспорт"
+	},
+	"npmos.hosts.type.dead": {
+		"defaultMessage": "404"
+	},
+	"npmos.hosts.type.dead.hint": {
+		"defaultMessage": "Отвечать 404 для домена"
+	},
+	"npmos.hosts.type.proxy": {
+		"defaultMessage": "Прокси"
+	},
+	"npmos.hosts.type.proxy.hint": {
+		"defaultMessage": "Сайт или сервис за NPMOS"
+	},
+	"npmos.hosts.type.redirect": {
+		"defaultMessage": "Редирект"
+	},
+	"npmos.hosts.type.redirect.hint": {
+		"defaultMessage": "Перенаправить посетителей домена на другой адрес"
+	},
+	"npmos.hosts.type.stream": {
+		"defaultMessage": "Поток"
+	},
+	"npmos.hosts.type.stream.hint": {
+		"defaultMessage": "Пробросить TCP/UDP-порт"
+	},
+	"npmos.hosts.view": {
+		"defaultMessage": "Вид"
+	},
+	"npmos.hosts.view.compact": {
+		"defaultMessage": "Компактные строки"
+	},
+	"npmos.hosts.waf.detect": {
+		"defaultMessage": "Обнаружение"
+	},
+	"npmos.hosts.waf.detect.hint": {
+		"defaultMessage": "Атаки записываются, ничего не блокируется"
+	},
+	"npmos.hosts.waf.off": {
+		"defaultMessage": "Выкл"
+	},
+	"npmos.hosts.waf.off.hint": {
+		"defaultMessage": "Запросы не проверяются"
+	},
+	"npmos.hosts.waf.prevent": {
+		"defaultMessage": "Блокировка"
+	},
+	"npmos.hosts.waf.prevent.hint": {
+		"defaultMessage": "Атаки блокируются (ответ 403)"
+	},
 	"npmos.nav.administration": {
 		"defaultMessage": "Администрирование"
 	},

@@ -22,20 +22,19 @@ export interface NavItem {
 	to?: string;
 	items?: NavItem[];
 	section?: Section;
+	/** visible when any of these sections is visible */
+	anyOf?: Section[];
 	permission?: Permission;
 }
 
 export const navigation: NavItem[] = [
 	{ id: "overview", label: "npmos.nav.overview", to: "/" },
+	// proxy, redirection, stream and 404 hosts in one table (src/npmos/pages/Hosts)
 	{
 		id: "hosts",
 		label: "npmos.nav.hosts",
-		items: [
-			{ id: "proxy", label: "proxy-hosts", to: "/nginx/proxy", section: PROXY_HOSTS },
-			{ id: "redirection", label: "redirection-hosts", to: "/nginx/redirection", section: REDIRECTION_HOSTS },
-			{ id: "streams", label: "streams", to: "/nginx/stream", section: STREAMS },
-			{ id: "dead", label: "dead-hosts", to: "/nginx/404", section: DEAD_HOSTS },
-		],
+		to: "/hosts",
+		anyOf: [PROXY_HOSTS, REDIRECTION_HOSTS, STREAMS, DEAD_HOSTS],
 	},
 	{
 		id: "security",
@@ -81,7 +80,12 @@ export const visibleItems = (items: NavItem[], me: Me): NavItem[] =>
 			const children = visibleItems(item.items, me);
 			return children.length ? [{ ...item, items: children }] : [];
 		}
-		if (item.section && !hasPermission(item.section, item.permission || VIEW, me?.permissions, me?.roles)) {
+		const allowed = (section: Section) =>
+			hasPermission(section, item.permission || VIEW, me?.permissions, me?.roles);
+		if (item.section && !allowed(item.section)) {
+			return [];
+		}
+		if (item.anyOf && !item.anyOf.some(allowed)) {
 			return [];
 		}
 		return [item];

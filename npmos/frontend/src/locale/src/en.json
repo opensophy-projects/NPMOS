@@ -662,6 +662,261 @@
 	"npmos.common.warning": {
 		"defaultMessage": "Warning"
 	},
+	"npmos.hosts.actions": {
+		"defaultMessage": "Actions"
+	},
+	"npmos.hosts.add": {
+		"defaultMessage": "Add"
+	},
+	"npmos.hosts.bulk.certificate": {
+		"defaultMessage": "Certificate"
+	},
+	"npmos.hosts.bulk.delete-text": {
+		"defaultMessage": "{count, plural, one {# host} other {# hosts}} will be deleted:"
+	},
+	"npmos.hosts.bulk.delete-title": {
+		"defaultMessage": "Delete hosts"
+	},
+	"npmos.hosts.column.type": {
+		"defaultMessage": "Type"
+	},
+	"npmos.hosts.copy-domain": {
+		"defaultMessage": "Copy domain"
+	},
+	"npmos.hosts.done.access": {
+		"defaultMessage": "Access saved"
+	},
+	"npmos.hosts.done.certificate": {
+		"defaultMessage": "Certificate saved"
+	},
+	"npmos.hosts.done.deleted": {
+		"defaultMessage": "Hosts deleted"
+	},
+	"npmos.hosts.done.disabled": {
+		"defaultMessage": "Disabled"
+	},
+	"npmos.hosts.done.enabled": {
+		"defaultMessage": "Enabled"
+	},
+	"npmos.hosts.done.mtls": {
+		"defaultMessage": "mTLS saved"
+	},
+	"npmos.hosts.done.waf": {
+		"defaultMessage": "WAF mode saved"
+	},
+	"npmos.hosts.empty": {
+		"defaultMessage": "No hosts yet. Add the first one with the «Add» button."
+	},
+	"npmos.hosts.export.csv": {
+		"defaultMessage": "Export CSV (shown hosts)"
+	},
+	"npmos.hosts.export.csv-selected": {
+		"defaultMessage": "Export CSV (selected: {count})"
+	},
+	"npmos.hosts.export.json": {
+		"defaultMessage": "Export JSON (shown hosts)"
+	},
+	"npmos.hosts.export.json-selected": {
+		"defaultMessage": "Export JSON (selected: {count})"
+	},
+	"npmos.hosts.filters": {
+		"defaultMessage": "Filters"
+	},
+	"npmos.hosts.filters.reset": {
+		"defaultMessage": "Reset filters"
+	},
+	"npmos.hosts.import": {
+		"defaultMessage": "Import hosts (JSON)"
+	},
+	"npmos.hosts.import.confirm": {
+		"defaultMessage": "Import"
+	},
+	"npmos.hosts.import.done": {
+		"defaultMessage": "Hosts imported: {count}"
+	},
+	"npmos.hosts.import.dropped": {
+		"defaultMessage": "{count, plural, one {# reference} other {# references}} to certificates or access lists that do not exist here will be removed."
+	},
+	"npmos.hosts.import.empty": {
+		"defaultMessage": "The file has no hosts you may create"
+	},
+	"npmos.hosts.import.invalid": {
+		"defaultMessage": "This is not an NPMOS hosts export"
+	},
+	"npmos.hosts.import.text": {
+		"defaultMessage": "{count, plural, one {# host} other {# hosts}} will be created from the file."
+	},
+	"npmos.hosts.mtls.ca": {
+		"defaultMessage": "CA: {name}"
+	},
+	"npmos.hosts.mtls.needs-tls": {
+		"defaultMessage": "mTLS needs a TLS certificate on the host"
+	},
+	"npmos.hosts.mtls.no-ca": {
+		"defaultMessage": "No CA yet: upload one in Certificates"
+	},
+	"npmos.hosts.mtls.off": {
+		"defaultMessage": "Off"
+	},
+	"npmos.hosts.mtls.optional": {
+		"defaultMessage": "Optional"
+	},
+	"npmos.hosts.mtls.optional.hint": {
+		"defaultMessage": "The certificate is checked if the client sends one"
+	},
+	"npmos.hosts.mtls.required": {
+		"defaultMessage": "Required"
+	},
+	"npmos.hosts.mtls.required.hint": {
+		"defaultMessage": "Only clients with a certificate of the CA get through"
+	},
+	"npmos.hosts.no-access": {
+		"defaultMessage": "You have no access to hosts"
+	},
+	"npmos.hosts.open-site": {
+		"defaultMessage": "Open site"
+	},
+	"npmos.hosts.reachability": {
+		"defaultMessage": "Check reachability"
+	},
+	"npmos.hosts.rec.expired": {
+		"defaultMessage": "Certificate expired on {count, plural, one {# host} other {# hosts}}"
+	},
+	"npmos.hosts.rec.expired.hint": {
+		"defaultMessage": "Browsers refuse these sites. Renew the certificate or issue a new one."
+	},
+	"npmos.hosts.rec.expiring": {
+		"defaultMessage": "Certificate expires within 14 days on {count, plural, one {# host} other {# hosts}}"
+	},
+	"npmos.hosts.rec.expiring.hint": {
+		"defaultMessage": "Let's Encrypt renews by itself; custom certificates have to be replaced."
+	},
+	"npmos.hosts.rec.nginx-error": {
+		"defaultMessage": "nginx could not apply {count, plural, one {# host} other {# hosts}}"
+	},
+	"npmos.hosts.rec.nginx-error.hint": {
+		"defaultMessage": "The configuration has an error; the reason is in the status tooltip."
+	},
+	"npmos.hosts.rec.no-tls": {
+		"defaultMessage": "{count, plural, one {# host is} other {# hosts are}} served without TLS"
+	},
+	"npmos.hosts.rec.no-tls.hint": {
+		"defaultMessage": "Traffic and passwords go in clear text. Issue a certificate in the TLS column."
+	},
+	"npmos.hosts.rec.show": {
+		"defaultMessage": "Show"
+	},
+	"npmos.hosts.rec.waf-detect": {
+		"defaultMessage": "WAF only detects on {count, plural, one {# host} other {# hosts}}"
+	},
+	"npmos.hosts.rec.waf-detect.hint": {
+		"defaultMessage": "When the events show no false positives, switch to Prevent."
+	},
+	"npmos.hosts.rec.waf-global-off": {
+		"defaultMessage": "WAF is switched off for the whole NPMOS"
+	},
+	"npmos.hosts.rec.waf-global-off.hint": {
+		"defaultMessage": "Modes set on {count, plural, one {# host} other {# hosts}} do not work until WAF is switched on in Security → WAF → Agent."
+	},
+	"npmos.hosts.rec.waf-off": {
+		"defaultMessage": "WAF is off on {count, plural, one {# public proxy host} other {# public proxy hosts}}"
+	},
+	"npmos.hosts.rec.waf-off.hint": {
+		"defaultMessage": "Turn on Detect to see attacks without blocking anything."
+	},
+	"npmos.hosts.recommendations": {
+		"defaultMessage": "Recommendations"
+	},
+	"npmos.hosts.search": {
+		"defaultMessage": "Search hosts: domain, address, port, group"
+	},
+	"npmos.hosts.select-all": {
+		"defaultMessage": "Select all shown hosts"
+	},
+	"npmos.hosts.selected": {
+		"defaultMessage": "Selected: {count}"
+	},
+	"npmos.hosts.selection.clear": {
+		"defaultMessage": "Clear selection"
+	},
+	"npmos.hosts.status.error": {
+		"defaultMessage": "Error"
+	},
+	"npmos.hosts.subtitle": {
+		"defaultMessage": "Proxy, redirection, stream and 404 hosts in one table: where traffic goes and how it is protected."
+	},
+	"npmos.hosts.summary": {
+		"defaultMessage": "Showing {shown} of {total}"
+	},
+	"npmos.hosts.title": {
+		"defaultMessage": "Hosts"
+	},
+	"npmos.hosts.tls.days": {
+		"defaultMessage": "{days} d"
+	},
+	"npmos.hosts.tls.expired": {
+		"defaultMessage": "expired"
+	},
+	"npmos.hosts.tls.expiring": {
+		"defaultMessage": "Expiring (< 14 days)"
+	},
+	"npmos.hosts.tls.issue": {
+		"defaultMessage": "Issue Let's Encrypt"
+	},
+	"npmos.hosts.tls.requesting": {
+		"defaultMessage": "Requesting the certificate, this can take a minute…"
+	},
+	"npmos.hosts.transfer": {
+		"defaultMessage": "Export"
+	},
+	"npmos.hosts.type.dead": {
+		"defaultMessage": "404"
+	},
+	"npmos.hosts.type.dead.hint": {
+		"defaultMessage": "Answer 404 for a domain"
+	},
+	"npmos.hosts.type.proxy": {
+		"defaultMessage": "Proxy"
+	},
+	"npmos.hosts.type.proxy.hint": {
+		"defaultMessage": "A site or service behind NPMOS"
+	},
+	"npmos.hosts.type.redirect": {
+		"defaultMessage": "Redirect"
+	},
+	"npmos.hosts.type.redirect.hint": {
+		"defaultMessage": "Send visitors of a domain to another address"
+	},
+	"npmos.hosts.type.stream": {
+		"defaultMessage": "Stream"
+	},
+	"npmos.hosts.type.stream.hint": {
+		"defaultMessage": "Forward a TCP/UDP port"
+	},
+	"npmos.hosts.view": {
+		"defaultMessage": "View"
+	},
+	"npmos.hosts.view.compact": {
+		"defaultMessage": "Compact rows"
+	},
+	"npmos.hosts.waf.detect": {
+		"defaultMessage": "Detect"
+	},
+	"npmos.hosts.waf.detect.hint": {
+		"defaultMessage": "Attacks are logged, nothing is blocked"
+	},
+	"npmos.hosts.waf.off": {
+		"defaultMessage": "Off"
+	},
+	"npmos.hosts.waf.off.hint": {
+		"defaultMessage": "Requests are not inspected"
+	},
+	"npmos.hosts.waf.prevent": {
+		"defaultMessage": "Prevent"
+	},
+	"npmos.hosts.waf.prevent.hint": {
+		"defaultMessage": "Attacks are blocked with 403"
+	},
 	"npmos.nav.administration": {
 		"defaultMessage": "Administration"
 	},
