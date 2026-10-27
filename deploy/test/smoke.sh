@@ -133,22 +133,6 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
     sleep 2
   done
 
-  step "WAF -> Agent: settings from the GUI (CrowdSec reputation, fail-open) are applied at the agent's restart"
-  $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf/agent" \
-    -d '{"crowdsec": {"enabled": true, "mode": "prevent"}, "fail_open": {"enabled": true, "timeout_ms": 100}}' \
-    | grep -q '"restarting": *true' || fail "saving agent settings did not restart the agent"
-  for i in $(seq 1 60); do
-    agent=$($CURL "$ADMIN/api/npmos/waf/agent")
-    echo "$agent" | grep -q '"restartRequired": *false' && break
-    [ "$i" = 60 ] && fail "the agent did not apply its settings: $agent"
-    sleep 2
-  done
-  for i in $(seq 1 60); do
-    $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true' && break
-    [ "$i" = 60 ] && fail "the agent did not come back after the restart: $($CURL "$ADMIN/api/npmos/waf")"
-    sleep 2
-  done
-
   status() { curl -s -o /dev/null -w '%{http_code}' --max-time 10 -H 'Host: test.local' "$HTTP$1"; }
   SQLI="/?id=1%27%20OR%20%271%27=%271"
   XSS="/?q=%3Cscript%3Ealert(document.cookie)%3C/script%3E"
@@ -173,6 +157,44 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
 
   step "WAF -> Events: the blocked attack is an important event (Prevent)"
   event Prevent
+
+  # Agent settings from the GUI: saving restarts the agent, its entrypoint applies them.
+  # $1: JSON body, $2: what is checked
+  agent_settings() {
+    step "WAF -> Agent: $2"
+    $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf/agent" -d "$1" \
+      | grep -q '"restarting": *true' || fail "saving agent settings did not restart the agent"
+    for i in $(seq 1 60); do
+      agent=$($CURL "$ADMIN/api/npmos/waf/agent")
+      echo "$agent" | grep -q '"restartRequired": *false' && break
+      [ "$i" = 60 ] && fail "the agent did not apply its settings: $agent"
+      sleep 2
+    done
+    for i in $(seq 1 60); do
+      $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true' && break
+      [ "$i" = 60 ] && fail "the agent did not come back after the restart: $($CURL "$ADMIN/api/npmos/waf")"
+      sleep 2
+    done
+    for i in $(seq 1 60); do
+      [ "$(status "$SQLI")" = 403 ] && break
+      [ "$i" = 60 ] && fail "SQLi is not blocked after the agent's restart"
+      sleep 2
+    done
+    since=$(date -u +%Y-%m-%dT%H:%M:%S)
+    status "$XSS" > /dev/null
+    for i in $(seq 1 30); do
+      # an event newer than the restart (times are ISO, compared as text)
+      $CURL "$ADMIN/api/npmos/waf/events?view=important&query=test.local&limit=1" \
+        | grep -o '"time": *"[^"]*"' | cut -d'"' -f4 | awk -v s="$since" '$0 >= s {f=1} END {exit !f}' && return 0
+      sleep 2
+    done
+    fail "attacks after the agent's restart are not in WAF -> Events: $($CURL "$ADMIN/api/npmos/waf/events?view=all&limit=3")"
+  }
+
+  agent_settings '{"crowdsec": {"enabled": false, "mode": "prevent"}, "fail_open": {"enabled": true, "timeout_ms": 100}}' \
+    "fail-open timeout from the GUI is applied at the agent's restart, attacks are still blocked and logged"
+  agent_settings '{"crowdsec": {"enabled": true, "mode": "prevent"}, "fail_open": {"enabled": true, "timeout_ms": 100}}' \
+    "IP reputation from the local CrowdSec on, attacks are still blocked and logged"
 
   step "WAF -> Policy (expert): an exception for the tester's IP lets the attack through"
   $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf/policy/custom" -d "{

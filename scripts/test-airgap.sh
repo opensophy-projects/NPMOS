@@ -19,6 +19,12 @@ cleanup() {
   if [ $status -ne 0 ]; then
     echo "--- logs (failure) ---"
     "${compose[@]}" logs --no-color --tail 80 || true
+    if [ -n "$("${compose[@]}" ps -q appsec-agent 2> /dev/null)" ]; then
+      echo "--- open-appsec agent: log files, settings, policy status (failure) ---"
+      "${compose[@]}" exec -T appsec-agent sh -c 'ls -la /var/log/nano_agent; cat /etc/cp/conf/settings.json;
+        cat /ext/appsec/npmos-agent.env; tail -n 5 /var/log/nano_agent/cp-nano-http-transaction-handler.log*;
+        tail -n 20 /var/log/nano_agent/*.err 2> /dev/null' || true
+    fi
   fi
   [ "${KEEP:-}" = 1 ] || "${compose[@]}" down -v --remove-orphans > /dev/null 2>&1 || true
   exit $status
