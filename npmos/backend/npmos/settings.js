@@ -22,6 +22,20 @@ const DEFINITIONS = {
 		default: () => envBool("NGINX_LOAD_OPENAPPSEC_ATTACHMENT_MODULE"),
 		validate: (v) => typeof v === "boolean",
 	},
+	// open-appsec agent (WAF -> Agent), applied by the agent's entrypoint, see waf/agent-settings.js
+	"waf.agent": {
+		default: () => ({
+			crowdsec: { enabled: false, mode: "prevent" },
+			failOpen: { enabled: true, timeoutMs: 50 },
+		}),
+		validate: (v) =>
+			typeof v?.crowdsec?.enabled === "boolean" &&
+			["prevent", "detect"].includes(v.crowdsec.mode) &&
+			typeof v?.failOpen?.enabled === "boolean" &&
+			Number.isInteger(v.failOpen.timeoutMs) &&
+			v.failOpen.timeoutMs >= 10 &&
+			v.failOpen.timeoutMs <= 10000,
+	},
 };
 
 const table = () => db()("npmos_setting");

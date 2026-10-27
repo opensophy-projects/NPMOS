@@ -6,7 +6,8 @@
 #      postgres/{postgres,npmos_db,appsec_db}_password
 #      npmos/{db_password,cookie_secret,bouncer_key,control_token}
 #      appsec/db_password
-#      crowdsec/bouncer_key_npmos   (official image registers /run/secrets/bouncer_key_<name>)
+#      appsec-agent/crowdsec_bouncer_key
+#      crowdsec/bouncer_key_{npmos,appsec}   (official image registers /run/secrets/bouncer_key_<name>)
 #      control/control_token        (npmos-control; the backend gets a copy)
 # 2. Pre-created directories that other services mount by subpath.
 # 3. CrowdSec volumes seeded from the offline hub snapshot baked into the npmos image,
@@ -18,23 +19,26 @@ gen() {
   [ -s "$1" ] || openssl rand -hex 32 > "$1"
 }
 
-mkdir -p /secrets/postgres /secrets/npmos /secrets/appsec /secrets/crowdsec /secrets/control
+mkdir -p /secrets/postgres /secrets/npmos /secrets/appsec /secrets/appsec-agent /secrets/crowdsec /secrets/control
 
 gen /secrets/postgres/postgres_password
 gen /secrets/postgres/npmos_db_password
 gen /secrets/postgres/appsec_db_password
 gen /secrets/npmos/cookie_secret
 gen /secrets/crowdsec/bouncer_key_npmos
+# open-appsec agent: IP reputation from CrowdSec, switched on in WAF -> Agent
+gen /secrets/crowdsec/bouncer_key_appsec
 gen /secrets/control/control_token
 
 cp /secrets/postgres/npmos_db_password /secrets/npmos/db_password
 cp /secrets/postgres/appsec_db_password /secrets/appsec/db_password
 cp /secrets/crowdsec/bouncer_key_npmos /secrets/npmos/bouncer_key
+cp /secrets/crowdsec/bouncer_key_appsec /secrets/appsec-agent/crowdsec_bouncer_key
 cp /secrets/control/control_token /secrets/npmos/control_token
 
 # Consumers run as different users (postgres uid 70, tuning-svc appuser, crowdsec and npmos root).
 # Each container mounts only its own subdirectory, so world-readable files are not shared further.
-chmod 755 /secrets/postgres /secrets/npmos /secrets/appsec /secrets/crowdsec /secrets/control
+chmod 755 /secrets/postgres /secrets/npmos /secrets/appsec /secrets/appsec-agent /secrets/crowdsec /secrets/control
 chmod 444 /secrets/*/*
 
 # CrowdSec mounts npmos-data/nginx/logs by subpath; it must exist before npmos first starts

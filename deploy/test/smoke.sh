@@ -133,6 +133,22 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
     sleep 2
   done
 
+  step "WAF -> Agent: settings from the GUI (CrowdSec reputation, fail-open) are applied at the agent's restart"
+  $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf/agent" \
+    -d '{"crowdsec": {"enabled": true, "mode": "prevent"}, "fail_open": {"enabled": true, "timeout_ms": 100}}' \
+    | grep -q '"restarting": *true' || fail "saving agent settings did not restart the agent"
+  for i in $(seq 1 60); do
+    agent=$($CURL "$ADMIN/api/npmos/waf/agent")
+    echo "$agent" | grep -q '"restartRequired": *false' && break
+    [ "$i" = 60 ] && fail "the agent did not apply its settings: $agent"
+    sleep 2
+  done
+  for i in $(seq 1 60); do
+    $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true' && break
+    [ "$i" = 60 ] && fail "the agent did not come back after the restart: $($CURL "$ADMIN/api/npmos/waf")"
+    sleep 2
+  done
+
   status() { curl -s -o /dev/null -w '%{http_code}' --max-time 10 -H 'Host: test.local' "$HTTP$1"; }
   SQLI="/?id=1%27%20OR%20%271%27=%271"
   XSS="/?q=%3Cscript%3Ealert(document.cookie)%3C/script%3E"

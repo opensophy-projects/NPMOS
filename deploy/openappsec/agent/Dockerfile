@@ -32,6 +32,9 @@ COPY --from=build /out/self_managed_openappsec_manifest.json /tmp/self_managed_o
 COPY --from=build /out/nano-service-installers/ /nano-service-installers/
 COPY --from=build /out/entry.sh /entry.sh
 RUN chmod +x /entry.sh /nano-service-installers/* && ln -s entry.sh cp-nano-agent
+# settings from the NPMOS GUI (CrowdSec, fail-open), then the upstream entrypoint
+COPY npmos-entry.sh /npmos-entry.sh
+RUN chmod +x /npmos-entry.sh
 LABEL org.opencontainers.image.source="https://github.com/opensophy-projects/npmos" \
       org.opencontainers.image.description="open-appsec agent built from source for NPMOS"
-CMD ["/cp-nano-agent"]
+CMD ["/npmos-entry.sh"]

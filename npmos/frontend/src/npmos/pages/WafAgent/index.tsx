@@ -3,13 +3,15 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import { Button, HasPermission, LoadingPage } from "src/components";
-import { intl, T } from "src/locale";
+import { useLocaleState } from "src/context";
+import { formatDateTime, intl, T } from "src/locale";
 import { ADMIN, MANAGE, VIEW } from "src/modules/Permissions";
 import { showSuccess } from "src/notifications";
 import { type AgentStatus, applyWafPolicy, setWafEnabled, type WafPolicyState, type WafStatus } from "../../api";
 import { useWafStatus } from "../../hooks";
 import { showConfirmModal } from "../../modals/ConfirmModal";
 import { showWafPolicyModal } from "../../modals/WafPolicyModal";
+import { AgentSettingsCard } from "./AgentSettings";
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
 	return (
@@ -55,10 +57,10 @@ function AgentCard({ agent }: { agent?: AgentStatus }) {
 	);
 }
 
-const when = (iso?: string | null) => (iso ? new Date(iso).toLocaleString() : "—");
-
 function PolicyCard({ policy }: { policy?: WafPolicyState }) {
 	const queryClient = useQueryClient();
+	const { locale } = useLocaleState();
+	const when = (iso?: string | null) => (iso ? formatDateTime(iso, locale) : "—");
 	const [applying, setApplying] = useState(false);
 	const apply = async () => {
 		setApplying(true);
@@ -208,6 +210,7 @@ function WafAgentPage() {
 		<>
 			<WafCard status={data} />
 			<AgentCard agent={data.agent} />
+			<AgentSettingsCard />
 			<PolicyCard policy={data.policy} />
 		</>
 	);

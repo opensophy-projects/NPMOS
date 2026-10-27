@@ -4,6 +4,7 @@ import jwtdecode from "../lib/express/jwt-decode.js";
 import validator from "../lib/validator/index.js";
 import { debug, express as logger } from "../logger.js";
 import internalServices from "./services.js";
+import internalWafAgent from "./waf/agent-settings.js";
 import internalWafEvents from "./waf/events.js";
 import internalWafHosts from "./waf/hosts.js";
 import internalWaf from "./waf/index.js";
@@ -187,6 +188,57 @@ router
 	.options((_, res) => res.sendStatus(204))
 	.all(jwtdecode())
 	.post(handle((_, res) => internalWaf.applyPolicy(res.locals.access)));
+
+/**
+ * GET /api/npmos/waf/agent — agent settings, restartRequired, advanced model
+ * PUT /api/npmos/waf/agent — {crowdsec: {enabled, mode}, fail_open: {enabled, timeout_ms}, apply?: boolean}
+ */
+router
+	.route("/waf/agent")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalWafAgent.get(res.locals.access)))
+	.put(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["crowdsec", "fail_open"],
+					properties: {
+						crowdsec: {
+							type: "object",
+							additionalProperties: false,
+							required: ["enabled", "mode"],
+							properties: { enabled: { type: "boolean" }, mode: { enum: ["prevent", "detect"] } },
+						},
+						fail_open: {
+							type: "object",
+							additionalProperties: false,
+							required: ["enabled", "timeout_ms"],
+							properties: {
+								enabled: { type: "boolean" },
+								timeout_ms: { type: "integer", minimum: 10, maximum: 10000 },
+							},
+						},
+						apply: { type: "boolean" },
+					},
+				},
+				req.body,
+			);
+			return internalWafAgent.set(res.locals.access, data, data.apply !== false);
+		}),
+	);
+
+/**
+ * PUT /api/npmos/waf/agent/model?apply=false — body: open-appsec-advanced-model.tgz (application/octet-stream)
+ * nginx lets up to 1 GB through for this path only (npmplus.conf)
+ */
+router
+	.route("/waf/agent/model")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.put(handle((req, res) => internalWafAgent.uploadModel(res.locals.access, req, req.query.apply !== "false")));
 
 /**
  * GET /api/npmos/waf/events?view=important|all&host=<domain>&query=<text>&limit=200 — newest first

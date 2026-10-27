@@ -85,6 +85,7 @@ services:
       - appsec-shm:/dev/shm/check-point
       - appsec-localconfig:/ext/appsec
       - appsec-logs:/ext/appsec-logs:ro
+      - appsec-model:/ext/appsec-model
     networks:
       - edge
       - internal
@@ -104,7 +105,8 @@ services:
     # (checked with the official image). NPMOS_LOCAL_ONLY (our patch, deploy/openappsec/agent/patches)
     # skips the registration; the Fog address points to a closed local port so that nothing else in
     # the agent can reach the cloud either.
-    command: ["/cp-nano-agent", "--hybrid-mode", "--fog", "http://127.0.0.1:1"]
+    # npmos-entry.sh applies the agent settings of WAF -> Agent (CrowdSec, fail-open), then runs /cp-nano-agent
+    command: ["/npmos-entry.sh", "--hybrid-mode", "--fog", "http://127.0.0.1:1"]
     environment:
       # No AGENT_TOKEN: managed locally by NPMOS (no my.openappsec.io)
       NPMOS_LOCAL_ONLY: "true"
@@ -120,6 +122,14 @@ services:
       - appsec-data:/etc/cp/data
       - appsec-logs:/var/log/nano_agent
       - appsec-localconfig:/ext/appsec
+      # advanced ML model uploaded in WAF -> Agent, unpacked by the entrypoint at start
+      - appsec-model:/advanced-model:ro
+      - type: volume
+        source: secrets
+        target: /run/secrets/npmos
+        read_only: true
+        volume:
+          subpath: appsec-agent
 
   appsec-smartsync:
     <<: *managed
@@ -303,6 +313,7 @@ volumes:
   appsec-data: {}
   appsec-logs: {}
   appsec-localconfig: {}
+  appsec-model: {}
   appsec-storage: {}
   crowdsec-conf: {}
   crowdsec-data: {}

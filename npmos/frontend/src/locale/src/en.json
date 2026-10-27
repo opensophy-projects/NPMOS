@@ -692,6 +692,45 @@
 	"npmos.waf.agent-mode-local": {
 		"defaultMessage": "local, without cloud"
 	},
+	"npmos.waf.agent-settings": {
+		"defaultMessage": "Agent settings"
+	},
+	"npmos.waf.agent-settings.crowdsec": {
+		"defaultMessage": "IP reputation from CrowdSec"
+	},
+	"npmos.waf.agent-settings.crowdsec.detect": {
+		"defaultMessage": "Detect: only log banned IPs"
+	},
+	"npmos.waf.agent-settings.crowdsec.hint": {
+		"defaultMessage": "The agent checks client IPs against the decisions (bans) of the local CrowdSec. No cloud: only decisions of this stack."
+	},
+	"npmos.waf.agent-settings.crowdsec.prevent": {
+		"defaultMessage": "Prevent: block banned IPs"
+	},
+	"npmos.waf.agent-settings.fail-open": {
+		"defaultMessage": "Fail-open"
+	},
+	"npmos.waf.agent-settings.fail-open-timeout": {
+		"defaultMessage": "Agent answer timeout"
+	},
+	"npmos.waf.agent-settings.fail-open.off": {
+		"defaultMessage": "Fail-close: if the agent does not answer in time or is down, requests to protected hosts are rejected (security first)."
+	},
+	"npmos.waf.agent-settings.fail-open.on": {
+		"defaultMessage": "If the agent does not answer in time or is down, nginx lets the request through without inspection (availability first)."
+	},
+	"npmos.waf.agent-settings.pending": {
+		"defaultMessage": "Saved settings are not applied yet: the agent has not restarted since."
+	},
+	"npmos.waf.agent-settings.restart-warning": {
+		"defaultMessage": "The agent restarts to apply the settings (a few seconds). With fail-open on, traffic keeps flowing without inspection meanwhile; with fail-close, requests to protected hosts are rejected until the agent is back."
+	},
+	"npmos.waf.agent-settings.save": {
+		"defaultMessage": "Save and restart the agent"
+	},
+	"npmos.waf.agent-settings.saved": {
+		"defaultMessage": "Settings saved, the agent is restarting"
+	},
 	"npmos.waf.agent-unreachable": {
 		"defaultMessage": "The agent is not reachable. Check the appsec-agent service in System → Services."
 	},
@@ -820,6 +859,24 @@
 	},
 	"npmos.waf.mode.prevent-learn.hint": {
 		"defaultMessage": "Attacks are blocked with 403 and logged. The model keeps learning."
+	},
+	"npmos.waf.model": {
+		"defaultMessage": "Advanced ML model"
+	},
+	"npmos.waf.model.basic": {
+		"defaultMessage": "Basic model"
+	},
+	"npmos.waf.model.description": {
+		"defaultMessage": "open-appsec ships with a basic model. The advanced model (open-appsec-advanced-model.tgz, downloaded separately from open-appsec) detects more attacks with fewer false positives. It is unpacked when the agent starts; the upload restarts the agent."
+	},
+	"npmos.waf.model.present": {
+		"defaultMessage": "Uploaded: {size}, {date}"
+	},
+	"npmos.waf.model.upload": {
+		"defaultMessage": "Upload model (.tgz)"
+	},
+	"npmos.waf.model.uploaded": {
+		"defaultMessage": "Model uploaded, the agent is restarting"
 	},
 	"npmos.waf.off": {
 		"defaultMessage": "Disabled"

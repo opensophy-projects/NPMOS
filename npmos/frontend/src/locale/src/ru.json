@@ -617,6 +617,45 @@
 	"npmos.waf.agent-mode-local": {
 		"defaultMessage": "локально, без облака"
 	},
+	"npmos.waf.agent-settings": {
+		"defaultMessage": "Настройки агента"
+	},
+	"npmos.waf.agent-settings.crowdsec": {
+		"defaultMessage": "Репутация IP из CrowdSec"
+	},
+	"npmos.waf.agent-settings.crowdsec.detect": {
+		"defaultMessage": "Detect: только записывать в журнал"
+	},
+	"npmos.waf.agent-settings.crowdsec.hint": {
+		"defaultMessage": "Агент проверяет IP клиентов по решениям (банам) локального CrowdSec. Без облака: только решения этого стека."
+	},
+	"npmos.waf.agent-settings.crowdsec.prevent": {
+		"defaultMessage": "Prevent: блокировать забаненные IP"
+	},
+	"npmos.waf.agent-settings.fail-open": {
+		"defaultMessage": "Fail-open"
+	},
+	"npmos.waf.agent-settings.fail-open-timeout": {
+		"defaultMessage": "Время ответа агента"
+	},
+	"npmos.waf.agent-settings.fail-open.off": {
+		"defaultMessage": "Fail-close: если агент не ответил вовремя или недоступен, запросы к защищённым хостам отклоняются (важнее безопасность)."
+	},
+	"npmos.waf.agent-settings.fail-open.on": {
+		"defaultMessage": "Если агент не ответил вовремя или недоступен, nginx пропускает запрос без проверки (важнее доступность)."
+	},
+	"npmos.waf.agent-settings.pending": {
+		"defaultMessage": "Сохранённые настройки ещё не применены: агент с тех пор не перезапускался."
+	},
+	"npmos.waf.agent-settings.restart-warning": {
+		"defaultMessage": "Чтобы применить настройки, агент перезапустится (несколько секунд). При включённом fail-open трафик в это время идёт без проверки; при fail-close запросы к защищённым хостам отклоняются, пока агент не поднимется."
+	},
+	"npmos.waf.agent-settings.save": {
+		"defaultMessage": "Сохранить и перезапустить агент"
+	},
+	"npmos.waf.agent-settings.saved": {
+		"defaultMessage": "Настройки сохранены, агент перезапускается"
+	},
 	"npmos.waf.agent-unreachable": {
 		"defaultMessage": "Агент недоступен. Проверьте сервис appsec-agent в разделе «Сервисы»."
 	},
@@ -745,6 +784,24 @@
 	},
 	"npmos.waf.mode.prevent-learn.hint": {
 		"defaultMessage": "Атаки блокируются (ответ 403) и записываются в журнал. Модель продолжает обучаться."
+	},
+	"npmos.waf.model": {
+		"defaultMessage": "Расширенная ML-модель"
+	},
+	"npmos.waf.model.basic": {
+		"defaultMessage": "Базовая модель"
+	},
+	"npmos.waf.model.description": {
+		"defaultMessage": "В open-appsec встроена базовая модель. Расширенная (open-appsec-advanced-model.tgz, скачивается отдельно у open-appsec) находит больше атак при меньшем числе ложных срабатываний. Распаковывается при старте агента; после загрузки агент перезапускается."
+	},
+	"npmos.waf.model.present": {
+		"defaultMessage": "Загружена: {size}, {date}"
+	},
+	"npmos.waf.model.upload": {
+		"defaultMessage": "Загрузить модель (.tgz)"
+	},
+	"npmos.waf.model.uploaded": {
+		"defaultMessage": "Модель загружена, агент перезапускается"
 	},
 	"npmos.waf.off": {
 		"defaultMessage": "Выключен"

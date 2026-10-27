@@ -55,6 +55,18 @@ done
 if [[ " ${services[*]} " == *" crowdsec "* ]]; then
   echo "==> CrowdSec runs locally with the NPMOS bouncer pre-registered"
   "${compose[@]}" exec -T crowdsec cscli bouncers list -o raw | grep -q '^npmos,' || { echo "FAIL: bouncer npmos is not registered"; exit 1; }
+  "${compose[@]}" exec -T crowdsec cscli bouncers list -o raw | grep -q '^appsec,' || { echo "FAIL: bouncer appsec is not registered"; exit 1; }
+  if [[ " ${services[*]} " == *" appsec-agent "* ]]; then
+    # smoke switched on "IP reputation from CrowdSec" in WAF -> Agent: the agent polls the local LAPI
+    echo "==> the open-appsec agent pulls CrowdSec decisions from the local LAPI"
+    for i in $(seq 1 30); do
+      line=$("${compose[@]}" exec -T crowdsec cscli bouncers list -o raw | grep '^appsec,' || true)
+      # name,ip,valid,last_pull,...: last_pull is set after the first pull
+      [ -n "$(echo "$line" | cut -d, -f4)" ] && break
+      [ "$i" = 30 ] && { echo "FAIL: the agent never pulled CrowdSec decisions: $line"; exit 1; }
+      sleep 2
+    done
+  fi
 fi
 
 echo "==> no phone-home attempts in logs"

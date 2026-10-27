@@ -140,3 +140,40 @@ export interface WafEvents {
 
 export const getWafEvents = (params: { view: WafEventsView; host?: string; query?: string; limit?: number }) =>
 	api.get({ url: "/npmos/waf/events", params }) as Promise<WafEvents>;
+
+export interface WafAgentModel {
+	present: boolean;
+	size?: number;
+	modifiedOn?: string;
+}
+
+export interface WafAgentSettings {
+	crowdsec: { enabled: boolean; mode: "prevent" | "detect" };
+	failOpen: { enabled: boolean; timeoutMs: number };
+}
+
+export interface WafAgentState extends WafAgentSettings {
+	/** null: the agent has not started with NPMOS settings yet */
+	restartRequired: boolean | null;
+	model: WafAgentModel;
+	restarting?: boolean;
+}
+
+export const getWafAgent = (): Promise<WafAgentState> => api.get({ url: "/npmos/waf/agent" });
+
+export const setWafAgent = (data: WafAgentSettings, apply = true): Promise<WafAgentState> =>
+	api.put({ url: "/npmos/waf/agent", data: { ...data, apply } });
+
+/** the file goes as the request body (up to 1 GB), not through the JSON client */
+export const uploadWafModel = async (file: File): Promise<WafAgentModel & { restarting: boolean }> => {
+	const response = await fetch("/api/npmos/waf/agent/model", {
+		method: "PUT",
+		headers: { "Content-Type": "application/octet-stream" },
+		body: file,
+	});
+	const payload = await response.json().catch(() => ({ error: { message: response.statusText } }));
+	if (!response.ok) {
+		throw new Error(payload.error?.message || response.statusText);
+	}
+	return payload;
+};
