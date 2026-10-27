@@ -3,7 +3,7 @@
 # Runtime layout matches the upstream image (build_system/docker/Dockerfile): /entry.sh and
 # /nano-service-installers/*.sh, so the same compose settings and entrypoint work.
 # Patches in patches/ are applied to the sources before the build.
-ARG ALPINE_VERSION=3.22
+ARG ALPINE_VERSION=3.24
 ARG OPENAPPSEC_REF=634f840534e07952b1a449079a0d1b2e885c6aec
 
 FROM docker.io/library/alpine:${ALPINE_VERSION} AS build
