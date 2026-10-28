@@ -146,9 +146,12 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
   [ "$(status "$XSS")" = 403 ] || fail "XSS was not blocked"
   [ "$(status "/?q=hello")" = 200 ] || fail "a normal request was blocked"
 
-  # events of the agent's security log, newest first
+  # events of the agent's security log, newest first. The attack is repeated while waiting: the agent
+  # restarts its services a few seconds after a start or a new policy, and the event of a request
+  # handled just before such a restart can be lost.
   event() {
     for i in $(seq 1 30); do
+      status "$SQLI" > /dev/null
       $CURL "$ADMIN/api/npmos/waf/events?view=important&query=test.local" | grep -q "\"action\": *\"$1\"" && return 0
       sleep 2
     done
@@ -181,8 +184,8 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
       sleep 2
     done
     since=$(date -u +%Y-%m-%dT%H:%M:%S)
-    status "$XSS" > /dev/null
     for i in $(seq 1 30); do
+      status "$XSS" > /dev/null
       # an event newer than the restart (times are ISO, compared as text)
       $CURL "$ADMIN/api/npmos/waf/events?view=important&query=test.local&limit=1" \
         | grep -o '"time": *"[^"]*"' | cut -d'"' -f4 | awk -v s="$since" '$0 >= s {f=1} END {exit !f}' && return 0
