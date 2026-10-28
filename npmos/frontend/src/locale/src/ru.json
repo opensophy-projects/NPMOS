@@ -611,6 +611,27 @@
 	"npmos.2fa.error-start": {
 		"defaultMessage": "Не удалось начать настройку 2FA"
 	},
+	"npmos.audit.name.agent": {
+		"defaultMessage": "Настройки агента WAF"
+	},
+	"npmos.audit.name.diagnostics": {
+		"defaultMessage": "Диагностический архив"
+	},
+	"npmos.audit.name.expert": {
+		"defaultMessage": "Политика WAF (эксперт)"
+	},
+	"npmos.audit.name.model": {
+		"defaultMessage": "Расширенная модель WAF"
+	},
+	"npmos.audit.name.policy": {
+		"defaultMessage": "Политика WAF"
+	},
+	"npmos.audit.name.waf": {
+		"defaultMessage": "WAF (open-appsec)"
+	},
+	"npmos.certificates.mtls": {
+		"defaultMessage": "CA для mTLS"
+	},
 	"npmos.common.close": {
 		"defaultMessage": "Закрыть"
 	},
@@ -1568,6 +1589,9 @@
 	"npmos.waf.expert.diff": {
 		"defaultMessage": "Изменения local_policy.yaml"
 	},
+	"npmos.waf.expert.example": {
+		"defaultMessage": "Пример: пропускать трафик доверенного IP на всех защищённых хостах"
+	},
 	"npmos.waf.expert.in-force": {
 		"defaultMessage": "действует"
 	},
@@ -1579,6 +1603,9 @@
 	},
 	"npmos.waf.expert.rollback": {
 		"defaultMessage": "Откатить"
+	},
+	"npmos.waf.expert.rollback-comment": {
+		"defaultMessage": "Откат к версии {id}"
 	},
 	"npmos.waf.expert.rollback-confirm": {
 		"defaultMessage": "Сделать версию {id} текущей? Она сохранится как новая версия и сразу применится."

@@ -232,4 +232,22 @@ else
   echo "    (agent not running, WAF scenarios skipped)"
 fi
 
+# --- phase 2 ---
+
+step "hosts: the upstream of test.local answers, a dead one does not"
+$CURL "$ADMIN/api/npmos/hosts/upstreams" | tr -d ' \n' | grep -q '"object_id":1,"host":"test-upstream","port":80,"ok":true' \
+  || fail "upstream check of test.local: $($CURL "$ADMIN/api/npmos/hosts/upstreams")"
+$CURL -H 'Content-Type: application/json' "$ADMIN/api/nginx/proxy-hosts" -d '{
+  "domain_names": ["dead-upstream.local"], "forward_scheme": "http",
+  "forward_host": "127.0.0.1", "forward_port": "9"
+}' > /dev/null
+$CURL "$ADMIN/api/npmos/hosts/upstreams" | tr -d ' \n' | grep -q '"port":9,"ok":false' \
+  || fail "a closed port is reported as reachable: $($CURL "$ADMIN/api/npmos/hosts/upstreams")"
+
+step "hosts: who changed test.local and when (audit log)"
+$CURL "$ADMIN/api/npmos/hosts/changes" | tr -d ' \n' | grep -q '"type":"proxy-host","object_id":1,' \
+  || fail "no last change of test.local: $($CURL "$ADMIN/api/npmos/hosts/changes")"
+$CURL "$ADMIN/api/npmos/hosts/changes/proxy-host/1" | grep -q '"action": *"created"' \
+  || fail "the history of test.local has no creation: $($CURL "$ADMIN/api/npmos/hosts/changes/proxy-host/1")"
+
 echo "OK: closed-network smoke passed"

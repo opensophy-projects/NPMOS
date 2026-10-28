@@ -21,7 +21,7 @@ import { useWafCustomPolicy } from "../../hooks";
 import { showConfirmModal } from "../../modals/ConfirmModal";
 import { showWafPolicyModal } from "../../modals/WafPolicyModal";
 
-const EXAMPLE = `# Example: accept traffic of a trusted IP on all protected hosts (docs/tutor.md)
+const example = () => `# ${intl.formatMessage({ id: "npmos.waf.expert.example" })} (docs/tutor.md)
 # exceptions:
 #   - name: trusted-office
 #     action: accept
@@ -33,6 +33,12 @@ const EXAMPLE = `# Example: accept traffic of a trusted IP on all protected host
 #     exceptions:
 #       - trusted-office
 `;
+
+/** the backend writes rollbacks as "rollback to version N" */
+const commentText = (comment: string) => {
+	const rollback = /^rollback to version (\d+)$/.exec(comment);
+	return rollback ? intl.formatMessage({ id: "npmos.waf.expert.rollback-comment" }, { id: rollback[1] }) : comment;
+};
 
 /** lines around a change shown in the diff */
 const CONTEXT = 3;
@@ -94,7 +100,7 @@ function Versions({ data, onRollback }: { data: WafCustomPolicy; onRollback: (id
 							<td>{v.id}</td>
 							<td className="text-nowrap">{formatDateTime(v.createdOn, locale)}</td>
 							<td>{v.user || "—"}</td>
-							<td>{v.comment}</td>
+							<td>{commentText(v.comment)}</td>
 							<td className="text-end">
 								{v.id === data.id ? (
 									<span className="badge bg-green-lt">
@@ -213,7 +219,7 @@ function WafPolicyPage() {
 					<CodeEditor
 						value={content}
 						language="yaml"
-						placeholder={EXAMPLE}
+						placeholder={example()}
 						onChange={(e) => {
 							setContent(e.target.value);
 							setCheck(null);

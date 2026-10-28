@@ -611,6 +611,27 @@
 	"npmos.2fa.error-start": {
 		"defaultMessage": "Failed to start 2FA setup"
 	},
+	"npmos.audit.name.agent": {
+		"defaultMessage": "WAF agent settings"
+	},
+	"npmos.audit.name.diagnostics": {
+		"defaultMessage": "Diagnostic archive"
+	},
+	"npmos.audit.name.expert": {
+		"defaultMessage": "WAF policy (expert)"
+	},
+	"npmos.audit.name.model": {
+		"defaultMessage": "Advanced model of the WAF"
+	},
+	"npmos.audit.name.policy": {
+		"defaultMessage": "WAF policy"
+	},
+	"npmos.audit.name.waf": {
+		"defaultMessage": "WAF (open-appsec)"
+	},
+	"npmos.certificates.mtls": {
+		"defaultMessage": "mTLS CA"
+	},
 	"npmos.common.close": {
 		"defaultMessage": "Close"
 	},
@@ -1568,6 +1589,9 @@
 	"npmos.waf.expert.diff": {
 		"defaultMessage": "Changes of local_policy.yaml"
 	},
+	"npmos.waf.expert.example": {
+		"defaultMessage": "Example: accept traffic of a trusted IP on all protected hosts"
+	},
 	"npmos.waf.expert.in-force": {
 		"defaultMessage": "in force"
 	},
@@ -1579,6 +1603,9 @@
 	},
 	"npmos.waf.expert.rollback": {
 		"defaultMessage": "Roll back"
+	},
+	"npmos.waf.expert.rollback-comment": {
+		"defaultMessage": "Rollback to version {id}"
 	},
 	"npmos.waf.expert.rollback-confirm": {
 		"defaultMessage": "Make version {id} the current one? It is saved as a new version and applied at once."

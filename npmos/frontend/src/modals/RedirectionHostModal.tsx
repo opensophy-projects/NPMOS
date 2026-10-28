@@ -1,4 +1,5 @@
 // NPMOS: section buttons and switches use the accent colour (phase 2)
+// NPMOS: plain text in <option> (a <span> there is invalid HTML and logs an error)
 // NPMOS: hardcoded strings moved to the locale (en, ru)
 import cn from "classnames";
 import EasyModal, { type InnerModalProps } from "ez-modal-react";
@@ -259,22 +260,34 @@ const RedirectionHostModal = EasyModal.create(({ id, isClone = false, visible, r
 																{...field}
 															>
 																<option value="300">
-																	<T id="redirection-hosts.http-code.300" />
+																	{intl.formatMessage({
+																		id: "redirection-hosts.http-code.300",
+																	})}
 																</option>
 																<option value="301">
-																	<T id="redirection-hosts.http-code.301" />
+																	{intl.formatMessage({
+																		id: "redirection-hosts.http-code.301",
+																	})}
 																</option>
 																<option value="302">
-																	<T id="redirection-hosts.http-code.302" />
+																	{intl.formatMessage({
+																		id: "redirection-hosts.http-code.302",
+																	})}
 																</option>
 																<option value="303">
-																	<T id="redirection-hosts.http-code.303" />
+																	{intl.formatMessage({
+																		id: "redirection-hosts.http-code.303",
+																	})}
 																</option>
 																<option value="307">
-																	<T id="redirection-hosts.http-code.307" />
+																	{intl.formatMessage({
+																		id: "redirection-hosts.http-code.307",
+																	})}
 																</option>
 																<option value="308">
-																	<T id="redirection-hosts.http-code.308" />
+																	{intl.formatMessage({
+																		id: "redirection-hosts.http-code.308",
+																	})}
 																</option>
 															</select>
 															{form.errors.forwardHttpCode ? (

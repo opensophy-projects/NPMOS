@@ -6,6 +6,7 @@ import cn from "classnames";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { intl, T } from "src/locale";
+import { useCloseLabels } from "./closeLabels";
 import styles from "./Shell.module.css";
 import { Sidebar } from "./Sidebar";
 
@@ -89,6 +90,7 @@ function MobileDrawer() {
 
 export function Shell({ children }: { children: ReactNode }) {
 	const { pathname } = useLocation();
+	useCloseLabels();
 
 	// a new page starts at the top of the panel
 	// biome-ignore lint/correctness/useExhaustiveDependencies: runs on navigation

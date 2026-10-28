@@ -12,7 +12,17 @@ import {
 import cn from "classnames";
 import type { AuditLog } from "src/api/backend";
 import { useLocaleState } from "src/context";
-import { formatDateTime, T } from "src/locale";
+import { formatDateTime, intl, T } from "src/locale";
+
+// NPMOS: names of NPMOS objects in the audit log, shown in the language of the interface
+const NPMOS_NAMES: Record<string, string> = {
+	"open-appsec": "npmos.audit.name.waf",
+	"open-appsec agent": "npmos.audit.name.agent",
+	"open-appsec advanced model": "npmos.audit.name.model",
+	"local_policy.yaml": "npmos.audit.name.policy",
+	"local_policy.yaml (expert)": "npmos.audit.name.expert",
+	diagnostics: "npmos.audit.name.diagnostics",
+};
 
 const getEventValue = (event: AuditLog) => {
 	switch (event.objectType) {
@@ -21,7 +31,9 @@ const getEventValue = (event: AuditLog) => {
 		// NPMOS: System → Services events (restart, regenerate, diagnostics), WAF switch
 		case "service":
 		case "waf":
-			return event.meta?.name;
+			return NPMOS_NAMES[event.meta?.name]
+				? intl.formatMessage({ id: NPMOS_NAMES[event.meta.name] })
+				: event.meta?.name;
 		case "proxy-host":
 		case "redirection-host":
 		case "dead-host":
