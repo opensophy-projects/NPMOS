@@ -28,8 +28,10 @@ function Field({ label, value }: { label: string; value?: React.ReactNode }) {
 	);
 }
 
-const WafEventModal = EasyModal.create(({ visible, remove, event, onFilter }: Props) => {
-	const full = useEvent(event.id, event.time);
+const WafEventModal = EasyModal.create(({ visible, remove, event: summary, onFilter }: Props) => {
+	const full = useEvent(summary.id, summary.time);
+	// lists may hold only a part of the fields: the whole event once it is loaded
+	const event: SecurityEvent = { ...summary, ...full.data };
 	const matched = event.sample || event.parameter || event.location;
 	const request = [event.method, event.uri + (event.query ? `?${event.query}` : "")].filter(Boolean).join(" ");
 	const filter = (field: FilterField, value: string, label: React.ReactNode) =>

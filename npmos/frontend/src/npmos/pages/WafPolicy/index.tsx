@@ -49,15 +49,10 @@ function Diff({ diff }: { diff: NonNullable<WafCustomCheck["diff"]> }) {
 		<pre className="mb-0 p-0" style={{ maxHeight: "50vh", overflow: "auto" }}>
 			{diff.map((d, i) =>
 				shown[i] ? (
-					<div
-						// biome-ignore lint/suspicious/noArrayIndexKey: lines of a diff have no identity
-						key={i}
-						className={cn("px-3", { "bg-green-lt": d.op === "+", "bg-red-lt": d.op === "-" })}
-					>
+					<div key={i} className={cn("px-3", { "bg-green-lt": d.op === "+", "bg-red-lt": d.op === "-" })}>
 						{d.op} {d.line}
 					</div>
 				) : i > 0 && shown[i - 1] ? (
-					// biome-ignore lint/suspicious/noArrayIndexKey: lines of a diff have no identity
 					<div key={i} className="px-3 text-secondary">
 						⋯
 					</div>

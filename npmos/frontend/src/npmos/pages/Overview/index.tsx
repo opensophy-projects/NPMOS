@@ -234,7 +234,10 @@ function OverviewPage() {
 					)}
 
 					{rbac("waf_events") && (
-						<Panel title={<T id="npmos.overview.analytics" />} link="/waf/events?important=1">
+						<Panel
+							title={<T id="npmos.overview.analytics" />}
+							link={rbac("analytics") ? "/waf/analytics" : "/waf/events?important=1"}
+						>
 							<Line
 								label={<T id="npmos.overview.analytics.important" />}
 								value={recent}

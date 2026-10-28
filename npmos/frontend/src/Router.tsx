@@ -23,6 +23,7 @@ const Hosts = lazy(() => import("src/npmos/pages/Hosts"));
 const Services = lazy(() => import("src/npmos/pages/Services"));
 const WafAgent = lazy(() => import("src/npmos/pages/WafAgent"));
 const WafEvents = lazy(() => import("src/npmos/pages/WafEvents"));
+const WafAnalytics = lazy(() => import("src/npmos/pages/WafAnalytics"));
 const WafPolicy = lazy(() => import("src/npmos/pages/WafPolicy"));
 
 function Router() {
@@ -75,6 +76,7 @@ function Router() {
 						<Route path="/system/services" element={<Services />} />
 						<Route path="/waf/agent" element={<WafAgent />} />
 						<Route path="/waf/events" element={<WafEvents />} />
+						<Route path="/waf/analytics" element={<WafAnalytics />} />
 						<Route path="/waf/policy" element={<WafPolicy />} />
 						<Route path="/" element={<Overview />} />
 					</Routes>

@@ -611,6 +611,81 @@
 	"npmos.2fa.error-start": {
 		"defaultMessage": "Не удалось начать настройку 2FA"
 	},
+	"npmos.analytics": {
+		"defaultMessage": "Аналитика"
+	},
+	"npmos.analytics.actions": {
+		"defaultMessage": "Действия защиты"
+	},
+	"npmos.analytics.all-hosts": {
+		"defaultMessage": "Все хосты"
+	},
+	"npmos.analytics.attacks": {
+		"defaultMessage": "Атак"
+	},
+	"npmos.analytics.countries": {
+		"defaultMessage": "Страны"
+	},
+	"npmos.analytics.detected": {
+		"defaultMessage": "Только обнаружено"
+	},
+	"npmos.analytics.last-blocked": {
+		"defaultMessage": "Последние заблокированные запросы"
+	},
+	"npmos.analytics.levels": {
+		"defaultMessage": "Уровни атак"
+	},
+	"npmos.analytics.no-attacks": {
+		"defaultMessage": "За этот период атак не было"
+	},
+	"npmos.analytics.none": {
+		"defaultMessage": "За этот период ничего нет"
+	},
+	"npmos.analytics.note": {
+		"defaultMessage": "Короткие периоды считаются по событиям, график длинных — по почасовой статистике; срок хранения задаётся в «WAF → События → Хранение». Готовность обучения по хостам появится в фазе 8."
+	},
+	"npmos.analytics.prevented": {
+		"defaultMessage": "Заблокировано"
+	},
+	"npmos.analytics.prevented-n": {
+		"defaultMessage": "заблокировано {n}"
+	},
+	"npmos.analytics.requests": {
+		"defaultMessage": "Запросов"
+	},
+	"npmos.analytics.requests.none": {
+		"defaultMessage": "Агент ещё не прислал статистику трафика"
+	},
+	"npmos.analytics.series.detect": {
+		"defaultMessage": "Обнаружено (Detect)"
+	},
+	"npmos.analytics.series.other": {
+		"defaultMessage": "Другие действия"
+	},
+	"npmos.analytics.series.prevent": {
+		"defaultMessage": "Заблокировано (Prevent)"
+	},
+	"npmos.analytics.sources": {
+		"defaultMessage": "Источников атак"
+	},
+	"npmos.analytics.subtitle": {
+		"defaultMessage": "Атаки на хосты под защитой WAF по событиям, которые хранит NPMOS. Нажмите на строку, чтобы открыть её события."
+	},
+	"npmos.analytics.timeline": {
+		"defaultMessage": "Атаки во времени"
+	},
+	"npmos.analytics.top-hosts": {
+		"defaultMessage": "Самые атакуемые хосты"
+	},
+	"npmos.analytics.top-sources": {
+		"defaultMessage": "Главные источники атак (Critical, High)"
+	},
+	"npmos.analytics.top-types": {
+		"defaultMessage": "Типы атак"
+	},
+	"npmos.analytics.top-uris": {
+		"defaultMessage": "Самые атакуемые URI"
+	},
 	"npmos.audit.name.agent": {
 		"defaultMessage": "Настройки агента WAF"
 	},
@@ -1356,7 +1431,7 @@
 		"defaultMessage": "Последнее событие"
 	},
 	"npmos.overview.analytics.note": {
-		"defaultMessage": "Сохранённые события агента за последние 24 часа."
+		"defaultMessage": "Сохранённые события агента за последние 24 часа. Графики — в «WAF → Аналитика»."
 	},
 	"npmos.overview.analytics.prevented": {
 		"defaultMessage": "Из них заблокировано"

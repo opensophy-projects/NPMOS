@@ -1,8 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import {
+	type Analytics,
+	type AnalyticsPeriod,
 	type EventQuery,
 	type EventsPage,
 	type EventsSettings,
+	getAnalytics,
 	getEvent,
 	getEvents,
 	getEventsSettings,
@@ -76,6 +79,15 @@ export const useWafPolicy = () =>
 		queryKey: ["npmos-waf-policy"],
 		queryFn: getWafPolicy,
 		refetchInterval: 10000,
+	});
+
+export const useAnalytics = (period: AnalyticsPeriod, host: string, options = {}) =>
+	useQuery<Analytics, Error>({
+		queryKey: ["npmos-analytics", period, host],
+		queryFn: () => getAnalytics(period, host || undefined),
+		refetchInterval: 30000,
+		placeholderData: (previous) => previous,
+		...options,
 	});
 
 /** a page of stored events; `follow`: refreshed every 5 s */

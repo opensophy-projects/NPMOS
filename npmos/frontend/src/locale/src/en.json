@@ -611,6 +611,81 @@
 	"npmos.2fa.error-start": {
 		"defaultMessage": "Failed to start 2FA setup"
 	},
+	"npmos.analytics": {
+		"defaultMessage": "Analytics"
+	},
+	"npmos.analytics.actions": {
+		"defaultMessage": "Security actions"
+	},
+	"npmos.analytics.all-hosts": {
+		"defaultMessage": "All hosts"
+	},
+	"npmos.analytics.attacks": {
+		"defaultMessage": "Attacks"
+	},
+	"npmos.analytics.countries": {
+		"defaultMessage": "Countries"
+	},
+	"npmos.analytics.detected": {
+		"defaultMessage": "Detected only"
+	},
+	"npmos.analytics.last-blocked": {
+		"defaultMessage": "Last blocked requests"
+	},
+	"npmos.analytics.levels": {
+		"defaultMessage": "Attack severity"
+	},
+	"npmos.analytics.no-attacks": {
+		"defaultMessage": "No attacks in this period"
+	},
+	"npmos.analytics.none": {
+		"defaultMessage": "Nothing in this period"
+	},
+	"npmos.analytics.note": {
+		"defaultMessage": "Short periods are counted from the events, the timeline of longer ones from the hourly statistics; both are kept as set in WAF → Events → Retention. Learning readiness per host comes with phase 8."
+	},
+	"npmos.analytics.prevented": {
+		"defaultMessage": "Blocked"
+	},
+	"npmos.analytics.prevented-n": {
+		"defaultMessage": "blocked {n}"
+	},
+	"npmos.analytics.requests": {
+		"defaultMessage": "Requests"
+	},
+	"npmos.analytics.requests.none": {
+		"defaultMessage": "The agent has not reported traffic statistics yet"
+	},
+	"npmos.analytics.series.detect": {
+		"defaultMessage": "Detected (Detect)"
+	},
+	"npmos.analytics.series.other": {
+		"defaultMessage": "Other actions"
+	},
+	"npmos.analytics.series.prevent": {
+		"defaultMessage": "Blocked (Prevent)"
+	},
+	"npmos.analytics.sources": {
+		"defaultMessage": "Attack sources"
+	},
+	"npmos.analytics.subtitle": {
+		"defaultMessage": "Attacks on the hosts protected by the WAF, from the events NPMOS stores. Click a line to see its events."
+	},
+	"npmos.analytics.timeline": {
+		"defaultMessage": "Attacks over time"
+	},
+	"npmos.analytics.top-hosts": {
+		"defaultMessage": "Most attacked hosts"
+	},
+	"npmos.analytics.top-sources": {
+		"defaultMessage": "Top attack sources (Critical, High)"
+	},
+	"npmos.analytics.top-types": {
+		"defaultMessage": "Attack types"
+	},
+	"npmos.analytics.top-uris": {
+		"defaultMessage": "Most attacked URIs"
+	},
 	"npmos.audit.name.agent": {
 		"defaultMessage": "WAF agent settings"
 	},
@@ -1356,7 +1431,7 @@
 		"defaultMessage": "Last event"
 	},
 	"npmos.overview.analytics.note": {
-		"defaultMessage": "Stored events of the agent for the last 24 hours."
+		"defaultMessage": "Stored events of the agent for the last 24 hours. Charts are in WAF → Analytics."
 	},
 	"npmos.overview.analytics.prevented": {
 		"defaultMessage": "Of them blocked"

@@ -170,6 +170,41 @@ export const downloadEvents = (params: EventQuery, format: "csv" | "json") =>
 		`npmos-events-${new Date().toISOString().slice(0, 19).replaceAll(":", "-")}.${format}`,
 	);
 
+export type AnalyticsPeriod = "1h" | "24h" | "7d" | "30d";
+
+export interface Analytics {
+	period: AnalyticsPeriod;
+	from: string;
+	to: string;
+	/** size of a timeline bucket, seconds */
+	bucket: number;
+	host: string | null;
+	kpi: {
+		/** requests seen by the agent, null without its telemetry */
+		requests: number | null;
+		attacks: number;
+		prevented: number;
+		detected: number;
+		sources: number;
+		readiness: null;
+	};
+	timeline: { t: string; prevent: number; detect: number; other: number }[];
+	actions: { action: string; events: number }[];
+	severities: { severity: string; events: number }[];
+	types: { type: string; events: number }[];
+	hosts: { host: string; events: number; prevented: number }[];
+	uris: { host: string; uri: string; events: number }[];
+	sources: { ip: string; country: string; events: number }[];
+	countries: { country: string; events: number }[];
+	lastBlocked: Pick<
+		SecurityEvent,
+		"id" | "time" | "severity" | "action" | "incidentType" | "sourceIp" | "host" | "method" | "uri" | "score"
+	>[];
+}
+
+export const getAnalytics = (period: AnalyticsPeriod, host?: string) =>
+	api.get({ url: "/npmos/analytics", params: { period, host } }) as Promise<Analytics>;
+
 export interface EventsSettings {
 	retention: { days: number; aggregateDays: number };
 	storage: { events: number; oldest: string | null; bytes: number | null };

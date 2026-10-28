@@ -3,6 +3,7 @@ import express from "express";
 import jwtdecode from "../lib/express/jwt-decode.js";
 import validator from "../lib/validator/index.js";
 import { debug, express as logger } from "../logger.js";
+import internalAnalytics from "./events/analytics.js";
 import internalEvents from "./events/index.js";
 import internalHosts, { HOST_OBJECTS } from "./hosts.js";
 import internalRbac from "./rbac/index.js";
@@ -413,6 +414,15 @@ router
 	.options((_, res) => res.sendStatus(204))
 	.all(jwtdecode())
 	.put(handle((req, res) => internalWafAgent.uploadModel(res.locals.access, req, req.query.apply !== "false")));
+
+/**
+ * GET /api/npmos/analytics?period=1h|24h|7d|30d&host=<domain> — KPI, timeline, top lists
+ */
+router
+	.route("/analytics")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((req, res) => internalAnalytics.get(res.locals.access, req.query)));
 
 /**
  * GET /api/npmos/events — security events of the agent, newest first. Filters: from, to (ISO, default

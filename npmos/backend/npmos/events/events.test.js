@@ -163,3 +163,32 @@ test("log files: positions, growth, truncation, rename", async () => {
 	await fs.rm(dir, { recursive: true });
 	assert.equal((await scan(dir, cursors, 1024)).available, false);
 });
+
+test("analytics timeline: aligned buckets, actions split", async () => {
+	const { emptyTimeline, fillTimeline } = await import("./analytics.js");
+	const hour = 3600 * 1000;
+	const from = new Date("2026-10-28T00:00:00Z");
+	const buckets = emptyTimeline(from, new Date("2026-10-28T05:30:00Z"), hour);
+	assert.equal(buckets.length, 6);
+	fillTimeline(
+		buckets,
+		[
+			{ time: "2026-10-28T00:00:00Z", action: "Prevent", events: "3" },
+			{ time: "2026-10-28T02:59:59Z", action: "Detect", events: 2 },
+			{ time: "2026-10-28T05:10:00Z", action: "Accept", events: 1 },
+			{ time: "2026-10-27T23:00:00Z", action: "Prevent", events: 9 },
+		],
+		hour,
+	);
+	assert.deepEqual(
+		buckets.map((b) => [b.prevent, b.detect, b.other]),
+		[
+			[3, 0, 0],
+			[0, 0, 0],
+			[0, 2, 0],
+			[0, 0, 0],
+			[0, 0, 0],
+			[0, 0, 1],
+		],
+	);
+});

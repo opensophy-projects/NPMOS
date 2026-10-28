@@ -60,10 +60,18 @@
 	/* forms and tables need a visible line; the opensophy border is a hairline */
 	--border-strong: oklch(0 0.0013 var(--base-hue) / 0.12);
 	--foreground-rgb: 27, 28, 31;
+
+	/* chart series in fixed order (validated: lightness, chroma, colour-blind separation, contrast) */
+	--series-1: #2a78d6;
+	--series-2: #eb6834;
+	--series-3: #1baf7a;
 }
 
 /* dark theme */
 [data-bs-theme="dark"] {
+	--series-1: #3987e5;
+	--series-2: #d95926;
+	--series-3: #199e70;
 	--card-frame: color-mix(in oklab, var(--background-inset), var(--foreground) 2%);
 	--background-inset: #0d0d0d;
 	--background: #090909;

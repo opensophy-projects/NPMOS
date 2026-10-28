@@ -46,6 +46,7 @@ export const navigation: NavItem[] = [
 				id: "waf",
 				label: "npmos.waf",
 				items: [
+					{ id: "waf-analytics", label: "npmos.analytics", to: "/waf/analytics", rbac: "analytics" },
 					{ id: "waf-events", label: "npmos.waf.events", to: "/waf/events", rbac: "waf_events" },
 					{ id: "waf-policy", label: "npmos.waf.expert", to: "/waf/policy", rbac: "waf_policy" },
 					{ id: "waf-agent", label: "npmos.waf.agent", to: "/waf/agent", rbac: "waf_policy" },
