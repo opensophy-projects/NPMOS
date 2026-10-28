@@ -1,5 +1,6 @@
 import {
 	IconArrowsCross,
+	IconBell,
 	IconBolt,
 	IconBoltOff,
 	IconDisc,
@@ -36,6 +37,7 @@ const getEventValue = (event: AuditLog) => {
 		case "waf":
 		case "role":
 		case "setting":
+		case "notification":
 			return NPMOS_NAMES[event.meta?.name]
 				? intl.formatMessage({ id: NPMOS_NAMES[event.meta.name] })
 				: event.meta?.name;
@@ -100,6 +102,9 @@ const getIcon = (row: AuditLog) => {
 			break;
 		case "setting":
 			ico = <IconSettings size={16} className={c} />;
+			break;
+		case "notification":
+			ico = <IconBell size={16} className={c} />;
 			break;
 	}
 

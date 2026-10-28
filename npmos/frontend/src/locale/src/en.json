@@ -575,6 +575,9 @@
 	"notfound.title": {
 		"defaultMessage": "Oops… You just found an error page"
 	},
+	"notification": {
+		"defaultMessage": "Notification"
+	},
 	"notification.error": {
 		"defaultMessage": "Error"
 	},
@@ -1414,6 +1417,276 @@
 	},
 	"npmos.notice.warning": {
 		"defaultMessage": "Warning"
+	},
+	"npmos.notifications": {
+		"defaultMessage": "Notifications"
+	},
+	"npmos.notifications.actions": {
+		"defaultMessage": "Actions"
+	},
+	"npmos.notifications.active": {
+		"defaultMessage": "{n, plural, one {# active} other {# active}}"
+	},
+	"npmos.notifications.channel.add": {
+		"defaultMessage": "Add channel"
+	},
+	"npmos.notifications.channel.delete": {
+		"defaultMessage": "Delete channel"
+	},
+	"npmos.notifications.channel.delete.text": {
+		"defaultMessage": "Delete the channel \"{name}\"? Rules stop sending to it."
+	},
+	"npmos.notifications.channel.edit": {
+		"defaultMessage": "Channel"
+	},
+	"npmos.notifications.channel.email": {
+		"defaultMessage": "Email"
+	},
+	"npmos.notifications.channel.new": {
+		"defaultMessage": "New channel"
+	},
+	"npmos.notifications.channel.telegram": {
+		"defaultMessage": "Telegram"
+	},
+	"npmos.notifications.channel.webhook": {
+		"defaultMessage": "Webhook"
+	},
+	"npmos.notifications.channels": {
+		"defaultMessage": "Channels"
+	},
+	"npmos.notifications.channels.none": {
+		"defaultMessage": "No channels yet. Add an email server, a webhook or a Telegram bot."
+	},
+	"npmos.notifications.delete": {
+		"defaultMessage": "Delete"
+	},
+	"npmos.notifications.deleted": {
+		"defaultMessage": "Deleted"
+	},
+	"npmos.notifications.delivered": {
+		"defaultMessage": "delivered"
+	},
+	"npmos.notifications.disable": {
+		"defaultMessage": "Disable"
+	},
+	"npmos.notifications.edit": {
+		"defaultMessage": "Edit"
+	},
+	"npmos.notifications.email.from": {
+		"defaultMessage": "From"
+	},
+	"npmos.notifications.email.host": {
+		"defaultMessage": "SMTP server"
+	},
+	"npmos.notifications.email.password": {
+		"defaultMessage": "Password"
+	},
+	"npmos.notifications.email.port": {
+		"defaultMessage": "Port"
+	},
+	"npmos.notifications.email.security": {
+		"defaultMessage": "Encryption"
+	},
+	"npmos.notifications.email.security.none": {
+		"defaultMessage": "None (local relay)"
+	},
+	"npmos.notifications.email.security.starttls": {
+		"defaultMessage": "STARTTLS (587)"
+	},
+	"npmos.notifications.email.security.tls": {
+		"defaultMessage": "TLS (465)"
+	},
+	"npmos.notifications.email.to": {
+		"defaultMessage": "Recipients"
+	},
+	"npmos.notifications.email.to.hint": {
+		"defaultMessage": "Separated by commas"
+	},
+	"npmos.notifications.email.username": {
+		"defaultMessage": "Login (empty: no authentication)"
+	},
+	"npmos.notifications.email.verify-tls": {
+		"defaultMessage": "Check the server's certificate"
+	},
+	"npmos.notifications.enable": {
+		"defaultMessage": "Enable"
+	},
+	"npmos.notifications.enabled": {
+		"defaultMessage": "Enabled"
+	},
+	"npmos.notifications.failed": {
+		"defaultMessage": "not delivered:"
+	},
+	"npmos.notifications.language": {
+		"defaultMessage": "Language of messages"
+	},
+	"npmos.notifications.language.en": {
+		"defaultMessage": "English"
+	},
+	"npmos.notifications.language.ru": {
+		"defaultMessage": "Russian"
+	},
+	"npmos.notifications.log": {
+		"defaultMessage": "Last deliveries"
+	},
+	"npmos.notifications.log.none": {
+		"defaultMessage": "Nothing has been sent yet"
+	},
+	"npmos.notifications.name": {
+		"defaultMessage": "Name"
+	},
+	"npmos.notifications.off": {
+		"defaultMessage": "off"
+	},
+	"npmos.notifications.param.days": {
+		"defaultMessage": "Days before expiry"
+	},
+	"npmos.notifications.param.host": {
+		"defaultMessage": "Host"
+	},
+	"npmos.notifications.param.minutes": {
+		"defaultMessage": "After, minutes"
+	},
+	"npmos.notifications.param.threshold": {
+		"defaultMessage": "Threshold, events"
+	},
+	"npmos.notifications.param.window": {
+		"defaultMessage": "Window, minutes"
+	},
+	"npmos.notifications.repeat": {
+		"defaultMessage": "Remind every, minutes"
+	},
+	"npmos.notifications.repeat.hint": {
+		"defaultMessage": "While the problem lasts; 0 — only once."
+	},
+	"npmos.notifications.resolved": {
+		"defaultMessage": "Message when resolved"
+	},
+	"npmos.notifications.rule.add": {
+		"defaultMessage": "Add rule"
+	},
+	"npmos.notifications.rule.agent_down": {
+		"defaultMessage": "WAF agent not answering"
+	},
+	"npmos.notifications.rule.agent_down.hint": {
+		"defaultMessage": "The open-appsec agent does not answer for the given time while the WAF is on."
+	},
+	"npmos.notifications.rule.agent_down.params": {
+		"defaultMessage": "after {minutes} min"
+	},
+	"npmos.notifications.rule.attack_spike": {
+		"defaultMessage": "Attack spike"
+	},
+	"npmos.notifications.rule.attack_spike.hint": {
+		"defaultMessage": "Important WAF events (Critical, High) in a time window reach a threshold."
+	},
+	"npmos.notifications.rule.attack_spike.params": {
+		"defaultMessage": "{threshold} in {window} min, {host}"
+	},
+	"npmos.notifications.rule.cert_expiry": {
+		"defaultMessage": "Certificate expiring"
+	},
+	"npmos.notifications.rule.cert_expiry.hint": {
+		"defaultMessage": "A certificate expires within the given number of days (or has expired)."
+	},
+	"npmos.notifications.rule.cert_expiry.params": {
+		"defaultMessage": "{days} d ahead"
+	},
+	"npmos.notifications.rule.delete": {
+		"defaultMessage": "Delete rule"
+	},
+	"npmos.notifications.rule.delete.text": {
+		"defaultMessage": "Delete the rule \"{name}\"?"
+	},
+	"npmos.notifications.rule.edit": {
+		"defaultMessage": "Rule"
+	},
+	"npmos.notifications.rule.host_problem": {
+		"defaultMessage": "Host configuration error"
+	},
+	"npmos.notifications.rule.host_problem.hint": {
+		"defaultMessage": "nginx did not take the configuration of an enabled host (as the red recommendation of the hosts table)."
+	},
+	"npmos.notifications.rule.new": {
+		"defaultMessage": "New rule"
+	},
+	"npmos.notifications.rule.no-channels": {
+		"defaultMessage": "no channels"
+	},
+	"npmos.notifications.rule.policy_error": {
+		"defaultMessage": "WAF policy not applied"
+	},
+	"npmos.notifications.rule.policy_error.hint": {
+		"defaultMessage": "The agent did not take the policy NPMOS generated."
+	},
+	"npmos.notifications.rule.service_down": {
+		"defaultMessage": "Service down"
+	},
+	"npmos.notifications.rule.service_down.hint": {
+		"defaultMessage": "A service of the stack (System → Services) is stopped, restarting or unhealthy."
+	},
+	"npmos.notifications.rule.type": {
+		"defaultMessage": "What to watch"
+	},
+	"npmos.notifications.rules": {
+		"defaultMessage": "Rules"
+	},
+	"npmos.notifications.rules.none": {
+		"defaultMessage": "No rules yet: nothing is sent."
+	},
+	"npmos.notifications.saved": {
+		"defaultMessage": "Saved"
+	},
+	"npmos.notifications.secret.keep": {
+		"defaultMessage": "Stored. Leave empty to keep it."
+	},
+	"npmos.notifications.status.firing": {
+		"defaultMessage": "Problem"
+	},
+	"npmos.notifications.status.resolved": {
+		"defaultMessage": "Resolved"
+	},
+	"npmos.notifications.status.test": {
+		"defaultMessage": "Test"
+	},
+	"npmos.notifications.subtitle": {
+		"defaultMessage": "Where NPMOS reports problems and attacks: email first, a webhook to your systems, Telegram if the server has internet."
+	},
+	"npmos.notifications.telegram.api": {
+		"defaultMessage": "Bot API address"
+	},
+	"npmos.notifications.telegram.api.hint": {
+		"defaultMessage": "Empty: api.telegram.org. A local Bot API server or a proxy can be set here."
+	},
+	"npmos.notifications.telegram.chat": {
+		"defaultMessage": "Chat ID"
+	},
+	"npmos.notifications.telegram.chat.hint": {
+		"defaultMessage": "A number (groups start with -100) or @channel."
+	},
+	"npmos.notifications.telegram.internet": {
+		"defaultMessage": "Telegram works only if the server can reach the internet (or a Bot API server). Without it NPMOS keeps working, the messages are not delivered."
+	},
+	"npmos.notifications.telegram.token": {
+		"defaultMessage": "Bot token"
+	},
+	"npmos.notifications.test": {
+		"defaultMessage": "Test"
+	},
+	"npmos.notifications.test.failed": {
+		"defaultMessage": "{name}: not delivered — {error}"
+	},
+	"npmos.notifications.test.ok": {
+		"defaultMessage": "{name}: test message sent"
+	},
+	"npmos.notifications.webhook.secret": {
+		"defaultMessage": "Signing key"
+	},
+	"npmos.notifications.webhook.secret.hint": {
+		"defaultMessage": "The JSON body comes with X-NPMOS-Signature: sha256=HMAC(key, timestamp + \".\" + body) and X-NPMOS-Timestamp."
+	},
+	"npmos.notifications.webhook.url": {
+		"defaultMessage": "URL"
 	},
 	"npmos.overview.all-good": {
 		"defaultMessage": "All good"

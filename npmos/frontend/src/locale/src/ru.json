@@ -575,6 +575,9 @@
 	"notfound.title": {
 		"defaultMessage": "Упс… Вы попали на страницу ошибки"
 	},
+	"notification": {
+		"defaultMessage": "Уведомление"
+	},
 	"notification.error": {
 		"defaultMessage": "Ошибка"
 	},
@@ -1414,6 +1417,276 @@
 	},
 	"npmos.notice.warning": {
 		"defaultMessage": "Предупреждение"
+	},
+	"npmos.notifications": {
+		"defaultMessage": "Уведомления"
+	},
+	"npmos.notifications.actions": {
+		"defaultMessage": "Действия"
+	},
+	"npmos.notifications.active": {
+		"defaultMessage": "{n, plural, one {# активно} few {# активно} many {# активно} other {# активно}}"
+	},
+	"npmos.notifications.channel.add": {
+		"defaultMessage": "Добавить канал"
+	},
+	"npmos.notifications.channel.delete": {
+		"defaultMessage": "Удалить канал"
+	},
+	"npmos.notifications.channel.delete.text": {
+		"defaultMessage": "Удалить канал «{name}»? Правила перестанут отправлять в него."
+	},
+	"npmos.notifications.channel.edit": {
+		"defaultMessage": "Канал"
+	},
+	"npmos.notifications.channel.email": {
+		"defaultMessage": "Почта"
+	},
+	"npmos.notifications.channel.new": {
+		"defaultMessage": "Новый канал"
+	},
+	"npmos.notifications.channel.telegram": {
+		"defaultMessage": "Telegram"
+	},
+	"npmos.notifications.channel.webhook": {
+		"defaultMessage": "Webhook"
+	},
+	"npmos.notifications.channels": {
+		"defaultMessage": "Каналы"
+	},
+	"npmos.notifications.channels.none": {
+		"defaultMessage": "Каналов пока нет. Добавьте почтовый сервер, webhook или бота Telegram."
+	},
+	"npmos.notifications.delete": {
+		"defaultMessage": "Удалить"
+	},
+	"npmos.notifications.deleted": {
+		"defaultMessage": "Удалено"
+	},
+	"npmos.notifications.delivered": {
+		"defaultMessage": "доставлено"
+	},
+	"npmos.notifications.disable": {
+		"defaultMessage": "Выключить"
+	},
+	"npmos.notifications.edit": {
+		"defaultMessage": "Изменить"
+	},
+	"npmos.notifications.email.from": {
+		"defaultMessage": "Отправитель"
+	},
+	"npmos.notifications.email.host": {
+		"defaultMessage": "SMTP-сервер"
+	},
+	"npmos.notifications.email.password": {
+		"defaultMessage": "Пароль"
+	},
+	"npmos.notifications.email.port": {
+		"defaultMessage": "Порт"
+	},
+	"npmos.notifications.email.security": {
+		"defaultMessage": "Шифрование"
+	},
+	"npmos.notifications.email.security.none": {
+		"defaultMessage": "Нет (локальный relay)"
+	},
+	"npmos.notifications.email.security.starttls": {
+		"defaultMessage": "STARTTLS (587)"
+	},
+	"npmos.notifications.email.security.tls": {
+		"defaultMessage": "TLS (465)"
+	},
+	"npmos.notifications.email.to": {
+		"defaultMessage": "Получатели"
+	},
+	"npmos.notifications.email.to.hint": {
+		"defaultMessage": "Через запятую"
+	},
+	"npmos.notifications.email.username": {
+		"defaultMessage": "Логин (пусто — без авторизации)"
+	},
+	"npmos.notifications.email.verify-tls": {
+		"defaultMessage": "Проверять сертификат сервера"
+	},
+	"npmos.notifications.enable": {
+		"defaultMessage": "Включить"
+	},
+	"npmos.notifications.enabled": {
+		"defaultMessage": "Включено"
+	},
+	"npmos.notifications.failed": {
+		"defaultMessage": "не доставлено:"
+	},
+	"npmos.notifications.language": {
+		"defaultMessage": "Язык сообщений"
+	},
+	"npmos.notifications.language.en": {
+		"defaultMessage": "Английский"
+	},
+	"npmos.notifications.language.ru": {
+		"defaultMessage": "Русский"
+	},
+	"npmos.notifications.log": {
+		"defaultMessage": "Последние отправки"
+	},
+	"npmos.notifications.log.none": {
+		"defaultMessage": "Пока ничего не отправлялось"
+	},
+	"npmos.notifications.name": {
+		"defaultMessage": "Название"
+	},
+	"npmos.notifications.off": {
+		"defaultMessage": "выключен"
+	},
+	"npmos.notifications.param.days": {
+		"defaultMessage": "Дней до истечения"
+	},
+	"npmos.notifications.param.host": {
+		"defaultMessage": "Хост"
+	},
+	"npmos.notifications.param.minutes": {
+		"defaultMessage": "Через, минут"
+	},
+	"npmos.notifications.param.threshold": {
+		"defaultMessage": "Порог, событий"
+	},
+	"npmos.notifications.param.window": {
+		"defaultMessage": "Окно, минут"
+	},
+	"npmos.notifications.repeat": {
+		"defaultMessage": "Напоминать каждые, минут"
+	},
+	"npmos.notifications.repeat.hint": {
+		"defaultMessage": "Пока проблема не решена; 0 — только один раз."
+	},
+	"npmos.notifications.resolved": {
+		"defaultMessage": "Сообщить, когда решено"
+	},
+	"npmos.notifications.rule.add": {
+		"defaultMessage": "Добавить правило"
+	},
+	"npmos.notifications.rule.agent_down": {
+		"defaultMessage": "Агент WAF не отвечает"
+	},
+	"npmos.notifications.rule.agent_down.hint": {
+		"defaultMessage": "Агент open-appsec не отвечает заданное время, когда WAF включён."
+	},
+	"npmos.notifications.rule.agent_down.params": {
+		"defaultMessage": "через {minutes} мин"
+	},
+	"npmos.notifications.rule.attack_spike": {
+		"defaultMessage": "Всплеск атак"
+	},
+	"npmos.notifications.rule.attack_spike.hint": {
+		"defaultMessage": "Важных событий WAF (Critical, High) за окно времени не меньше порога."
+	},
+	"npmos.notifications.rule.attack_spike.params": {
+		"defaultMessage": "{threshold} за {window} мин, {host}"
+	},
+	"npmos.notifications.rule.cert_expiry": {
+		"defaultMessage": "Истекает сертификат"
+	},
+	"npmos.notifications.rule.cert_expiry.hint": {
+		"defaultMessage": "Сертификат истекает в течение заданного числа дней (или уже истёк)."
+	},
+	"npmos.notifications.rule.cert_expiry.params": {
+		"defaultMessage": "за {days} дн."
+	},
+	"npmos.notifications.rule.delete": {
+		"defaultMessage": "Удалить правило"
+	},
+	"npmos.notifications.rule.delete.text": {
+		"defaultMessage": "Удалить правило «{name}»?"
+	},
+	"npmos.notifications.rule.edit": {
+		"defaultMessage": "Правило"
+	},
+	"npmos.notifications.rule.host_problem": {
+		"defaultMessage": "Ошибка конфигурации хоста"
+	},
+	"npmos.notifications.rule.host_problem.hint": {
+		"defaultMessage": "nginx не принял конфигурацию включённого хоста (как красная рекомендация в таблице хостов)."
+	},
+	"npmos.notifications.rule.new": {
+		"defaultMessage": "Новое правило"
+	},
+	"npmos.notifications.rule.no-channels": {
+		"defaultMessage": "каналы не выбраны"
+	},
+	"npmos.notifications.rule.policy_error": {
+		"defaultMessage": "Политика WAF не применена"
+	},
+	"npmos.notifications.rule.policy_error.hint": {
+		"defaultMessage": "Агент не принял политику, которую сгенерировал NPMOS."
+	},
+	"npmos.notifications.rule.service_down": {
+		"defaultMessage": "Сервис не работает"
+	},
+	"npmos.notifications.rule.service_down.hint": {
+		"defaultMessage": "Сервис стека («Система → Сервисы») остановлен, перезапускается или нездоров."
+	},
+	"npmos.notifications.rule.type": {
+		"defaultMessage": "Что отслеживать"
+	},
+	"npmos.notifications.rules": {
+		"defaultMessage": "Правила"
+	},
+	"npmos.notifications.rules.none": {
+		"defaultMessage": "Правил пока нет: ничего не отправляется."
+	},
+	"npmos.notifications.saved": {
+		"defaultMessage": "Сохранено"
+	},
+	"npmos.notifications.secret.keep": {
+		"defaultMessage": "Сохранён. Оставьте пустым, чтобы не менять."
+	},
+	"npmos.notifications.status.firing": {
+		"defaultMessage": "Проблема"
+	},
+	"npmos.notifications.status.resolved": {
+		"defaultMessage": "Решено"
+	},
+	"npmos.notifications.status.test": {
+		"defaultMessage": "Проверка"
+	},
+	"npmos.notifications.subtitle": {
+		"defaultMessage": "Куда NPMOS сообщает о проблемах и атаках: в первую очередь почта, webhook в ваши системы, Telegram — если у сервера есть интернет."
+	},
+	"npmos.notifications.telegram.api": {
+		"defaultMessage": "Адрес Bot API"
+	},
+	"npmos.notifications.telegram.api.hint": {
+		"defaultMessage": "Пусто — api.telegram.org. Здесь можно указать локальный Bot API сервер или прокси."
+	},
+	"npmos.notifications.telegram.chat": {
+		"defaultMessage": "ID чата"
+	},
+	"npmos.notifications.telegram.chat.hint": {
+		"defaultMessage": "Число (у групп начинается с -100) или @канал."
+	},
+	"npmos.notifications.telegram.internet": {
+		"defaultMessage": "Telegram работает, только если у сервера есть выход в интернет (или к Bot API серверу). Без него NPMOS работает дальше, сообщения просто не доставляются."
+	},
+	"npmos.notifications.telegram.token": {
+		"defaultMessage": "Токен бота"
+	},
+	"npmos.notifications.test": {
+		"defaultMessage": "Проверить"
+	},
+	"npmos.notifications.test.failed": {
+		"defaultMessage": "{name}: не доставлено — {error}"
+	},
+	"npmos.notifications.test.ok": {
+		"defaultMessage": "{name}: проверочное сообщение отправлено"
+	},
+	"npmos.notifications.webhook.secret": {
+		"defaultMessage": "Ключ подписи"
+	},
+	"npmos.notifications.webhook.secret.hint": {
+		"defaultMessage": "Тело JSON приходит с заголовками X-NPMOS-Signature: sha256=HMAC(ключ, timestamp + \".\" + тело) и X-NPMOS-Timestamp."
+	},
+	"npmos.notifications.webhook.url": {
+		"defaultMessage": "URL"
 	},
 	"npmos.overview.all-good": {
 		"defaultMessage": "Всё в порядке"

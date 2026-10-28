@@ -309,4 +309,28 @@ $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/events/settin
 expect "$(as_analyst -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/events/settings" \
   -d '{"days": 1, "aggregate_days": 1}')" 403 "analyst changes the retention"
 
+step "notifications: a webhook channel delivers a test message"
+hook=$($CURL -X POST -H 'Content-Type: application/json' "$ADMIN/api/npmos/notifications/channels" \
+  -d '{"name": "smoke", "type": "webhook", "config": {"url": "http://test-upstream/npmos-hook", "secret": "k"}}')
+hook_id=$(echo "$hook" | grep -o '"id": *[0-9]*' | head -1 | grep -o '[0-9]*$')
+[ -n "$hook_id" ] || fail "webhook channel was not created: $hook"
+echo "$hook" | grep -q '"secret"' && fail "the webhook secret is returned by the API"
+$CURL -X POST "$ADMIN/api/npmos/notifications/channels/$hook_id/test" | grep -q '"ok": *true' \
+  || fail "test message through the webhook was not delivered"
+
+step "notifications: an unreachable mail server is an error, not a hang"
+mail=$($CURL -X POST -H 'Content-Type: application/json' "$ADMIN/api/npmos/notifications/channels" \
+  -d '{"name": "smoke mail", "type": "email", "config": {"host": "127.0.0.1", "port": 2, "security": "none", "from": "npmos@example.test", "to": ["admin@example.test"]}}')
+mail_id=$(echo "$mail" | grep -o '"id": *[0-9]*' | head -1 | grep -o '[0-9]*$')
+$CURL --max-time 30 -X POST "$ADMIN/api/npmos/notifications/channels/$mail_id/test" | grep -q '"ok": *false' \
+  || fail "a mail server that does not answer was not reported"
+
+step "notifications: a rule is created; the analyst cannot add channels"
+$CURL -X POST -H 'Content-Type: application/json' "$ADMIN/api/npmos/notifications/rules" \
+  -d "{\"name\": \"smoke\", \"type\": \"cert_expiry\", \"params\": {\"days\": 30}, \"channel_ids\": [$hook_id]}" \
+  | grep -q '"type": *"cert_expiry"' || fail "rule was not created"
+expect "$(as_analyst "$ADMIN/api/npmos/notifications")" 200 "analyst reads notifications"
+expect "$(as_analyst -X POST -H 'Content-Type: application/json' "$ADMIN/api/npmos/notifications/channels" \
+  -d '{"name": "x", "type": "webhook", "config": {"url": "http://x"}}')" 403 "analyst adds a channel"
+
 echo "OK: closed-network smoke passed"

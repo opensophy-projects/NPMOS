@@ -70,6 +70,7 @@ export const navigation: NavItem[] = [
 		label: "npmos.nav.system",
 		items: [
 			{ id: "services", label: "npmos.services", to: "/system/services", rbac: "services" },
+			{ id: "notifications", label: "npmos.notifications", to: "/system/notifications", rbac: "notifications" },
 			{ id: "settings", label: "settings", to: "/settings", rbac: "settings" },
 			// for everyone: the English terms of the interface explained
 			{ id: "glossary", label: "npmos.glossary", to: "/glossary" },
