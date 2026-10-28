@@ -103,43 +103,83 @@ export const getWafPolicy = (): Promise<WafPolicyState & { content: string | nul
 export const applyWafPolicy = (): Promise<WafPolicyState & { changed: boolean }> =>
 	api.post({ url: "/npmos/waf/policy/apply" });
 
-export type WafEventsView = "important" | "all";
-
-export interface WafEvent {
-	time: string | null;
+/** a stored security event of the open-appsec agent (WAF → Events) */
+export interface SecurityEvent {
+	id: string;
+	time: string;
+	/** security: an attack the WAF decided on; system: a notice of the agent */
+	kind: "security" | "system";
 	name: string;
 	severity: string;
 	priority: string;
-	level: string;
-	service: string;
-	asset: string;
-	/** Prevent / Detect / ... */
+	confidence: string;
+	/** Prevent / Detect / Accept ... */
 	action: string;
 	incidentType: string;
 	sourceIp: string;
+	sourcePort: number | null;
 	proxyIp: string;
+	sourceCountry: string;
 	host: string;
+	asset: string;
 	method: string;
 	uri: string;
-	matchedLocation: string;
-	matchedParameter: string;
-	matchedSample: string;
+	query: string;
+	responseCode: number | null;
+	location: string;
+	parameter: string;
+	sample: string;
+	indicators: string;
+	score: number | null;
+	rule: string;
+	practice: string;
+	override: string;
 	/** agent component that wrote it */
-	source: string;
+	service: string;
+}
+
+export interface SecurityEventFull extends SecurityEvent {
 	raw: Record<string, any>;
 }
 
-export interface WafEvents {
-	events: WafEvent[];
+/** query parameters of /npmos/events (see pages/WafEvents/filters.ts) */
+export type EventQuery = Record<string, string | number | boolean | undefined>;
+
+export interface EventsPage {
+	events: SecurityEvent[];
+	/** cursor of the next (older) page */
+	next: string | null;
 	total: number;
-	/** only the tail of the agent's log files was read */
-	truncated: boolean;
+	/** more than `total` events match */
+	totalCapped: boolean;
+	from: string;
+	to: string;
 	/** the agent's log directory is readable */
 	available: boolean;
+	ingestError: string | null;
 }
 
-export const getWafEvents = (params: { view: WafEventsView; host?: string; query?: string; limit?: number }) =>
-	api.get({ url: "/npmos/waf/events", params }) as Promise<WafEvents>;
+export const getEvents = (params: EventQuery) => api.get({ url: "/npmos/events", params }) as Promise<EventsPage>;
+
+export const getEvent = (id: string, time: string) =>
+	api.get({ url: `/npmos/events/${id}`, params: { time } }) as Promise<SecurityEventFull>;
+
+export const downloadEvents = (params: EventQuery, format: "csv" | "json") =>
+	api.download(
+		{ url: "/npmos/events/export", params: { ...params, format } },
+		`npmos-events-${new Date().toISOString().slice(0, 19).replaceAll(":", "-")}.${format}`,
+	);
+
+export interface EventsSettings {
+	retention: { days: number; aggregateDays: number };
+	storage: { events: number; oldest: string | null; bytes: number | null };
+	ingest: { running: boolean; available: boolean; lastRun: string | null; lastError: string | null };
+}
+
+export const getEventsSettings = () => api.get({ url: "/npmos/events/settings" }) as Promise<EventsSettings>;
+
+export const setEventsSettings = (retention: EventsSettings["retention"]) =>
+	api.put({ url: "/npmos/events/settings", data: retention }) as Promise<EventsSettings>;
 
 export interface WafAgentModel {
 	present: boolean;

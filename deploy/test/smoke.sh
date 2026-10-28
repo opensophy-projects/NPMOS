@@ -152,10 +152,10 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
   event() {
     for i in $(seq 1 30); do
       status "$SQLI" > /dev/null
-      $CURL "$ADMIN/api/npmos/waf/events?view=important&query=test.local" | grep -q "\"action\": *\"$1\"" && return 0
+      $CURL "$ADMIN/api/npmos/events?important=true&host=test.local" | grep -q "\"action\": *\"$1\"" && return 0
       sleep 2
     done
-    fail "no $1 event for test.local in WAF -> Events: $($CURL "$ADMIN/api/npmos/waf/events?view=all&limit=5")"
+    fail "no $1 event for test.local in WAF -> Events: $($CURL "$ADMIN/api/npmos/events?kind=all&limit=5")"
   }
 
   step "WAF -> Events: the blocked attack is an important event (Prevent)"
@@ -187,11 +187,11 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
     for i in $(seq 1 30); do
       status "$XSS" > /dev/null
       # an event newer than the restart (times are ISO, compared as text)
-      $CURL "$ADMIN/api/npmos/waf/events?view=important&query=test.local&limit=1" \
+      $CURL "$ADMIN/api/npmos/events?important=true&host=test.local&limit=1" \
         | grep -o '"time": *"[^"]*"' | cut -d'"' -f4 | awk -v s="$since" '$0 >= s {f=1} END {exit !f}' && return 0
       sleep 2
     done
-    fail "attacks after the agent's restart are not in WAF -> Events: $($CURL "$ADMIN/api/npmos/waf/events?view=all&limit=3")"
+    fail "attacks after the agent's restart are not in WAF -> Events: $($CURL "$ADMIN/api/npmos/events?kind=all&limit=3")"
   }
 
   agent_settings '{"crowdsec": {"enabled": false, "mode": "prevent"}, "fail_open": {"enabled": true, "timeout_ms": 100}}' \
@@ -277,7 +277,7 @@ expect() { [ "$1" = "$2" ] || fail "$3: expected $2, got $1"; }
 
 step "RBAC: the analyst sees hosts, WAF and events"
 expect "$(as_analyst "$ADMIN/api/nginx/proxy-hosts")" 200 "analyst lists proxy hosts"
-expect "$(as_analyst "$ADMIN/api/npmos/waf/events")" 200 "analyst reads WAF events"
+expect "$(as_analyst "$ADMIN/api/npmos/events")" 200 "analyst reads WAF events"
 expect "$(as_analyst "$ADMIN/api/npmos/waf/policy")" 200 "analyst reads the WAF policy"
 
 step "RBAC: the analyst changes the WAF mode, not the host"
@@ -295,5 +295,18 @@ step "RBAC: the last administrator keeps the role"
 code=$(curl -sS -k -b $JAR -o /dev/null -w '%{http_code}' -X PUT -H 'Content-Type: application/json' \
   "$ADMIN/api/npmos/rbac/users/1" -d '{"roles": []}')
 expect "$code" 400 "removing the last administrator"
+
+# --- phase 4 ---
+
+step "events: stored events are filtered and exported"
+$CURL "$ADMIN/api/npmos/events?kind=all&limit=1" | grep -q '"total":' || fail "events are not listed"
+$CURL "$ADMIN/api/npmos/events/export?format=csv&kind=all" | head -1 | grep -q 'time,severity,action' \
+  || fail "CSV export has no header"
+
+step "events: the retention is set in the GUI (not by the analyst)"
+$CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/events/settings" \
+  -d '{"days": 7, "aggregate_days": 90}' | grep -q '"days": *7' || fail "retention was not saved"
+expect "$(as_analyst -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/events/settings" \
+  -d '{"days": 1, "aggregate_days": 1}')" 403 "analyst changes the retention"
 
 echo "OK: closed-network smoke passed"

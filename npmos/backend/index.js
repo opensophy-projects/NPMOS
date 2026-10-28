@@ -6,7 +6,8 @@ import internalCertificate from "./internal/certificate.js";
 import internalIpRanges from "./internal/ip_ranges.js";
 import { global as logger } from "./logger.js";
 import { migrateUp } from "./migrate.js";
-// NPMOS: open-appsec policy and agent settings from the database
+// NPMOS: open-appsec policy and agent settings from the database, security events of the agent
+import { start as startEventIngest } from "./npmos/events/ingest.js";
 import { bootstrap as bootstrapWafAgent } from "./npmos/waf/agent-settings.js";
 import { bootstrap as bootstrapWafPolicy } from "./npmos/waf/policy.js";
 import { getCompiledSchema } from "./schema/index.js";
@@ -19,6 +20,7 @@ async function appStart() {
 			// NPMOS: never fails the start (errors are logged and shown in the GUI)
 			.then(bootstrapWafPolicy)
 			.then(bootstrapWafAgent)
+			.then(startEventIngest)
 			.then(getCompiledSchema)
 			.then(() => {
 				if (process.env.TRUST_CLOUDFLARE === "false") {

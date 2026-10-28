@@ -686,6 +686,132 @@
 	"npmos.common.warning": {
 		"defaultMessage": "Warning"
 	},
+	"npmos.events.attack-type": {
+		"defaultMessage": "Attack type"
+	},
+	"npmos.events.confidence": {
+		"defaultMessage": "Confidence"
+	},
+	"npmos.events.country": {
+		"defaultMessage": "Country"
+	},
+	"npmos.events.empty": {
+		"defaultMessage": "No events for these filters. Attacks on hosts protected by the WAF appear here."
+	},
+	"npmos.events.export": {
+		"defaultMessage": "Export"
+	},
+	"npmos.events.filter-by": {
+		"defaultMessage": "Show only these events"
+	},
+	"npmos.events.filters": {
+		"defaultMessage": "Filters"
+	},
+	"npmos.events.filters.remove": {
+		"defaultMessage": "Remove filter"
+	},
+	"npmos.events.filters.reset": {
+		"defaultMessage": "Reset"
+	},
+	"npmos.events.from": {
+		"defaultMessage": "From"
+	},
+	"npmos.events.important-only": {
+		"defaultMessage": "Important only (Critical, High)"
+	},
+	"npmos.events.indicators": {
+		"defaultMessage": "Indicators"
+	},
+	"npmos.events.ingest-error": {
+		"defaultMessage": "Events are not being stored:"
+	},
+	"npmos.events.kind.all": {
+		"defaultMessage": "All"
+	},
+	"npmos.events.kind.security": {
+		"defaultMessage": "Attacks"
+	},
+	"npmos.events.kind.system": {
+		"defaultMessage": "Agent notices"
+	},
+	"npmos.events.newer": {
+		"defaultMessage": "Newer"
+	},
+	"npmos.events.older": {
+		"defaultMessage": "Older"
+	},
+	"npmos.events.override": {
+		"defaultMessage": "Exception"
+	},
+	"npmos.events.period": {
+		"defaultMessage": "Period"
+	},
+	"npmos.events.period.1h": {
+		"defaultMessage": "1 h"
+	},
+	"npmos.events.period.24h": {
+		"defaultMessage": "24 h"
+	},
+	"npmos.events.period.30d": {
+		"defaultMessage": "30 d"
+	},
+	"npmos.events.period.7d": {
+		"defaultMessage": "7 d"
+	},
+	"npmos.events.period.custom": {
+		"defaultMessage": "Custom"
+	},
+	"npmos.events.raw": {
+		"defaultMessage": "Event as written by the agent"
+	},
+	"npmos.events.response-code": {
+		"defaultMessage": "Response code"
+	},
+	"npmos.events.retention": {
+		"defaultMessage": "Retention"
+	},
+	"npmos.events.retention.aggregate-days": {
+		"defaultMessage": "Hourly statistics, days"
+	},
+	"npmos.events.retention.days": {
+		"defaultMessage": "Events, days"
+	},
+	"npmos.events.retention.hint": {
+		"defaultMessage": "Older days are removed every hour as a whole. Charts of analytics use the hourly statistics."
+	},
+	"npmos.events.retention.invalid": {
+		"defaultMessage": "Events: 1–365 days; statistics: from the events' days up to 1830."
+	},
+	"npmos.events.retention.oldest": {
+		"defaultMessage": "Oldest: {time}"
+	},
+	"npmos.events.retention.saved": {
+		"defaultMessage": "Retention saved"
+	},
+	"npmos.events.retention.stored": {
+		"defaultMessage": "{events, plural, one {# event stored} other {# events stored}}"
+	},
+	"npmos.events.rule": {
+		"defaultMessage": "Rule"
+	},
+	"npmos.events.score": {
+		"defaultMessage": "Score"
+	},
+	"npmos.events.score.max": {
+		"defaultMessage": "Score to"
+	},
+	"npmos.events.score.min": {
+		"defaultMessage": "Score from"
+	},
+	"npmos.events.to": {
+		"defaultMessage": "to (empty: now)"
+	},
+	"npmos.events.total": {
+		"defaultMessage": "{total, plural, one {# event} other {# events}}"
+	},
+	"npmos.events.total-capped": {
+		"defaultMessage": "More than {total} events"
+	},
 	"npmos.glossary": {
 		"defaultMessage": "Glossary"
 	},
@@ -1230,7 +1356,7 @@
 		"defaultMessage": "Last event"
 	},
 	"npmos.overview.analytics.note": {
-		"defaultMessage": "From the tail of the agent logs. Charts, periods and top lists come with analytics (phase 4)."
+		"defaultMessage": "Stored events of the agent for the last 24 hours."
 	},
 	"npmos.overview.analytics.prevented": {
 		"defaultMessage": "Of them blocked"
@@ -1745,6 +1871,9 @@
 	"npmos.services.version": {
 		"defaultMessage": "Version"
 	},
+	"npmos.settings.events-retention": {
+		"defaultMessage": "Retention of security events"
+	},
 	"npmos.waf": {
 		"defaultMessage": "WAF"
 	},
@@ -1832,20 +1961,11 @@
 	"npmos.waf.events.action": {
 		"defaultMessage": "Action"
 	},
-	"npmos.waf.events.all": {
-		"defaultMessage": "All events"
-	},
 	"npmos.waf.events.component": {
 		"defaultMessage": "Agent component"
 	},
 	"npmos.waf.events.description": {
 		"defaultMessage": "Security log of the open-appsec agent: attacks it detected or blocked and its own events"
-	},
-	"npmos.waf.events.empty-all": {
-		"defaultMessage": "No events yet"
-	},
-	"npmos.waf.events.empty-important": {
-		"defaultMessage": "No important events. Attacks on hosts protected by the WAF appear here."
 	},
 	"npmos.waf.events.event": {
 		"defaultMessage": "Event"
@@ -1855,9 +1975,6 @@
 	},
 	"npmos.waf.events.host": {
 		"defaultMessage": "Host"
-	},
-	"npmos.waf.events.important": {
-		"defaultMessage": "Important events"
 	},
 	"npmos.waf.events.matched": {
 		"defaultMessage": "What the WAF matched"
@@ -1880,17 +1997,11 @@
 	"npmos.waf.events.severity": {
 		"defaultMessage": "Severity"
 	},
-	"npmos.waf.events.shown": {
-		"defaultMessage": "Shown {shown} of {total}"
-	},
 	"npmos.waf.events.source-ip": {
 		"defaultMessage": "Source IP"
 	},
 	"npmos.waf.events.time": {
 		"defaultMessage": "Time"
-	},
-	"npmos.waf.events.truncated": {
-		"defaultMessage": "Only the latest part of the agent's log files is read."
 	},
 	"npmos.waf.events.unavailable": {
 		"defaultMessage": "The agent's log directory is not readable: is the open-appsec agent running?"

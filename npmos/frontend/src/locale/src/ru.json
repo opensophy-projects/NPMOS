@@ -686,6 +686,132 @@
 	"npmos.common.warning": {
 		"defaultMessage": "Предупреждение"
 	},
+	"npmos.events.attack-type": {
+		"defaultMessage": "Тип атаки"
+	},
+	"npmos.events.confidence": {
+		"defaultMessage": "Уверенность"
+	},
+	"npmos.events.country": {
+		"defaultMessage": "Страна"
+	},
+	"npmos.events.empty": {
+		"defaultMessage": "Событий с такими фильтрами нет. Здесь появляются атаки на хосты под защитой WAF."
+	},
+	"npmos.events.export": {
+		"defaultMessage": "Экспорт"
+	},
+	"npmos.events.filter-by": {
+		"defaultMessage": "Показать только эти события"
+	},
+	"npmos.events.filters": {
+		"defaultMessage": "Фильтры"
+	},
+	"npmos.events.filters.remove": {
+		"defaultMessage": "Убрать фильтр"
+	},
+	"npmos.events.filters.reset": {
+		"defaultMessage": "Сбросить"
+	},
+	"npmos.events.from": {
+		"defaultMessage": "С"
+	},
+	"npmos.events.important-only": {
+		"defaultMessage": "Только важные (Critical, High)"
+	},
+	"npmos.events.indicators": {
+		"defaultMessage": "Индикаторы"
+	},
+	"npmos.events.ingest-error": {
+		"defaultMessage": "События не сохраняются:"
+	},
+	"npmos.events.kind.all": {
+		"defaultMessage": "Все"
+	},
+	"npmos.events.kind.security": {
+		"defaultMessage": "Атаки"
+	},
+	"npmos.events.kind.system": {
+		"defaultMessage": "Сообщения агента"
+	},
+	"npmos.events.newer": {
+		"defaultMessage": "Новее"
+	},
+	"npmos.events.older": {
+		"defaultMessage": "Старше"
+	},
+	"npmos.events.override": {
+		"defaultMessage": "Исключение"
+	},
+	"npmos.events.period": {
+		"defaultMessage": "Период"
+	},
+	"npmos.events.period.1h": {
+		"defaultMessage": "1 ч"
+	},
+	"npmos.events.period.24h": {
+		"defaultMessage": "24 ч"
+	},
+	"npmos.events.period.30d": {
+		"defaultMessage": "30 д"
+	},
+	"npmos.events.period.7d": {
+		"defaultMessage": "7 д"
+	},
+	"npmos.events.period.custom": {
+		"defaultMessage": "Свой"
+	},
+	"npmos.events.raw": {
+		"defaultMessage": "Событие в том виде, как его записал агент"
+	},
+	"npmos.events.response-code": {
+		"defaultMessage": "Код ответа"
+	},
+	"npmos.events.retention": {
+		"defaultMessage": "Хранение"
+	},
+	"npmos.events.retention.aggregate-days": {
+		"defaultMessage": "Почасовая статистика, дней"
+	},
+	"npmos.events.retention.days": {
+		"defaultMessage": "События, дней"
+	},
+	"npmos.events.retention.hint": {
+		"defaultMessage": "Старые дни удаляются целиком раз в час. Графики аналитики строятся по почасовой статистике."
+	},
+	"npmos.events.retention.invalid": {
+		"defaultMessage": "События: 1–365 дней; статистика: не меньше, чем события, и до 1830."
+	},
+	"npmos.events.retention.oldest": {
+		"defaultMessage": "Самое старое: {time}"
+	},
+	"npmos.events.retention.saved": {
+		"defaultMessage": "Срок хранения сохранён"
+	},
+	"npmos.events.retention.stored": {
+		"defaultMessage": "{events, plural, one {Хранится # событие} few {Хранится # события} many {Хранится # событий} other {Хранится # события}}"
+	},
+	"npmos.events.rule": {
+		"defaultMessage": "Правило"
+	},
+	"npmos.events.score": {
+		"defaultMessage": "Оценка"
+	},
+	"npmos.events.score.max": {
+		"defaultMessage": "Оценка до"
+	},
+	"npmos.events.score.min": {
+		"defaultMessage": "Оценка от"
+	},
+	"npmos.events.to": {
+		"defaultMessage": "по (пусто — сейчас)"
+	},
+	"npmos.events.total": {
+		"defaultMessage": "{total, plural, one {# событие} few {# события} many {# событий} other {# события}}"
+	},
+	"npmos.events.total-capped": {
+		"defaultMessage": "Больше {total} событий"
+	},
 	"npmos.glossary": {
 		"defaultMessage": "Глоссарий"
 	},
@@ -1230,7 +1356,7 @@
 		"defaultMessage": "Последнее событие"
 	},
 	"npmos.overview.analytics.note": {
-		"defaultMessage": "По хвосту логов агента. Графики, периоды и топы появятся вместе с аналитикой (фаза 4)."
+		"defaultMessage": "Сохранённые события агента за последние 24 часа."
 	},
 	"npmos.overview.analytics.prevented": {
 		"defaultMessage": "Из них заблокировано"
@@ -1745,6 +1871,9 @@
 	"npmos.services.version": {
 		"defaultMessage": "Версия"
 	},
+	"npmos.settings.events-retention": {
+		"defaultMessage": "Срок хранения событий безопасности"
+	},
 	"npmos.waf": {
 		"defaultMessage": "WAF"
 	},
@@ -1832,20 +1961,11 @@
 	"npmos.waf.events.action": {
 		"defaultMessage": "Действие"
 	},
-	"npmos.waf.events.all": {
-		"defaultMessage": "Все события"
-	},
 	"npmos.waf.events.component": {
 		"defaultMessage": "Компонент агента"
 	},
 	"npmos.waf.events.description": {
 		"defaultMessage": "Журнал безопасности агента open-appsec: обнаруженные и заблокированные атаки и события самого агента"
-	},
-	"npmos.waf.events.empty-all": {
-		"defaultMessage": "Событий пока нет"
-	},
-	"npmos.waf.events.empty-important": {
-		"defaultMessage": "Важных событий нет. Здесь появятся атаки на хосты под защитой WAF."
 	},
 	"npmos.waf.events.event": {
 		"defaultMessage": "Событие"
@@ -1855,9 +1975,6 @@
 	},
 	"npmos.waf.events.host": {
 		"defaultMessage": "Хост"
-	},
-	"npmos.waf.events.important": {
-		"defaultMessage": "Важные события"
 	},
 	"npmos.waf.events.matched": {
 		"defaultMessage": "Что обнаружил WAF"
@@ -1880,17 +1997,11 @@
 	"npmos.waf.events.severity": {
 		"defaultMessage": "Важность"
 	},
-	"npmos.waf.events.shown": {
-		"defaultMessage": "Показано {shown} из {total}"
-	},
 	"npmos.waf.events.source-ip": {
 		"defaultMessage": "IP источника"
 	},
 	"npmos.waf.events.time": {
 		"defaultMessage": "Время"
-	},
-	"npmos.waf.events.truncated": {
-		"defaultMessage": "Читается только последняя часть файлов логов агента."
 	},
 	"npmos.waf.events.unavailable": {
 		"defaultMessage": "Каталог логов агента недоступен: запущен ли агент open-appsec?"

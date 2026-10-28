@@ -3,11 +3,11 @@ import express from "express";
 import jwtdecode from "../lib/express/jwt-decode.js";
 import validator from "../lib/validator/index.js";
 import { debug, express as logger } from "../logger.js";
+import internalEvents from "./events/index.js";
 import internalHosts, { HOST_OBJECTS } from "./hosts.js";
 import internalRbac from "./rbac/index.js";
 import internalServices from "./services.js";
 import internalWafAgent from "./waf/agent-settings.js";
-import internalWafEvents from "./waf/events.js";
 import internalWafExpert from "./waf/expert.js";
 import internalWafHosts from "./waf/hosts.js";
 import internalWaf from "./waf/index.js";
@@ -61,6 +61,13 @@ for (const name of ["role_id", "user_id"]) {
 		next();
 	});
 }
+
+router.param("event_id", (_req, res, next, id) => {
+	if (!/^[1-9][0-9]{0,17}$/.test(id)) {
+		return res.status(400).send({ error: { code: 400, message: "Invalid event id" } });
+	}
+	next();
+});
 
 router.param("object_type", (_req, res, next, type) => {
 	if (!Object.hasOwn(HOST_OBJECTS, type)) {
@@ -408,22 +415,110 @@ router
 	.put(handle((req, res) => internalWafAgent.uploadModel(res.locals.access, req, req.query.apply !== "false")));
 
 /**
- * GET /api/npmos/waf/events?view=important|all&host=<domain>&query=<text>&limit=200 — newest first
+ * GET /api/npmos/events — security events of the agent, newest first. Filters: from, to (ISO, default
+ * the last 24 h), kind=security|system|all, important=true, host, ip, action, severity, type
+ * (comma-separated), min_score, max_score, q (text); limit (≤ 500), before (cursor: next of a page)
  */
 router
-	.route("/waf/events")
+	.route("/events")
 	.options((_, res) => res.sendStatus(204))
 	.all(jwtdecode())
-	.get(
-		handle((req, res) =>
-			internalWafEvents.list(res.locals.access, {
-				view: String(req.query.view || "important"),
-				host: String(req.query.host || ""),
-				query: String(req.query.query || "").slice(0, 200),
-				limit: Number.parseInt(req.query.limit, 10) || 200,
-			}),
+	.get(handle((req, res) => internalEvents.list(res.locals.access, req.query)));
+
+const CSV_COLUMNS = [
+	"time",
+	"severity",
+	"action",
+	"incident_type",
+	"source_ip",
+	"source_country",
+	"host",
+	"method",
+	"uri",
+	"query",
+	"response_code",
+	"location",
+	"parameter",
+	"sample",
+	"indicators",
+	"score",
+	"rule",
+	"name",
+	"kind",
+	"id",
+];
+
+const csvCell = (value) => {
+	if (value === null || value === undefined) return "";
+	let s = String(value);
+	// a cell starting with = + - @ would be a formula in a spreadsheet
+	if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
+	return /[",\n\r]/.test(s) ? `"${s.replaceAll('"', '""')}"` : s;
+};
+
+/**
+ * GET /api/npmos/events/export?format=csv|json&<filters of /events> — up to 100 000 events
+ */
+router
+	.route("/events/export")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(async (req, res, next) => {
+		try {
+			const { rows, capped } = await internalEvents.export(res.locals.access, req.query);
+			const name = `npmos-events-${new Date().toISOString().slice(0, 19).replaceAll(":", "-")}`;
+			res.set("X-NPMOS-Export-Capped", String(capped));
+			if (req.query.format === "json") {
+				res.set("Content-Disposition", `attachment; filename="${name}.json"`);
+				res.type("application/json").send(JSON.stringify(rows, null, 2));
+				return;
+			}
+			const lines = [CSV_COLUMNS.join(","), ...rows.map((r) => CSV_COLUMNS.map((c) => csvCell(r[c])).join(","))];
+			res.set("Content-Disposition", `attachment; filename="${name}.csv"`);
+			res.type("text/csv").send(`\ufeff${lines.join("\r\n")}\r\n`);
+		} catch (err) {
+			debug(logger, `${req.method.toUpperCase()} ${req.originalUrl}: ${err}`);
+			next(err);
+		}
+	});
+
+/**
+ * GET /api/npmos/events/settings — retention, storage, state of the ingest
+ * PUT /api/npmos/events/settings — {days, aggregate_days}
+ */
+router
+	.route("/events/settings")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalEvents.getSettings(res.locals.access)))
+	.put(
+		handle(async (req, res) =>
+			internalEvents.setSettings(
+				res.locals.access,
+				await validator(
+					{
+						type: "object",
+						additionalProperties: false,
+						required: ["days", "aggregate_days"],
+						properties: {
+							days: { type: "integer", minimum: 1, maximum: 365 },
+							aggregate_days: { type: "integer", minimum: 1, maximum: 1830 },
+						},
+					},
+					req.body,
+				),
+			),
 		),
 	);
+
+/**
+ * GET /api/npmos/events/:event_id?time=<ISO> — one event with its raw JSON
+ */
+router
+	.route("/events/:event_id")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((req, res) => internalEvents.get(res.locals.access, req.params.event_id, req.query.time)));
 
 /**
  * GET /api/npmos/waf/policy/custom — expert YAML fragment in force, its versions

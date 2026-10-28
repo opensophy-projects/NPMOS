@@ -1,5 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import {
+	type EventQuery,
+	type EventsPage,
+	type EventsSettings,
+	getEvent,
+	getEvents,
+	getEventsSettings,
 	getHostChanges,
 	getHostHistory,
 	getServiceLogs,
@@ -7,7 +13,6 @@ import {
 	getUpstreamChecks,
 	getWafAgent,
 	getWafCustomPolicy,
-	getWafEvents,
 	getWafHost,
 	getWafHosts,
 	getWafPolicy,
@@ -15,13 +20,12 @@ import {
 	type HostChange,
 	type HostLastChange,
 	type HostObjectType,
+	type SecurityEventFull,
 	type Service,
 	type ServiceLogLine,
 	type UpstreamCheck,
 	type WafAgentState,
 	type WafCustomPolicy,
-	type WafEvents,
-	type WafEventsView,
 	type WafHost,
 	type WafPolicyState,
 	type WafSettings,
@@ -74,12 +78,27 @@ export const useWafPolicy = () =>
 		refetchInterval: 10000,
 	});
 
-export const useWafEvents = (view: WafEventsView, query: string, follow: boolean, options = {}) =>
-	useQuery<WafEvents, Error>({
-		queryKey: ["npmos-waf-events", view, query],
-		queryFn: () => getWafEvents({ view, query: query || undefined }),
+/** a page of stored events; `follow`: refreshed every 5 s */
+export const useEvents = (query: EventQuery, follow: boolean, options = {}) =>
+	useQuery<EventsPage, Error>({
+		queryKey: ["npmos-events", query],
+		queryFn: () => getEvents(query),
 		refetchInterval: follow ? 5000 : false,
 		placeholderData: (previous) => previous,
+		...options,
+	});
+
+export const useEvent = (id: string, time: string) =>
+	useQuery<SecurityEventFull, Error>({
+		queryKey: ["npmos-event", id, time],
+		queryFn: () => getEvent(id, time),
+		staleTime: Number.POSITIVE_INFINITY,
+	});
+
+export const useEventsSettings = (options = {}) =>
+	useQuery<EventsSettings, Error>({
+		queryKey: ["npmos-events-settings"],
+		queryFn: getEventsSettings,
 		...options,
 	});
 

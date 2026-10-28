@@ -36,6 +36,18 @@ const DEFINITIONS = {
 			v.failOpen.timeoutMs >= 10 &&
 			v.failOpen.timeoutMs <= 10000,
 	},
+	// security events (System → Settings → Events), see events/ingest.js: raw events and hourly
+	// aggregates are kept this many days
+	"events.retention": {
+		default: () => ({ days: 30, aggregateDays: 365 }),
+		validate: (v) =>
+			Number.isInteger(v?.days) &&
+			v.days >= 1 &&
+			v.days <= 365 &&
+			Number.isInteger(v?.aggregateDays) &&
+			v.aggregateDays >= v.days &&
+			v.aggregateDays <= 1830,
+	},
 	// OIDC groups → roles (Administration → Roles), see rbac/index.js
 	"rbac.oidc": {
 		default: () => ({ claim: "groups", requestScope: false }),

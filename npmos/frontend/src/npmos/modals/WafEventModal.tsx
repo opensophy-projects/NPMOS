@@ -1,18 +1,23 @@
-// One security event of the open-appsec agent: what was matched (as the red zone of the
-// open-appsec-npm Security Log) and the whole event as the agent wrote it.
+// One security event of the open-appsec agent: the request, what the WAF matched (as the red zone
+// of the open-appsec-npm Security Log), how it scored, and the whole event as the agent wrote it.
 import EasyModal, { type InnerModalProps } from "ez-modal-react";
 import Modal from "react-bootstrap/Modal";
 import { Button } from "src/components";
-import { T } from "src/locale";
-import type { WafEvent } from "../api";
+import { intl, T } from "src/locale";
+import type { SecurityEvent } from "../api";
+import { useEvent } from "../hooks";
 import { ActionBadge, EventTime, SeverityBadge } from "../pages/WafEvents/badges";
 
+type FilterField = "ip" | "host";
+
 interface Props extends InnerModalProps {
-	event: WafEvent;
+	event: SecurityEvent;
+	/** show only the events of this IP or host (the events page) */
+	onFilter?: (field: FilterField, value: string) => void;
 }
 
 function Field({ label, value }: { label: string; value?: React.ReactNode }) {
-	if (!value) return null;
+	if (value === undefined || value === null || value === "") return null;
 	return (
 		<div className="datagrid-item">
 			<div className="datagrid-title">
@@ -23,8 +28,26 @@ function Field({ label, value }: { label: string; value?: React.ReactNode }) {
 	);
 }
 
-const WafEventModal = EasyModal.create(({ visible, remove, event }: Props) => {
-	const matched = event.matchedSample || event.matchedParameter || event.matchedLocation;
+const WafEventModal = EasyModal.create(({ visible, remove, event, onFilter }: Props) => {
+	const full = useEvent(event.id, event.time);
+	const matched = event.sample || event.parameter || event.location;
+	const request = [event.method, event.uri + (event.query ? `?${event.query}` : "")].filter(Boolean).join(" ");
+	const filter = (field: FilterField, value: string, label: React.ReactNode) =>
+		onFilter ? (
+			<button
+				type="button"
+				className="btn btn-link p-0 text-reset text-decoration-underline"
+				title={intl.formatMessage({ id: "npmos.events.filter-by" })}
+				onClick={() => {
+					onFilter(field, value);
+					remove();
+				}}
+			>
+				{label}
+			</button>
+		) : (
+			label
+		);
 	return (
 		<Modal show={visible} onHide={remove} size="xl">
 			<Modal.Header closeButton>
@@ -35,18 +58,30 @@ const WafEventModal = EasyModal.create(({ visible, remove, event }: Props) => {
 			</Modal.Header>
 			<Modal.Body>
 				<div className="datagrid mb-3">
-					<Field label="npmos.waf.events.time" value={event.time && <EventTime time={event.time} />} />
-					<Field label="npmos.waf.events.source-ip" value={event.sourceIp} />
-					<Field label="npmos.waf.events.proxy-ip" value={event.proxyIp} />
-					<Field label="npmos.waf.events.host" value={event.host || event.asset} />
+					<Field label="npmos.waf.events.time" value={<EventTime time={event.time} />} />
 					<Field
-						label="npmos.waf.events.request"
-						value={[event.method, event.uri].filter(Boolean).join(" ")}
+						label="npmos.waf.events.source-ip"
+						value={
+							event.sourceIp &&
+							filter(
+								"ip",
+								event.sourceIp,
+								`${event.sourceIp}${event.sourcePort ? `:${event.sourcePort}` : ""}`,
+							)
+						}
 					/>
+					<Field label="npmos.events.country" value={event.sourceCountry} />
+					<Field label="npmos.waf.events.proxy-ip" value={event.proxyIp} />
+					<Field
+						label="npmos.waf.events.host"
+						value={event.host ? filter("host", event.host, event.host) : event.asset}
+					/>
+					<Field label="npmos.waf.events.request" value={request} />
+					<Field label="npmos.events.response-code" value={event.responseCode} />
 					<Field label="npmos.waf.events.event" value={event.name} />
-					<Field label="npmos.waf.events.component" value={event.service || event.source} />
+					<Field label="npmos.waf.events.component" value={event.service} />
 				</div>
-				{matched && (
+				{(matched || event.score !== null || event.indicators) && (
 					<div className="card card-sm border-danger mb-3">
 						<div className="card-status-start bg-red" />
 						<div className="card-body">
@@ -54,15 +89,26 @@ const WafEventModal = EasyModal.create(({ visible, remove, event }: Props) => {
 								<T id="npmos.waf.events.matched" />
 							</h4>
 							<div className="datagrid">
-								<Field label="npmos.waf.events.matched-location" value={event.matchedLocation} />
-								<Field label="npmos.waf.events.matched-parameter" value={event.matchedParameter} />
+								<Field label="npmos.waf.events.matched-location" value={event.location} />
+								<Field label="npmos.waf.events.matched-parameter" value={event.parameter} />
+								<Field label="npmos.events.score" value={event.score} />
+								<Field label="npmos.events.confidence" value={event.confidence} />
+								<Field label="npmos.events.indicators" value={event.indicators} />
+								<Field label="npmos.events.rule" value={event.rule} />
+								<Field
+									label="npmos.events.override"
+									value={event.override !== "None" && event.override}
+								/>
 							</div>
-							{event.matchedSample && <pre className="mt-2 mb-0 text-wrap">{event.matchedSample}</pre>}
+							{event.sample && <pre className="mt-2 mb-0 text-wrap">{event.sample}</pre>}
 						</div>
 					</div>
 				)}
+				<h4>
+					<T id="npmos.events.raw" />
+				</h4>
 				<pre className="mb-0" style={{ maxHeight: "45vh", overflow: "auto" }}>
-					{JSON.stringify(event.raw, null, 2)}
+					{full.data ? JSON.stringify(full.data.raw, null, 2) : full.isError ? full.error.message : "…"}
 				</pre>
 			</Modal.Body>
 			<Modal.Footer>
@@ -74,4 +120,5 @@ const WafEventModal = EasyModal.create(({ visible, remove, event }: Props) => {
 	);
 });
 
-export const showWafEventModal = (event: WafEvent) => EasyModal.show(WafEventModal, { event });
+export const showWafEventModal = (event: SecurityEvent, onFilter?: Props["onFilter"]) =>
+	EasyModal.show(WafEventModal, { event, onFilter });
