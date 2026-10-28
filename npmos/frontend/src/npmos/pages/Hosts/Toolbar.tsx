@@ -33,13 +33,14 @@ import {
 
 const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id }, values);
 
-export const COLUMNS = ["type", "target", "tls", "waf", "mtls", "access", "status", "changed"] as const;
+export const COLUMNS = ["type", "target", "tls", "waf", "attacks", "mtls", "access", "status", "changed"] as const;
 export type Column = (typeof COLUMNS)[number];
 export const COLUMN_LABEL: Record<Column, string> = {
 	type: "npmos.hosts.column.type",
 	target: "column.destination",
 	tls: "column.ssl",
 	waf: "WAF",
+	attacks: "npmos.hosts.column.attacks",
 	mtls: "mTLS",
 	access: "column.access",
 	status: "column.status",
@@ -52,8 +53,8 @@ export interface View {
 	hidden: Column[];
 	compact: boolean;
 }
-/** "Changed" is shown on request: the table should fit a laptop screen */
-export const DEFAULT_VIEW: View = { hidden: ["changed"], compact: false };
+/** "Changed" and "Attacks 24 h" are shown on request: the table should fit a laptop screen */
+export const DEFAULT_VIEW: View = { hidden: ["changed", "attacks"], compact: false };
 
 /** search field in the inset frame of cards */
 export const Search = forwardRef<HTMLInputElement, { value: string; onChange: (value: string) => void }>(

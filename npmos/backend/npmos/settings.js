@@ -7,6 +7,7 @@
 import { mkdir, rename, writeFile } from "node:fs/promises";
 import db from "../db.js";
 import errs from "../lib/error.js";
+import { envLines, normalize as normalizeEnv } from "./system/env.js";
 
 const RUNTIME_ENV_FILE = "/data/npmos/runtime.env";
 
@@ -47,6 +48,17 @@ const DEFINITIONS = {
 			Number.isInteger(v?.aggregateDays) &&
 			v.aggregateDays >= v.days &&
 			v.aggregateDays <= 1830,
+	},
+	// env settings of NPMplus set in the GUI (System → Settings), see system/env.js: {ENV: value},
+	// written to runtime.env
+	"system.env": {
+		default: () => ({}),
+		validate: (v) =>
+			v !== null &&
+			typeof v === "object" &&
+			!Array.isArray(v) &&
+			Object.entries(v).every(([env, value]) => normalizeEnv(env, value) === value),
+		envMap: true,
 	},
 	// OIDC groups → roles (Administration → Roles), see rbac/index.js
 	"rbac.oidc": {
@@ -93,9 +105,11 @@ const getRunningValue = (key) => {
 const writeRuntimeEnv = async () => {
 	const rows = await table().whereIn(
 		"key",
-		Object.keys(DEFINITIONS).filter((k) => DEFINITIONS[k].env),
+		Object.keys(DEFINITIONS).filter((k) => DEFINITIONS[k].env || DEFINITIONS[k].envMap),
 	);
-	const lines = rows.map((row) => `${DEFINITIONS[row.key].env}=${parse(row.value)}`);
+	const lines = rows.flatMap((row) =>
+		DEFINITIONS[row.key].envMap ? envLines(parse(row.value)) : [`${DEFINITIONS[row.key].env}=${parse(row.value)}`],
+	);
 	await mkdir("/data/npmos", { recursive: true });
 	const tmp = `${RUNTIME_ENV_FILE}.tmp`;
 	await writeFile(tmp, `${lines.join("\n")}\n`, { mode: 0o600 });
@@ -116,7 +130,7 @@ const setSetting = async (key, value) => {
 		.insert({ key, value: JSON.stringify(value), modified_on: new Date() })
 		.onConflict("key")
 		.merge();
-	if (def.env) {
+	if (def.env || def.envMap) {
 		await writeRuntimeEnv();
 	}
 	return value;

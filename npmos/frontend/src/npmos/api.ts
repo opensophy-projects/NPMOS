@@ -205,6 +205,16 @@ export interface Analytics {
 export const getAnalytics = (period: AnalyticsPeriod, host?: string) =>
 	api.get({ url: "/npmos/analytics", params: { period, host } }) as Promise<Analytics>;
 
+/** attacks on a host per hour of the last 24 h (hosts table) */
+export interface HostAttacks {
+	host: string;
+	events: number;
+	prevented: number;
+	hours: number[];
+}
+
+export const getHostAttacks = () => api.get({ url: "/npmos/analytics/hosts" }) as Promise<HostAttacks[]>;
+
 export interface EventsSettings {
 	retention: { days: number; aggregateDays: number };
 	storage: { events: number; oldest: string | null; bytes: number | null };

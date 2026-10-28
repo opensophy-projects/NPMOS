@@ -37,7 +37,7 @@ import {
 } from "src/modules/Permissions";
 import { showError, showSuccess } from "src/notifications";
 import { setWafHost, WAF_DEFAULTS } from "../../api";
-import { useHostChanges, useUpstreamChecks, useWafHosts, useWafStatus } from "../../hooks";
+import { useHostAttacks, useHostChanges, useUpstreamChecks, useWafHosts, useWafStatus } from "../../hooks";
 import { showConfirmModal } from "../../modals/ConfirmModal";
 import { useCan } from "../../rbac/hooks";
 import { showHostHistoryModal } from "../../modals/HostHistoryModal";
@@ -46,6 +46,7 @@ import {
 	AccessCell,
 	ActionsCell,
 	type CellContext,
+	AttacksCell,
 	ChangedCell,
 	MtlsCell,
 	NameCell,
@@ -135,14 +136,18 @@ const download = (name: string, content: string, type: string) => {
 	URL.revokeObjectURL(url);
 };
 
-const VIEW_VERSION = 2;
+const VIEW_VERSION = 3;
+/** columns added after a version of the stored view: hidden in views saved before them */
+const NEW_COLUMNS: Record<number, Column[]> = { 2: ["changed"], 3: ["attacks"] };
 const viewKey = (userId?: number) => `npmos.hosts.view.${userId ?? 0}`;
 const loadView = (userId?: number): View => {
 	try {
 		const stored = JSON.parse(window.localStorage.getItem(viewKey(userId)) || "null");
 		if (stored && Array.isArray(stored.hidden)) {
 			// views saved before a column existed keep it hidden, like the default
-			const hidden = stored.v === VIEW_VERSION ? stored.hidden : [...stored.hidden, "changed"];
+			const version = Number(stored.v) || 1;
+			const added = Object.entries(NEW_COLUMNS).flatMap(([v, columns]) => (Number(v) > version ? columns : []));
+			const hidden = [...new Set([...stored.hidden, ...added])];
 			return { hidden, compact: !!stored.compact };
 		}
 	} catch {
@@ -173,6 +178,11 @@ function HostsPage() {
 	const accessLists = useAccessLists([], { enabled: hasPermission(ACCESS_LISTS, VIEW, perms, roles) });
 	const changes = useHostChanges();
 	const upstreams = useUpstreamChecks({ enabled: can("proxy", VIEW) || can("stream", VIEW) });
+	const attacks = useHostAttacks({ enabled: rbac("analytics") });
+	const attacksByHost = useMemo(
+		() => (attacks.data ? new Map(attacks.data.map((a) => [a.host, a])) : undefined),
+		[attacks.data],
+	);
 
 	const filters = useMemo(() => filtersFromParams(params), [params]);
 	const sortKey = (params.get("sort") as SortKey) || "name";
@@ -360,6 +370,9 @@ function HostsPage() {
 		openCertificates: () => navigate("/certificates"),
 		duplicate: (row) => EDIT[row.type](row.id, true),
 		history: (row) => showHostHistoryModal(OBJECT_TYPE[row.type], row.id, row.names.join(", ")),
+		attacks: attacksByHost,
+		events: (row) =>
+			navigate(`/waf/events?${new URLSearchParams({ host: row.names.map((n) => n.toLowerCase()).join(",") })}`),
 	};
 
 	const selectedRows = rows.filter((r) => selected.has(r.key) && can(r.type, MANAGE));
@@ -498,6 +511,8 @@ function HostsPage() {
 				return <StatusCell row={row} ctx={ctx} />;
 			case "changed":
 				return <ChangedCell row={row} ctx={ctx} />;
+			case "attacks":
+				return <AttacksCell row={row} ctx={ctx} />;
 		}
 	};
 

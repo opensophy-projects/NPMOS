@@ -1,0 +1,74 @@
+/* env settings of System → Settings: a row per setting, the control on the right */
+.section {
+	padding: 1rem 1.25rem;
+}
+.intro {
+	margin: 0 0 0.5rem;
+	color: var(--foreground-muted);
+	font-size: 0.875rem;
+}
+.rows {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+.row {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(8rem, 16rem);
+	align-items: center;
+	gap: 1rem;
+	padding: 0.75rem 0;
+	border-top: 1px solid var(--border);
+}
+.row:first-child {
+	border-top: 0;
+}
+@media (max-width: 640px) {
+	.row {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+.label {
+	font-weight: 500;
+}
+.hint {
+	color: var(--foreground-muted);
+	font-size: 0.8125rem;
+}
+.env {
+	display: inline-block;
+	margin-top: 0.25rem;
+	padding: 0;
+	background: none;
+	color: var(--foreground-muted);
+	font-size: 0.75rem;
+}
+.control {
+	display: flex;
+	justify-content: flex-end;
+}
+.invalid :global(.form-control),
+.invalid :global(.form-select) {
+	border-color: var(--tblr-danger);
+}
+.workers {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+}
+.workers input[type="number"] {
+	width: 6rem;
+}
+.actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 0.5rem;
+	margin-top: 0.75rem;
+}
+.banner {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	margin: 1rem 1rem 0;
+}

@@ -1004,6 +1004,9 @@
 	"npmos.hosts.add": {
 		"defaultMessage": "Add"
 	},
+	"npmos.hosts.attacks.title": {
+		"defaultMessage": "{events} attacks in 24 h, {prevented} blocked; click to see the events"
+	},
 	"npmos.hosts.bulk.certificate": {
 		"defaultMessage": "Certificate"
 	},
@@ -1012,6 +1015,9 @@
 	},
 	"npmos.hosts.bulk.delete-title": {
 		"defaultMessage": "Delete hosts"
+	},
+	"npmos.hosts.column.attacks": {
+		"defaultMessage": "Attacks 24 h"
 	},
 	"npmos.hosts.column.changed": {
 		"defaultMessage": "Changed"
@@ -2221,6 +2227,216 @@
 	},
 	"npmos.settings.events-retention": {
 		"defaultMessage": "Retention of security events"
+	},
+	"npmos.system.after-restart": {
+		"defaultMessage": "after restart"
+	},
+	"npmos.system.env.DEFAULT_CERT_ID": {
+		"defaultMessage": "Default certificate"
+	},
+	"npmos.system.env.DEFAULT_CERT_ID.hint": {
+		"defaultMessage": "Answered for HTTPS requests to names no host has (otherwise a self-signed one)."
+	},
+	"npmos.system.env.DEFAULT_CERT_ID.none": {
+		"defaultMessage": "Self-signed"
+	},
+	"npmos.system.env.DISABLE_GRAVATAR": {
+		"defaultMessage": "No Gravatar"
+	},
+	"npmos.system.env.DISABLE_GRAVATAR.hint": {
+		"defaultMessage": "Avatars of users are not loaded from gravatar.com."
+	},
+	"npmos.system.env.DISABLE_H3_QUIC": {
+		"defaultMessage": "Turn off HTTP/3 (QUIC)"
+	},
+	"npmos.system.env.DISABLE_H3_QUIC.hint": {
+		"defaultMessage": "UDP 443 is not served; browsers use HTTP/2."
+	},
+	"npmos.system.env.DISABLE_HTTP": {
+		"defaultMessage": "Turn off plain HTTP (port 80)"
+	},
+	"npmos.system.env.DISABLE_HTTP.hint": {
+		"defaultMessage": "Only HTTPS is served. ACME HTTP-01 challenges stop working."
+	},
+	"npmos.system.env.ENABLE_MPTCP": {
+		"defaultMessage": "Multipath TCP"
+	},
+	"npmos.system.env.ENABLE_MPTCP.hint": {
+		"defaultMessage": "Accept MPTCP connections (the host kernel must support it)."
+	},
+	"npmos.system.env.LISTEN_PROXY_PROTOCOL_HTTP": {
+		"defaultMessage": "PROXY protocol on HTTP"
+	},
+	"npmos.system.env.LISTEN_PROXY_PROTOCOL_HTTP.hint": {
+		"defaultMessage": "Only behind a load balancer that sends it: direct clients are refused."
+	},
+	"npmos.system.env.LISTEN_PROXY_PROTOCOL_HTTPS": {
+		"defaultMessage": "PROXY protocol on HTTPS"
+	},
+	"npmos.system.env.LISTEN_PROXY_PROTOCOL_HTTPS.hint": {
+		"defaultMessage": "As for HTTP; needs HTTP/3 turned off."
+	},
+	"npmos.system.env.LOGROTATIONS": {
+		"defaultMessage": "Rotated nginx logs kept"
+	},
+	"npmos.system.env.LOGROTATIONS.hint": {
+		"defaultMessage": "Access and error logs of nginx, rotated daily; CrowdSec reads them."
+	},
+	"npmos.system.env.NGINX_DISABLE_TLS12": {
+		"defaultMessage": "Turn off TLS 1.2"
+	},
+	"npmos.system.env.NGINX_DISABLE_TLS12.hint": {
+		"defaultMessage": "Only TLS 1.3: old clients cannot connect."
+	},
+	"npmos.system.env.NGINX_FORCE_X25519MLKEM768": {
+		"defaultMessage": "Post-quantum key exchange only"
+	},
+	"npmos.system.env.NGINX_FORCE_X25519MLKEM768.hint": {
+		"defaultMessage": "X25519MLKEM768 only; needs TLS 1.2 off and secp curves off."
+	},
+	"npmos.system.env.NGINX_LOAD_GEOIP2_MODULE": {
+		"defaultMessage": "GeoIP2 module"
+	},
+	"npmos.system.env.NGINX_LOAD_GEOIP2_MODULE.hint": {
+		"defaultMessage": "Country of the client in nginx (needs a GeoIP2 database)."
+	},
+	"npmos.system.env.NGINX_LOAD_LDAP_MODULE": {
+		"defaultMessage": "LDAP authentication module"
+	},
+	"npmos.system.env.NGINX_LOAD_LDAP_MODULE.hint": {
+		"defaultMessage": "Basic authentication against an LDAP directory."
+	},
+	"npmos.system.env.NGINX_LOAD_NJS_MODULE": {
+		"defaultMessage": "njs module"
+	},
+	"npmos.system.env.NGINX_LOAD_NJS_MODULE.hint": {
+		"defaultMessage": "JavaScript in nginx for custom configuration."
+	},
+	"npmos.system.env.NGINX_LOAD_NTLM_MODULE": {
+		"defaultMessage": "NTLM module"
+	},
+	"npmos.system.env.NGINX_LOAD_NTLM_MODULE.hint": {
+		"defaultMessage": "Keeps NTLM connections to upstreams (Windows authentication)."
+	},
+	"npmos.system.env.NGINX_LOAD_VHOST_TRAFFIC_STATUS_MODULE": {
+		"defaultMessage": "Traffic status module"
+	},
+	"npmos.system.env.NGINX_LOAD_VHOST_TRAFFIC_STATUS_MODULE.hint": {
+		"defaultMessage": "Per-host traffic statistics in nginx."
+	},
+	"npmos.system.env.NGINX_LOG_NOT_FOUND": {
+		"defaultMessage": "Log \"file not found\""
+	},
+	"npmos.system.env.NGINX_LOG_NOT_FOUND.hint": {
+		"defaultMessage": "404 of missing files go to the error log too."
+	},
+	"npmos.system.env.NGINX_QUIC_BPF": {
+		"defaultMessage": "QUIC with eBPF"
+	},
+	"npmos.system.env.NGINX_QUIC_BPF.hint": {
+		"defaultMessage": "Routes QUIC packets to the right nginx worker; needs extra privileges on some hosts."
+	},
+	"npmos.system.env.NGINX_TRUST_RSA_PKCS1": {
+		"defaultMessage": "Allow RSA PKCS#1 signatures"
+	},
+	"npmos.system.env.NGINX_TRUST_RSA_PKCS1.hint": {
+		"defaultMessage": "For old clients only."
+	},
+	"npmos.system.env.NGINX_TRUST_SECPR1": {
+		"defaultMessage": "Allow secp curves"
+	},
+	"npmos.system.env.NGINX_TRUST_SECPR1.hint": {
+		"defaultMessage": "NIST curves secp256r1/secp384r1 for key exchange."
+	},
+	"npmos.system.env.NGINX_WORKER_CONNECTIONS": {
+		"defaultMessage": "Connections per worker"
+	},
+	"npmos.system.env.NGINX_WORKER_CONNECTIONS.hint": {
+		"defaultMessage": "Upper limit of simultaneous connections of one nginx process."
+	},
+	"npmos.system.env.NGINX_WORKER_PROCESSES": {
+		"defaultMessage": "nginx worker processes"
+	},
+	"npmos.system.env.NGINX_WORKER_PROCESSES.hint": {
+		"defaultMessage": "\"Auto\": one per CPU core."
+	},
+	"npmos.system.env.NPMOS_CHECK_VERSION": {
+		"defaultMessage": "Check for updates"
+	},
+	"npmos.system.env.NPMOS_CHECK_VERSION.hint": {
+		"defaultMessage": "Asks GitHub for new NPMOS releases."
+	},
+	"npmos.system.env.TRUST_CLOUDFLARE": {
+		"defaultMessage": "Trust Cloudflare"
+	},
+	"npmos.system.env.TRUST_CLOUDFLARE.hint": {
+		"defaultMessage": "The real client IP is taken from Cloudflare's headers; its IP ranges are downloaded."
+	},
+	"npmos.system.env.TZ": {
+		"defaultMessage": "Time zone"
+	},
+	"npmos.system.env.TZ.hint": {
+		"defaultMessage": "Times in logs, certificates renewal and the start scripts of the container."
+	},
+	"npmos.system.env.auto": {
+		"defaultMessage": "Auto"
+	},
+	"npmos.system.group.external": {
+		"defaultMessage": "External services"
+	},
+	"npmos.system.group.external.hint": {
+		"defaultMessage": "NPMOS works without internet; these options make it go out."
+	},
+	"npmos.system.group.general": {
+		"defaultMessage": "General"
+	},
+	"npmos.system.group.general.hint": {
+		"defaultMessage": "Time zone and the certificate for unknown names."
+	},
+	"npmos.system.group.logs": {
+		"defaultMessage": "Logs"
+	},
+	"npmos.system.group.logs.hint": {
+		"defaultMessage": "How long nginx logs and security events are kept."
+	},
+	"npmos.system.group.network": {
+		"defaultMessage": "Network"
+	},
+	"npmos.system.group.network.hint": {
+		"defaultMessage": "How NPMOS listens: HTTP, HTTP/3, PROXY protocol, Cloudflare."
+	},
+	"npmos.system.group.nginx": {
+		"defaultMessage": "Nginx"
+	},
+	"npmos.system.group.nginx.hint": {
+		"defaultMessage": "Processes, connections and optional modules of nginx."
+	},
+	"npmos.system.group.tls": {
+		"defaultMessage": "TLS"
+	},
+	"npmos.system.group.tls.hint": {
+		"defaultMessage": "Protocol versions and key exchange of HTTPS."
+	},
+	"npmos.system.internet": {
+		"defaultMessage": "internet"
+	},
+	"npmos.system.pending": {
+		"defaultMessage": "Some settings are saved but not applied yet: NPMOS needs a restart (connections drop for a few seconds)."
+	},
+	"npmos.system.restart": {
+		"defaultMessage": "Restart now"
+	},
+	"npmos.system.restarting": {
+		"defaultMessage": "NPMOS restarts to apply the settings; the panel is back in about 30 s"
+	},
+	"npmos.system.save": {
+		"defaultMessage": "Save"
+	},
+	"npmos.system.save-restart": {
+		"defaultMessage": "Save and restart NPMOS"
+	},
+	"npmos.system.saved": {
+		"defaultMessage": "Saved: applied at the next restart of NPMOS"
 	},
 	"npmos.waf": {
 		"defaultMessage": "WAF"

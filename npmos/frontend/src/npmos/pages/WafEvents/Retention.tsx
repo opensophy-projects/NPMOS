@@ -21,7 +21,7 @@ const size = (bytes: number) =>
 			? `${(bytes / 1024 ** 2).toFixed(1)} MB`
 			: `${Math.ceil(bytes / 1024)} KB`;
 
-function RetentionForm({ canManage, close }: { canManage: boolean; close: () => void }) {
+export function RetentionForm({ canManage, close }: { canManage: boolean; close?: () => void }) {
 	const queryClient = useQueryClient();
 	const { data } = useEventsSettings();
 	const [days, setDays] = useState("");
@@ -49,7 +49,7 @@ function RetentionForm({ canManage, close }: { canManage: boolean; close: () => 
 			queryClient.setQueryData(["npmos-events-settings"], result);
 			queryClient.invalidateQueries({ queryKey: ["npmos-events"] });
 			showSuccess(t("npmos.events.retention.saved"));
-			close();
+			close?.();
 		} catch (err: any) {
 			showError(err.message);
 		} finally {

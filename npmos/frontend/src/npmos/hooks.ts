@@ -9,6 +9,7 @@ import {
 	getEvent,
 	getEvents,
 	getEventsSettings,
+	getHostAttacks,
 	getHostChanges,
 	getHostHistory,
 	getServiceLogs,
@@ -20,6 +21,7 @@ import {
 	getWafHosts,
 	getWafPolicy,
 	getWafStatus,
+	type HostAttacks,
 	type HostChange,
 	type HostLastChange,
 	type HostObjectType,
@@ -87,6 +89,14 @@ export const useAnalytics = (period: AnalyticsPeriod, host: string, options = {}
 		queryFn: () => getAnalytics(period, host || undefined),
 		refetchInterval: 30000,
 		placeholderData: (previous) => previous,
+		...options,
+	});
+
+export const useHostAttacks = (options = {}) =>
+	useQuery<HostAttacks[], Error>({
+		queryKey: ["npmos-host-attacks"],
+		queryFn: getHostAttacks,
+		refetchInterval: 60000,
 		...options,
 	});
 

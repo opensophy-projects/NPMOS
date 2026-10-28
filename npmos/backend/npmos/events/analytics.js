@@ -215,6 +215,37 @@ const internalAnalytics = {
 			})),
 		};
 	},
+
+	/**
+	 * Attacks per host and hour of the last 24 h (hosts table: a small chart in the row).
+	 * @returns {Promise<{host: string, events: number, prevented: number, hours: number[]}[]>}
+	 */
+	hosts: async (access, now = new Date()) => {
+		await access.can("analytics:view");
+		const end = Math.floor(now.getTime() / HOUR) * HOUR;
+		const from = new Date(end - 23 * HOUR);
+		const rows = await db()("npmos_event_hourly")
+			.select("host", { time: "hour" }, "action")
+			.sum({ events: "events" })
+			.where("kind", "security")
+			.whereNot("host", "")
+			.where("hour", ">=", from)
+			.groupBy("host", "hour", "action");
+		const byHost = new Map();
+		for (const row of rows) {
+			let entry = byHost.get(row.host);
+			if (!entry) {
+				entry = { host: row.host, events: 0, prevented: 0, hours: new Array(24).fill(0) };
+				byHost.set(row.host, entry);
+			}
+			const i = Math.floor((new Date(row.time).getTime() - from.getTime()) / HOUR);
+			const n = Number(row.events);
+			if (i >= 0 && i < 24) entry.hours[i] += n;
+			entry.events += n;
+			if (isPrevent(row.action)) entry.prevented += n;
+		}
+		return [...byHost.values()];
+	},
 };
 
 export default internalAnalytics;

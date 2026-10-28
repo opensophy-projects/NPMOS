@@ -1004,6 +1004,9 @@
 	"npmos.hosts.add": {
 		"defaultMessage": "Добавить"
 	},
+	"npmos.hosts.attacks.title": {
+		"defaultMessage": "{events} атак за 24 ч, заблокировано {prevented}; нажмите, чтобы открыть события"
+	},
 	"npmos.hosts.bulk.certificate": {
 		"defaultMessage": "Сертификат"
 	},
@@ -1012,6 +1015,9 @@
 	},
 	"npmos.hosts.bulk.delete-title": {
 		"defaultMessage": "Удалить хосты"
+	},
+	"npmos.hosts.column.attacks": {
+		"defaultMessage": "Атаки 24 ч"
 	},
 	"npmos.hosts.column.changed": {
 		"defaultMessage": "Изменён"
@@ -2221,6 +2227,216 @@
 	},
 	"npmos.settings.events-retention": {
 		"defaultMessage": "Срок хранения событий безопасности"
+	},
+	"npmos.system.after-restart": {
+		"defaultMessage": "после перезапуска"
+	},
+	"npmos.system.env.DEFAULT_CERT_ID": {
+		"defaultMessage": "Сертификат по умолчанию"
+	},
+	"npmos.system.env.DEFAULT_CERT_ID.hint": {
+		"defaultMessage": "Отдаётся на HTTPS-запросы к именам, которых нет ни у одного хоста (иначе — самоподписанный)."
+	},
+	"npmos.system.env.DEFAULT_CERT_ID.none": {
+		"defaultMessage": "Самоподписанный"
+	},
+	"npmos.system.env.DISABLE_GRAVATAR": {
+		"defaultMessage": "Без Gravatar"
+	},
+	"npmos.system.env.DISABLE_GRAVATAR.hint": {
+		"defaultMessage": "Аватары пользователей не загружаются с gravatar.com."
+	},
+	"npmos.system.env.DISABLE_H3_QUIC": {
+		"defaultMessage": "Отключить HTTP/3 (QUIC)"
+	},
+	"npmos.system.env.DISABLE_H3_QUIC.hint": {
+		"defaultMessage": "UDP 443 не обслуживается, браузеры используют HTTP/2."
+	},
+	"npmos.system.env.DISABLE_HTTP": {
+		"defaultMessage": "Отключить обычный HTTP (порт 80)"
+	},
+	"npmos.system.env.DISABLE_HTTP.hint": {
+		"defaultMessage": "Работает только HTTPS. Проверка ACME HTTP-01 перестанет работать."
+	},
+	"npmos.system.env.ENABLE_MPTCP": {
+		"defaultMessage": "Multipath TCP"
+	},
+	"npmos.system.env.ENABLE_MPTCP.hint": {
+		"defaultMessage": "Принимать соединения MPTCP (нужна поддержка ядра хоста)."
+	},
+	"npmos.system.env.LISTEN_PROXY_PROTOCOL_HTTP": {
+		"defaultMessage": "PROXY protocol на HTTP"
+	},
+	"npmos.system.env.LISTEN_PROXY_PROTOCOL_HTTP.hint": {
+		"defaultMessage": "Только за балансировщиком, который его отправляет: прямые клиенты получат отказ."
+	},
+	"npmos.system.env.LISTEN_PROXY_PROTOCOL_HTTPS": {
+		"defaultMessage": "PROXY protocol на HTTPS"
+	},
+	"npmos.system.env.LISTEN_PROXY_PROTOCOL_HTTPS.hint": {
+		"defaultMessage": "Как для HTTP; требует отключить HTTP/3."
+	},
+	"npmos.system.env.LOGROTATIONS": {
+		"defaultMessage": "Хранить ротаций логов nginx"
+	},
+	"npmos.system.env.LOGROTATIONS.hint": {
+		"defaultMessage": "Журналы доступа и ошибок nginx, ротация раз в день; их читает CrowdSec."
+	},
+	"npmos.system.env.NGINX_DISABLE_TLS12": {
+		"defaultMessage": "Отключить TLS 1.2"
+	},
+	"npmos.system.env.NGINX_DISABLE_TLS12.hint": {
+		"defaultMessage": "Только TLS 1.3: старые клиенты не подключатся."
+	},
+	"npmos.system.env.NGINX_FORCE_X25519MLKEM768": {
+		"defaultMessage": "Только постквантовый обмен ключами"
+	},
+	"npmos.system.env.NGINX_FORCE_X25519MLKEM768.hint": {
+		"defaultMessage": "Только X25519MLKEM768; требует отключить TLS 1.2 и кривые secp."
+	},
+	"npmos.system.env.NGINX_LOAD_GEOIP2_MODULE": {
+		"defaultMessage": "Модуль GeoIP2"
+	},
+	"npmos.system.env.NGINX_LOAD_GEOIP2_MODULE.hint": {
+		"defaultMessage": "Страна клиента в nginx (нужна база GeoIP2)."
+	},
+	"npmos.system.env.NGINX_LOAD_LDAP_MODULE": {
+		"defaultMessage": "Модуль аутентификации LDAP"
+	},
+	"npmos.system.env.NGINX_LOAD_LDAP_MODULE.hint": {
+		"defaultMessage": "Basic-аутентификация через каталог LDAP."
+	},
+	"npmos.system.env.NGINX_LOAD_NJS_MODULE": {
+		"defaultMessage": "Модуль njs"
+	},
+	"npmos.system.env.NGINX_LOAD_NJS_MODULE.hint": {
+		"defaultMessage": "JavaScript в nginx для своей конфигурации."
+	},
+	"npmos.system.env.NGINX_LOAD_NTLM_MODULE": {
+		"defaultMessage": "Модуль NTLM"
+	},
+	"npmos.system.env.NGINX_LOAD_NTLM_MODULE.hint": {
+		"defaultMessage": "Сохраняет NTLM-соединения с апстримами (аутентификация Windows)."
+	},
+	"npmos.system.env.NGINX_LOAD_VHOST_TRAFFIC_STATUS_MODULE": {
+		"defaultMessage": "Модуль статистики трафика"
+	},
+	"npmos.system.env.NGINX_LOAD_VHOST_TRAFFIC_STATUS_MODULE.hint": {
+		"defaultMessage": "Статистика трафика по хостам в nginx."
+	},
+	"npmos.system.env.NGINX_LOG_NOT_FOUND": {
+		"defaultMessage": "Писать в лог «файл не найден»"
+	},
+	"npmos.system.env.NGINX_LOG_NOT_FOUND.hint": {
+		"defaultMessage": "404 для отсутствующих файлов тоже попадают в журнал ошибок."
+	},
+	"npmos.system.env.NGINX_QUIC_BPF": {
+		"defaultMessage": "QUIC с eBPF"
+	},
+	"npmos.system.env.NGINX_QUIC_BPF.hint": {
+		"defaultMessage": "Направляет пакеты QUIC в нужный процесс nginx; на некоторых хостах требует дополнительных привилегий."
+	},
+	"npmos.system.env.NGINX_TRUST_RSA_PKCS1": {
+		"defaultMessage": "Разрешить подписи RSA PKCS#1"
+	},
+	"npmos.system.env.NGINX_TRUST_RSA_PKCS1.hint": {
+		"defaultMessage": "Только для старых клиентов."
+	},
+	"npmos.system.env.NGINX_TRUST_SECPR1": {
+		"defaultMessage": "Разрешить кривые secp"
+	},
+	"npmos.system.env.NGINX_TRUST_SECPR1.hint": {
+		"defaultMessage": "Кривые NIST secp256r1/secp384r1 для обмена ключами."
+	},
+	"npmos.system.env.NGINX_WORKER_CONNECTIONS": {
+		"defaultMessage": "Соединений на процесс"
+	},
+	"npmos.system.env.NGINX_WORKER_CONNECTIONS.hint": {
+		"defaultMessage": "Предел одновременных соединений одного процесса nginx."
+	},
+	"npmos.system.env.NGINX_WORKER_PROCESSES": {
+		"defaultMessage": "Процессы nginx"
+	},
+	"npmos.system.env.NGINX_WORKER_PROCESSES.hint": {
+		"defaultMessage": "«Авто» — по одному на ядро процессора."
+	},
+	"npmos.system.env.NPMOS_CHECK_VERSION": {
+		"defaultMessage": "Проверять обновления"
+	},
+	"npmos.system.env.NPMOS_CHECK_VERSION.hint": {
+		"defaultMessage": "Запрашивает у GitHub новые версии NPMOS."
+	},
+	"npmos.system.env.TRUST_CLOUDFLARE": {
+		"defaultMessage": "Доверять Cloudflare"
+	},
+	"npmos.system.env.TRUST_CLOUDFLARE.hint": {
+		"defaultMessage": "Реальный IP клиента берётся из заголовков Cloudflare; диапазоны его адресов скачиваются."
+	},
+	"npmos.system.env.TZ": {
+		"defaultMessage": "Часовой пояс"
+	},
+	"npmos.system.env.TZ.hint": {
+		"defaultMessage": "Время в журналах, продлении сертификатов и скриптах запуска контейнера."
+	},
+	"npmos.system.env.auto": {
+		"defaultMessage": "Авто"
+	},
+	"npmos.system.group.external": {
+		"defaultMessage": "Внешние сервисы"
+	},
+	"npmos.system.group.external.hint": {
+		"defaultMessage": "NPMOS работает без интернета; эти опции заставляют его обращаться наружу."
+	},
+	"npmos.system.group.general": {
+		"defaultMessage": "Общие"
+	},
+	"npmos.system.group.general.hint": {
+		"defaultMessage": "Часовой пояс и сертификат для неизвестных имён."
+	},
+	"npmos.system.group.logs": {
+		"defaultMessage": "Журналы"
+	},
+	"npmos.system.group.logs.hint": {
+		"defaultMessage": "Сколько хранятся журналы nginx и события безопасности."
+	},
+	"npmos.system.group.network": {
+		"defaultMessage": "Сеть"
+	},
+	"npmos.system.group.network.hint": {
+		"defaultMessage": "Как NPMOS принимает соединения: HTTP, HTTP/3, PROXY protocol, Cloudflare."
+	},
+	"npmos.system.group.nginx": {
+		"defaultMessage": "Nginx"
+	},
+	"npmos.system.group.nginx.hint": {
+		"defaultMessage": "Процессы, соединения и дополнительные модули nginx."
+	},
+	"npmos.system.group.tls": {
+		"defaultMessage": "TLS"
+	},
+	"npmos.system.group.tls.hint": {
+		"defaultMessage": "Версии протокола и обмен ключами HTTPS."
+	},
+	"npmos.system.internet": {
+		"defaultMessage": "интернет"
+	},
+	"npmos.system.pending": {
+		"defaultMessage": "Часть настроек сохранена, но ещё не применена: нужен перезапуск NPMOS (соединения прервутся на несколько секунд)."
+	},
+	"npmos.system.restart": {
+		"defaultMessage": "Перезапустить сейчас"
+	},
+	"npmos.system.restarting": {
+		"defaultMessage": "NPMOS перезапускается, чтобы применить настройки; панель вернётся примерно через 30 с"
+	},
+	"npmos.system.save": {
+		"defaultMessage": "Сохранить"
+	},
+	"npmos.system.save-restart": {
+		"defaultMessage": "Сохранить и перезапустить NPMOS"
+	},
+	"npmos.system.saved": {
+		"defaultMessage": "Сохранено: применится при следующем перезапуске NPMOS"
 	},
 	"npmos.waf": {
 		"defaultMessage": "WAF"

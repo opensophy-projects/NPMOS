@@ -38,13 +38,27 @@ if [ -s /tmp/env.sha512sum ] && [ "$(cat /tmp/env.sha512sum)" != "$(sha512sum < 
 fi
 sha512sum < /data/.env > /tmp/env.sha512sum
 
-# NPMOS: settings switched in the GUI override env. The backend writes this file
-# (npmos/backend/npmos/settings.js); it is not sourced, only whitelisted true/false values are read.
+# NPMOS: settings made in the GUI override env. The backend writes this file
+# (npmos/backend/npmos/settings.js, system/env.js); it is not sourced: only these names are read,
+# each only with a value of its form, so that a bad line can't stop the container.
 if [ -s /data/npmos/runtime.env ]; then
     while IFS='=' read -r key value; do
-        case "$key=$value" in
-            NGINX_LOAD_OPENAPPSEC_ATTACHMENT_MODULE=true | NGINX_LOAD_OPENAPPSEC_ATTACHMENT_MODULE=false)
-                export "$key=$value"
+        case "$key" in
+            NGINX_LOAD_OPENAPPSEC_ATTACHMENT_MODULE | DISABLE_HTTP | DISABLE_H3_QUIC | LISTEN_PROXY_PROTOCOL_HTTP | \
+                LISTEN_PROXY_PROTOCOL_HTTPS | ENABLE_MPTCP | NGINX_QUIC_BPF | TRUST_CLOUDFLARE | NGINX_LOG_NOT_FOUND | \
+                NGINX_LOAD_NJS_MODULE | NGINX_LOAD_GEOIP2_MODULE | NGINX_LOAD_LDAP_MODULE | NGINX_LOAD_NTLM_MODULE | \
+                NGINX_LOAD_VHOST_TRAFFIC_STATUS_MODULE | NGINX_DISABLE_TLS12 | NGINX_FORCE_X25519MLKEM768 | \
+                NGINX_TRUST_SECPR1 | NGINX_TRUST_RSA_PKCS1 | DISABLE_GRAVATAR | NPMOS_CHECK_VERSION)
+                case "$value" in true | false) export "$key=$value" ;; esac
+                ;;
+            DEFAULT_CERT_ID | NGINX_WORKER_CONNECTIONS | LOGROTATIONS)
+                echo "$value" | grep -q "^[0-9]\{1,10\}$" && export "$key=$value"
+                ;;
+            NGINX_WORKER_PROCESSES)
+                echo "$value" | grep -q "^auto$\|^[0-9]\{1,4\}$" && export "$key=$value"
+                ;;
+            TZ)
+                echo "$value" | grep -q "^[A-Za-z0-9_+/-]\{1,64\}$" && [ -s "/usr/share/zoneinfo/$value" ] && export "$key=$value"
                 ;;
         esac
     done < /data/npmos/runtime.env

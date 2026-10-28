@@ -13,6 +13,7 @@ import cn from "classnames";
 import type { AccessList, Certificate } from "src/api/backend";
 import { intl, T } from "src/locale";
 import { showReachabilityModal } from "src/modals";
+import type { HostAttacks } from "../../api";
 import { Dropdown, type DropdownItem } from "../../ui/Dropdown";
 import { dateTime, timeAgo } from "../../ui/time";
 import styles from "./Hosts.module.css";
@@ -39,6 +40,10 @@ export interface CellContext {
 	duplicate: (row: HostRow) => void;
 	/** who changed the host and when */
 	history: (row: HostRow) => void;
+	/** attacks of the last 24 h by domain (WAF events), absent without analytics:view */
+	attacks?: Map<string, HostAttacks>;
+	/** the WAF events of the host */
+	events: (row: HostRow) => void;
 }
 
 /** a chip that opens the menu (hover shows the accent border) */
@@ -318,6 +323,49 @@ export function ChangedCell({ row, ctx }: { row: HostRow; ctx: CellContext }) {
 		>
 			<span>{timeAgo(change.createdOn, Date.now(), "narrow")}</span>
 			<span className={styles.changedBy}>{change.user?.name ?? t("npmos.hosts.history.system")}</span>
+		</button>
+	);
+}
+
+/** attacks of the last 24 h: a bar per hour and the number of attacks (blocked in the title) */
+export function AttacksCell({ row, ctx }: { row: HostRow; ctx: CellContext }) {
+	// only proxy hosts are protected by the WAF
+	if (!ctx.attacks || row.type !== "proxy") return <span className={styles.muted}>—</span>;
+	const hours = new Array(24).fill(0);
+	let events = 0;
+	let prevented = 0;
+	for (const name of row.names) {
+		const a = ctx.attacks.get(name.toLowerCase());
+		if (!a) continue;
+		a.hours.forEach((n, i) => {
+			hours[i] += n;
+		});
+		events += a.events;
+		prevented += a.prevented;
+	}
+	if (!events) return <span className={styles.muted}>0</span>;
+	const max = Math.max(...hours);
+	return (
+		<button
+			type="button"
+			className={styles.attacks}
+			title={t("npmos.hosts.attacks.title", { events, prevented })}
+			onClick={() => ctx.events(row)}
+		>
+			<svg width="48" height="16" aria-hidden="true">
+				{hours.map((n, i) =>
+					n > 0 ? (
+						<rect
+							key={i}
+							x={i * 2}
+							y={16 - Math.max(1, (n / max) * 16)}
+							width="1.5"
+							height={Math.max(1, (n / max) * 16)}
+						/>
+					) : null,
+				)}
+			</svg>
+			<span>{intl.formatNumber(events)}</span>
 		</button>
 	);
 }

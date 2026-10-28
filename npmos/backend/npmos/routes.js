@@ -11,6 +11,7 @@ import internalHosts, { HOST_OBJECTS } from "./hosts.js";
 import internalNotifications from "./notifications/index.js";
 import internalRbac from "./rbac/index.js";
 import internalServices from "./services.js";
+import internalSystem from "./system/index.js";
 import internalWafAgent from "./waf/agent-settings.js";
 import internalWafExpert from "./waf/expert.js";
 import internalWafHosts from "./waf/hosts.js";
@@ -587,6 +588,54 @@ router
 	.delete(handle((req, res) => internalNotifications.deleteRule(res.locals.access, req.params.rule_id)));
 
 /**
+ * GET /api/npmos/system/settings — env settings of NPMplus: value saved, value running
+ * PUT /api/npmos/system/settings — {values: [{env, value}], apply?}: apply restarts npmos
+ * POST /api/npmos/system/settings/apply — restart npmos with what was saved
+ */
+router
+	.route("/system/settings")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalSystem.getSettings(res.locals.access)))
+	.put(
+		handle(async (req, res) =>
+			internalSystem.setSettings(
+				res.locals.access,
+				await validator(
+					{
+						type: "object",
+						additionalProperties: false,
+						required: ["values"],
+						properties: {
+							values: {
+								type: "array",
+								maxItems: 50,
+								items: {
+									type: "object",
+									additionalProperties: false,
+									required: ["env", "value"],
+									properties: {
+										env: { type: "string", pattern: "^[A-Z0-9_]{1,64}$" },
+										value: { type: ["boolean", "integer", "string"] },
+									},
+								},
+							},
+							apply: { type: "boolean" },
+						},
+					},
+					req.body,
+				),
+			),
+		),
+	);
+
+router
+	.route("/system/settings/apply")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(handle((_, res) => internalSystem.apply(res.locals.access), 202));
+
+/**
  * GET /api/npmos/analytics?period=1h|24h|7d|30d&host=<domain> — KPI, timeline, top lists
  */
 router
@@ -594,6 +643,15 @@ router
 	.options((_, res) => res.sendStatus(204))
 	.all(jwtdecode())
 	.get(handle((req, res) => internalAnalytics.get(res.locals.access, req.query)));
+
+/**
+ * GET /api/npmos/analytics/hosts — attacks per host and hour of the last 24 h
+ */
+router
+	.route("/analytics/hosts")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalAnalytics.hosts(res.locals.access)));
 
 /**
  * GET /api/npmos/events — security events of the agent, newest first. Filters: from, to (ISO, default

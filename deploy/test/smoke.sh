@@ -333,4 +333,17 @@ expect "$(as_analyst "$ADMIN/api/npmos/notifications")" 200 "analyst reads notif
 expect "$(as_analyst -X POST -H 'Content-Type: application/json' "$ADMIN/api/npmos/notifications/channels" \
   -d '{"name": "x", "type": "webhook", "config": {"url": "http://x"}}')" 403 "analyst adds a channel"
 
+step "system settings: an env setting is saved for the next start, a bad value is refused"
+$CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/system/settings" \
+  -d '{"values": [{"env": "NGINX_LOG_NOT_FOUND", "value": true}]}' | grep -q '"restartRequired": *true' \
+  || fail "a saved env setting is not pending"
+$CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/system/settings" \
+  -d '{"values": [{"env": "NGINX_LOG_NOT_FOUND", "value": false}]}' | grep -q '"restartRequired": *false' \
+  || fail "the setting back to its running value is still pending"
+code=$(curl -sS -k -b $JAR -o /dev/null -w '%{http_code}' -X PUT -H 'Content-Type: application/json' \
+  "$ADMIN/api/npmos/system/settings" -d '{"values": [{"env": "TZ", "value": "../../etc/passwd"}]}')
+expect "$code" 400 "a bad time zone"
+expect "$(as_analyst -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/system/settings" \
+  -d '{"values": [{"env": "DISABLE_HTTP", "value": true}]}')" 403 "analyst changes system settings"
+
 echo "OK: closed-network smoke passed"
