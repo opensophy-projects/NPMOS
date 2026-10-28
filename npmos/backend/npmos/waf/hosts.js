@@ -1,6 +1,6 @@
 // WAF settings of proxy hosts and their locations (npmos_waf_host / npmos_waf_location).
 // Who may see or edit a proxy host may see or edit its WAF settings (upstream proxy_hosts:*
-// permissions, including ownership).
+// permissions, including ownership); a role with waf_policy:manage edits them on the hosts it sees.
 import internalAuditLog from "../../internal/audit-log.js";
 import db from "../../db.js";
 import errs from "../../lib/error.js";
@@ -88,7 +88,14 @@ const internalWafHosts = {
 	 * @param {{enabled, mode, minimum_confidence, locations?: Array<{path, inherit?, enabled, mode, minimum_confidence}>}} data
 	 */
 	set: async (access, id, data) => {
-		await access.can("proxy_hosts:update", id);
+		// the WAF mode is a security setting: a role with waf_policy:manage changes it on the hosts
+		// it sees without managing the hosts (Security Analyst)
+		try {
+			await access.can("proxy_hosts:update", id);
+		} catch {
+			await access.can("waf_policy:manage");
+			await access.can("proxy_hosts:get", id);
+		}
 		const host = await getProxyHost(id);
 		validate(data, "WAF");
 		const paths = parseJson(host.locations).map((l) => l.path);

@@ -88,7 +88,7 @@ const internalWafExpert = {
 	 * @param {Access} access
 	 */
 	get: async (access) => {
-		await access.can("npmos_services:list");
+		await access.can("waf_policy:view");
 		const current = await db()("npmos_waf_custom_policy").orderBy("id", "desc").first();
 		return {
 			id: current?.id ?? null,
@@ -104,7 +104,7 @@ const internalWafExpert = {
 	 * @param {string} content
 	 */
 	check: async (access, content) => {
-		await access.can("npmos_services:list");
+		await access.can("waf_policy:view");
 		let custom;
 		try {
 			custom = parseCustom(content);
@@ -131,7 +131,7 @@ const internalWafExpert = {
 	 * @param {{content: string, comment?: string}} data
 	 */
 	save: async (access, data) => {
-		await access.can("npmos_services:manage");
+		await access.can("waf_policy:manage");
 		const result = await save(access, data.content, data.comment);
 		await internalAuditLog.add(access, {
 			action: "updated",
@@ -148,7 +148,7 @@ const internalWafExpert = {
 	 * @param {number} id
 	 */
 	rollback: async (access, id) => {
-		await access.can("npmos_services:manage");
+		await access.can("waf_policy:manage");
 		const old = await db()("npmos_waf_custom_policy").where({ id }).first();
 		if (!old) {
 			throw new errs.ItemNotFoundError(id);

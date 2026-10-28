@@ -4,6 +4,9 @@ import { rateLimit } from "express-rate-limit";
 import errs from "../lib/error.js";
 import internalToken from "../internal/token.js";
 import { oidc as logger } from "../logger.js";
+// NPMOS: OIDC groups → roles (Administration → Roles)
+import { syncOidcGroups } from "../npmos/rbac/index.js";
+import { getSetting } from "../npmos/settings.js";
 
 const router = express.Router({
 	caseSensitive: true,
@@ -45,7 +48,8 @@ router
 			const code_verifier = client.randomPKCECodeVerifier();
 			const parameters = {
 				redirect_uri: `https://${process.env.OIDC_REDIRECT_DOMAIN}/api/oidc/callback`,
-				scope: "openid email",
+				// NPMOS: the groups scope when the role mapping asks for it
+				scope: (await getSetting("rbac.oidc")).requestScope ? "openid email groups" : "openid email",
 				state: client.randomState(),
 				nonce: client.randomNonce(),
 				code_challenge_method: "S256",
@@ -142,6 +146,17 @@ router
 			logger.info(`Successful authentication for email: ${claims.email.toLowerCase().trim()}`);
 
 			const data = await internalToken.getTokenFromOAuthClaim({ identity: claims.email.toLowerCase().trim() });
+
+			// NPMOS: the roles follow the IdP groups (after the user is known to exist)
+			const { claim } = await getSetting("rbac.oidc");
+			if (claims[claim] === undefined && tokens.access_token) {
+				try {
+					claims = { ...claims, ...(await client.fetchUserInfo(config, tokens.access_token, claims.sub)) };
+				} catch (err) {
+					logger.warn(`OIDC userinfo for groups failed: ${err.message}`);
+				}
+			}
+			await syncOidcGroups(claims.email.toLowerCase().trim(), claims);
 
 			res.cookie("__Host-Http-token", data.token, {
 				signed: true,

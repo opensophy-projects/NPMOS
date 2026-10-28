@@ -37,7 +37,8 @@ git subtree pull --prefix=npmos https://github.com/ZoeyVid/NPMplus <tag> --squas
 
 ```bash
 # backend
-cd npmos/backend && pnpm install --frozen-lockfile && pnpm biome ci . --assist-enabled=false
+cd npmos/backend && pnpm install --frozen-lockfile && pnpm biome ci . --assist-enabled=false \
+  && node --test 'npmos/**/*.test.js'
 # frontend
 cd npmos/frontend && pnpm install --frozen-lockfile && pnpm biome ci . --assist-enabled=false \
   && node check-locales.cjs && node ../../scripts/check-i18n.mjs && pnpm formatjs compile-folder src/locale/src src/locale/lang \

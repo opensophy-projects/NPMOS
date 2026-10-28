@@ -4,6 +4,7 @@ import jwtdecode from "../lib/express/jwt-decode.js";
 import validator from "../lib/validator/index.js";
 import { debug, express as logger } from "../logger.js";
 import internalHosts, { HOST_OBJECTS } from "./hosts.js";
+import internalRbac from "./rbac/index.js";
 import internalServices from "./services.js";
 import internalWafAgent from "./waf/agent-settings.js";
 import internalWafEvents from "./waf/events.js";
@@ -50,6 +51,16 @@ router.param("version_id", (req, res, next, id) => {
 	req.params.version_id = Number.parseInt(id, 10);
 	next();
 });
+
+for (const name of ["role_id", "user_id"]) {
+	router.param(name, (req, res, next, id) => {
+		if (!/^[1-9][0-9]{0,9}$/.test(id)) {
+			return res.status(400).send({ error: { code: 400, message: `Invalid ${name}` } });
+		}
+		req.params[name] = Number.parseInt(id, 10);
+		next();
+	});
+}
 
 router.param("object_type", (_req, res, next, type) => {
 	if (!Object.hasOwn(HOST_OBJECTS, type)) {
@@ -107,6 +118,118 @@ router
 	.options((_, res) => res.sendStatus(204))
 	.all(jwtdecode())
 	.post(handle((req, res) => internalServices.restart(res.locals.access, req.params.service), 202));
+
+const roleSchema = {
+	type: "object",
+	additionalProperties: false,
+	required: ["name", "scope", "permissions"],
+	properties: {
+		name: { type: "string", minLength: 1, maxLength: 100 },
+		description: { type: "string", maxLength: 500 },
+		scope: { enum: ["all", "own"] },
+		oidc_groups: { type: "array", maxItems: 50, items: { type: "string", maxLength: 200 } },
+		permissions: { type: "array", maxItems: 200, items: { type: "string", pattern: "^[a-z_]+:[a-z_]+$" } },
+	},
+};
+
+/**
+ * GET /api/npmos/rbac/model — resources, actions and built-in roles
+ * GET /api/npmos/rbac/me — permissions of the current user
+ */
+router
+	.route("/rbac/model")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle(() => internalRbac.model()));
+
+router
+	.route("/rbac/me")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalRbac.me(res.locals.access)));
+
+/**
+ * GET  /api/npmos/rbac/roles
+ * POST /api/npmos/rbac/roles — {name, description, scope, oidc_groups, permissions: ["resource:action"]}
+ */
+router
+	.route("/rbac/roles")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalRbac.list(res.locals.access)))
+	.post(
+		handle(async (req, res) => internalRbac.create(res.locals.access, await validator(roleSchema, req.body)), 201),
+	);
+
+/**
+ * GET/PUT/DELETE /api/npmos/rbac/roles/:role_id (built-in roles: only oidc_groups change)
+ */
+router
+	.route("/rbac/roles/:role_id")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((req, res) => internalRbac.get(res.locals.access, req.params.role_id)))
+	.put(
+		handle(async (req, res) =>
+			internalRbac.update(res.locals.access, req.params.role_id, await validator(roleSchema, req.body)),
+		),
+	)
+	.delete(handle((req, res) => internalRbac.delete(res.locals.access, req.params.role_id)));
+
+/**
+ * GET /api/npmos/rbac/users — {user id: [role ids]}
+ * PUT /api/npmos/rbac/users/:user_id — {roles: [role ids]}
+ */
+router
+	.route("/rbac/users")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalRbac.assignments(res.locals.access)));
+
+router
+	.route("/rbac/users/:user_id")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.put(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["roles"],
+					properties: { roles: { type: "array", maxItems: 100, items: { type: "integer", minimum: 1 } } },
+				},
+				req.body,
+			);
+			return internalRbac.setUserRoles(res.locals.access, req.params.user_id, data.roles);
+		}),
+	);
+
+/**
+ * GET/PUT /api/npmos/rbac/oidc — {claim, requestScope}: OIDC groups → roles
+ */
+router
+	.route("/rbac/oidc")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalRbac.getOidc(res.locals.access)))
+	.put(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["claim", "requestScope"],
+					properties: {
+						claim: { type: "string", minLength: 1, maxLength: 100 },
+						requestScope: { type: "boolean" },
+					},
+				},
+				req.body,
+			);
+			return internalRbac.setOidc(res.locals.access, data);
+		}),
+	);
 
 /**
  * GET /api/npmos/hosts/changes — the last change of every visible host (audit log)
@@ -366,7 +489,7 @@ router
 	.all(jwtdecode())
 	.get(async (req, res, next) => {
 		try {
-			await res.locals.access.can("npmos_services:manage");
+			await res.locals.access.can("services:manage");
 			res.attachment(`npmos-diagnostics-${new Date().toISOString().replace(/[:.]/g, "-")}.zip`);
 			await internalServices.diagnostics(res.locals.access, res);
 		} catch (err) {

@@ -15,6 +15,8 @@ import { access as logger } from "../logger.js";
 import proxyHostModel from "../models/proxy_host.js";
 import TokenModel from "../models/token.js";
 import userModel from "../models/user.js";
+// NPMOS: permissions come from roles (npmos/rbac)
+import { check as rbacCheck, resolve as rbacResolve } from "../npmos/rbac/index.js";
 import permsSchema from "./access/permissions.json" with { type: "json" };
 import roleSchema from "./access/roles.json" with { type: "json" };
 import errs from "./error.js";
@@ -82,7 +84,8 @@ export default function (tokenString) {
 				}
 				initialised = true;
 				userRoles = user.roles;
-				permissions = user.permissions;
+				// NPMOS: permissions come from the roles of the user; user_permission follows them
+				permissions = await rbacResolve(user);
 			} else {
 				throw new errs.AuthError("User cannot be loaded for Token");
 			}
@@ -224,6 +227,16 @@ export default function (tokenString) {
 
 			try {
 				await this.init();
+
+				// NPMOS: labels of NPMOS resources, and roles that open admin-only upstream sections
+				const decided = await rbacCheck(permissions, permission, data);
+				if (decided === false) {
+					throw new Error(`no role gives ${permission}`);
+				}
+				if (decided) {
+					return decided;
+				}
+
 				const objectSchema = await this.getObjectSchema(permission);
 
 				const dataSchema = {
