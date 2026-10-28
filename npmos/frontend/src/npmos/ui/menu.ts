@@ -67,6 +67,8 @@ export const navigation: NavItem[] = [
 		items: [
 			{ id: "services", label: "npmos.services", to: "/system/services", section: ADMIN },
 			{ id: "settings", label: "settings", to: "/settings", section: ADMIN },
+			// for everyone: the English terms of the interface explained
+			{ id: "glossary", label: "npmos.glossary", to: "/glossary" },
 		],
 	},
 ];

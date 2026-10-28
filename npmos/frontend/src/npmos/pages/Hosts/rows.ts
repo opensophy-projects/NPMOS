@@ -244,6 +244,10 @@ export function filtersFromParams(params: URLSearchParams): Filters {
 		if (!opsFor(field as FilterField).includes(op as FilterOp)) continue;
 		rules.push({ field: field as FilterField, op: op as FilterOp, value });
 	}
+	// links of the first version of the page: ?type=proxy
+	for (const value of params.getAll("type")) {
+		if ((HOST_TYPES as readonly string[]).includes(value)) rules.push({ field: "type", op: "is", value });
+	}
 	return { q: params.get("q") ?? "", rules };
 }
 
@@ -252,6 +256,7 @@ export function filtersToParams(filters: Filters, params = new URLSearchParams()
 	if (filters.q) next.set("q", filters.q);
 	else next.delete("q");
 	next.delete("f");
+	next.delete("type");
 	for (const rule of filters.rules) {
 		if (rule.value) next.append("f", `${rule.field}:${rule.op}:${rule.value}`);
 	}

@@ -74,12 +74,13 @@ export const useWafPolicy = () =>
 		refetchInterval: 10000,
 	});
 
-export const useWafEvents = (view: WafEventsView, query: string, follow: boolean) =>
+export const useWafEvents = (view: WafEventsView, query: string, follow: boolean, options = {}) =>
 	useQuery<WafEvents, Error>({
 		queryKey: ["npmos-waf-events", view, query],
 		queryFn: () => getWafEvents({ view, query: query || undefined }),
 		refetchInterval: follow ? 5000 : false,
 		placeholderData: (previous) => previous,
+		...options,
 	});
 
 export const useWafAgent = () =>

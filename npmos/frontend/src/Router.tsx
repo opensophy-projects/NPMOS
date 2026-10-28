@@ -8,7 +8,9 @@ import { Shell } from "src/npmos/ui/Shell";
 
 const Setup = lazy(() => import("src/pages/Setup"));
 const Login = lazy(() => import("src/pages/Login"));
-const Dashboard = lazy(() => import("src/pages/Dashboard"));
+// NPMOS: the overview of NPMOS replaces the upstream dashboard (phase 2)
+const Overview = lazy(() => import("src/npmos/pages/Overview"));
+const Glossary = lazy(() => import("src/npmos/pages/Glossary"));
 const Settings = lazy(() => import("src/pages/Settings"));
 const Certificates = lazy(() => import("src/pages/Certificates"));
 const Access = lazy(() => import("src/pages/Access"));
@@ -58,17 +60,21 @@ function Router() {
 						<Route path="/settings" element={<Settings />} />
 						<Route path="/users" element={<Users />} />
 						{/* NPMOS: the upstream host pages open the hosts table filtered by type */}
-						<Route path="/nginx/proxy" element={<Navigate to="/hosts?type=proxy" replace />} />
-						<Route path="/nginx/redirection" element={<Navigate to="/hosts?type=redirect" replace />} />
-						<Route path="/nginx/404" element={<Navigate to="/hosts?type=dead" replace />} />
-						<Route path="/nginx/stream" element={<Navigate to="/hosts?type=stream" replace />} />
+						<Route path="/nginx/proxy" element={<Navigate to="/hosts?f=type:is:proxy" replace />} />
+						<Route
+							path="/nginx/redirection"
+							element={<Navigate to="/hosts?f=type:is:redirect" replace />}
+						/>
+						<Route path="/nginx/404" element={<Navigate to="/hosts?f=type:is:dead" replace />} />
+						<Route path="/nginx/stream" element={<Navigate to="/hosts?f=type:is:stream" replace />} />
 						{/* NPMOS: our pages */}
 						<Route path="/hosts" element={<Hosts />} />
+						<Route path="/glossary" element={<Glossary />} />
 						<Route path="/system/services" element={<Services />} />
 						<Route path="/waf/agent" element={<WafAgent />} />
 						<Route path="/waf/events" element={<WafEvents />} />
 						<Route path="/waf/policy" element={<WafPolicy />} />
-						<Route path="/" element={<Dashboard />} />
+						<Route path="/" element={<Overview />} />
 					</Routes>
 				</Suspense>
 			</Shell>

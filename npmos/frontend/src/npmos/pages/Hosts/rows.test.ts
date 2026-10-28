@@ -181,6 +181,11 @@ describe("hosts rows", () => {
 		expect(
 			filtersFromParams(new URLSearchParams("f=bogus:is:x&f=type:has:proxy&f=waf:is:&f=waf:not:off")).rules,
 		).toEqual([{ field: "waf", op: "not", value: "off" }]);
+		// old links: ?type=proxy
+		expect(filtersFromParams(new URLSearchParams("type=proxy&type=bogus")).rules).toEqual([
+			{ field: "type", op: "is", value: "proxy" },
+		]);
+		expect(filtersToParams(filters, new URLSearchParams("type=dead")).has("type")).toBe(false);
 	});
 
 	it("sorts", () => {
