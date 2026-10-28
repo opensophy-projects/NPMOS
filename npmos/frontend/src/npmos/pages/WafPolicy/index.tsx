@@ -8,7 +8,7 @@ import Alert from "react-bootstrap/Alert";
 import { Button, HasPermission, LoadingPage } from "src/components";
 import { useLocaleState } from "src/context";
 import { formatDateTime, intl, T } from "src/locale";
-import { ADMIN, MANAGE, VIEW } from "src/modules/Permissions";
+import { MANAGE, VIEW } from "src/modules/Permissions";
 import { showError, showSuccess } from "src/notifications";
 import {
 	checkWafCustomPolicy,
@@ -107,7 +107,7 @@ function Versions({ data, onRollback }: { data: WafCustomPolicy; onRollback: (id
 										<T id="npmos.waf.expert.in-force" />
 									</span>
 								) : (
-									<HasPermission section={ADMIN} permission={MANAGE} hideError>
+									<HasPermission rbac="waf_policy" permission={MANAGE} hideError>
 										<Button size="sm" onClick={() => onRollback(v.id)}>
 											<T id="npmos.waf.expert.rollback" />
 										</Button>
@@ -251,7 +251,7 @@ function WafPolicyPage() {
 						</div>
 					)}
 				</div>
-				<HasPermission section={ADMIN} permission={MANAGE} hideError>
+				<HasPermission rbac="waf_policy" permission={MANAGE} hideError>
 					<div className="card-footer">
 						<div className="row g-2 align-items-center">
 							<div className="col">
@@ -300,7 +300,7 @@ function WafPolicyPage() {
 }
 
 const WafPolicy = () => (
-	<HasPermission section={ADMIN} permission={VIEW} pageLoading loadingNoLogo>
+	<HasPermission rbac="waf_policy" permission={VIEW} pageLoading loadingNoLogo>
 		<WafPolicyPage />
 	</HasPermission>
 );

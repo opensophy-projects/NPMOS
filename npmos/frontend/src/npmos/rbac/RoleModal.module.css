@@ -1,0 +1,156 @@
+/* role editor: info on top, a card per resource with a switch per action (concept of the team) */
+.body {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+.builtin {
+	margin-left: 0.5rem;
+	padding: 0.0625rem 0.5rem;
+	border: 1px solid var(--border);
+	border-radius: 9999px;
+	color: var(--foreground-muted);
+	font-size: 0.75rem;
+	font-weight: 400;
+	vertical-align: middle;
+}
+.note {
+	margin: 0;
+	color: var(--foreground-muted);
+	font-size: 0.875rem;
+}
+.info {
+	padding: 1rem 1.25rem;
+}
+.infoGrid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 0.875rem 1.25rem;
+}
+.field {
+	display: flex;
+	flex-direction: column;
+	gap: 0.375rem;
+	margin: 0;
+	font-size: 0.875rem;
+}
+.field > span:first-child {
+	font-weight: 500;
+}
+.wide {
+	grid-column: 1 / -1;
+}
+.hint {
+	color: var(--foreground-muted);
+	font-size: 0.75rem;
+}
+.segment {
+	display: inline-flex;
+	align-self: flex-start;
+	padding: 0.1875rem;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-md, 0.5rem);
+	background: var(--background-inset, var(--background-muted));
+}
+.segmentItem {
+	display: inline-flex;
+	align-items: center;
+	margin: 0;
+	padding: 0.3125rem 0.75rem;
+	border-radius: calc(var(--radius-md, 0.5rem) - 0.1875rem);
+	color: var(--foreground-muted);
+	cursor: pointer;
+}
+.segmentItem input {
+	position: absolute;
+	opacity: 0;
+	pointer-events: none;
+}
+.segmentOn {
+	background: var(--background);
+	box-shadow: var(--shadow-card);
+	color: var(--foreground);
+}
+.segmentItem:has(input:focus-visible) {
+	outline: 2px solid var(--accent);
+}
+.permHead {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.5rem;
+}
+.permTitle {
+	display: flex;
+	align-items: baseline;
+	gap: 0.75rem;
+	margin: 0;
+	font-size: 1rem;
+	font-weight: 500;
+}
+.counter {
+	color: var(--foreground-muted);
+	font-size: 0.8125rem;
+	font-weight: 400;
+}
+.permActions {
+	display: flex;
+	gap: 0.375rem;
+}
+.grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 0.75rem;
+}
+.resource {
+	display: flex;
+	flex-direction: column;
+	gap: 0.375rem;
+	padding: 0.75rem;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-lg);
+	background: var(--background);
+}
+.resourceHead {
+	margin-bottom: 0.25rem;
+}
+.resourceTitle {
+	color: var(--foreground);
+	font-size: 0.875rem;
+	font-weight: 600;
+}
+.resourceHint {
+	color: var(--foreground-muted);
+	font-size: 0.75rem;
+	line-height: 1.4;
+}
+.action {
+	display: flex;
+	align-items: center;
+	gap: 0.625rem;
+	margin: 0;
+	padding: 0.4375rem 0.625rem;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-md, 0.5rem);
+	font-size: 0.8125rem;
+	cursor: pointer;
+}
+.action:hover {
+	border-color: var(--border-strong);
+}
+.actionLocked {
+	cursor: not-allowed;
+	opacity: 0.55;
+}
+@media (max-width: 991.98px) {
+	.grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+@media (max-width: 575.98px) {
+	.grid,
+	.infoGrid {
+		grid-template-columns: 1fr;
+	}
+}

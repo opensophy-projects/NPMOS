@@ -250,4 +250,47 @@ $CURL "$ADMIN/api/npmos/hosts/changes" | tr -d ' \n' | grep -q '"type":"proxy-ho
 $CURL "$ADMIN/api/npmos/hosts/changes/proxy-host/1" | grep -q '"action": *"created"' \
   || fail "the history of test.local has no creation: $($CURL "$ADMIN/api/npmos/hosts/changes/proxy-host/1")"
 
+# --- phase 3 ---
+
+step "RBAC: built-in roles exist"
+roles=$($CURL "$ADMIN/api/npmos/rbac/roles" | tr -d ' \n')
+analyst_role=$(echo "$roles" | grep -o '"id":[0-9]*,"name":"[^"]*","description":"[^"]*","builtin":"security_analyst"' \
+  | grep -o '^"id":[0-9]*' | grep -o '[0-9]*')
+[ -n "$analyst_role" ] || fail "no Security Analyst role: $roles"
+
+step "RBAC: a Security Analyst"
+analyst_id=$($CURL -H 'Content-Type: application/json' "$ADMIN/api/users" \
+  -d '{"name": "Analyst", "nickname": "analyst", "email": "analyst@npmos.test", "roles": [], "is_disabled": false}' \
+  | tr -d ' \n' | grep -o '"id":[0-9]*' | head -1 | grep -o '[0-9]*')
+$CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/users/$analyst_id/auth" \
+  -d "{\"type\": \"password\", \"secret\": \"$PASSWORD-analyst\"}" > /dev/null
+$CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/rbac/users/$analyst_id" \
+  -d "{\"roles\": [$analyst_role]}" > /dev/null
+AJAR=/tmp/analyst-cookies
+curl -sS -k -c $AJAR -H 'Content-Type: application/json' "$ADMIN/api/tokens" \
+  -d "{\"identity\": \"analyst@npmos.test\", \"secret\": \"$PASSWORD-analyst\"}" > /dev/null
+as_analyst() { curl -sS -k -b $AJAR -o /dev/null -w '%{http_code}' "$@"; }
+expect() { [ "$1" = "$2" ] || fail "$3: expected $2, got $1"; }
+
+step "RBAC: the analyst sees hosts, WAF and events"
+expect "$(as_analyst "$ADMIN/api/nginx/proxy-hosts")" 200 "analyst lists proxy hosts"
+expect "$(as_analyst "$ADMIN/api/npmos/waf/events")" 200 "analyst reads WAF events"
+expect "$(as_analyst "$ADMIN/api/npmos/waf/policy")" 200 "analyst reads the WAF policy"
+
+step "RBAC: the analyst changes the WAF mode, not the host"
+expect "$(as_analyst -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf/hosts/1" \
+  -d '{"enabled": true, "mode": "detect-learn", "minimum_confidence": "high"}')" 200 "analyst sets the WAF mode"
+expect "$(as_analyst -X PUT -H 'Content-Type: application/json' "$ADMIN/api/nginx/proxy-hosts/1" \
+  -d '{"forward_port": 81}')" 403 "analyst changes a proxy host"
+expect "$(as_analyst -X DELETE "$ADMIN/api/nginx/proxy-hosts/1")" 403 "analyst deletes a proxy host"
+expect "$(as_analyst -X POST "$ADMIN/api/npmos/services/npmos/restart")" 403 "analyst restarts a service"
+expect "$(as_analyst "$ADMIN/api/users")" 403 "analyst lists users"
+expect "$(as_analyst -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/rbac/users/$analyst_id" \
+  -d '{"roles": [1]}')" 403 "analyst makes itself an administrator"
+
+step "RBAC: the last administrator keeps the role"
+code=$(curl -sS -k -b $JAR -o /dev/null -w '%{http_code}' -X PUT -H 'Content-Type: application/json' \
+  "$ADMIN/api/npmos/rbac/users/1" -d '{"roles": []}')
+expect "$code" 400 "removing the last administrator"
+
 echo "OK: closed-network smoke passed"

@@ -23,6 +23,8 @@ const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id 
 /** what a cell may change and how (filled by the page) */
 export interface CellContext {
 	canManage: (row: HostRow) => boolean;
+	/** WAF mode: who manages the host, or a role with waf_policy:manage (Security Analyst) */
+	canWaf: (row: HostRow) => boolean;
 	certificates: Certificate[];
 	accessLists: AccessList[];
 	edit: (row: HostRow) => void;
@@ -150,7 +152,7 @@ export function WafCell({ row, ctx }: { row: HostRow; ctx: CellContext }) {
 	if (row.waf === null) return <span className={styles.none}>—</span>;
 	const waf = row.waf;
 	const chip = <T id={WAF_LABEL[waf]} />;
-	if (!ctx.canManage(row)) return <span className={cn(styles.chip, styles[WAF_TONE[waf] ?? ""])}>{chip}</span>;
+	if (!ctx.canWaf(row)) return <span className={cn(styles.chip, styles[WAF_TONE[waf] ?? ""])}>{chip}</span>;
 	return (
 		<Dropdown
 			floating

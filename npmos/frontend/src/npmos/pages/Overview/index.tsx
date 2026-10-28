@@ -11,7 +11,6 @@ import {
 	CERTIFICATES,
 	DEAD_HOSTS,
 	hasPermission,
-	isAdmin,
 	PROXY_HOSTS,
 	REDIRECTION_HOSTS,
 	type Section,
@@ -21,6 +20,7 @@ import {
 import { useServices, useUpstreamChecks, useWafEvents, useWafHosts, useWafStatus } from "../../hooks";
 import { Admonition, type AdmonitionVariant } from "../../ui/Admonition";
 import { timeAgo } from "../../ui/time";
+import { useCan } from "../../rbac/hooks";
 import { filtersToParams, HOST_TYPES, type HostRow, type HostType, recommendations, toRows } from "../Hosts/rows";
 import {
 	certificateNotices,
@@ -96,7 +96,7 @@ function OverviewPage() {
 	const { data: me } = useUser("me");
 	const perms = me?.permissions;
 	const roles = me?.roles;
-	const admin = isAdmin(roles);
+	const rbac = useCan();
 	const can = (type: HostType) => hasPermission(SECTION[type], VIEW, perms, roles);
 	const types = HOST_TYPES.filter(can);
 
@@ -107,9 +107,9 @@ function OverviewPage() {
 	const waf = useWafHosts({ enabled: can("proxy") });
 	const upstreams = useUpstreamChecks({ enabled: can("proxy") || can("stream") });
 	const certificates = useCertificates([], { enabled: hasPermission(CERTIFICATES, VIEW, perms, roles) });
-	const wafStatus = useWafStatus({ enabled: admin });
-	const services = useServices({ enabled: admin, refetchInterval: 15000 });
-	const events = useWafEvents("important", "", false, { enabled: admin, refetchInterval: 30000 });
+	const wafStatus = useWafStatus({ enabled: rbac("waf_policy") });
+	const services = useServices({ enabled: rbac("services"), refetchInterval: 15000 });
+	const events = useWafEvents("important", "", false, { enabled: rbac("waf_events"), refetchInterval: 30000 });
 
 	if (!me || [proxy, redirect, stream, dead].some((q, i) => can(HOST_TYPES[i]) && q.isLoading)) {
 		return <LoadingPage />;
@@ -124,8 +124,8 @@ function OverviewPage() {
 		upstreams: upstreams.data,
 	});
 	const notices = sortNotices([
-		...serviceNotices(admin ? services.data : undefined),
-		...wafNotices(admin ? wafStatus.data : undefined),
+		...serviceNotices(rbac("services") ? services.data : undefined),
+		...wafNotices(rbac("waf_policy") ? wafStatus.data : undefined),
 		...hostNotices(recommendations(rows, wafStatus.data?.enabled)),
 		...certificateNotices(
 			certificates.data ?? [],
@@ -158,93 +158,99 @@ function OverviewPage() {
 				</div>
 			)}
 
-			{admin && (
+			{(rbac("services") || rbac("waf_policy") || rbac("waf_events")) && (
 				<div className={styles.panels}>
-					<Panel title={<T id="npmos.overview.system" />} link="/system/services">
-						{services.isError ? (
-							<Line label={<T id="npmos.services" />} value={services.error.message} tone="alert" />
-						) : (
-							<>
+					{rbac("services") && (
+						<Panel title={<T id="npmos.overview.system" />} link="/system/services">
+							{services.isError ? (
+								<Line label={<T id="npmos.services" />} value={services.error.message} tone="alert" />
+							) : (
+								<>
+									<Line
+										label={<T id="npmos.overview.system.services" />}
+										value={
+											<T
+												id="npmos.overview.system.running"
+												data={{ running, total: services.data?.length ?? 0 }}
+											/>
+										}
+										tone={services.data && running === services.data.length ? "ok" : "alert"}
+									/>
+									{(services.data ?? []).filter(serviceProblem).map((s) => (
+										<Line
+											key={s.service}
+											label={s.name || s.service}
+											value={s.status || s.state}
+											tone="alert"
+										/>
+									))}
+								</>
+							)}
+						</Panel>
+					)}
+
+					{rbac("waf_policy") && (
+						<Panel title="WAF" link="/waf/agent">
+							<Line
+								label={<T id="npmos.overview.waf.state" />}
+								value={<T id={wafStatus.data?.enabled ? "npmos.overview.on" : "npmos.overview.off"} />}
+								tone={wafStatus.data?.enabled ? "ok" : "warning"}
+							/>
+							{wafStatus.data?.enabled && (
 								<Line
-									label={<T id="npmos.overview.system.services" />}
+									label={<T id="npmos.waf.agent" />}
 									value={
 										<T
-											id="npmos.overview.system.running"
-											data={{ running, total: services.data?.length ?? 0 }}
+											id={
+												wafStatus.data.agent?.reachable
+													? "npmos.overview.waf.agent-ok"
+													: "npmos.overview.waf.agent-down"
+											}
 										/>
 									}
-									tone={services.data && running === services.data.length ? "ok" : "alert"}
+									tone={wafStatus.data.agent?.reachable ? "ok" : "alert"}
 								/>
-								{(services.data ?? []).filter(serviceProblem).map((s) => (
-									<Line
-										key={s.service}
-										label={s.name || s.service}
-										value={s.status || s.state}
-										tone="alert"
-									/>
-								))}
-							</>
-						)}
-					</Panel>
+							)}
+							{(["prevent", "detect", "off"] as const).map((state) => (
+								<Line
+									key={state}
+									label={
+										<T
+											id="npmos.overview.waf.hosts"
+											data={{ mode: intl.formatMessage({ id: `npmos.hosts.waf.${state}` }) }}
+										/>
+									}
+									value={wafCount(state)}
+								/>
+							))}
+						</Panel>
+					)}
 
-					<Panel title="WAF" link="/waf/agent">
-						<Line
-							label={<T id="npmos.overview.waf.state" />}
-							value={<T id={wafStatus.data?.enabled ? "npmos.overview.on" : "npmos.overview.off"} />}
-							tone={wafStatus.data?.enabled ? "ok" : "warning"}
-						/>
-						{wafStatus.data?.enabled && (
+					{rbac("waf_events") && (
+						<Panel title={<T id="npmos.overview.analytics" />} link="/waf/events">
 							<Line
-								label={<T id="npmos.waf.agent" />}
+								label={<T id="npmos.overview.analytics.important" />}
+								value={recent.length}
+								tone={recent.length ? "warning" : "ok"}
+							/>
+							<Line label={<T id="npmos.overview.analytics.prevented" />} value={prevented} />
+							<Line
+								label={<T id="npmos.overview.analytics.last" />}
 								value={
-									<T
-										id={
-											wafStatus.data.agent?.reachable
-												? "npmos.overview.waf.agent-ok"
-												: "npmos.overview.waf.agent-down"
-										}
-									/>
+									events.data?.events[0]?.time ? (
+										<span title={events.data.events[0].host}>
+											{timeAgo(events.data.events[0].time)}
+										</span>
+									) : (
+										"—"
+									)
 								}
-								tone={wafStatus.data.agent?.reachable ? "ok" : "alert"}
 							/>
-						)}
-						{(["prevent", "detect", "off"] as const).map((state) => (
-							<Line
-								key={state}
-								label={
-									<T
-										id="npmos.overview.waf.hosts"
-										data={{ mode: intl.formatMessage({ id: `npmos.hosts.waf.${state}` }) }}
-									/>
-								}
-								value={wafCount(state)}
-							/>
-						))}
-					</Panel>
-
-					<Panel title={<T id="npmos.overview.analytics" />} link="/waf/events">
-						<Line
-							label={<T id="npmos.overview.analytics.important" />}
-							value={recent.length}
-							tone={recent.length ? "warning" : "ok"}
-						/>
-						<Line label={<T id="npmos.overview.analytics.prevented" />} value={prevented} />
-						<Line
-							label={<T id="npmos.overview.analytics.last" />}
-							value={
-								events.data?.events[0]?.time ? (
-									<span title={events.data.events[0].host}>
-										{timeAgo(events.data.events[0].time)}
-									</span>
-								) : (
-									"—"
-								)
-							}
-						/>
-						<p className={styles.note}>
-							<T id="npmos.overview.analytics.note" />
-						</p>
-					</Panel>
+							<p className={styles.note}>
+								<T id="npmos.overview.analytics.note" />
+							</p>
+						</Panel>
+					)}
 				</div>
 			)}
 

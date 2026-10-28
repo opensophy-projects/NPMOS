@@ -4,7 +4,7 @@ import { useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import { HasPermission, LoadingPage } from "src/components";
 import { intl, T } from "src/locale";
-import { ADMIN, VIEW } from "src/modules/Permissions";
+import { VIEW } from "src/modules/Permissions";
 import type { WafEvent, WafEventsView } from "../../api";
 import { useWafEvents } from "../../hooks";
 import { showWafEventModal } from "../../modals/WafEventModal";
@@ -183,7 +183,7 @@ function WafEventsPage() {
 }
 
 const WafEvents = () => (
-	<HasPermission section={ADMIN} permission={VIEW} pageLoading loadingNoLogo>
+	<HasPermission rbac="waf_events" permission={VIEW} pageLoading loadingNoLogo>
 		<WafEventsPage />
 	</HasPermission>
 );

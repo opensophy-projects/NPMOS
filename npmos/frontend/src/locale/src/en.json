@@ -1340,6 +1340,327 @@
 	"npmos.overview.waf.state": {
 		"defaultMessage": "Protection"
 	},
+	"npmos.rbac.action.apply": {
+		"defaultMessage": "Apply"
+	},
+	"npmos.rbac.action.apply.desc": {
+		"defaultMessage": "Send the policy to the agent now"
+	},
+	"npmos.rbac.action.export_key": {
+		"defaultMessage": "Export keys"
+	},
+	"npmos.rbac.action.export_key.desc": {
+		"defaultMessage": "Download private keys"
+	},
+	"npmos.rbac.action.issue": {
+		"defaultMessage": "Issue"
+	},
+	"npmos.rbac.action.issue.desc": {
+		"defaultMessage": "Issue certificates from the CA"
+	},
+	"npmos.rbac.action.label": {
+		"defaultMessage": "Label"
+	},
+	"npmos.rbac.action.label.desc": {
+		"defaultMessage": "Mark requests as legitimate or attacks"
+	},
+	"npmos.rbac.action.manage": {
+		"defaultMessage": "Manage"
+	},
+	"npmos.rbac.action.manage.desc": {
+		"defaultMessage": "Create, change and delete"
+	},
+	"npmos.rbac.action.revoke": {
+		"defaultMessage": "Revoke"
+	},
+	"npmos.rbac.action.revoke.desc": {
+		"defaultMessage": "Revoke certificates"
+	},
+	"npmos.rbac.action.view": {
+		"defaultMessage": "View"
+	},
+	"npmos.rbac.action.view.desc": {
+		"defaultMessage": "See it in the interface and the API"
+	},
+	"npmos.rbac.all": {
+		"defaultMessage": "All"
+	},
+	"npmos.rbac.builtin": {
+		"defaultMessage": "built-in"
+	},
+	"npmos.rbac.builtin.administrator": {
+		"defaultMessage": "Administrator"
+	},
+	"npmos.rbac.builtin.administrator.desc": {
+		"defaultMessage": "Everything, including users, roles and settings."
+	},
+	"npmos.rbac.builtin.many": {
+		"defaultMessage": "Built-in roles"
+	},
+	"npmos.rbac.builtin.note": {
+		"defaultMessage": "Permissions of built-in roles come with NPMOS and change with its updates. Only the OIDC groups can be set here; for other permissions, duplicate the role."
+	},
+	"npmos.rbac.builtin.operator": {
+		"defaultMessage": "Operator"
+	},
+	"npmos.rbac.builtin.operator.desc": {
+		"defaultMessage": "Runs hosts, certificates, WAF and services; sees events and the audit log. No users, roles or settings."
+	},
+	"npmos.rbac.builtin.security_analyst": {
+		"defaultMessage": "Security Analyst"
+	},
+	"npmos.rbac.builtin.security_analyst.desc": {
+		"defaultMessage": "Sees hosts; runs WAF policies and modes, events, learning and CrowdSec. Does not change hosts."
+	},
+	"npmos.rbac.builtin.viewer": {
+		"defaultMessage": "Viewer"
+	},
+	"npmos.rbac.builtin.viewer.desc": {
+		"defaultMessage": "Sees hosts, certificates, WAF, events and services; changes nothing."
+	},
+	"npmos.rbac.chosen": {
+		"defaultMessage": "{count} of {total} chosen"
+	},
+	"npmos.rbac.copy-of": {
+		"defaultMessage": "{name} (copy)"
+	},
+	"npmos.rbac.create": {
+		"defaultMessage": "Create"
+	},
+	"npmos.rbac.created": {
+		"defaultMessage": "Role {name} created"
+	},
+	"npmos.rbac.custom.many": {
+		"defaultMessage": "Your roles"
+	},
+	"npmos.rbac.delete": {
+		"defaultMessage": "Delete role"
+	},
+	"npmos.rbac.delete.text": {
+		"defaultMessage": "Delete the role {name}? {count, plural, =0 {Nobody has it.} one {# user loses its permissions.} other {# users lose its permissions.}}"
+	},
+	"npmos.rbac.deleted": {
+		"defaultMessage": "Role {name} deleted"
+	},
+	"npmos.rbac.description": {
+		"defaultMessage": "Description"
+	},
+	"npmos.rbac.duplicate": {
+		"defaultMessage": "Duplicate"
+	},
+	"npmos.rbac.hint.roles.manage": {
+		"defaultMessage": "Create roles and give them to users, within one's own permissions"
+	},
+	"npmos.rbac.hint.services.manage": {
+		"defaultMessage": "Restart services, regenerate nginx configs, download diagnostics"
+	},
+	"npmos.rbac.hint.users.manage": {
+		"defaultMessage": "Create, change and delete users (not administrators)"
+	},
+	"npmos.rbac.hint.waf_policy.manage": {
+		"defaultMessage": "Change policies, WAF modes of hosts and agent settings"
+	},
+	"npmos.rbac.name": {
+		"defaultMessage": "Name"
+	},
+	"npmos.rbac.new": {
+		"defaultMessage": "Create role"
+	},
+	"npmos.rbac.no-roles": {
+		"defaultMessage": "No role"
+	},
+	"npmos.rbac.none": {
+		"defaultMessage": "None"
+	},
+	"npmos.rbac.not-yours": {
+		"defaultMessage": "You do not have this permission, so you cannot give it"
+	},
+	"npmos.rbac.oidc": {
+		"defaultMessage": "OIDC groups → roles"
+	},
+	"npmos.rbac.oidc-groups": {
+		"defaultMessage": "OIDC groups"
+	},
+	"npmos.rbac.oidc-groups.hint": {
+		"defaultMessage": "Users of these IdP groups get the role when they log in with OIDC. Comma-separated."
+	},
+	"npmos.rbac.oidc-groups.placeholder": {
+		"defaultMessage": "npmos-admins, security"
+	},
+	"npmos.rbac.oidc.claim": {
+		"defaultMessage": "Claim with the groups"
+	},
+	"npmos.rbac.oidc.hint": {
+		"defaultMessage": "When at least one role names OIDC groups, the roles of a user who logs in with OIDC follow the groups the IdP sends. The last administrator keeps the role."
+	},
+	"npmos.rbac.oidc.saved": {
+		"defaultMessage": "OIDC group mapping saved"
+	},
+	"npmos.rbac.oidc.scope": {
+		"defaultMessage": "Ask the IdP for the groups scope"
+	},
+	"npmos.rbac.open": {
+		"defaultMessage": "Open"
+	},
+	"npmos.rbac.permissions": {
+		"defaultMessage": "Permissions"
+	},
+	"npmos.rbac.permissions.count": {
+		"defaultMessage": "{count, plural, =0 {none} one {# permission} other {# permissions}}"
+	},
+	"npmos.rbac.resource.access_lists": {
+		"defaultMessage": "Access lists"
+	},
+	"npmos.rbac.resource.access_lists.desc": {
+		"defaultMessage": "Who may open proxy hosts"
+	},
+	"npmos.rbac.resource.analytics": {
+		"defaultMessage": "Analytics"
+	},
+	"npmos.rbac.resource.analytics.desc": {
+		"defaultMessage": "Charts and reports (phase 4)"
+	},
+	"npmos.rbac.resource.audit_log": {
+		"defaultMessage": "Audit log"
+	},
+	"npmos.rbac.resource.audit_log.desc": {
+		"defaultMessage": "Who changed what and when"
+	},
+	"npmos.rbac.resource.certificates": {
+		"defaultMessage": "TLS certificates"
+	},
+	"npmos.rbac.resource.certificates.desc": {
+		"defaultMessage": "Let's Encrypt and uploaded certificates"
+	},
+	"npmos.rbac.resource.crowdsec": {
+		"defaultMessage": "CrowdSec"
+	},
+	"npmos.rbac.resource.crowdsec.desc": {
+		"defaultMessage": "Alerts, bans, scenarios (phase 7)"
+	},
+	"npmos.rbac.resource.dead_hosts": {
+		"defaultMessage": "404 hosts"
+	},
+	"npmos.rbac.resource.dead_hosts.desc": {
+		"defaultMessage": "Domains that answer 404"
+	},
+	"npmos.rbac.resource.notifications": {
+		"defaultMessage": "Notifications"
+	},
+	"npmos.rbac.resource.notifications.desc": {
+		"defaultMessage": "Channels and rules (phase 4)"
+	},
+	"npmos.rbac.resource.pki": {
+		"defaultMessage": "PKI and mTLS"
+	},
+	"npmos.rbac.resource.pki.desc": {
+		"defaultMessage": "Own CAs and client certificates (phase 6)"
+	},
+	"npmos.rbac.resource.proxy_hosts": {
+		"defaultMessage": "Proxy hosts"
+	},
+	"npmos.rbac.resource.proxy_hosts.desc": {
+		"defaultMessage": "Domains forwarded to internal services"
+	},
+	"npmos.rbac.resource.redirection_hosts": {
+		"defaultMessage": "Redirects"
+	},
+	"npmos.rbac.resource.redirection_hosts.desc": {
+		"defaultMessage": "Domains that redirect elsewhere"
+	},
+	"npmos.rbac.resource.roles": {
+		"defaultMessage": "Roles"
+	},
+	"npmos.rbac.resource.roles.desc": {
+		"defaultMessage": "Roles, their permissions and who has them"
+	},
+	"npmos.rbac.resource.services": {
+		"defaultMessage": "Services"
+	},
+	"npmos.rbac.resource.services.desc": {
+		"defaultMessage": "Containers of NPMOS, their logs and restarts"
+	},
+	"npmos.rbac.resource.settings": {
+		"defaultMessage": "Settings"
+	},
+	"npmos.rbac.resource.settings.desc": {
+		"defaultMessage": "Settings of NPMOS"
+	},
+	"npmos.rbac.resource.streams": {
+		"defaultMessage": "Streams"
+	},
+	"npmos.rbac.resource.streams.desc": {
+		"defaultMessage": "TCP and UDP port forwarding"
+	},
+	"npmos.rbac.resource.users": {
+		"defaultMessage": "Users"
+	},
+	"npmos.rbac.resource.users.desc": {
+		"defaultMessage": "Accounts of NPMOS"
+	},
+	"npmos.rbac.resource.waf_events": {
+		"defaultMessage": "WAF events"
+	},
+	"npmos.rbac.resource.waf_events.desc": {
+		"defaultMessage": "Attacks found by the agent"
+	},
+	"npmos.rbac.resource.waf_learning": {
+		"defaultMessage": "WAF learning"
+	},
+	"npmos.rbac.resource.waf_learning.desc": {
+		"defaultMessage": "Labelling queue and readiness of hosts (phase 8)"
+	},
+	"npmos.rbac.resource.waf_policy": {
+		"defaultMessage": "WAF policies"
+	},
+	"npmos.rbac.resource.waf_policy.desc": {
+		"defaultMessage": "WAF on/off, host modes, expert policy, agent"
+	},
+	"npmos.rbac.roles": {
+		"defaultMessage": "Roles"
+	},
+	"npmos.rbac.saved": {
+		"defaultMessage": "Role {name} saved"
+	},
+	"npmos.rbac.scope": {
+		"defaultMessage": "Hosts"
+	},
+	"npmos.rbac.scope.all": {
+		"defaultMessage": "All hosts"
+	},
+	"npmos.rbac.scope.all.hint": {
+		"defaultMessage": "The permissions on hosts, access lists and certificates apply to all of them."
+	},
+	"npmos.rbac.scope.own": {
+		"defaultMessage": "Own hosts"
+	},
+	"npmos.rbac.scope.own.hint": {
+		"defaultMessage": "Only hosts, access lists and certificates the user created."
+	},
+	"npmos.rbac.subtitle": {
+		"defaultMessage": "What each role may see and do. A user can have several roles: their permissions add up."
+	},
+	"npmos.rbac.template": {
+		"defaultMessage": "Start from"
+	},
+	"npmos.rbac.template.empty": {
+		"defaultMessage": "Empty role"
+	},
+	"npmos.rbac.user-roles": {
+		"defaultMessage": "Roles"
+	},
+	"npmos.rbac.user-roles.note": {
+		"defaultMessage": "Permissions of several roles add up. Without a role the user can log in but sees nothing."
+	},
+	"npmos.rbac.user-saved": {
+		"defaultMessage": "Roles of {name} saved"
+	},
+	"npmos.rbac.users": {
+		"defaultMessage": "Users"
+	},
+	"npmos.rbac.view-only": {
+		"defaultMessage": "View only"
+	},
 	"npmos.services": {
 		"defaultMessage": "Services"
 	},
@@ -1891,6 +2212,9 @@
 	},
 	"redirection-hosts.http-code.308": {
 		"defaultMessage": "308 Permanent redirect"
+	},
+	"role": {
+		"defaultMessage": "Role"
 	},
 	"role.admin": {
 		"defaultMessage": "Administrator"

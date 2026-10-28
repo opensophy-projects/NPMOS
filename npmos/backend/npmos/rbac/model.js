@@ -1,4 +1,4 @@
-// RBAC of NPMOS (docs/ROADMAP.md, phase 3; docs/adr/0012-rbac.md): resources, actions, built-in
+// RBAC of NPMOS (docs/ROADMAP.md, phase 3; docs/adr/0007-rbac.md): resources, actions, built-in
 // roles and the rules that turn the roles of a user into permissions. Pure functions, no database.
 //
 // Roles are the source of permissions. Upstream NPMplus keeps per-user permissions in

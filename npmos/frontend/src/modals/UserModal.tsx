@@ -9,6 +9,7 @@ import { useSetUser, useUser } from "src/hooks";
 import { intl, T } from "src/locale";
 import { validateEmail, validateString } from "src/modules/Validations";
 import { showObjectSuccess } from "src/notifications";
+import { showUserRolesModal } from "src/npmos/rbac/UserRolesModal";
 
 const showUserModal = (id: number | "me" | "new") => {
 	EasyModal.show(UserModal, { id });
@@ -48,9 +49,11 @@ const UserModal = EasyModal.create(({ id, visible, remove }: Props) => {
 
 		setUser(payload, {
 			onError: (err: any) => setErrorMsg(err.message),
-			onSuccess: () => {
+			onSuccess: (saved: any) => {
 				showObjectSuccess("user", "saved");
 				remove();
+				// NPMOS: a new user has no permissions until it gets a role
+				if (id === "new" && saved?.id) showUserRolesModal(saved.id, saved.name);
 			},
 			onSettled: () => {
 				setIsSubmitting(false);

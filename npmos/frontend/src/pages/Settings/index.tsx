@@ -3,8 +3,9 @@ import { ADMIN, VIEW } from "src/modules/Permissions";
 import Layout from "./Layout";
 
 const Settings = () => {
+	// NPMOS: opened by roles with settings:view (phase 3)
 	return (
-		<HasPermission section={ADMIN} permission={VIEW} pageLoading loadingNoLogo>
+		<HasPermission section={ADMIN} rbac="settings" permission={VIEW} pageLoading loadingNoLogo>
 			<Layout />
 		</HasPermission>
 	);

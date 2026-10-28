@@ -208,16 +208,19 @@ const audit = (access, action, objectType, objectId, meta) =>
 	internalAuditLog.add(access, { action, object_type: objectType, object_id: objectId, meta });
 
 const internalRbac = {
-	/** resources, actions and built-in roles (the role editor is built from it) */
+	/**
+	 * Resources, actions and built-in roles (the role editor is built from it). Lists, not maps:
+	 * the API client camelizes keys, and resource names are matched as values.
+	 */
 	model: () => ({
-		resources: model.RESOURCES,
+		resources: Object.entries(model.RESOURCES).map(([id, actions]) => ({ id, actions })),
 		scopes: model.SCOPES,
-		builtin: Object.fromEntries(
-			Object.entries(model.BUILTIN).map(([key, role]) => [
-				key,
-				{ name: role.name, scope: role.scope, permissions: model.normalize(role.permissions) },
-			]),
-		),
+		builtin: Object.entries(model.BUILTIN).map(([key, role]) => ({
+			key,
+			name: role.name,
+			scope: role.scope,
+			permissions: model.normalize(role.permissions),
+		})),
 	}),
 
 	/** permissions of the current user, for the UI */
@@ -326,20 +329,22 @@ const internalRbac = {
 		return true;
 	},
 
-	/** {user id: role ids} of all users, the Administrator role for admins */
+	/** {user id: [{id, name, builtin}]} of all users, the Administrator role for admins */
 	assignments: async (access) => {
 		try {
 			await access.can("users:list");
 		} catch {
 			await access.can("roles:view");
 		}
-		const admin = await roleTable().where("builtin", "administrator").select("id").first();
+		const roles = await roleTable().select("id", "name", "builtin");
+		const admin = roles.find((r) => r.builtin === "administrator");
 		const result = {};
 		for (const user of await userModel.query().select("id", "roles").where("is_deleted", 0)) {
-			result[user.id] = isAdminRoles(user.roles) && admin ? [admin.id] : [];
+			result[user.id] = isAdminRoles(user.roles) && admin ? [admin] : [];
 		}
 		for (const row of await db()("npmos_user_role").select("user_id", "role_id")) {
-			if (result[row.user_id]) result[row.user_id].push(row.role_id);
+			const role = roles.find((r) => r.id === row.role_id);
+			if (result[row.user_id] && role) result[row.user_id].push(role);
 		}
 		return result;
 	},

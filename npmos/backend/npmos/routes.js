@@ -177,7 +177,7 @@ router
 	.delete(handle((req, res) => internalRbac.delete(res.locals.access, req.params.role_id)));
 
 /**
- * GET /api/npmos/rbac/users — {user id: [role ids]}
+ * GET /api/npmos/rbac/users — {user id: [{id, name, builtin}]}
  * PUT /api/npmos/rbac/users/:user_id — {roles: [role ids]}
  */
 router

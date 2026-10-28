@@ -5,8 +5,9 @@ import { useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import { Button, HasPermission, LoadingPage } from "src/components";
 import { intl, T } from "src/locale";
-import { ADMIN, VIEW } from "src/modules/Permissions";
+import { VIEW } from "src/modules/Permissions";
 import { showSuccess } from "src/notifications";
+import { useCan } from "../../rbac/hooks";
 import { downloadDiagnostics, regenerateNginx, restartService, type Service } from "../../api";
 import { useServices } from "../../hooks";
 import { showConfirmModal } from "../../modals/ConfirmModal";
@@ -32,6 +33,7 @@ const getHealth = (status: string): "healthy" | "unhealthy" | "starting" | null 
 const HEALTH_COLORS = { healthy: "green", unhealthy: "red", starting: "yellow" };
 
 function ServicesTable({ services }: { services: Service[] }) {
+	const can = useCan();
 	const queryClient = useQueryClient();
 
 	const onRestart = (service: Service) =>
@@ -105,7 +107,7 @@ function ServicesTable({ services }: { services: Service[] }) {
 									<Button size="sm" className="me-2" onClick={() => showServiceLogsModal(s.service)}>
 										<T id="npmos.services.logs" />
 									</Button>
-									{s.restartable && (
+									{s.restartable && can("services", "manage") && (
 										<Button size="sm" actionType="warning" onClick={() => onRestart(s)}>
 											<IconReload size={16} className="me-1" />
 											<T id="npmos.services.restart" />
@@ -122,6 +124,7 @@ function ServicesTable({ services }: { services: Service[] }) {
 }
 
 function ServicesCard() {
+	const can = useCan();
 	const { data, isLoading, isError, error } = useServices();
 	const [downloading, setDownloading] = useState(false);
 
@@ -161,14 +164,18 @@ function ServicesCard() {
 					</div>
 					<div className="col-md-auto col-sm-12">
 						<div className="ms-auto d-flex flex-wrap btn-list">
-							<Button size="sm" onClick={onRegenerate}>
-								<IconRefresh size={16} className="me-1" />
-								<T id="npmos.services.regenerate" />
-							</Button>
-							<Button size="sm" onClick={onDiagnostics} isLoading={downloading}>
-								<IconFileZip size={16} className="me-1" />
-								<T id="npmos.services.diagnostics" />
-							</Button>
+							{can("services", "manage") && (
+								<>
+									<Button size="sm" onClick={onRegenerate}>
+										<IconRefresh size={16} className="me-1" />
+										<T id="npmos.services.regenerate" />
+									</Button>
+									<Button size="sm" onClick={onDiagnostics} isLoading={downloading}>
+										<IconFileZip size={16} className="me-1" />
+										<T id="npmos.services.diagnostics" />
+									</Button>
+								</>
+							)}
 						</div>
 					</div>
 				</div>
@@ -185,7 +192,7 @@ function ServicesCard() {
 }
 
 const Services = () => (
-	<HasPermission section={ADMIN} permission={VIEW} pageLoading loadingNoLogo>
+	<HasPermission rbac="services" permission={VIEW} pageLoading loadingNoLogo>
 		<ServicesCard />
 	</HasPermission>
 );

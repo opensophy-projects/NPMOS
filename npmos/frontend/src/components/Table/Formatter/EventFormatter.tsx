@@ -8,6 +8,7 @@ import {
 	IconShield,
 	IconShieldCheck,
 	IconUser,
+	IconUsersGroup,
 } from "@tabler/icons-react";
 import cn from "classnames";
 import type { AuditLog } from "src/api/backend";
@@ -31,6 +32,7 @@ const getEventValue = (event: AuditLog) => {
 		// NPMOS: System → Services events (restart, regenerate, diagnostics), WAF switch
 		case "service":
 		case "waf":
+		case "role":
 			return NPMOS_NAMES[event.meta?.name]
 				? intl.formatMessage({ id: NPMOS_NAMES[event.meta.name] })
 				: event.meta?.name;
@@ -89,6 +91,9 @@ const getIcon = (row: AuditLog) => {
 			break;
 		case "waf":
 			ico = <IconShieldCheck size={16} className={c} />;
+			break;
+		case "role":
+			ico = <IconUsersGroup size={16} className={c} />;
 			break;
 	}
 

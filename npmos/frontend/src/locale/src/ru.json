@@ -1340,6 +1340,327 @@
 	"npmos.overview.waf.state": {
 		"defaultMessage": "Защита"
 	},
+	"npmos.rbac.action.apply": {
+		"defaultMessage": "Применение"
+	},
+	"npmos.rbac.action.apply.desc": {
+		"defaultMessage": "Отправлять политику агенту сразу"
+	},
+	"npmos.rbac.action.export_key": {
+		"defaultMessage": "Экспорт ключей"
+	},
+	"npmos.rbac.action.export_key.desc": {
+		"defaultMessage": "Скачивать закрытые ключи"
+	},
+	"npmos.rbac.action.issue": {
+		"defaultMessage": "Выпуск"
+	},
+	"npmos.rbac.action.issue.desc": {
+		"defaultMessage": "Выпускать сертификаты из CA"
+	},
+	"npmos.rbac.action.label": {
+		"defaultMessage": "Разметка"
+	},
+	"npmos.rbac.action.label.desc": {
+		"defaultMessage": "Отмечать запросы как легитимные или атаки"
+	},
+	"npmos.rbac.action.manage": {
+		"defaultMessage": "Управление"
+	},
+	"npmos.rbac.action.manage.desc": {
+		"defaultMessage": "Создавать, изменять и удалять"
+	},
+	"npmos.rbac.action.revoke": {
+		"defaultMessage": "Отзыв"
+	},
+	"npmos.rbac.action.revoke.desc": {
+		"defaultMessage": "Отзывать сертификаты"
+	},
+	"npmos.rbac.action.view": {
+		"defaultMessage": "Просмотр"
+	},
+	"npmos.rbac.action.view.desc": {
+		"defaultMessage": "Видеть в интерфейсе и через API"
+	},
+	"npmos.rbac.all": {
+		"defaultMessage": "Все"
+	},
+	"npmos.rbac.builtin": {
+		"defaultMessage": "встроенная"
+	},
+	"npmos.rbac.builtin.administrator": {
+		"defaultMessage": "Администратор"
+	},
+	"npmos.rbac.builtin.administrator.desc": {
+		"defaultMessage": "Всё, включая пользователей, роли и настройки."
+	},
+	"npmos.rbac.builtin.many": {
+		"defaultMessage": "Встроенные роли"
+	},
+	"npmos.rbac.builtin.note": {
+		"defaultMessage": "Права встроенных ролей задаёт NPMOS, они обновляются вместе с ним. Здесь меняются только OIDC-группы; для других прав сделайте копию роли."
+	},
+	"npmos.rbac.builtin.operator": {
+		"defaultMessage": "Оператор"
+	},
+	"npmos.rbac.builtin.operator.desc": {
+		"defaultMessage": "Ведёт хосты, сертификаты, WAF и сервисы; видит события и журнал аудита. Без пользователей, ролей и настроек."
+	},
+	"npmos.rbac.builtin.security_analyst": {
+		"defaultMessage": "Аналитик безопасности"
+	},
+	"npmos.rbac.builtin.security_analyst.desc": {
+		"defaultMessage": "Видит хосты; ведёт политики и режимы WAF, события, обучение и CrowdSec. Хосты не меняет."
+	},
+	"npmos.rbac.builtin.viewer": {
+		"defaultMessage": "Наблюдатель"
+	},
+	"npmos.rbac.builtin.viewer.desc": {
+		"defaultMessage": "Видит хосты, сертификаты, WAF, события и сервисы; ничего не меняет."
+	},
+	"npmos.rbac.chosen": {
+		"defaultMessage": "выбрано {count} из {total}"
+	},
+	"npmos.rbac.copy-of": {
+		"defaultMessage": "{name} (копия)"
+	},
+	"npmos.rbac.create": {
+		"defaultMessage": "Создать"
+	},
+	"npmos.rbac.created": {
+		"defaultMessage": "Роль {name} создана"
+	},
+	"npmos.rbac.custom.many": {
+		"defaultMessage": "Ваши роли"
+	},
+	"npmos.rbac.delete": {
+		"defaultMessage": "Удалить роль"
+	},
+	"npmos.rbac.delete.text": {
+		"defaultMessage": "Удалить роль {name}? {count, plural, =0 {Она ни у кого не назначена.} other {Пользователей, потеряющих её права: #.}}"
+	},
+	"npmos.rbac.deleted": {
+		"defaultMessage": "Роль {name} удалена"
+	},
+	"npmos.rbac.description": {
+		"defaultMessage": "Описание"
+	},
+	"npmos.rbac.duplicate": {
+		"defaultMessage": "Дублировать"
+	},
+	"npmos.rbac.hint.roles.manage": {
+		"defaultMessage": "Создавать роли и назначать их — в пределах своих прав"
+	},
+	"npmos.rbac.hint.services.manage": {
+		"defaultMessage": "Перезапускать сервисы, пересобирать конфиги nginx, скачивать диагностику"
+	},
+	"npmos.rbac.hint.users.manage": {
+		"defaultMessage": "Создавать, изменять и удалять пользователей (кроме администраторов)"
+	},
+	"npmos.rbac.hint.waf_policy.manage": {
+		"defaultMessage": "Менять политики, режимы WAF хостов и настройки агента"
+	},
+	"npmos.rbac.name": {
+		"defaultMessage": "Название"
+	},
+	"npmos.rbac.new": {
+		"defaultMessage": "Создать роль"
+	},
+	"npmos.rbac.no-roles": {
+		"defaultMessage": "Без роли"
+	},
+	"npmos.rbac.none": {
+		"defaultMessage": "Снять все"
+	},
+	"npmos.rbac.not-yours": {
+		"defaultMessage": "У вас нет этого права, поэтому вы не можете его выдать"
+	},
+	"npmos.rbac.oidc": {
+		"defaultMessage": "OIDC-группы → роли"
+	},
+	"npmos.rbac.oidc-groups": {
+		"defaultMessage": "OIDC-группы"
+	},
+	"npmos.rbac.oidc-groups.hint": {
+		"defaultMessage": "Пользователи этих групп IdP получают роль при входе через OIDC. Через запятую."
+	},
+	"npmos.rbac.oidc-groups.placeholder": {
+		"defaultMessage": "npmos-admins, security"
+	},
+	"npmos.rbac.oidc.claim": {
+		"defaultMessage": "Claim с группами"
+	},
+	"npmos.rbac.oidc.hint": {
+		"defaultMessage": "Если хотя бы у одной роли указаны OIDC-группы, роли пользователя при входе через OIDC берутся из групп, которые прислал IdP. Последний администратор роль не теряет."
+	},
+	"npmos.rbac.oidc.saved": {
+		"defaultMessage": "Сопоставление OIDC-групп сохранено"
+	},
+	"npmos.rbac.oidc.scope": {
+		"defaultMessage": "Запрашивать у IdP scope groups"
+	},
+	"npmos.rbac.open": {
+		"defaultMessage": "Открыть"
+	},
+	"npmos.rbac.permissions": {
+		"defaultMessage": "Права"
+	},
+	"npmos.rbac.permissions.count": {
+		"defaultMessage": "{count, plural, =0 {нет} other {прав: #}}"
+	},
+	"npmos.rbac.resource.access_lists": {
+		"defaultMessage": "Списки доступа"
+	},
+	"npmos.rbac.resource.access_lists.desc": {
+		"defaultMessage": "Кому можно открывать прокси-хосты"
+	},
+	"npmos.rbac.resource.analytics": {
+		"defaultMessage": "Аналитика"
+	},
+	"npmos.rbac.resource.analytics.desc": {
+		"defaultMessage": "Графики и отчёты (фаза 4)"
+	},
+	"npmos.rbac.resource.audit_log": {
+		"defaultMessage": "Журнал аудита"
+	},
+	"npmos.rbac.resource.audit_log.desc": {
+		"defaultMessage": "Кто, что и когда менял"
+	},
+	"npmos.rbac.resource.certificates": {
+		"defaultMessage": "TLS-сертификаты"
+	},
+	"npmos.rbac.resource.certificates.desc": {
+		"defaultMessage": "Let's Encrypt и загруженные сертификаты"
+	},
+	"npmos.rbac.resource.crowdsec": {
+		"defaultMessage": "CrowdSec"
+	},
+	"npmos.rbac.resource.crowdsec.desc": {
+		"defaultMessage": "Алерты, баны, сценарии (фаза 7)"
+	},
+	"npmos.rbac.resource.dead_hosts": {
+		"defaultMessage": "404-хосты"
+	},
+	"npmos.rbac.resource.dead_hosts.desc": {
+		"defaultMessage": "Домены, отвечающие 404"
+	},
+	"npmos.rbac.resource.notifications": {
+		"defaultMessage": "Уведомления"
+	},
+	"npmos.rbac.resource.notifications.desc": {
+		"defaultMessage": "Каналы и правила (фаза 4)"
+	},
+	"npmos.rbac.resource.pki": {
+		"defaultMessage": "PKI и mTLS"
+	},
+	"npmos.rbac.resource.pki.desc": {
+		"defaultMessage": "Свои CA и клиентские сертификаты (фаза 6)"
+	},
+	"npmos.rbac.resource.proxy_hosts": {
+		"defaultMessage": "Прокси-хосты"
+	},
+	"npmos.rbac.resource.proxy_hosts.desc": {
+		"defaultMessage": "Домены, которые передаются внутренним сервисам"
+	},
+	"npmos.rbac.resource.redirection_hosts": {
+		"defaultMessage": "Редиректы"
+	},
+	"npmos.rbac.resource.redirection_hosts.desc": {
+		"defaultMessage": "Домены с перенаправлением"
+	},
+	"npmos.rbac.resource.roles": {
+		"defaultMessage": "Роли"
+	},
+	"npmos.rbac.resource.roles.desc": {
+		"defaultMessage": "Роли, их права и кому они назначены"
+	},
+	"npmos.rbac.resource.services": {
+		"defaultMessage": "Сервисы"
+	},
+	"npmos.rbac.resource.services.desc": {
+		"defaultMessage": "Контейнеры NPMOS, их логи и перезапуск"
+	},
+	"npmos.rbac.resource.settings": {
+		"defaultMessage": "Настройки"
+	},
+	"npmos.rbac.resource.settings.desc": {
+		"defaultMessage": "Настройки NPMOS"
+	},
+	"npmos.rbac.resource.streams": {
+		"defaultMessage": "Потоки"
+	},
+	"npmos.rbac.resource.streams.desc": {
+		"defaultMessage": "Проброс TCP- и UDP-портов"
+	},
+	"npmos.rbac.resource.users": {
+		"defaultMessage": "Пользователи"
+	},
+	"npmos.rbac.resource.users.desc": {
+		"defaultMessage": "Учётные записи NPMOS"
+	},
+	"npmos.rbac.resource.waf_events": {
+		"defaultMessage": "События WAF"
+	},
+	"npmos.rbac.resource.waf_events.desc": {
+		"defaultMessage": "Атаки, найденные агентом"
+	},
+	"npmos.rbac.resource.waf_learning": {
+		"defaultMessage": "Обучение WAF"
+	},
+	"npmos.rbac.resource.waf_learning.desc": {
+		"defaultMessage": "Очередь разметки и готовность хостов (фаза 8)"
+	},
+	"npmos.rbac.resource.waf_policy": {
+		"defaultMessage": "Политики WAF"
+	},
+	"npmos.rbac.resource.waf_policy.desc": {
+		"defaultMessage": "Включение WAF, режимы хостов, экспертная политика, агент"
+	},
+	"npmos.rbac.roles": {
+		"defaultMessage": "Роли"
+	},
+	"npmos.rbac.saved": {
+		"defaultMessage": "Роль {name} сохранена"
+	},
+	"npmos.rbac.scope": {
+		"defaultMessage": "Хосты"
+	},
+	"npmos.rbac.scope.all": {
+		"defaultMessage": "Все хосты"
+	},
+	"npmos.rbac.scope.all.hint": {
+		"defaultMessage": "Права на хосты, списки доступа и сертификаты действуют для всех."
+	},
+	"npmos.rbac.scope.own": {
+		"defaultMessage": "Только свои"
+	},
+	"npmos.rbac.scope.own.hint": {
+		"defaultMessage": "Только хосты, списки доступа и сертификаты, созданные самим пользователем."
+	},
+	"npmos.rbac.subtitle": {
+		"defaultMessage": "Что может видеть и делать каждая роль. У пользователя может быть несколько ролей — их права складываются."
+	},
+	"npmos.rbac.template": {
+		"defaultMessage": "Шаблон"
+	},
+	"npmos.rbac.template.empty": {
+		"defaultMessage": "Пустая роль"
+	},
+	"npmos.rbac.user-roles": {
+		"defaultMessage": "Роли"
+	},
+	"npmos.rbac.user-roles.note": {
+		"defaultMessage": "Права нескольких ролей складываются. Без роли пользователь войдёт, но ничего не увидит."
+	},
+	"npmos.rbac.user-saved": {
+		"defaultMessage": "Роли пользователя {name} сохранены"
+	},
+	"npmos.rbac.users": {
+		"defaultMessage": "Пользователи"
+	},
+	"npmos.rbac.view-only": {
+		"defaultMessage": "Только просмотр"
+	},
 	"npmos.services": {
 		"defaultMessage": "Сервисы"
 	},
@@ -1891,6 +2212,9 @@
 	},
 	"redirection-hosts.http-code.308": {
 		"defaultMessage": "308 Ресурс перемещен навсегда"
+	},
+	"role": {
+		"defaultMessage": "Роль"
 	},
 	"role.admin": {
 		"defaultMessage": "Администратор"

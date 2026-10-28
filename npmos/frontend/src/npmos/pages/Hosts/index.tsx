@@ -28,7 +28,6 @@ import {
 	CERTIFICATES,
 	DEAD_HOSTS,
 	hasPermission,
-	isAdmin,
 	MANAGE,
 	PROXY_HOSTS,
 	REDIRECTION_HOSTS,
@@ -40,6 +39,7 @@ import { showError, showSuccess } from "src/notifications";
 import { setWafHost, WAF_DEFAULTS } from "../../api";
 import { useHostChanges, useUpstreamChecks, useWafHosts, useWafStatus } from "../../hooks";
 import { showConfirmModal } from "../../modals/ConfirmModal";
+import { useCan } from "../../rbac/hooks";
 import { showHostHistoryModal } from "../../modals/HostHistoryModal";
 import { createHost, deleteHost, OBJECT, QUERY_KEY, toggleHost, updateHost } from "./api";
 import {
@@ -167,7 +167,8 @@ function HostsPage() {
 	const stream = useStreams(["owner", "certificate"], { enabled: can("stream", VIEW) });
 	const dead = useDeadHosts(["owner", "certificate"], { enabled: can("dead", VIEW) });
 	const waf = useWafHosts({ enabled: can("proxy", VIEW) });
-	const wafStatus = useWafStatus({ enabled: isAdmin(roles) });
+	const rbac = useCan();
+	const wafStatus = useWafStatus({ enabled: rbac("waf_policy") });
 	const certificates = useCertificates([], { enabled: hasPermission(CERTIFICATES, VIEW, perms, roles) });
 	const accessLists = useAccessLists([], { enabled: hasPermission(ACCESS_LISTS, VIEW, perms, roles) });
 	const changes = useHostChanges();
@@ -315,6 +316,7 @@ function HostsPage() {
 
 	const ctx: CellContext = {
 		canManage: (row) => can(row.type, MANAGE),
+		canWaf: (row) => can(row.type, MANAGE) || rbac("waf_policy", "manage"),
 		certificates: certificates.data ?? [],
 		accessLists: accessLists.data ?? [],
 		edit: (row) => EDIT[row.type](row.id),

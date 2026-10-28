@@ -8,7 +8,9 @@ import { Button, LoadingPage } from "src/components";
 import { useAuthState } from "src/context";
 import { useUser, useUsers } from "src/hooks";
 import { T } from "src/locale";
-import { showDeleteConfirmModal, showPermissionsModal, showSetPasswordModal, showUserModal } from "src/modals";
+import { showDeleteConfirmModal, showSetPasswordModal, showUserModal } from "src/modals";
+// NPMOS: permissions of a user are its roles (phase 3)
+import { showUserRolesModal } from "src/npmos/rbac/UserRolesModal";
 import { showError, showObjectSuccess } from "src/notifications";
 import Table from "./Table";
 
@@ -104,7 +106,9 @@ export default function TableWrapper() {
 					isFetching={isFetching}
 					currentUserId={currentUser?.id}
 					onEditUser={(id: number) => showUserModal(id)}
-					onEditPermissions={(id: number) => showPermissionsModal(id)}
+					onEditPermissions={(id: number) =>
+						showUserRolesModal(id, (data ?? []).find((u) => u.id === id)?.name ?? "")
+					}
 					onSetPassword={(id: number) => showSetPasswordModal(id)}
 					onDeleteUser={(id: number) =>
 						showDeleteConfirmModal({

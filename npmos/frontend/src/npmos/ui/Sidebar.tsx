@@ -8,6 +8,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useUser } from "src/hooks";
 import { intl, T } from "src/locale";
 import { Brand, LocaleSwitch, ThemeToggle, UserMenu } from "./Controls";
+import { useCan } from "../rbac/hooks";
 import { containsActive, filterItems, isActivePath, type NavItem, navigation, visibleItems } from "./menu";
 import styles from "./Shell.module.css";
 
@@ -42,7 +43,11 @@ export function Sidebar({ onNavigate, hotkey }: Props) {
 	const search = useRef<HTMLInputElement>(null);
 
 	const translate = useCallback((id: string) => intl.formatMessage({ id }), []);
-	const items = useMemo(() => filterItems(visibleItems(navigation, me), query, translate), [me, query, translate]);
+	const can = useCan();
+	const items = useMemo(
+		() => filterItems(visibleItems(navigation, me, can), query, translate),
+		[me, can, query, translate],
+	);
 	const searching = query.trim() !== "";
 
 	// a group with the active page opens when the page changes (it can be closed afterwards)

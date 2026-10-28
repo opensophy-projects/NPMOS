@@ -1,8 +1,8 @@
 // Sidebar navigation (docs/ROADMAP.md, phase 2). Only pages that exist are listed; WAF
-// analytics, CrowdSec, PKI, roles, notifications and updates join their groups in later phases.
+// analytics, CrowdSec, PKI, notifications and updates join their groups in later phases.
+// Items of NPMOS sections are shown by the roles of the user (`rbac`: resource whose "view" opens it).
 import {
 	ACCESS_LISTS,
-	ADMIN,
 	CERTIFICATES,
 	DEAD_HOSTS,
 	hasPermission,
@@ -25,6 +25,8 @@ export interface NavItem {
 	/** visible when any of these sections is visible */
 	anyOf?: Section[];
 	permission?: Permission;
+	/** RBAC resource (npmos/rbac): visible with its "view" */
+	rbac?: string;
 }
 
 export const navigation: NavItem[] = [
@@ -44,9 +46,9 @@ export const navigation: NavItem[] = [
 				id: "waf",
 				label: "npmos.waf",
 				items: [
-					{ id: "waf-events", label: "npmos.waf.events", to: "/waf/events", section: ADMIN },
-					{ id: "waf-policy", label: "npmos.waf.expert", to: "/waf/policy", section: ADMIN },
-					{ id: "waf-agent", label: "npmos.waf.agent", to: "/waf/agent", section: ADMIN },
+					{ id: "waf-events", label: "npmos.waf.events", to: "/waf/events", rbac: "waf_events" },
+					{ id: "waf-policy", label: "npmos.waf.expert", to: "/waf/policy", rbac: "waf_policy" },
+					{ id: "waf-agent", label: "npmos.waf.agent", to: "/waf/agent", rbac: "waf_policy" },
 				],
 			},
 			{ id: "access", label: "access-lists", to: "/access", section: ACCESS_LISTS },
@@ -57,16 +59,17 @@ export const navigation: NavItem[] = [
 		id: "administration",
 		label: "npmos.nav.administration",
 		items: [
-			{ id: "users", label: "users", to: "/users", section: ADMIN },
-			{ id: "audit", label: "auditlogs", to: "/audit-log", section: ADMIN },
+			{ id: "users", label: "users", to: "/users", rbac: "users" },
+			{ id: "roles", label: "npmos.rbac.roles", to: "/roles", rbac: "roles" },
+			{ id: "audit", label: "auditlogs", to: "/audit-log", rbac: "audit_log" },
 		],
 	},
 	{
 		id: "system",
 		label: "npmos.nav.system",
 		items: [
-			{ id: "services", label: "npmos.services", to: "/system/services", section: ADMIN },
-			{ id: "settings", label: "settings", to: "/settings", section: ADMIN },
+			{ id: "services", label: "npmos.services", to: "/system/services", rbac: "services" },
+			{ id: "settings", label: "settings", to: "/settings", rbac: "settings" },
 			// for everyone: the English terms of the interface explained
 			{ id: "glossary", label: "npmos.glossary", to: "/glossary" },
 		],
@@ -76,10 +79,10 @@ export const navigation: NavItem[] = [
 type Me = { permissions?: Parameters<typeof hasPermission>[2]; roles?: string[] } | undefined;
 
 /** Items the user may see; a group without visible items disappears. */
-export const visibleItems = (items: NavItem[], me: Me): NavItem[] =>
+export const visibleItems = (items: NavItem[], me: Me, can: (resource: string) => boolean): NavItem[] =>
 	items.flatMap((item) => {
 		if (item.items) {
-			const children = visibleItems(item.items, me);
+			const children = visibleItems(item.items, me, can);
 			return children.length ? [{ ...item, items: children }] : [];
 		}
 		const allowed = (section: Section) =>
@@ -88,6 +91,9 @@ export const visibleItems = (items: NavItem[], me: Me): NavItem[] =>
 			return [];
 		}
 		if (item.anyOf && !item.anyOf.some(allowed)) {
+			return [];
+		}
+		if (item.rbac && !can(item.rbac)) {
 			return [];
 		}
 		return [item];

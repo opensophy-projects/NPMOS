@@ -11,6 +11,7 @@ const Login = lazy(() => import("src/pages/Login"));
 // NPMOS: the overview of NPMOS replaces the upstream dashboard (phase 2)
 const Overview = lazy(() => import("src/npmos/pages/Overview"));
 const Glossary = lazy(() => import("src/npmos/pages/Glossary"));
+const Roles = lazy(() => import("src/npmos/pages/Roles"));
 const Settings = lazy(() => import("src/pages/Settings"));
 const Certificates = lazy(() => import("src/pages/Certificates"));
 const Access = lazy(() => import("src/pages/Access"));
@@ -70,6 +71,7 @@ function Router() {
 						{/* NPMOS: our pages */}
 						<Route path="/hosts" element={<Hosts />} />
 						<Route path="/glossary" element={<Glossary />} />
+						<Route path="/roles" element={<Roles />} />
 						<Route path="/system/services" element={<Services />} />
 						<Route path="/waf/agent" element={<WafAgent />} />
 						<Route path="/waf/events" element={<WafEvents />} />
