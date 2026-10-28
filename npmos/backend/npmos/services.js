@@ -15,7 +15,7 @@ const internalServices = {
 	 * @param {Access} access
 	 */
 	list: async (access) => {
-		await access.can("npmos_services:list");
+		await access.can("services:view");
 		const services = await control.listServices();
 		return services.sort((a, b) => a.service.localeCompare(b.service));
 	},
@@ -25,7 +25,7 @@ const internalServices = {
 	 * @param {string} service
 	 */
 	get: async (access, service) => {
-		await access.can("npmos_services:list");
+		await access.can("services:view");
 		return control.getService(service);
 	},
 
@@ -35,7 +35,7 @@ const internalServices = {
 	 * @param {{tail?: number, since?: number}} options
 	 */
 	logs: async (access, service, { tail, since }) => {
-		await access.can("npmos_services:list");
+		await access.can("services:view");
 		return control.getLogs(service, { tail: Math.min(tail || 200, MAX_LOG_LINES), since });
 	},
 
@@ -44,7 +44,7 @@ const internalServices = {
 	 * @param {string} service
 	 */
 	restart: async (access, service) => {
-		await access.can("npmos_services:manage");
+		await access.can("services:manage");
 		const audit = () =>
 			internalAuditLog.add(access, { action: "restarted", object_type: "service", meta: { name: service } });
 		// the audit log lives in postgres: log before taking it down
@@ -65,7 +65,7 @@ const internalServices = {
 	 * @param {Access} access
 	 */
 	regenerate: async (access) => {
-		await access.can("npmos_services:manage");
+		await access.can("services:manage");
 		await regenerateAllHosts(true);
 		await internalAuditLog.add(access, { action: "regenerated", object_type: "service", meta: { name: "nginx" } });
 		return { regenerated: true };
@@ -79,7 +79,7 @@ const internalServices = {
 	 * @param {import("node:stream").Writable} output
 	 */
 	diagnostics: async (access, output) => {
-		await access.can("npmos_services:manage");
+		await access.can("services:manage");
 		const archive = new ZipArchive({ zlib: { level: 9 } });
 		archive.on("warning", (err) => logger.warn(`diagnostics: ${err.message}`));
 		archive.pipe(output);

@@ -1,3 +1,4 @@
+// NPMOS: hardcoded strings moved to the locale (en, ru)
 import cn from "classnames";
 import type { ReactNode } from "react";
 import { useLocaleState } from "src/context";
@@ -45,7 +46,7 @@ export function DomainsFormatter({ domains, createdOn, niceName, provider, color
 	if ((!domains || domains.length === 0) && !niceName) {
 		elms.push(
 			<span key="nice-name" className="badge bg-danger-lt me-2">
-				Unknown
+				<T id="npmos.common.unknown" />
 			</span>,
 		);
 	}

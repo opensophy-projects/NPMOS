@@ -1,0 +1,76 @@
+.page {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+	max-width: 56rem;
+}
+.title {
+	margin: 0;
+	font-size: 1.5rem;
+	font-weight: 500;
+	letter-spacing: var(--tracking-tight);
+}
+.subtitle {
+	margin: 0.25rem 0 0;
+	color: var(--foreground-muted);
+	font-size: 0.875rem;
+}
+.search {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	max-width: 24rem;
+	padding: 0 0.75rem;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-md, 0.5rem);
+	background: var(--background);
+	color: var(--foreground-muted);
+}
+.search input {
+	flex: 1;
+	min-width: 0;
+	height: 2.25rem;
+	border: 0;
+	outline: 0;
+	background: none;
+	color: var(--foreground);
+}
+.search:focus-within {
+	border-color: var(--accent);
+}
+.group {
+	padding: 1rem 1.25rem;
+}
+.groupTitle {
+	margin: 0 0 0.5rem;
+	font-size: 0.9375rem;
+	font-weight: 500;
+}
+.list {
+	margin: 0;
+}
+.term {
+	display: grid;
+	grid-template-columns: 14rem minmax(0, 1fr);
+	gap: 1rem;
+	padding: 0.625rem 0;
+	border-bottom: 1px solid var(--border);
+	font-size: 0.875rem;
+}
+.term:last-child {
+	border-bottom: 0;
+}
+.term dt {
+	font-weight: 500;
+}
+.term dd {
+	margin: 0;
+	color: var(--foreground-muted);
+	line-height: 1.5;
+}
+@media (max-width: 767.98px) {
+	.term {
+		grid-template-columns: 1fr;
+		gap: 0.25rem;
+	}
+}

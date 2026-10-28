@@ -43,12 +43,15 @@ jobs:
           pnpm install --frozen-lockfile
           # import ordering (biome assist) is not enforced: upstream code does not follow it
           pnpm biome ci . --assist-enabled=false
+          # unit tests of NPMOS modules (upstream has none)
+          node --test 'npmos/**/*.test.js'
       - name: frontend
         working-directory: npmos/frontend
         run: |
           pnpm install --frozen-lockfile
           pnpm biome ci . --assist-enabled=false
           node check-locales.cjs
+          node ../../scripts/check-i18n.mjs
           pnpm formatjs compile-folder src/locale/src src/locale/lang
           pnpm tsc --noEmit
           pnpm vitest run

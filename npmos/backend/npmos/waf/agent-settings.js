@@ -85,7 +85,7 @@ const internalWafAgent = {
 	 * @param {Access} access
 	 */
 	get: async (access) => {
-		await access.can("npmos_services:list");
+		await access.can("waf_policy:view");
 		return state(await getSetting("waf.agent"));
 	},
 
@@ -95,7 +95,7 @@ const internalWafAgent = {
 	 * @param {boolean} [apply]  restart the agent now
 	 */
 	set: async (access, data, apply = true) => {
-		await access.can("npmos_services:manage");
+		await access.can("waf_policy:manage");
 		const settings = await setSetting("waf.agent", {
 			crowdsec: { enabled: data.crowdsec.enabled, mode: data.crowdsec.mode },
 			failOpen: { enabled: data.fail_open.enabled, timeoutMs: data.fail_open.timeout_ms },
@@ -119,7 +119,7 @@ const internalWafAgent = {
 	 * @param {boolean}         [apply]  restart the agent now
 	 */
 	uploadModel: async (access, req, apply = true) => {
-		await access.can("npmos_services:manage");
+		await access.can("waf_policy:manage");
 		const length = Number(req.headers["content-length"] || 0);
 		if (length > MODEL_MAX_BYTES) {
 			throw new errs.ValidationError("The model file is larger than 1 GB");

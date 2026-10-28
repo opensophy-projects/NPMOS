@@ -6,7 +6,7 @@ import Alert from "react-bootstrap/Alert";
 import { Button, HasPermission, Loading } from "src/components";
 import { useLocaleState } from "src/context";
 import { formatDateTime, intl, T } from "src/locale";
-import { ADMIN, MANAGE } from "src/modules/Permissions";
+import { MANAGE } from "src/modules/Permissions";
 import { showError, showSuccess } from "src/notifications";
 import { setWafAgent, uploadWafModel, type WafAgentSettings } from "../../api";
 import { useWafAgent } from "../../hooks";
@@ -79,7 +79,7 @@ function SettingsCard() {
 					</div>
 					<select
 						className="form-select"
-						aria-label="CrowdSec mode"
+						aria-label={intl.formatMessage({ id: "npmos.waf.agent-settings.crowdsec-mode" })}
 						value={form.crowdsec.mode}
 						disabled={!form.crowdsec.enabled}
 						onChange={(e) =>
@@ -128,11 +128,13 @@ function SettingsCard() {
 								setForm({ ...form, failOpen: { ...form.failOpen, timeoutMs: Number(e.target.value) } })
 							}
 						/>
-						<span className="input-group-text">ms</span>
+						<span className="input-group-text">
+							<T id="npmos.common.ms" />
+						</span>
 					</div>
 				</div>
 			</div>
-			<HasPermission section={ADMIN} permission={MANAGE} hideError>
+			<HasPermission rbac="waf_policy" permission={MANAGE} hideError>
 				<Button
 					actionType="primary"
 					size="sm"
@@ -194,7 +196,7 @@ function ModelCard() {
 						</span>
 					)}
 				</div>
-				<HasPermission section={ADMIN} permission={MANAGE} hideError>
+				<HasPermission rbac="waf_policy" permission={MANAGE} hideError>
 					<input
 						ref={input}
 						type="file"

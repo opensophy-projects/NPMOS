@@ -210,3 +210,42 @@ export const saveWafCustomPolicy = (content: string, comment: string): Promise<W
 
 export const rollbackWafCustomPolicy = (id: number): Promise<WafCustomPolicy> =>
 	api.post({ url: `/npmos/waf/policy/custom/${id}/rollback` });
+
+// ---- hosts table: changes from the audit log, upstream checks (npmos/backend/npmos/hosts.js) ----
+
+/** object type of a host in the audit log */
+export type HostObjectType = "proxy-host" | "redirection-host" | "dead-host" | "stream";
+
+export interface HostChange {
+	id: number;
+	/** created, updated, enabled, disabled, deleted; updated-waf: WAF settings of a proxy host */
+	action: string;
+	createdOn: string;
+	user: { id: number; name: string | null; avatar: string } | null;
+	/** settings changed by an update (API field names; "meta.x" for meta fields) */
+	fields: string[];
+	waf?: { enabled: boolean; mode: WafMode | null };
+}
+
+export interface HostLastChange extends HostChange {
+	type: HostObjectType;
+	objectId: number;
+}
+
+export interface UpstreamCheck {
+	type: HostObjectType;
+	objectId: number;
+	host: string;
+	port: number;
+	ok: boolean;
+	ms?: number;
+	/** ECONNREFUSED, ENOTFOUND, timeout… */
+	error?: string;
+}
+
+export const getHostChanges = (): Promise<HostLastChange[]> => api.get({ url: "/npmos/hosts/changes" });
+
+export const getHostHistory = (type: HostObjectType, id: number): Promise<HostChange[]> =>
+	api.get({ url: `/npmos/hosts/changes/${type}/${id}` });
+
+export const getUpstreamChecks = (): Promise<UpstreamCheck[]> => api.get({ url: "/npmos/hosts/upstreams" });

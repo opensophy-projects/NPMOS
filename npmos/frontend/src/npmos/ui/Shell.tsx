@@ -1,11 +1,12 @@
 // Application shell in the look of opensophy.com/docs (content/ContentSectionLayout): the sidebar
 // on the left, the page in an inset panel that scrolls on its own; on narrow screens a top bar
-// and the sidebar as a drawer from the right. Replaces the upstream header, top menu and footer.
-import { IconLayoutSidebarRightExpand, IconX } from "@tabler/icons-react";
+// and the sidebar as a drawer from the left. Replaces the upstream header, top menu and footer.
+import { IconLayoutSidebarLeftExpand, IconX } from "@tabler/icons-react";
 import cn from "classnames";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { intl, T } from "src/locale";
+import { useCloseLabels } from "./closeLabels";
 import styles from "./Shell.module.css";
 import { Sidebar } from "./Sidebar";
 
@@ -40,6 +41,16 @@ function MobileDrawer() {
 	return (
 		<>
 			<div className={styles.mobileBar}>
+				<button
+					ref={toggle}
+					type="button"
+					className={styles.iconButton}
+					aria-label={intl.formatMessage({ id: "npmos.nav.open-menu" })}
+					aria-expanded={open}
+					onClick={() => setOpen(true)}
+				>
+					<IconLayoutSidebarLeftExpand size={16} />
+				</button>
 				<a
 					href="/"
 					className={styles.mobileBrand}
@@ -51,16 +62,6 @@ function MobileDrawer() {
 					<img src="/images/logo-no-text.svg" alt="" />
 					npmos
 				</a>
-				<button
-					ref={toggle}
-					type="button"
-					className={styles.iconButton}
-					aria-label={intl.formatMessage({ id: "npmos.nav.open-menu" })}
-					aria-expanded={open}
-					onClick={() => setOpen(true)}
-				>
-					<IconLayoutSidebarRightExpand size={16} />
-				</button>
 			</div>
 			<div className={cn(open && styles.drawerOpen)}>
 				<div className={styles.overlay} aria-hidden onClick={close} />
@@ -89,6 +90,7 @@ function MobileDrawer() {
 
 export function Shell({ children }: { children: ReactNode }) {
 	const { pathname } = useLocation();
+	useCloseLabels();
 
 	// a new page starts at the top of the panel
 	// biome-ignore lint/correctness/useExhaustiveDependencies: runs on navigation

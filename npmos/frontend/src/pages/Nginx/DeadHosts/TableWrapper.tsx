@@ -1,3 +1,5 @@
+// NPMOS: section buttons and switches use the accent colour (phase 2)
+// NPMOS: hardcoded strings moved to the locale (en, ru)
 import { IconHelp, IconSearch } from "@tabler/icons-react";
 import { useQueryClient } from "@tanstack/react-query";
 import type { SortingState } from "@tanstack/react-table";
@@ -23,7 +25,7 @@ export default function TableWrapper() {
 	}
 
 	if (isError) {
-		return <Alert variant="danger">{error?.message || "Unknown error"}</Alert>;
+		return <Alert variant="danger">{error?.message || <T id="npmos.common.unknown-error" />}</Alert>;
 	}
 
 	const handleDelete = async (id: number) => {
@@ -105,7 +107,11 @@ export default function TableWrapper() {
 								</Button>
 								<HasPermission section={DEAD_HOSTS} permission={MANAGE} hideError>
 									{data?.length ? (
-										<Button size="sm" className="btn-red" onClick={() => showDeadHostModal("new")}>
+										<Button
+											size="sm"
+											className="btn-primary"
+											onClick={() => showDeadHostModal("new")}
+										>
 											<T id="object.add" tData={{ object: "dead-host" }} />
 										</Button>
 									) : null}

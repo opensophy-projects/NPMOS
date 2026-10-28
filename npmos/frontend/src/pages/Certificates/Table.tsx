@@ -103,6 +103,10 @@ export default function Table({
 						if (r.provider === "other") {
 							return <T id="certificates.custom" />;
 						}
+						// NPMOS: the upstream locale has no name for uploaded mTLS CAs
+						if (r.provider === "mtls") {
+							return <T id="npmos.certificates.mtls" />;
+						}
 						return <T id={r.provider} />;
 					},
 				},

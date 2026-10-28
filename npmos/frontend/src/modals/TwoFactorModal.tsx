@@ -1,3 +1,4 @@
+// NPMOS: hardcoded strings moved to the locale (en, ru)
 import EasyModal, { type InnerModalProps } from "ez-modal-react";
 import { Field, Form, Formik } from "formik";
 import { QRCodeSVG } from "qrcode.react";
@@ -6,7 +7,7 @@ import { Alert } from "react-bootstrap";
 import Modal from "react-bootstrap/Modal";
 import { disable2FA, enable2FA, get2FAStatus, regenerateBackupCodes, start2FASetup } from "src/api/backend";
 import { Button } from "src/components";
-import { T } from "src/locale";
+import { intl, T } from "src/locale";
 import { validateString } from "src/modules/Validations";
 
 type Step = "loading" | "status" | "setup" | "verify" | "backup" | "disable";
@@ -35,7 +36,7 @@ const TwoFactorModal = EasyModal.create(({ id, visible, remove }: Props) => {
 			setBackupCodesRemaining(status.backupCodesRemaining);
 			setStep("status");
 		} catch (err: any) {
-			setError(err.message || "Failed to load 2FA status");
+			setError(err.message || intl.formatMessage({ id: "npmos.2fa.error-load" }));
 			setStep("status");
 		}
 	}, [id]);
@@ -52,7 +53,7 @@ const TwoFactorModal = EasyModal.create(({ id, visible, remove }: Props) => {
 			setSetupData(data);
 			setStep("setup");
 		} catch (err: any) {
-			setError(err.message || "Failed to start 2FA setup");
+			setError(err.message || intl.formatMessage({ id: "npmos.2fa.error-start" }));
 		}
 		setIsSubmitting(false);
 	};
@@ -65,7 +66,7 @@ const TwoFactorModal = EasyModal.create(({ id, visible, remove }: Props) => {
 			setBackupCodes(result.backupCodes);
 			setStep("backup");
 		} catch (err: any) {
-			setError(err.message || "Failed to enable 2FA");
+			setError(err.message || intl.formatMessage({ id: "npmos.2fa.error-enable" }));
 		}
 		setIsSubmitting(false);
 	};
@@ -78,7 +79,7 @@ const TwoFactorModal = EasyModal.create(({ id, visible, remove }: Props) => {
 			setIsEnabled(false);
 			setStep("status");
 		} catch (err: any) {
-			setError(err.message || "Failed to disable 2FA");
+			setError(err.message || intl.formatMessage({ id: "npmos.2fa.error-disable" }));
 		}
 		setIsSubmitting(false);
 	};
@@ -91,7 +92,7 @@ const TwoFactorModal = EasyModal.create(({ id, visible, remove }: Props) => {
 			setBackupCodes(result.backupCodes);
 			setStep("backup");
 		} catch (err: any) {
-			setError(err.message || "Failed to regenerate backup codes");
+			setError(err.message || intl.formatMessage({ id: "npmos.2fa.error-regenerate" }));
 		}
 		setIsSubmitting(false);
 	};
@@ -107,7 +108,9 @@ const TwoFactorModal = EasyModal.create(({ id, visible, remove }: Props) => {
 			return (
 				<div className="text-center py-4">
 					<div className="spinner-border" role="status">
-						<span className="visually-hidden">Loading...</span>
+						<span className="visually-hidden">
+							<T id="npmos.common.loading" />
+						</span>
 					</div>
 				</div>
 			);

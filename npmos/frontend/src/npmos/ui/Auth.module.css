@@ -1,0 +1,33 @@
+/* rows 1fr | panel | 1fr: the panel stays centred whatever is above or below it */
+.screen {
+	display: grid;
+	grid-template-rows: minmax(0, 1fr) auto minmax(0, 1fr);
+	justify-items: center;
+	min-height: 100dvh;
+	padding: 1.5rem 1rem;
+	background: var(--background);
+}
+.top {
+	display: flex;
+	align-items: flex-end;
+	padding-bottom: 1.5rem;
+}
+.panel {
+	width: 100%;
+	max-width: 26rem;
+}
+.panel > :global(.card) {
+	margin: 0;
+}
+.bottom {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.5rem;
+	padding-top: 1.5rem;
+}
+.controls {
+	display: flex;
+	align-items: center;
+	gap: 0.25rem;
+}

@@ -1,3 +1,4 @@
+// NPMOS: hardcoded strings moved to the locale (en, ru)
 import { IconHelp, IconSearch } from "@tabler/icons-react";
 import { useQueryClient } from "@tanstack/react-query";
 import type { SortingState } from "@tanstack/react-table";
@@ -23,7 +24,7 @@ export default function TableWrapper() {
 	}
 
 	if (isError) {
-		return <Alert variant="danger">{error?.message || "Unknown error"}</Alert>;
+		return <Alert variant="danger">{error?.message || <T id="npmos.common.unknown-error" />}</Alert>;
 	}
 
 	const handleDelete = async (id: number) => {

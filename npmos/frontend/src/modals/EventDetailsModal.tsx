@@ -1,3 +1,4 @@
+// NPMOS: hardcoded strings moved to the locale (en, ru)
 import CodeEditor from "@uiw/react-textarea-code-editor";
 import EasyModal, { type InnerModalProps } from "ez-modal-react";
 import { Alert } from "react-bootstrap";
@@ -20,7 +21,7 @@ const EventDetailsModal = EasyModal.create(({ id, visible, remove }: Props) => {
 		<Modal show={visible} onHide={remove}>
 			{!isLoading && error && (
 				<Alert variant="danger" className="m-3">
-					{error?.message || "Unknown error"}
+					{error?.message || <T id="npmos.common.unknown-error" />}
 				</Alert>
 			)}
 			{isLoading && <Loading noLogo />}

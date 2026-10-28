@@ -65,6 +65,18 @@
 	"access-list.auth-count": {
 		"defaultMessage": "{count} {count, plural, one {пользователь} few {пользователя} many {пользователей} other {пользователя}}"
 	},
+	"access-list.custom": {
+		"defaultMessage": "Свой"
+	},
+	"access-list.custom.subtitle": {
+		"defaultMessage": "Использовать собственный тип списка доступа"
+	},
+	"access-list.global": {
+		"defaultMessage": "Глобальный"
+	},
+	"access-list.global.subtitle": {
+		"defaultMessage": "Как в глобальном списке доступа"
+	},
 	"access-list.help-rules-last": {
 		"defaultMessage": "Если есть хотя бы одно правило, правило 'запретить всё' будет добавлено последним"
 	},
@@ -260,6 +272,9 @@
 	"column.custom-locations": {
 		"defaultMessage": "Свои маршруты"
 	},
+	"column.description": {
+		"defaultMessage": "Описание"
+	},
 	"column.destination": {
 		"defaultMessage": "Назначение"
 	},
@@ -326,6 +341,12 @@
 	"dead-host": {
 		"defaultMessage": "404-хост"
 	},
+	"dead-host.directory": {
+		"defaultMessage": "Группа"
+	},
+	"dead-host.no-directory": {
+		"defaultMessage": "Без группы"
+	},
 	"dead-hosts": {
 		"defaultMessage": "404-хосты"
 	},
@@ -365,6 +386,15 @@
 	"domains.http2-support": {
 		"defaultMessage": "Поддержка HTTP/2"
 	},
+	"domains.http3-support": {
+		"defaultMessage": "Поддержка HTTP/3"
+	},
+	"domains.mtls-verify-client-optional": {
+		"defaultMessage": "Сделать mTLS необязательным"
+	},
+	"domains.reuse-key": {
+		"defaultMessage": "Повторно использовать ключ (не рекомендуется)"
+	},
 	"domains.trust-forwarded-proto": {
 		"defaultMessage": "Доверять X-Forwarded-Proto"
 	},
@@ -398,6 +428,9 @@
 	"error.invalid-email": {
 		"defaultMessage": "Неверный адрес эл. почты"
 	},
+	"error.invalid-upstream-url": {
+		"defaultMessage": "Нужен корректный URL со схемой, хостом и портом (без пути)"
+	},
 	"error.max-character-length": {
 		"defaultMessage": "Максимальная длина {max} {max, plural, one {символ} few {символа} many {символов} other {символа}}"
 	},
@@ -422,8 +455,20 @@
 	"expires.on": {
 		"defaultMessage": "Истекает: {date}"
 	},
+	"footer.github": {
+		"defaultMessage": "Репозиторий на GitHub"
+	},
 	"footer.github-fork": {
 		"defaultMessage": "Сделать форк на GitHub"
+	},
+	"help": {
+		"defaultMessage": "Справка"
+	},
+	"host.auth-request": {
+		"defaultMessage": "Auth Request"
+	},
+	"host.auth-request-upstream": {
+		"defaultMessage": "Upstream для Auth Request"
 	},
 	"host.flags.block-exploits": {
 		"defaultMessage": "Блокировать известные эксплойты"
@@ -431,11 +476,35 @@
 	"host.flags.cache-assets": {
 		"defaultMessage": "Кэшировать ресурсы"
 	},
+	"host.flags.disable-crowdsec-appsec": {
+		"defaultMessage": "Отключить CrowdSec AppSec"
+	},
+	"host.flags.disable-request-buffering": {
+		"defaultMessage": "Отключить буферизацию запросов"
+	},
+	"host.flags.disable-response-buffering": {
+		"defaultMessage": "Отключить буферизацию ответов"
+	},
+	"host.flags.disable-uri-sanitisation": {
+		"defaultMessage": "Отключить очистку URI (не рекомендуется)"
+	},
+	"host.flags.fancyindex": {
+		"defaultMessage": "Включить fancyindex"
+	},
 	"host.flags.preserve-path": {
 		"defaultMessage": "Сохранять путь"
 	},
 	"host.flags.protocols": {
 		"defaultMessage": "Протоколы"
+	},
+	"host.flags.send-noindex": {
+		"defaultMessage": "Отправлять заголовок noindex и блокировать некоторые user agent"
+	},
+	"host.flags.spoof-host-header": {
+		"defaultMessage": "Подменять заголовок Host (не рекомендуется)"
+	},
+	"host.flags.upstream-compression": {
+		"defaultMessage": "Разрешить сжатие на стороне upstream (не рекомендуется)"
 	},
 	"host.flags.websockets-upgrade": {
 		"defaultMessage": "Поддержка WebSocket"
@@ -482,6 +551,9 @@
 	"login.title": {
 		"defaultMessage": "Авторизация"
 	},
+	"mtls-certificate": {
+		"defaultMessage": "Сертификат mTLS"
+	},
 	"nginx-config.label": {
 		"defaultMessage": "Своя Nginx-конфигурация"
 	},
@@ -490,6 +562,9 @@
 	},
 	"no-permission-error": {
 		"defaultMessage": "У вас нет доступа для просмотра."
+	},
+	"no-tls": {
+		"defaultMessage": "Без TLS"
 	},
 	"notfound.action": {
 		"defaultMessage": "Вернуться на главную"
@@ -520,6 +595,570 @@
 	},
 	"notification.success": {
 		"defaultMessage": "Успешно"
+	},
+	"npmos.2fa.error-disable": {
+		"defaultMessage": "Не удалось отключить 2FA"
+	},
+	"npmos.2fa.error-enable": {
+		"defaultMessage": "Не удалось включить 2FA"
+	},
+	"npmos.2fa.error-load": {
+		"defaultMessage": "Не удалось получить состояние 2FA"
+	},
+	"npmos.2fa.error-regenerate": {
+		"defaultMessage": "Не удалось создать новые резервные коды"
+	},
+	"npmos.2fa.error-start": {
+		"defaultMessage": "Не удалось начать настройку 2FA"
+	},
+	"npmos.audit.name.agent": {
+		"defaultMessage": "Настройки агента WAF"
+	},
+	"npmos.audit.name.diagnostics": {
+		"defaultMessage": "Диагностический архив"
+	},
+	"npmos.audit.name.expert": {
+		"defaultMessage": "Политика WAF (эксперт)"
+	},
+	"npmos.audit.name.model": {
+		"defaultMessage": "Расширенная модель WAF"
+	},
+	"npmos.audit.name.policy": {
+		"defaultMessage": "Политика WAF"
+	},
+	"npmos.audit.name.waf": {
+		"defaultMessage": "WAF (open-appsec)"
+	},
+	"npmos.certificates.mtls": {
+		"defaultMessage": "CA для mTLS"
+	},
+	"npmos.common.close": {
+		"defaultMessage": "Закрыть"
+	},
+	"npmos.common.example": {
+		"defaultMessage": "напр. {value}"
+	},
+	"npmos.common.example-path": {
+		"defaultMessage": "напр. 10.0.0.1/path/"
+	},
+	"npmos.common.keep-env": {
+		"defaultMessage": "оставьте пустым, чтобы взять значение из env"
+	},
+	"npmos.common.loading": {
+		"defaultMessage": "Загрузка…"
+	},
+	"npmos.common.location": {
+		"defaultMessage": "Location"
+	},
+	"npmos.common.location-settings": {
+		"defaultMessage": "Настройки location"
+	},
+	"npmos.common.move-down": {
+		"defaultMessage": "Ниже"
+	},
+	"npmos.common.move-up": {
+		"defaultMessage": "Выше"
+	},
+	"npmos.common.ms": {
+		"defaultMessage": "мс"
+	},
+	"npmos.common.no-items": {
+		"defaultMessage": "Записей нет"
+	},
+	"npmos.common.please-wait": {
+		"defaultMessage": "Подождите…"
+	},
+	"npmos.common.remove": {
+		"defaultMessage": "Удалить"
+	},
+	"npmos.common.unhealthy-subtitle": {
+		"defaultMessage": "Проверяем снова, страница обновится сама, как только API ответит."
+	},
+	"npmos.common.unhealthy-title": {
+		"defaultMessage": "API недоступен."
+	},
+	"npmos.common.unknown": {
+		"defaultMessage": "Неизвестно"
+	},
+	"npmos.common.unknown-error": {
+		"defaultMessage": "Неизвестная ошибка"
+	},
+	"npmos.common.warning": {
+		"defaultMessage": "Предупреждение"
+	},
+	"npmos.glossary": {
+		"defaultMessage": "Глоссарий"
+	},
+	"npmos.glossary.access-list": {
+		"defaultMessage": "Кому можно открывать прокси-хост: разрешённые и запрещённые адреса и/или логин с паролем."
+	},
+	"npmos.glossary.acme": {
+		"defaultMessage": "Бесплатные сертификаты, которые выпускаются и продлеваются автоматически. Нужны выход в интернет и домен, доступный из него; в NPMOS это опция."
+	},
+	"npmos.glossary.advanced-model": {
+		"defaultMessage": "Расширенная модель обнаружения open-appsec, загружается файлом в «WAF → Агент»."
+	},
+	"npmos.glossary.agent": {
+		"defaultMessage": "Сервис open-appsec, который получает запросы от nginx и решает, пропускать ли их. Его состояние — в «WAF → Агент»."
+	},
+	"npmos.glossary.air-gap": {
+		"defaultMessage": "NPMOS работает без интернета; обращение наружу (ACME, обновления, хаб) — опция, которую вы включаете."
+	},
+	"npmos.glossary.audit-log": {
+		"defaultMessage": "Журнал того, кто, что и когда изменил. Из него берётся история хоста."
+	},
+	"npmos.glossary.bouncer": {
+		"defaultMessage": "Часть, которая применяет баны CrowdSec: здесь это nginx NPMOS и агент WAF."
+	},
+	"npmos.glossary.ca": {
+		"defaultMessage": "Удостоверяющий центр: сертификат, которым подписаны другие. Для mTLS — CA ваших клиентских сертификатов."
+	},
+	"npmos.glossary.confidence": {
+		"defaultMessage": "С какой уверенности запрос считается атакой в режиме блокировки: Critical блокирует меньше всего, Medium — больше всего."
+	},
+	"npmos.glossary.crowdsec": {
+		"defaultMessage": "Находит атакующих по логам и банит их адреса. В NPMOS работает локально, без консоли CrowdSec."
+	},
+	"npmos.glossary.dead-host": {
+		"defaultMessage": "Домен, который отвечает 404: занят, но ничего не отдаёт, или для него держится TLS-сертификат."
+	},
+	"npmos.glossary.decision": {
+		"defaultMessage": "Решение CrowdSec об адресе: бан или капча на заданное время."
+	},
+	"npmos.glossary.detect-learn": {
+		"defaultMessage": "WAF записывает атаки и учится на трафике, но всё пропускает. С этого режима стоит начинать."
+	},
+	"npmos.glossary.fail-open": {
+		"defaultMessage": "Что происходит с запросами, если агент не ответил вовремя: проходят без проверки (fail-open) или отклоняются (fail-close)."
+	},
+	"npmos.glossary.group.crowdsec": {
+		"defaultMessage": "CrowdSec"
+	},
+	"npmos.glossary.group.hosts": {
+		"defaultMessage": "Хосты"
+	},
+	"npmos.glossary.group.system": {
+		"defaultMessage": "Система"
+	},
+	"npmos.glossary.group.tls": {
+		"defaultMessage": "Сертификаты"
+	},
+	"npmos.glossary.group.waf": {
+		"defaultMessage": "WAF (open-appsec)"
+	},
+	"npmos.glossary.hsts": {
+		"defaultMessage": "Велит браузерам надолго открывать сайт только по HTTPS. Отменить трудно: включайте, когда HTTPS работает."
+	},
+	"npmos.glossary.mtls": {
+		"defaultMessage": "Взаимный TLS: кроме сервера сертификат показывает и клиент. Без сертификата, подписанного выбранным CA, хост не откроется («Обязательно») или хост просто узнает об этом («Необязательно»)."
+	},
+	"npmos.glossary.nginx": {
+		"defaultMessage": "Веб-сервер внутри NPMOS, который принимает весь трафик и обслуживает хосты."
+	},
+	"npmos.glossary.open-appsec": {
+		"defaultMessage": "WAF, встроенный в NPMOS: движок на машинном обучении вместо списков сигнатур. Работает локально, без своего облака."
+	},
+	"npmos.glossary.policy": {
+		"defaultMessage": "Файл настроек агента. NPMOS собирает его из хостов; экспертные фрагменты добавляются в «WAF → Политика (эксперт)»."
+	},
+	"npmos.glossary.prevent-learn": {
+		"defaultMessage": "WAF блокирует атаки (403) и продолжает учиться. Включайте, когда в режиме обнаружения нет ложных срабатываний."
+	},
+	"npmos.glossary.proxy-host": {
+		"defaultMessage": "Домен, который NPMOS принимает по HTTP(S) и передаёт внутреннему сервису (апстриму). На прокси-хостах настраиваются WAF, mTLS и списки доступа."
+	},
+	"npmos.glossary.redirect": {
+		"defaultMessage": "Домен, который отвечает перенаправлением (301, 302…) на другой адрес."
+	},
+	"npmos.glossary.search": {
+		"defaultMessage": "Найти термин"
+	},
+	"npmos.glossary.severity": {
+		"defaultMessage": "Насколько опасно событие, в терминах агента. Важные события — Critical и High."
+	},
+	"npmos.glossary.stream": {
+		"defaultMessage": "Проброс TCP- и/или UDP-порта без HTTP: базы данных, SSH, игры. В таблице хостов показывается как :порт."
+	},
+	"npmos.glossary.subtitle": {
+		"defaultMessage": "Термины, которые в интерфейсе остаются на английском, и что они значат в NPMOS."
+	},
+	"npmos.glossary.tls": {
+		"defaultMessage": "Шифрование соединения между браузером и NPMOS (HTTPS). SSL — старое название."
+	},
+	"npmos.glossary.tuning": {
+		"defaultMessage": "Локальные сервисы open-appsec, которые собирают выученное агентом и предлагают настройки. Заменяют его облако."
+	},
+	"npmos.glossary.upstream": {
+		"defaultMessage": "Адрес и порт, куда хост передаёт запросы (колонка «Назначение»). NPMOS проверяет, что он принимает подключения."
+	},
+	"npmos.glossary.waf": {
+		"defaultMessage": "Межсетевой экран для веб-приложений: проверяет HTTP-запросы и блокирует атаки (SQL-инъекции, XSS…). В NPMOS это open-appsec."
+	},
+	"npmos.hosts.actions": {
+		"defaultMessage": "Действия"
+	},
+	"npmos.hosts.add": {
+		"defaultMessage": "Добавить"
+	},
+	"npmos.hosts.bulk.certificate": {
+		"defaultMessage": "Сертификат"
+	},
+	"npmos.hosts.bulk.delete-text": {
+		"defaultMessage": "Будут удалены хосты ({count}):"
+	},
+	"npmos.hosts.bulk.delete-title": {
+		"defaultMessage": "Удалить хосты"
+	},
+	"npmos.hosts.column.changed": {
+		"defaultMessage": "Изменён"
+	},
+	"npmos.hosts.column.type": {
+		"defaultMessage": "Тип"
+	},
+	"npmos.hosts.copy-domain": {
+		"defaultMessage": "Скопировать домен"
+	},
+	"npmos.hosts.done.access": {
+		"defaultMessage": "доступ сохранён"
+	},
+	"npmos.hosts.done.certificate": {
+		"defaultMessage": "сертификат сохранён"
+	},
+	"npmos.hosts.done.deleted": {
+		"defaultMessage": "удалён"
+	},
+	"npmos.hosts.done.disabled": {
+		"defaultMessage": "выключен"
+	},
+	"npmos.hosts.done.enabled": {
+		"defaultMessage": "включён"
+	},
+	"npmos.hosts.done.many": {
+		"defaultMessage": "{action}: хостов {count}"
+	},
+	"npmos.hosts.done.mtls": {
+		"defaultMessage": "mTLS сохранён"
+	},
+	"npmos.hosts.done.waf": {
+		"defaultMessage": "режим WAF сохранён"
+	},
+	"npmos.hosts.duplicate": {
+		"defaultMessage": "Дублировать"
+	},
+	"npmos.hosts.empty": {
+		"defaultMessage": "Хостов пока нет. Добавьте первый кнопкой «Добавить»."
+	},
+	"npmos.hosts.export.csv": {
+		"defaultMessage": "Экспорт CSV (показанные хосты)"
+	},
+	"npmos.hosts.export.csv-selected": {
+		"defaultMessage": "Экспорт CSV (выбрано: {count})"
+	},
+	"npmos.hosts.export.json": {
+		"defaultMessage": "Экспорт JSON (показанные хосты)"
+	},
+	"npmos.hosts.export.json-selected": {
+		"defaultMessage": "Экспорт JSON (выбрано: {count})"
+	},
+	"npmos.hosts.filter.add": {
+		"defaultMessage": "Добавить фильтр"
+	},
+	"npmos.hosts.filter.apply": {
+		"defaultMessage": "Применить"
+	},
+	"npmos.hosts.filter.enter": {
+		"defaultMessage": "Enter — применить"
+	},
+	"npmos.hosts.filter.field": {
+		"defaultMessage": "Поле"
+	},
+	"npmos.hosts.filter.name-placeholder": {
+		"defaultMessage": "домен или порт"
+	},
+	"npmos.hosts.filter.op.has": {
+		"defaultMessage": "содержит"
+	},
+	"npmos.hosts.filter.op.is": {
+		"defaultMessage": "равно"
+	},
+	"npmos.hosts.filter.op.not": {
+		"defaultMessage": "не равно"
+	},
+	"npmos.hosts.filter.op.nothas": {
+		"defaultMessage": "не содержит"
+	},
+	"npmos.hosts.filter.operator": {
+		"defaultMessage": "Условие"
+	},
+	"npmos.hosts.filter.remove": {
+		"defaultMessage": "Убрать фильтр"
+	},
+	"npmos.hosts.filter.target-placeholder": {
+		"defaultMessage": "адрес, порт"
+	},
+	"npmos.hosts.filter.value": {
+		"defaultMessage": "Значение"
+	},
+	"npmos.hosts.filters": {
+		"defaultMessage": "Фильтры"
+	},
+	"npmos.hosts.filters.reset": {
+		"defaultMessage": "Сбросить фильтры"
+	},
+	"npmos.hosts.history": {
+		"defaultMessage": "История изменений"
+	},
+	"npmos.hosts.history.action.created": {
+		"defaultMessage": "создал(а) хост"
+	},
+	"npmos.hosts.history.action.deleted": {
+		"defaultMessage": "удалил(а) хост"
+	},
+	"npmos.hosts.history.action.disabled": {
+		"defaultMessage": "выключил(а) хост"
+	},
+	"npmos.hosts.history.action.enabled": {
+		"defaultMessage": "включил(а) хост"
+	},
+	"npmos.hosts.history.action.other": {
+		"defaultMessage": "{action}"
+	},
+	"npmos.hosts.history.action.updated": {
+		"defaultMessage": "изменил(а) настройки"
+	},
+	"npmos.hosts.history.action.updated-waf": {
+		"defaultMessage": "изменил(а) режим WAF"
+	},
+	"npmos.hosts.history.empty": {
+		"defaultMessage": "Изменений этого хоста пока нет."
+	},
+	"npmos.hosts.history.note": {
+		"defaultMessage": "Из журнала аудита: изменения в NPMOS и через его API. Для изменений указаны поменявшиеся настройки."
+	},
+	"npmos.hosts.history.system": {
+		"defaultMessage": "Система"
+	},
+	"npmos.hosts.import": {
+		"defaultMessage": "Импорт хостов (JSON)"
+	},
+	"npmos.hosts.import.confirm": {
+		"defaultMessage": "Импортировать"
+	},
+	"npmos.hosts.import.done": {
+		"defaultMessage": "Импортировано хостов: {count}"
+	},
+	"npmos.hosts.import.dropped": {
+		"defaultMessage": "Ссылок на сертификаты и списки доступа, которых здесь нет, будет убрано: {count}."
+	},
+	"npmos.hosts.import.empty": {
+		"defaultMessage": "В файле нет хостов, которые вы можете создать"
+	},
+	"npmos.hosts.import.invalid": {
+		"defaultMessage": "Это не файл экспорта хостов NPMOS"
+	},
+	"npmos.hosts.import.text": {
+		"defaultMessage": "Из файла будет создано хостов: {count}."
+	},
+	"npmos.hosts.mtls.ca": {
+		"defaultMessage": "CA: {name}"
+	},
+	"npmos.hosts.mtls.needs-tls": {
+		"defaultMessage": "Для mTLS нужен TLS-сертификат на хосте"
+	},
+	"npmos.hosts.mtls.no-ca": {
+		"defaultMessage": "CA пока нет: загрузите его в «Сертификатах»"
+	},
+	"npmos.hosts.mtls.off": {
+		"defaultMessage": "Выкл"
+	},
+	"npmos.hosts.mtls.optional": {
+		"defaultMessage": "Необязательно"
+	},
+	"npmos.hosts.mtls.optional.hint": {
+		"defaultMessage": "Сертификат проверяется, если клиент его прислал"
+	},
+	"npmos.hosts.mtls.required": {
+		"defaultMessage": "Обязательно"
+	},
+	"npmos.hosts.mtls.required.hint": {
+		"defaultMessage": "Пропускаются только клиенты с сертификатом этого CA"
+	},
+	"npmos.hosts.no-access": {
+		"defaultMessage": "У вас нет доступа к хостам"
+	},
+	"npmos.hosts.open-site": {
+		"defaultMessage": "Открыть сайт"
+	},
+	"npmos.hosts.reachability": {
+		"defaultMessage": "Проверить доступность"
+	},
+	"npmos.hosts.rec.all": {
+		"defaultMessage": "Показать все ({count})"
+	},
+	"npmos.hosts.rec.expired": {
+		"defaultMessage": "Сертификат истёк: хостов {count}"
+	},
+	"npmos.hosts.rec.expired.hint": {
+		"defaultMessage": "Браузеры не откроют эти сайты. Продлите сертификат или выпустите новый."
+	},
+	"npmos.hosts.rec.expiring": {
+		"defaultMessage": "Сертификат истекает в ближайшие 14 дней: хостов {count}"
+	},
+	"npmos.hosts.rec.expiring.hint": {
+		"defaultMessage": "Let's Encrypt продлевается сам; свои сертификаты нужно заменить."
+	},
+	"npmos.hosts.rec.less": {
+		"defaultMessage": "Свернуть"
+	},
+	"npmos.hosts.rec.nginx-error": {
+		"defaultMessage": "nginx не смог применить хостов: {count}"
+	},
+	"npmos.hosts.rec.nginx-error.hint": {
+		"defaultMessage": "В конфигурации ошибка; причина — в подсказке статуса."
+	},
+	"npmos.hosts.rec.no-tls": {
+		"defaultMessage": "Хостов без TLS: {count}"
+	},
+	"npmos.hosts.rec.no-tls.hint": {
+		"defaultMessage": "Трафик и пароли идут открытым текстом. Выпустите сертификат в колонке TLS."
+	},
+	"npmos.hosts.rec.show": {
+		"defaultMessage": "Показать"
+	},
+	"npmos.hosts.rec.upstream-down": {
+		"defaultMessage": "Апстрим не отвечает у хостов: {count}"
+	},
+	"npmos.hosts.rec.upstream-down.hint": {
+		"defaultMessage": "NPMOS не смог подключиться к адресу, куда хост передаёт запросы: посетители получат 502. Проверьте, что сервис запущен, а адрес и порт указаны верно."
+	},
+	"npmos.hosts.rec.waf-detect": {
+		"defaultMessage": "WAF только обнаруживает атаки: хостов {count}"
+	},
+	"npmos.hosts.rec.waf-detect.hint": {
+		"defaultMessage": "Когда в событиях нет ложных срабатываний, переключите на «Блокировку»."
+	},
+	"npmos.hosts.rec.waf-global-off": {
+		"defaultMessage": "WAF выключен для всего NPMOS"
+	},
+	"npmos.hosts.rec.waf-global-off.hint": {
+		"defaultMessage": "Режимы на хостах не действуют, пока WAF не включён в «Безопасность → WAF → Агент»."
+	},
+	"npmos.hosts.rec.waf-off": {
+		"defaultMessage": "WAF выключен на публичных прокси-хостах: {count}"
+	},
+	"npmos.hosts.rec.waf-off.hint": {
+		"defaultMessage": "Включите «Обнаружение», чтобы видеть атаки, ничего не блокируя."
+	},
+	"npmos.hosts.recommendations": {
+		"defaultMessage": "Рекомендации"
+	},
+	"npmos.hosts.search": {
+		"defaultMessage": "Поиск: домен, адрес, порт, группа"
+	},
+	"npmos.hosts.select-all": {
+		"defaultMessage": "Выбрать все показанные хосты"
+	},
+	"npmos.hosts.selected": {
+		"defaultMessage": "Выбрано: {count}"
+	},
+	"npmos.hosts.selection.clear": {
+		"defaultMessage": "Снять выбор"
+	},
+	"npmos.hosts.status.error": {
+		"defaultMessage": "Ошибка"
+	},
+	"npmos.hosts.subtitle": {
+		"defaultMessage": "Прокси, редиректы, потоки и 404-хосты в одной таблице: куда идёт трафик и как он защищён."
+	},
+	"npmos.hosts.summary": {
+		"defaultMessage": "Показано {shown} из {total}"
+	},
+	"npmos.hosts.title": {
+		"defaultMessage": "Хосты"
+	},
+	"npmos.hosts.tls.days": {
+		"defaultMessage": "{days} дн."
+	},
+	"npmos.hosts.tls.expired": {
+		"defaultMessage": "истёк"
+	},
+	"npmos.hosts.tls.expiring": {
+		"defaultMessage": "Истекает (< 14 дней)"
+	},
+	"npmos.hosts.tls.issue": {
+		"defaultMessage": "Выпустить Let's Encrypt"
+	},
+	"npmos.hosts.tls.requesting": {
+		"defaultMessage": "Запрашиваем сертификат, это может занять минуту…"
+	},
+	"npmos.hosts.transfer": {
+		"defaultMessage": "Экспорт"
+	},
+	"npmos.hosts.type.dead": {
+		"defaultMessage": "404"
+	},
+	"npmos.hosts.type.dead.hint": {
+		"defaultMessage": "Отвечать 404 для домена"
+	},
+	"npmos.hosts.type.proxy": {
+		"defaultMessage": "Прокси"
+	},
+	"npmos.hosts.type.proxy.hint": {
+		"defaultMessage": "Сайт или сервис за NPMOS"
+	},
+	"npmos.hosts.type.redirect": {
+		"defaultMessage": "Редирект"
+	},
+	"npmos.hosts.type.redirect.hint": {
+		"defaultMessage": "Перенаправить посетителей домена на другой адрес"
+	},
+	"npmos.hosts.type.stream": {
+		"defaultMessage": "Поток"
+	},
+	"npmos.hosts.type.stream.hint": {
+		"defaultMessage": "Пробросить TCP/UDP-порт"
+	},
+	"npmos.hosts.upstream": {
+		"defaultMessage": "Апстрим"
+	},
+	"npmos.hosts.upstream.down": {
+		"defaultMessage": "Не отвечает"
+	},
+	"npmos.hosts.upstream.ok": {
+		"defaultMessage": "Отвечает"
+	},
+	"npmos.hosts.view": {
+		"defaultMessage": "Вид"
+	},
+	"npmos.hosts.view.columns": {
+		"defaultMessage": "Колонки"
+	},
+	"npmos.hosts.view.compact": {
+		"defaultMessage": "Компактные строки"
+	},
+	"npmos.hosts.view.other": {
+		"defaultMessage": "Другое"
+	},
+	"npmos.hosts.view.reset": {
+		"defaultMessage": "Сбросить"
+	},
+	"npmos.hosts.waf.detect": {
+		"defaultMessage": "Обнаружение"
+	},
+	"npmos.hosts.waf.detect.hint": {
+		"defaultMessage": "Атаки записываются, ничего не блокируется"
+	},
+	"npmos.hosts.waf.off": {
+		"defaultMessage": "Выкл"
+	},
+	"npmos.hosts.waf.off.hint": {
+		"defaultMessage": "Запросы не проверяются"
+	},
+	"npmos.hosts.waf.prevent": {
+		"defaultMessage": "Блокировка"
+	},
+	"npmos.hosts.waf.prevent.hint": {
+		"defaultMessage": "Атаки блокируются (ответ 403)"
 	},
 	"npmos.nav.administration": {
 		"defaultMessage": "Администрирование"
@@ -565,6 +1204,462 @@
 	},
 	"npmos.nav.user-menu": {
 		"defaultMessage": "Меню пользователя"
+	},
+	"npmos.notice.alert": {
+		"defaultMessage": "Проблема"
+	},
+	"npmos.notice.info": {
+		"defaultMessage": "Совет"
+	},
+	"npmos.notice.warning": {
+		"defaultMessage": "Предупреждение"
+	},
+	"npmos.overview.all-good": {
+		"defaultMessage": "Всё в порядке"
+	},
+	"npmos.overview.all-good.hint": {
+		"defaultMessage": "Сервисы работают, сертификаты действительны, хосты достучались до апстримов."
+	},
+	"npmos.overview.analytics": {
+		"defaultMessage": "Аналитика"
+	},
+	"npmos.overview.analytics.important": {
+		"defaultMessage": "Важные события WAF за 24 ч"
+	},
+	"npmos.overview.analytics.last": {
+		"defaultMessage": "Последнее событие"
+	},
+	"npmos.overview.analytics.note": {
+		"defaultMessage": "По хвосту логов агента. Графики, периоды и топы появятся вместе с аналитикой (фаза 4)."
+	},
+	"npmos.overview.analytics.prevented": {
+		"defaultMessage": "Из них заблокировано"
+	},
+	"npmos.overview.fix": {
+		"defaultMessage": "Перейти"
+	},
+	"npmos.overview.hosts.dead": {
+		"defaultMessage": "{count, plural, one {404-хост} few {404-хоста} other {404-хостов}}"
+	},
+	"npmos.overview.hosts.enabled": {
+		"defaultMessage": "включено: {count}"
+	},
+	"npmos.overview.hosts.problems": {
+		"defaultMessage": "с проблемами: {count}"
+	},
+	"npmos.overview.hosts.proxy": {
+		"defaultMessage": "{count, plural, one {прокси-хост} few {прокси-хоста} other {прокси-хостов}}"
+	},
+	"npmos.overview.hosts.redirect": {
+		"defaultMessage": "{count, plural, one {редирект} few {редиректа} other {редиректов}}"
+	},
+	"npmos.overview.hosts.stream": {
+		"defaultMessage": "{count, plural, one {поток} few {потока} other {потоков}}"
+	},
+	"npmos.overview.notice.agent-down": {
+		"defaultMessage": "Агент WAF не отвечает"
+	},
+	"npmos.overview.notice.agent-down.hint": {
+		"defaultMessage": "В зависимости от fail-open запросы проходят без проверки или отклоняются. Проверьте статус и логи агента."
+	},
+	"npmos.overview.notice.ca-expired": {
+		"defaultMessage": "CA для mTLS {name} истёк"
+	},
+	"npmos.overview.notice.ca-expired.hint": {
+		"defaultMessage": "Хосты, требующие клиентский сертификат от этого CA, никого не пускают."
+	},
+	"npmos.overview.notice.ca-expiring": {
+		"defaultMessage": "CA для mTLS {name} истекает через {days} дн."
+	},
+	"npmos.overview.notice.ca-expiring.hint": {
+		"defaultMessage": "После этого клиентские сертификаты, подписанные им, перестанут приниматься. Загрузите новый CA и перевыпустите их."
+	},
+	"npmos.overview.notice.cert-expired": {
+		"defaultMessage": "Сертификат {name} истёк"
+	},
+	"npmos.overview.notice.cert-expired.hint": {
+		"defaultMessage": "Браузеры не открывают хосты с ним. Продлите или замените его."
+	},
+	"npmos.overview.notice.cert-expiring": {
+		"defaultMessage": "Сертификат {name} истекает через {days} дн."
+	},
+	"npmos.overview.notice.cert-expiring.hint": {
+		"defaultMessage": "Продлите или замените его, пока хосты с ним открываются."
+	},
+	"npmos.overview.notice.policy-failed": {
+		"defaultMessage": "Агент не применил политику WAF"
+	},
+	"npmos.overview.notice.policy-failed.hint": {
+		"defaultMessage": "Действует предыдущая политика. {error}"
+	},
+	"npmos.overview.notice.service-down": {
+		"defaultMessage": "Сервис {name} работает неправильно"
+	},
+	"npmos.overview.notice.service-down.hint": {
+		"defaultMessage": "Состояние: {state}. Логи — на странице «Сервисы»."
+	},
+	"npmos.overview.notice.waf-restart": {
+		"defaultMessage": "Настройки WAF ждут перезапуска"
+	},
+	"npmos.overview.notice.waf-restart.hint": {
+		"defaultMessage": "Перезапустите на странице агента WAF, чтобы они применились."
+	},
+	"npmos.overview.notices": {
+		"defaultMessage": "Важные уведомления"
+	},
+	"npmos.overview.off": {
+		"defaultMessage": "Выключен"
+	},
+	"npmos.overview.on": {
+		"defaultMessage": "Включён"
+	},
+	"npmos.overview.open": {
+		"defaultMessage": "Открыть"
+	},
+	"npmos.overview.subtitle": {
+		"defaultMessage": "Что работает в NPMOS и что требует внимания."
+	},
+	"npmos.overview.system": {
+		"defaultMessage": "Мониторинг системы"
+	},
+	"npmos.overview.system.running": {
+		"defaultMessage": "работают {running} из {total}"
+	},
+	"npmos.overview.system.services": {
+		"defaultMessage": "Сервисы"
+	},
+	"npmos.overview.waf.agent-down": {
+		"defaultMessage": "недоступен"
+	},
+	"npmos.overview.waf.agent-ok": {
+		"defaultMessage": "доступен"
+	},
+	"npmos.overview.waf.hosts": {
+		"defaultMessage": "Прокси-хосты: {mode}"
+	},
+	"npmos.overview.waf.state": {
+		"defaultMessage": "Защита"
+	},
+	"npmos.rbac.action.apply": {
+		"defaultMessage": "Применение"
+	},
+	"npmos.rbac.action.apply.desc": {
+		"defaultMessage": "Отправлять политику агенту сразу"
+	},
+	"npmos.rbac.action.export_key": {
+		"defaultMessage": "Экспорт ключей"
+	},
+	"npmos.rbac.action.export_key.desc": {
+		"defaultMessage": "Скачивать закрытые ключи"
+	},
+	"npmos.rbac.action.issue": {
+		"defaultMessage": "Выпуск"
+	},
+	"npmos.rbac.action.issue.desc": {
+		"defaultMessage": "Выпускать сертификаты из CA"
+	},
+	"npmos.rbac.action.label": {
+		"defaultMessage": "Разметка"
+	},
+	"npmos.rbac.action.label.desc": {
+		"defaultMessage": "Отмечать запросы как легитимные или атаки"
+	},
+	"npmos.rbac.action.manage": {
+		"defaultMessage": "Управление"
+	},
+	"npmos.rbac.action.manage.desc": {
+		"defaultMessage": "Создавать, изменять и удалять"
+	},
+	"npmos.rbac.action.revoke": {
+		"defaultMessage": "Отзыв"
+	},
+	"npmos.rbac.action.revoke.desc": {
+		"defaultMessage": "Отзывать сертификаты"
+	},
+	"npmos.rbac.action.view": {
+		"defaultMessage": "Просмотр"
+	},
+	"npmos.rbac.action.view.desc": {
+		"defaultMessage": "Видеть в интерфейсе и через API"
+	},
+	"npmos.rbac.all": {
+		"defaultMessage": "Все"
+	},
+	"npmos.rbac.builtin": {
+		"defaultMessage": "встроенная"
+	},
+	"npmos.rbac.builtin.administrator": {
+		"defaultMessage": "Администратор"
+	},
+	"npmos.rbac.builtin.administrator.desc": {
+		"defaultMessage": "Всё, включая пользователей, роли и настройки."
+	},
+	"npmos.rbac.builtin.many": {
+		"defaultMessage": "Встроенные роли"
+	},
+	"npmos.rbac.builtin.note": {
+		"defaultMessage": "Права встроенных ролей задаёт NPMOS, они обновляются вместе с ним. Здесь меняются только OIDC-группы; для других прав сделайте копию роли."
+	},
+	"npmos.rbac.builtin.operator": {
+		"defaultMessage": "Оператор"
+	},
+	"npmos.rbac.builtin.operator.desc": {
+		"defaultMessage": "Ведёт хосты, сертификаты, WAF и сервисы; видит события и журнал аудита. Без пользователей, ролей и настроек."
+	},
+	"npmos.rbac.builtin.security_analyst": {
+		"defaultMessage": "Аналитик безопасности"
+	},
+	"npmos.rbac.builtin.security_analyst.desc": {
+		"defaultMessage": "Видит хосты; ведёт политики и режимы WAF, события, обучение и CrowdSec. Хосты не меняет."
+	},
+	"npmos.rbac.builtin.viewer": {
+		"defaultMessage": "Наблюдатель"
+	},
+	"npmos.rbac.builtin.viewer.desc": {
+		"defaultMessage": "Видит хосты, сертификаты, WAF, события и сервисы; ничего не меняет."
+	},
+	"npmos.rbac.chosen": {
+		"defaultMessage": "выбрано {count} из {total}"
+	},
+	"npmos.rbac.copy-of": {
+		"defaultMessage": "{name} (копия)"
+	},
+	"npmos.rbac.create": {
+		"defaultMessage": "Создать"
+	},
+	"npmos.rbac.created": {
+		"defaultMessage": "Роль {name} создана"
+	},
+	"npmos.rbac.custom.many": {
+		"defaultMessage": "Ваши роли"
+	},
+	"npmos.rbac.delete": {
+		"defaultMessage": "Удалить роль"
+	},
+	"npmos.rbac.delete.text": {
+		"defaultMessage": "Удалить роль {name}? {count, plural, =0 {Она ни у кого не назначена.} other {Пользователей, потеряющих её права: #.}}"
+	},
+	"npmos.rbac.deleted": {
+		"defaultMessage": "Роль {name} удалена"
+	},
+	"npmos.rbac.description": {
+		"defaultMessage": "Описание"
+	},
+	"npmos.rbac.duplicate": {
+		"defaultMessage": "Дублировать"
+	},
+	"npmos.rbac.hint.roles.manage": {
+		"defaultMessage": "Создавать роли и назначать их — в пределах своих прав"
+	},
+	"npmos.rbac.hint.services.manage": {
+		"defaultMessage": "Перезапускать сервисы, пересобирать конфиги nginx, скачивать диагностику"
+	},
+	"npmos.rbac.hint.users.manage": {
+		"defaultMessage": "Создавать, изменять и удалять пользователей (кроме администраторов)"
+	},
+	"npmos.rbac.hint.waf_policy.manage": {
+		"defaultMessage": "Менять политики, режимы WAF хостов и настройки агента"
+	},
+	"npmos.rbac.name": {
+		"defaultMessage": "Название"
+	},
+	"npmos.rbac.new": {
+		"defaultMessage": "Создать роль"
+	},
+	"npmos.rbac.no-roles": {
+		"defaultMessage": "Без роли"
+	},
+	"npmos.rbac.none": {
+		"defaultMessage": "Снять все"
+	},
+	"npmos.rbac.not-yours": {
+		"defaultMessage": "У вас нет этого права, поэтому вы не можете его выдать"
+	},
+	"npmos.rbac.oidc": {
+		"defaultMessage": "OIDC-группы → роли"
+	},
+	"npmos.rbac.oidc-groups": {
+		"defaultMessage": "OIDC-группы"
+	},
+	"npmos.rbac.oidc-groups.hint": {
+		"defaultMessage": "Пользователи этих групп IdP получают роль при входе через OIDC. Через запятую."
+	},
+	"npmos.rbac.oidc-groups.placeholder": {
+		"defaultMessage": "npmos-admins, security"
+	},
+	"npmos.rbac.oidc.claim": {
+		"defaultMessage": "Claim с группами"
+	},
+	"npmos.rbac.oidc.hint": {
+		"defaultMessage": "Если хотя бы у одной роли указаны OIDC-группы, роли пользователя при входе через OIDC берутся из групп, которые прислал IdP. Последний администратор роль не теряет."
+	},
+	"npmos.rbac.oidc.saved": {
+		"defaultMessage": "Сопоставление OIDC-групп сохранено"
+	},
+	"npmos.rbac.oidc.scope": {
+		"defaultMessage": "Запрашивать у IdP scope groups"
+	},
+	"npmos.rbac.open": {
+		"defaultMessage": "Открыть"
+	},
+	"npmos.rbac.permissions": {
+		"defaultMessage": "Права"
+	},
+	"npmos.rbac.permissions.count": {
+		"defaultMessage": "{count, plural, =0 {нет} other {прав: #}}"
+	},
+	"npmos.rbac.resource.access_lists": {
+		"defaultMessage": "Списки доступа"
+	},
+	"npmos.rbac.resource.access_lists.desc": {
+		"defaultMessage": "Кому можно открывать прокси-хосты"
+	},
+	"npmos.rbac.resource.analytics": {
+		"defaultMessage": "Аналитика"
+	},
+	"npmos.rbac.resource.analytics.desc": {
+		"defaultMessage": "Графики и отчёты (фаза 4)"
+	},
+	"npmos.rbac.resource.audit_log": {
+		"defaultMessage": "Журнал аудита"
+	},
+	"npmos.rbac.resource.audit_log.desc": {
+		"defaultMessage": "Кто, что и когда менял"
+	},
+	"npmos.rbac.resource.certificates": {
+		"defaultMessage": "TLS-сертификаты"
+	},
+	"npmos.rbac.resource.certificates.desc": {
+		"defaultMessage": "Let's Encrypt и загруженные сертификаты"
+	},
+	"npmos.rbac.resource.crowdsec": {
+		"defaultMessage": "CrowdSec"
+	},
+	"npmos.rbac.resource.crowdsec.desc": {
+		"defaultMessage": "Алерты, баны, сценарии (фаза 7)"
+	},
+	"npmos.rbac.resource.dead_hosts": {
+		"defaultMessage": "404-хосты"
+	},
+	"npmos.rbac.resource.dead_hosts.desc": {
+		"defaultMessage": "Домены, отвечающие 404"
+	},
+	"npmos.rbac.resource.notifications": {
+		"defaultMessage": "Уведомления"
+	},
+	"npmos.rbac.resource.notifications.desc": {
+		"defaultMessage": "Каналы и правила (фаза 4)"
+	},
+	"npmos.rbac.resource.pki": {
+		"defaultMessage": "PKI и mTLS"
+	},
+	"npmos.rbac.resource.pki.desc": {
+		"defaultMessage": "Свои CA и клиентские сертификаты (фаза 6)"
+	},
+	"npmos.rbac.resource.proxy_hosts": {
+		"defaultMessage": "Прокси-хосты"
+	},
+	"npmos.rbac.resource.proxy_hosts.desc": {
+		"defaultMessage": "Домены, которые передаются внутренним сервисам"
+	},
+	"npmos.rbac.resource.redirection_hosts": {
+		"defaultMessage": "Редиректы"
+	},
+	"npmos.rbac.resource.redirection_hosts.desc": {
+		"defaultMessage": "Домены с перенаправлением"
+	},
+	"npmos.rbac.resource.roles": {
+		"defaultMessage": "Роли"
+	},
+	"npmos.rbac.resource.roles.desc": {
+		"defaultMessage": "Роли, их права и кому они назначены"
+	},
+	"npmos.rbac.resource.services": {
+		"defaultMessage": "Сервисы"
+	},
+	"npmos.rbac.resource.services.desc": {
+		"defaultMessage": "Контейнеры NPMOS, их логи и перезапуск"
+	},
+	"npmos.rbac.resource.settings": {
+		"defaultMessage": "Настройки"
+	},
+	"npmos.rbac.resource.settings.desc": {
+		"defaultMessage": "Настройки NPMOS"
+	},
+	"npmos.rbac.resource.streams": {
+		"defaultMessage": "Потоки"
+	},
+	"npmos.rbac.resource.streams.desc": {
+		"defaultMessage": "Проброс TCP- и UDP-портов"
+	},
+	"npmos.rbac.resource.users": {
+		"defaultMessage": "Пользователи"
+	},
+	"npmos.rbac.resource.users.desc": {
+		"defaultMessage": "Учётные записи NPMOS"
+	},
+	"npmos.rbac.resource.waf_events": {
+		"defaultMessage": "События WAF"
+	},
+	"npmos.rbac.resource.waf_events.desc": {
+		"defaultMessage": "Атаки, найденные агентом"
+	},
+	"npmos.rbac.resource.waf_learning": {
+		"defaultMessage": "Обучение WAF"
+	},
+	"npmos.rbac.resource.waf_learning.desc": {
+		"defaultMessage": "Очередь разметки и готовность хостов (фаза 8)"
+	},
+	"npmos.rbac.resource.waf_policy": {
+		"defaultMessage": "Политики WAF"
+	},
+	"npmos.rbac.resource.waf_policy.desc": {
+		"defaultMessage": "Включение WAF, режимы хостов, экспертная политика, агент"
+	},
+	"npmos.rbac.roles": {
+		"defaultMessage": "Роли"
+	},
+	"npmos.rbac.saved": {
+		"defaultMessage": "Роль {name} сохранена"
+	},
+	"npmos.rbac.scope": {
+		"defaultMessage": "Хосты"
+	},
+	"npmos.rbac.scope.all": {
+		"defaultMessage": "Все хосты"
+	},
+	"npmos.rbac.scope.all.hint": {
+		"defaultMessage": "Права на хосты, списки доступа и сертификаты действуют для всех."
+	},
+	"npmos.rbac.scope.own": {
+		"defaultMessage": "Только свои"
+	},
+	"npmos.rbac.scope.own.hint": {
+		"defaultMessage": "Только хосты, списки доступа и сертификаты, созданные самим пользователем."
+	},
+	"npmos.rbac.subtitle": {
+		"defaultMessage": "Что может видеть и делать каждая роль. У пользователя может быть несколько ролей — их права складываются."
+	},
+	"npmos.rbac.template": {
+		"defaultMessage": "Шаблон"
+	},
+	"npmos.rbac.template.empty": {
+		"defaultMessage": "Пустая роль"
+	},
+	"npmos.rbac.user-roles": {
+		"defaultMessage": "Роли"
+	},
+	"npmos.rbac.user-roles.note": {
+		"defaultMessage": "Права нескольких ролей складываются. Без роли пользователь войдёт, но ничего не увидит."
+	},
+	"npmos.rbac.user-saved": {
+		"defaultMessage": "Роли пользователя {name} сохранены"
+	},
+	"npmos.rbac.users": {
+		"defaultMessage": "Пользователи"
+	},
+	"npmos.rbac.view-only": {
+		"defaultMessage": "Только просмотр"
 	},
 	"npmos.services": {
 		"defaultMessage": "Сервисы"
@@ -668,6 +1763,9 @@
 	"npmos.waf.agent-settings.crowdsec": {
 		"defaultMessage": "Репутация IP из CrowdSec"
 	},
+	"npmos.waf.agent-settings.crowdsec-mode": {
+		"defaultMessage": "Режим CrowdSec"
+	},
 	"npmos.waf.agent-settings.crowdsec.detect": {
 		"defaultMessage": "Detect: только записывать в журнал"
 	},
@@ -706,6 +1804,12 @@
 	},
 	"npmos.waf.apply": {
 		"defaultMessage": "Применить сейчас"
+	},
+	"npmos.waf.badge.detect": {
+		"defaultMessage": "Обнаружение"
+	},
+	"npmos.waf.badge.prevent": {
+		"defaultMessage": "Блокировка"
 	},
 	"npmos.waf.description": {
 		"defaultMessage": "Межсетевой экран веб-приложений open-appsec на машинном обучении"
@@ -806,6 +1910,9 @@
 	"npmos.waf.expert.diff": {
 		"defaultMessage": "Изменения local_policy.yaml"
 	},
+	"npmos.waf.expert.example": {
+		"defaultMessage": "Пример: пропускать трафик доверенного IP на всех защищённых хостах"
+	},
 	"npmos.waf.expert.in-force": {
 		"defaultMessage": "действует"
 	},
@@ -817,6 +1924,9 @@
 	},
 	"npmos.waf.expert.rollback": {
 		"defaultMessage": "Откатить"
+	},
+	"npmos.waf.expert.rollback-comment": {
+		"defaultMessage": "Откат к версии {id}"
 	},
 	"npmos.waf.expert.rollback-confirm": {
 		"defaultMessage": "Сделать версию {id} текущей? Она сохранится как новая версия и сразу применится."
@@ -1001,6 +2111,9 @@
 	"options": {
 		"defaultMessage": "Параметры"
 	},
+	"or": {
+		"defaultMessage": "или"
+	},
 	"password": {
 		"defaultMessage": "Пароль"
 	},
@@ -1034,8 +2147,23 @@
 	"proxy-host": {
 		"defaultMessage": "Прокси-хост"
 	},
+	"proxy-host.access-lists": {
+		"defaultMessage": "Списки доступа"
+	},
+	"proxy-host.directory": {
+		"defaultMessage": "Группа"
+	},
 	"proxy-host.forward-host": {
 		"defaultMessage": "Целевой хост"
+	},
+	"proxy-host.forward-host-path": {
+		"defaultMessage": "Адрес назначения: хост / IP / путь"
+	},
+	"proxy-host.global-access-lists": {
+		"defaultMessage": "Глобальные списки доступа"
+	},
+	"proxy-host.no-directory": {
+		"defaultMessage": "Без группы"
 	},
 	"proxy-hosts": {
 		"defaultMessage": "Прокси-хосты"
@@ -1049,11 +2177,17 @@
 	"redirection-host": {
 		"defaultMessage": "Редирект-хост"
 	},
+	"redirection-host.directory": {
+		"defaultMessage": "Группа"
+	},
 	"redirection-host.forward-domain": {
 		"defaultMessage": "Целевой домен"
 	},
 	"redirection-host.forward-http-code": {
 		"defaultMessage": "HTTP-код"
+	},
+	"redirection-host.no-directory": {
+		"defaultMessage": "Без группы"
 	},
 	"redirection-hosts": {
 		"defaultMessage": "Редирект-хосты"
@@ -1078,6 +2212,9 @@
 	},
 	"redirection-hosts.http-code.308": {
 		"defaultMessage": "308 Ресурс перемещен навсегда"
+	},
+	"role": {
+		"defaultMessage": "Роль"
 	},
 	"role.admin": {
 		"defaultMessage": "Администратор"
@@ -1130,11 +2267,23 @@
 	"sign-in": {
 		"defaultMessage": "Войти"
 	},
+	"sign-in-with-oidc": {
+		"defaultMessage": "Войти через OIDC"
+	},
 	"ssl-certificate": {
 		"defaultMessage": "TLS-сертификат"
 	},
 	"stream": {
 		"defaultMessage": "Поток"
+	},
+	"stream.description": {
+		"defaultMessage": "Описание"
+	},
+	"stream.description.placeholder": {
+		"defaultMessage": "Необязательное описание, чтобы отличать этот поток"
+	},
+	"stream.directory": {
+		"defaultMessage": "Группа"
 	},
 	"stream.forward-host": {
 		"defaultMessage": "Целевой хост"
@@ -1145,14 +2294,23 @@
 	"stream.incoming-port": {
 		"defaultMessage": "Входящий порт"
 	},
+	"stream.no-directory": {
+		"defaultMessage": "Без группы"
+	},
 	"streams": {
 		"defaultMessage": "Потоки"
 	},
 	"streams.count": {
 		"defaultMessage": "{count} {count, plural, one {поток} few {потока} many {потоков} other {потока}}"
 	},
+	"streams.pp": {
+		"defaultMessage": "Proxy Protocol v1"
+	},
 	"streams.tcp": {
 		"defaultMessage": "TCP"
+	},
+	"streams.tls": {
+		"defaultMessage": "TLS до upstream"
 	},
 	"streams.udp": {
 		"defaultMessage": "UDP"

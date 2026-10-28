@@ -1,0 +1,71 @@
+/* inset frame (as the theme/language buttons and cards) around the notice */
+.frame {
+	padding: 0.375rem;
+	border-radius: var(--radius-lg);
+	background: var(--card-frame, var(--background-inset));
+	box-shadow: var(--shadow-inset);
+}
+.box {
+	display: grid;
+	grid-template-columns: 3.25rem minmax(0, 1fr) auto;
+	overflow: hidden;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-md, calc(var(--radius-lg) - 0.25rem));
+	background: var(--background);
+	box-shadow: var(--shadow-card);
+}
+.strip {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--background);
+}
+.note,
+.tip {
+	background: var(--accent);
+}
+.success {
+	background: var(--tblr-green);
+}
+.warning {
+	background: var(--tblr-yellow);
+}
+.alert {
+	background: var(--tblr-red);
+}
+.body {
+	min-width: 0;
+	padding: 1rem 1.25rem;
+}
+.title {
+	color: var(--foreground);
+	font-size: 0.8125rem;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+.text {
+	margin-top: 0.375rem;
+	color: var(--foreground-muted);
+	font-size: 0.875rem;
+	line-height: 1.5;
+}
+.aside {
+	display: flex;
+	align-items: center;
+	padding-right: 1rem;
+}
+
+.compact .box {
+	grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+}
+.compact .body {
+	padding: 0.625rem 0.875rem;
+}
+.compact .title {
+	font-size: 0.75rem;
+}
+.compact .text {
+	margin-top: 0.125rem;
+	font-size: 0.8125rem;
+}

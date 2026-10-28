@@ -5,10 +5,11 @@ import Alert from "react-bootstrap/Alert";
 import { Button, HasPermission, LoadingPage } from "src/components";
 import { useLocaleState } from "src/context";
 import { formatDateTime, intl, T } from "src/locale";
-import { ADMIN, MANAGE, VIEW } from "src/modules/Permissions";
+import { MANAGE, VIEW } from "src/modules/Permissions";
 import { showSuccess } from "src/notifications";
 import { type AgentStatus, applyWafPolicy, setWafEnabled, type WafPolicyState, type WafStatus } from "../../api";
 import { useWafStatus } from "../../hooks";
+import { useCan } from "../../rbac/hooks";
 import { showConfirmModal } from "../../modals/ConfirmModal";
 import { showWafPolicyModal } from "../../modals/WafPolicyModal";
 import { AgentSettingsCard } from "./AgentSettings";
@@ -82,7 +83,7 @@ function PolicyCard({ policy }: { policy?: WafPolicyState }) {
 					<Button size="sm" onClick={showWafPolicyModal}>
 						<T id="npmos.waf.policy-show" />
 					</Button>
-					<HasPermission section={ADMIN} permission={MANAGE} hideError>
+					<HasPermission rbac="waf_policy:apply" permission={MANAGE} hideError>
 						<Button size="sm" actionType="primary" className="ms-2" isLoading={applying} onClick={apply}>
 							<T id="npmos.waf.policy-apply" />
 						</Button>
@@ -99,7 +100,7 @@ function PolicyCard({ policy }: { policy?: WafPolicyState }) {
 						) : policy.applied.ok ? (
 							<span className="badge bg-green-lt">{when(policy.applied.at)}</span>
 						) : (
-							<span className="badge bg-orange-lt" title={policy.applied.error || ""}>
+							<span className="badge bg-yellow-lt" title={policy.applied.error || ""}>
 								<T id="npmos.waf.policy-not-sent" /> ({policy.applied.error})
 							</span>
 						)}
@@ -111,6 +112,7 @@ function PolicyCard({ policy }: { policy?: WafPolicyState }) {
 }
 
 function WafCard({ status }: { status: WafStatus }) {
+	const can = useCan();
 	const queryClient = useQueryClient();
 	const [restarting, setRestarting] = useState(false);
 
@@ -169,6 +171,7 @@ function WafCard({ status }: { status: WafStatus }) {
 								className="form-check-input"
 								type="checkbox"
 								checked={status.enabled}
+								disabled={!can("waf_policy", "manage")}
 								onChange={(e) => change(e.target.checked)}
 							/>
 							<span className="form-check-label">
@@ -192,9 +195,11 @@ function WafCard({ status }: { status: WafStatus }) {
 						<div className="flex-fill">
 							<T id={status.enabled ? "npmos.waf.pending-enable" : "npmos.waf.pending-disable"} />
 						</div>
-						<Button size="sm" actionType="warning" onClick={apply}>
-							<T id="npmos.waf.apply" />
-						</Button>
+						{can("waf_policy", "manage") && (
+							<Button size="sm" actionType="warning" onClick={apply}>
+								<T id="npmos.waf.apply" />
+							</Button>
+						)}
 					</Alert>
 				</div>
 			)}
@@ -203,9 +208,10 @@ function WafCard({ status }: { status: WafStatus }) {
 }
 
 function WafAgentPage() {
-	const { data, isLoading, isError, error } = useWafStatus();
+	const { data, isLoading, error } = useWafStatus();
 	if (isLoading) return <LoadingPage />;
-	if (isError || !data) return <Alert variant="danger">{error?.message || "Unknown error"}</Alert>;
+	// a failed refetch (npmos restarting to apply the WAF switch) keeps the last known state
+	if (!data) return <Alert variant="danger">{error?.message || <T id="npmos.common.unknown-error" />}</Alert>;
 	return (
 		<>
 			<WafCard status={data} />
@@ -217,7 +223,7 @@ function WafAgentPage() {
 }
 
 const WafAgent = () => (
-	<HasPermission section={ADMIN} permission={VIEW} pageLoading loadingNoLogo>
+	<HasPermission rbac="waf_policy" permission={VIEW} pageLoading loadingNoLogo>
 		<WafAgentPage />
 	</HasPermission>
 );

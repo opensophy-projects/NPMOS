@@ -1,3 +1,4 @@
+// NPMOS: hardcoded strings moved to the locale (en, ru)
 import EasyModal, { type InnerModalProps } from "ez-modal-react";
 import { Field, Form, Formik } from "formik";
 import { type ReactNode, useState } from "react";
@@ -9,14 +10,16 @@ import { intl, T } from "src/locale";
 import { validateString } from "src/modules/Validations";
 import { showObjectSuccess } from "src/notifications";
 
-const showStreamModal = (id: number | "new") => {
-	EasyModal.show(StreamModal, { id });
+// NPMOS: "Duplicate" in the hosts table opens the form filled from another host
+const showStreamModal = (id: number | "new", isClone = false) => {
+	EasyModal.show(StreamModal, { id, isClone } as Omit<Props, "visible" | "remove">);
 };
 
 interface Props extends InnerModalProps {
 	id: number | "new";
+	isClone?: boolean;
 }
-const StreamModal = EasyModal.create(({ id, visible, remove }: Props) => {
+const StreamModal = EasyModal.create(({ id, isClone = false, visible, remove }: Props) => {
 	const { data, isLoading, error } = useStream(id);
 	const { data: allStreams } = useStreams();
 	const suggestions = useDirectorySuggestions(allStreams);
@@ -42,7 +45,7 @@ const StreamModal = EasyModal.create(({ id, visible, remove }: Props) => {
 		}
 
 		const { ...payload } = {
-			id: id === "new" ? undefined : id,
+			id: id === "new" || isClone ? undefined : id,
 			...values,
 			meta,
 			forwardingPort: values.forwardingPort || null,
@@ -78,7 +81,7 @@ const StreamModal = EasyModal.create(({ id, visible, remove }: Props) => {
 		<Modal show={visible} onHide={remove}>
 			{!isLoading && error && (
 				<Alert variant="danger" className="m-3">
-					{error?.message || "Unknown error"}
+					{error?.message || <T id="npmos.common.unknown-error" />}
 				</Alert>
 			)}
 			{isLoading && <Loading noLogo />}
@@ -105,7 +108,10 @@ const StreamModal = EasyModal.create(({ id, visible, remove }: Props) => {
 						<Form>
 							<Modal.Header closeButton>
 								<Modal.Title>
-									<T id={data?.id ? "object.edit" : "object.add"} tData={{ object: "stream" }} />
+									<T
+										id={!isClone && data?.id ? "object.edit" : "object.add"}
+										tData={{ object: "stream" }}
+									/>
 								</Modal.Title>
 							</Modal.Header>
 							<Modal.Body className="p-0">
@@ -144,7 +150,7 @@ const StreamModal = EasyModal.create(({ id, visible, remove }: Props) => {
 												<a
 													href="#tab-advanced"
 													className="nav-link"
-													title="Settings"
+													title={intl.formatMessage({ id: "settings" })}
 													data-bs-toggle="tab"
 													aria-selected="false"
 													tabIndex={-1}
@@ -172,7 +178,10 @@ const StreamModal = EasyModal.create(({ id, visible, remove }: Props) => {
 																maxlength={11}
 																className={`form-control ${form.errors.incomingPort && form.touched.incomingPort ? "is-invalid" : ""}`}
 																required
-																placeholder="eg: 8080"
+																placeholder={intl.formatMessage(
+																	{ id: "npmos.common.example" },
+																	{ value: "8080" },
+																)}
 																{...field}
 															/>
 															{form.errors.incomingPort ? (
@@ -261,7 +270,10 @@ const StreamModal = EasyModal.create(({ id, visible, remove }: Props) => {
 																		type="text"
 																		maxlength={12}
 																		className={`form-control ${form.errors.forwardingPort && form.touched.forwardingPort ? "is-invalid" : ""}`}
-																		placeholder="eg: 8081"
+																		placeholder={intl.formatMessage(
+																			{ id: "npmos.common.example" },
+																			{ value: "8081" },
+																		)}
 																		{...field}
 																	/>
 																	{form.errors.forwardingPort ? (

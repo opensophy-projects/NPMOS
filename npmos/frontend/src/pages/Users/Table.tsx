@@ -14,12 +14,12 @@ import {
 	EmailFormatter,
 	EmptyData,
 	GravatarFormatter,
-	RolesFormatter,
 	TrueFalseFormatter,
 	ValueWithDateFormatter,
 } from "src/components";
 import { TableLayout } from "src/components/Table/TableLayout";
 import { intl, T } from "src/locale";
+import { UserRoleBadges } from "src/npmos/rbac/UserRoleBadges";
 
 interface Props {
 	data: User[];
@@ -86,7 +86,8 @@ export default function Table({
 				id: "roles",
 				header: intl.formatMessage({ id: "column.roles" }),
 				cell: (info: any) => {
-					return <RolesFormatter roles={info.row.original.roles} />;
+					// NPMOS: the roles of NPMOS instead of admin / standard user
+					return <UserRoleBadges userId={info.row.original.id} />;
 				},
 			}),
 			columnHelper.accessor((row: any) => row.isDisabled, {

@@ -47,6 +47,8 @@
 /* light theme */
 :root,
 [data-bs-theme="light"] {
+	/* the inset frame of cards: on a large area the inset shadow alone is too faint */
+	--card-frame: color-mix(in oklab, var(--background-inset), var(--foreground) 3%);
 	--background-inset: oklch(0.9764 0.0013 var(--base-hue));
 	--background: oklch(1 0 0);
 	--background-muted: oklch(0.9264 0.002 var(--base-hue));
@@ -62,6 +64,7 @@
 
 /* dark theme */
 [data-bs-theme="dark"] {
+	--card-frame: color-mix(in oklab, var(--background-inset), var(--foreground) 2%);
 	--background-inset: #0d0d0d;
 	--background: #090909;
 	--background-muted: oklch(0.22 0.006 var(--base-hue));
@@ -90,6 +93,57 @@
 	--tblr-primary-text-emphasis: var(--accent);
 	--tblr-primary-bg-subtle: color-mix(in oklab, var(--accent) 10%, transparent);
 	--tblr-primary-border-subtle: color-mix(in oklab, var(--accent) 40%, transparent);
+	/* the interface has one accent: decorative Tabler colours of upstream sections become the accent;
+	   red (errors, alerts), yellow (warnings) and green (success) keep their meaning */
+	--tblr-blue: var(--accent);
+	--tblr-blue-rgb: var(--accent-rgb);
+	--tblr-blue-fg: #ffffff;
+	--tblr-blue-darken: color-mix(in oklab, var(--accent), #000 12%);
+	--tblr-blue-lt: color-mix(in oklab, var(--accent) 10%, transparent);
+	--tblr-azure: var(--accent);
+	--tblr-azure-rgb: var(--accent-rgb);
+	--tblr-azure-fg: #ffffff;
+	--tblr-azure-darken: color-mix(in oklab, var(--accent), #000 12%);
+	--tblr-azure-lt: color-mix(in oklab, var(--accent) 10%, transparent);
+	--tblr-indigo: var(--accent);
+	--tblr-indigo-rgb: var(--accent-rgb);
+	--tblr-indigo-fg: #ffffff;
+	--tblr-indigo-darken: color-mix(in oklab, var(--accent), #000 12%);
+	--tblr-indigo-lt: color-mix(in oklab, var(--accent) 10%, transparent);
+	--tblr-purple: var(--accent);
+	--tblr-purple-rgb: var(--accent-rgb);
+	--tblr-purple-fg: #ffffff;
+	--tblr-purple-darken: color-mix(in oklab, var(--accent), #000 12%);
+	--tblr-purple-lt: color-mix(in oklab, var(--accent) 10%, transparent);
+	--tblr-pink: var(--accent);
+	--tblr-pink-rgb: var(--accent-rgb);
+	--tblr-pink-fg: #ffffff;
+	--tblr-pink-darken: color-mix(in oklab, var(--accent), #000 12%);
+	--tblr-pink-lt: color-mix(in oklab, var(--accent) 10%, transparent);
+	--tblr-orange: var(--accent);
+	--tblr-orange-rgb: var(--accent-rgb);
+	--tblr-orange-fg: #ffffff;
+	--tblr-orange-darken: color-mix(in oklab, var(--accent), #000 12%);
+	--tblr-orange-lt: color-mix(in oklab, var(--accent) 10%, transparent);
+	--tblr-lime: var(--accent);
+	--tblr-lime-rgb: var(--accent-rgb);
+	--tblr-lime-fg: #ffffff;
+	--tblr-lime-darken: color-mix(in oklab, var(--accent), #000 12%);
+	--tblr-lime-lt: color-mix(in oklab, var(--accent) 10%, transparent);
+	--tblr-teal: var(--accent);
+	--tblr-teal-rgb: var(--accent-rgb);
+	--tblr-teal-fg: #ffffff;
+	--tblr-teal-darken: color-mix(in oklab, var(--accent), #000 12%);
+	--tblr-teal-lt: color-mix(in oklab, var(--accent) 10%, transparent);
+	--tblr-cyan: var(--accent);
+	--tblr-cyan-rgb: var(--accent-rgb);
+	--tblr-cyan-fg: #ffffff;
+	--tblr-cyan-darken: color-mix(in oklab, var(--accent), #000 12%);
+	--tblr-cyan-lt: color-mix(in oklab, var(--accent) 10%, transparent);
+	--tblr-warning: var(--tblr-yellow);
+	--tblr-warning-rgb: var(--tblr-yellow-rgb);
+	--tblr-warning-fg: #ffffff;
+	--tblr-warning-lt: color-mix(in oklab, var(--tblr-yellow) 10%, transparent);
 	--tblr-link-color: var(--accent);
 	--tblr-link-color-rgb: var(--accent-rgb);
 	--tblr-link-hover-color: color-mix(in oklab, var(--accent), var(--foreground) 15%);
@@ -171,8 +225,68 @@ h3,
 }
 
 /* Tabler components in the opensophy look */
+/* Cards as the theme/language buttons and Card.svelte of opensophy.com: the card itself is the
+   inset frame (background-inset + inset shadow, no hard outer line), the surface inside it is a
+   pseudo-element with a hairline border and the card shadow. Upstream markup stays as is. */
 .card {
+	--os-frame: 0.375rem;
+	--tblr-card-bg: var(--card-frame);
+	--tblr-card-border-width: 0;
 	--tblr-card-border-color: var(--border);
+	--tblr-card-border-radius: var(--radius-xl);
+	--tblr-card-inner-border-radius: calc(var(--radius-lg) - 1px);
+	isolation: isolate;
+	padding: calc(var(--os-frame) + 1px);
+	border: 0;
+	border-radius: var(--radius-xl);
+	background: var(--card-frame);
+	box-shadow: var(--shadow-inset);
+	transition: none;
+}
+.card::before {
+	content: "";
+	position: absolute;
+	inset: var(--os-frame);
+	z-index: -1;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-lg);
+	background: var(--background);
+	box-shadow: var(--shadow-card);
+	pointer-events: none;
+}
+.card .card {
+	--tblr-card-bg: var(--background);
+	--tblr-card-border-width: 1px;
+	--tblr-card-border-radius: var(--radius-lg);
+	padding: 0;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-lg);
+	background: var(--background);
+	box-shadow: none;
+}
+.card .card::before {
+	content: none;
+}
+/* the last table row would draw its square bottom border across the rounded surface corner */
+.card .table > :last-child > tr:last-child > * {
+	border-bottom-width: 0;
+}
+/* no light or motion on cards: coloured status stripes and hover lifts */
+.card-status-top,
+.card-status-start,
+.card-status-bottom {
+	display: none;
+}
+.card-link,
+.card-link:hover,
+.card-link-pop:hover,
+.card-link-rotate:hover {
+	transform: none;
+	transition: none;
+	box-shadow: var(--shadow-inset);
+}
+.card-link:hover::before {
+	border-color: color-mix(in oklab, var(--accent) 60%, transparent);
 }
 
 .form-control,
@@ -180,6 +294,42 @@ h3,
 .input-group-text {
 	box-shadow: var(--shadow-inset);
 	border-color: var(--border);
+}
+
+/* an input group is one field: one inset shadow on the group, no seam between icon and input */
+.input-group {
+	border-radius: var(--tblr-border-radius);
+	box-shadow: var(--shadow-inset);
+}
+.input-group > .form-control,
+.input-group > .form-select,
+.input-group > .input-group-text {
+	box-shadow: none;
+}
+/* small inputs have a smaller radius than the icon part: one radius for the whole group */
+.input-group > :first-child {
+	border-top-left-radius: var(--tblr-border-radius);
+	border-bottom-left-radius: var(--tblr-border-radius);
+}
+.input-group > :last-child {
+	border-top-right-radius: var(--tblr-border-radius);
+	border-bottom-right-radius: var(--tblr-border-radius);
+}
+/* flat group (icon + input): the frame and background belong to the group, the parts are
+   transparent; Tabler forces a blue focus border on the parts with !important */
+.input-group-flat {
+	border: 1px solid var(--border);
+	background: var(--background-inset);
+}
+.input-group-flat > .form-control,
+.input-group-flat > .input-group-text,
+.input-group-flat:focus-within > .form-control,
+.input-group-flat:focus-within > .input-group-text {
+	border-color: transparent !important;
+	background-color: transparent;
+}
+.input-group-flat:focus-within {
+	border-color: color-mix(in oklab, var(--accent) 60%, transparent);
 }
 
 .form-control:focus,
@@ -225,4 +375,37 @@ h3,
 .footer .container-xl {
 	max-width: none;
 	padding-inline: 0;
+}
+
+/* link buttons (access list in host tables …) follow the accent, not the upstream blue */
+.btn.btn-link {
+	color: var(--tblr-link-color);
+}
+.btn.btn-link:hover {
+	color: var(--tblr-link-hover-color);
+}
+
+/* toasts (react-toastify): the notice block is the whole toast */
+.Toastify__toast {
+	min-height: 0;
+	margin-bottom: 0.5rem;
+	padding: 0;
+	border-radius: var(--radius-lg);
+	background: transparent;
+	box-shadow: var(--shadow-2xl);
+	color: inherit;
+	font-family: inherit;
+}
+.Toastify__toast-body {
+	margin: 0;
+	padding: 0;
+}
+.Toastify__toast-body > div {
+	flex: 1;
+}
+.Toastify__toast-container {
+	width: min(24rem, calc(100vw - 2rem));
+}
+.Toastify__toast-body {
+	white-space: pre-line;
 }

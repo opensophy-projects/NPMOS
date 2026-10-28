@@ -1,3 +1,4 @@
+// NPMOS: hardcoded strings moved to the locale (en, ru)
 import { IconSettings } from "@tabler/icons-react";
 import CodeEditor from "@uiw/react-textarea-code-editor";
 import cn from "classnames";
@@ -164,7 +165,9 @@ export function LocationsFields({ initialValues, name = "locations" }: Props) {
 						<div className="row">
 							<div className="col-md-10">
 								<div className="input-group mb-3">
-									<span className="input-group-text">Location</span>
+									<span className="input-group-text">
+										<T id="npmos.common.location" />
+									</span>
 									<select
 										id={`locationType-${item.uiKey}`}
 										className="form-select w-auto flex-grow-0"
@@ -192,7 +195,7 @@ export function LocationsFields({ initialValues, name = "locations" }: Props) {
 								<button
 									type="button"
 									className="btn p-0"
-									title="Advanced"
+									title={intl.formatMessage({ id: "npmos.common.location-settings" })}
 									onClick={() => toggleAdvVisible(idx)}
 								>
 									<IconSettings size={20} />
@@ -231,7 +234,7 @@ export function LocationsFields({ initialValues, name = "locations" }: Props) {
 										type="text"
 										className="form-control"
 										required={item.forwardScheme !== "empty"}
-										placeholder="eg: 10.0.0.1/path/"
+										placeholder={intl.formatMessage({ id: "npmos.common.example-path" })}
 										value={item.forwardHost}
 										onChange={(e) => handleChange(idx, "forwardHost", e.target.value)}
 									/>
@@ -248,7 +251,10 @@ export function LocationsFields({ initialValues, name = "locations" }: Props) {
 										min={1}
 										max={65535}
 										className="form-control"
-										placeholder="eg: 8081"
+										placeholder={intl.formatMessage(
+											{ id: "npmos.common.example" },
+											{ value: "8081" },
+										)}
 										value={item.forwardPort}
 										onChange={(e) => handleChange(idx, "forwardPort", e.target.value)}
 									/>
@@ -532,7 +538,9 @@ export function LocationsFields({ initialValues, name = "locations" }: Props) {
 														id={`npmplusAuthRequestUpstream-${item.uiKey}`}
 														type="text"
 														className={`form-control ${item.npmplusAuthRequestUpstream && !/^https?:\/\/([^/:]+|\[[a-fA-F0-9:]+\]):[0-9]+$/.test(item.npmplusAuthRequestUpstream) ? "is-invalid" : ""}`}
-														placeholder="keep empty to reuse env value"
+														placeholder={intl.formatMessage({
+															id: "npmos.common.keep-env",
+														})}
 														pattern="^https?://([^/:]+|\[[a-fA-F0-9:]+\]):[0-9]+$"
 														value={item.npmplusAuthRequestUpstream || ""}
 														onChange={(e) =>

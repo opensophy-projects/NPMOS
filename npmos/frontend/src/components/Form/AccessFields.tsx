@@ -1,3 +1,4 @@
+// NPMOS: hardcoded strings moved to the locale (en, ru)
 import { IconArrowDown, IconWorld, IconLock, IconLockOpen2, IconArrowUp, IconX } from "@tabler/icons-react";
 import { useFormikContext } from "formik";
 import { useState, type ReactNode } from "react";
@@ -225,7 +226,7 @@ export function AccessFields({ initialAccessListType, location, initialAccessLis
 							{idx > 0 ? (
 								<button
 									type="button"
-									aria-label="Move up"
+									aria-label={intl.formatMessage({ id: "npmos.common.move-up" })}
 									className="btn mb-1 ms-1"
 									onClick={() => {
 										handleMoveUp(idx);
@@ -237,7 +238,7 @@ export function AccessFields({ initialAccessListType, location, initialAccessLis
 							{idx < values.length - 1 ? (
 								<button
 									type="button"
-									aria-label="Move down"
+									aria-label={intl.formatMessage({ id: "npmos.common.move-down" })}
 									className="btn mb-1 ms-1"
 									onClick={() => {
 										handleMoveDown(idx);
@@ -248,7 +249,7 @@ export function AccessFields({ initialAccessListType, location, initialAccessLis
 							) : null}
 							<button
 								type="button"
-								aria-label="Remove"
+								aria-label={intl.formatMessage({ id: "npmos.common.remove" })}
 								className="btn btn-ghost btn-danger p-0 mb-1"
 								onClick={() => {
 									handleRemove(item);

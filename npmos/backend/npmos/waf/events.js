@@ -120,7 +120,7 @@ const internalWafEvents = {
 	 * @returns {Promise<{events: object[], total: number, truncated: boolean, available: boolean}>}
 	 */
 	list: async (access, { view = "important", host = "", query = "", limit = 200 } = {}) => {
-		await access.can("npmos_services:list");
+		await access.can("waf_events:view");
 		const { events, truncated, available } = await readEvents();
 		const q = lower(query);
 		const h = lower(host);

@@ -1,13 +1,13 @@
 import { Field, Form, Formik } from "formik";
 import { useEffect, useRef, useState } from "react";
 import Alert from "react-bootstrap/Alert";
-import { Button, Page } from "src/components";
+import { Button } from "src/components";
 import { useAuthState } from "src/context";
 import { useHealth } from "src/hooks";
 import { intl, T } from "src/locale";
 import { validateEmail, validateString } from "src/modules/Validations";
-// NPMOS: brand, theme and language of the opensophy shell (phase 2)
-import { Brand, LocaleSwitch, ThemeToggle } from "src/npmos/ui/Controls";
+// NPMOS: centred panel with brand, theme and language of the opensophy shell (phase 2)
+import { AuthLayout } from "src/npmos/ui/AuthLayout";
 
 function TwoFactorForm() {
 	const codeRef = useRef<HTMLInputElement>(null);
@@ -201,30 +201,11 @@ function LoginForm() {
 
 export default function Login() {
 	const { twoFactorChallenge } = useAuthState();
-	const health = useHealth();
-
-	const getVersion = () => {
-		if (!health.data) {
-			return "";
-		}
-		return health.data.version;
-	};
-
 	return (
-		<Page className="page page-center">
-			<div className="container container-tight py-4">
-				<div className="d-flex justify-content-between align-items-center mb-4 ps-4 pe-3">
-					<Brand />
-					<div className="d-flex align-items-center gap-1">
-						<ThemeToggle />
-						<LocaleSwitch />
-					</div>
-				</div>
-				<div className="card card-md">
-					<div className="card-body">{twoFactorChallenge ? <TwoFactorForm /> : <LoginForm />}</div>
-				</div>
-				<div className="text-center text-secondary mt-3">{getVersion()}</div>
+		<AuthLayout>
+			<div className="card card-md">
+				<div className="card-body">{twoFactorChallenge ? <TwoFactorForm /> : <LoginForm />}</div>
 			</div>
-		</Page>
+		</AuthLayout>
 	);
 }

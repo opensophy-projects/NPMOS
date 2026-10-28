@@ -6,6 +6,8 @@ import { useTheme, useUser } from "src/hooks";
 import { changeLocale, intl, localeOptions, T } from "src/locale";
 import { showChangePasswordModal, showTwoFactorModal, showUserModal } from "src/modals";
 import { Dropdown } from "./Dropdown";
+import { useRbacMe } from "../rbac/hooks";
+import { roleName } from "../rbac/labels";
 import styles from "./Shell.module.css";
 
 /** logo and name as on opensophy.com: the sidebar, the login and setup pages */
@@ -52,6 +54,7 @@ export function LocaleSwitch() {
 				up
 				ariaLabel={intl.formatMessage({ id: "npmos.nav.language" })}
 				triggerClassName={styles.toggle}
+				menuClassName={styles.menuCompact}
 				trigger={current.toUpperCase()}
 				items={localeOptions.map((option) => {
 					const code = option[0] as string;
@@ -73,7 +76,9 @@ export function LocaleSwitch() {
 export function UserMenu() {
 	const { data: me } = useUser("me");
 	const { logout } = useAuthState();
-	const isAdmin = me?.roles.includes("admin");
+	const { data: rbac } = useRbacMe();
+	// the first role of the user (Administrator first), "no role" without any
+	const role = rbac?.roles[0];
 	return (
 		<Dropdown
 			ariaLabel={intl.formatMessage({ id: "npmos.nav.user-menu" })}
@@ -86,7 +91,7 @@ export function UserMenu() {
 						/>
 						{me?.nickname || me?.name}
 						<span>·</span>
-						<T id={isAdmin ? "role.admin" : "role.standard-user"} />
+						{role ? roleName(role) : <T id="npmos.rbac.no-roles" />}
 					</span>
 					<IconSelector size={16} style={{ flex: "none" }} />
 				</>

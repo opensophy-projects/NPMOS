@@ -1,3 +1,4 @@
+// NPMOS: hardcoded strings moved to the locale (en, ru)
 import { IconSettings } from "@tabler/icons-react";
 // NPMOS: invalidates the WAF queries after saving
 import { useQueryClient } from "@tanstack/react-query";
@@ -132,7 +133,7 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove 
 		<Modal show={visible} onHide={remove}>
 			{!isLoading && (error || userError) && (
 				<Alert variant="danger" className="m-3">
-					{error?.message || userError?.message || "Unknown error"}
+					{error?.message || userError?.message || <T id="npmos.common.unknown-error" />}
 				</Alert>
 			)}
 			{isLoading || (userIsLoading && <Loading noLogo />)}
@@ -256,7 +257,7 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove 
 												<a
 													href="#tab-advanced"
 													className="nav-link"
-													title="Settings"
+													title={intl.formatMessage({ id: "settings" })}
 													data-bs-toggle="tab"
 													aria-selected="false"
 													tabIndex={-1}
@@ -389,7 +390,10 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove 
 																		inputMode="numeric"
 																		pattern="[0-9]*"
 																		className={`form-control ${form.errors.forwardPort && form.touched.forwardPort ? "is-invalid" : ""}`}
-																		placeholder="eg: 8081"
+																		placeholder={intl.formatMessage(
+																			{ id: "npmos.common.example" },
+																			{ value: "8081" },
+																		)}
 																		{...field}
 																	/>
 																	{form.errors.forwardPort ? (
@@ -410,7 +414,9 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove 
 															<button
 																type="button"
 																className="btn p-0"
-																title="LocationConfig"
+																title={intl.formatMessage({
+																	id: "npmos.common.location-settings",
+																})}
 																onClick={() => setAdvVisible((prev) => !prev)}
 															>
 																<IconSettings size={20} />
@@ -871,7 +877,11 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove 
 																						id="npmplusAuthRequestUpstream"
 																						type="text"
 																						className={`form-control ${form.errors.npmplusAuthRequestUpstream && form.touched.npmplusAuthRequestUpstream ? "is-invalid" : ""}`}
-																						placeholder="keep empty to reuse env value"
+																						placeholder={intl.formatMessage(
+																							{
+																								id: "npmos.common.keep-env",
+																							},
+																						)}
 																						pattern="^https?://([^/:]+|\[[a-fA-F0-9:]+\]):[0-9]+$"
 																						{...field}
 																					/>

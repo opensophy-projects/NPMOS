@@ -36,6 +36,14 @@ const DEFINITIONS = {
 			v.failOpen.timeoutMs >= 10 &&
 			v.failOpen.timeoutMs <= 10000,
 	},
+	// OIDC groups → roles (Administration → Roles), see rbac/index.js
+	"rbac.oidc": {
+		default: () => ({ claim: "groups", requestScope: false }),
+		validate: (v) =>
+			typeof v?.claim === "string" &&
+			/^[A-Za-z0-9_.:/-]{1,100}$/.test(v.claim) &&
+			typeof v?.requestScope === "boolean",
+	},
 };
 
 const table = () => db()("npmos_setting");

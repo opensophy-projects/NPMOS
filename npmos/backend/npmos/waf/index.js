@@ -13,7 +13,7 @@ const internalWaf = {
 	 * @param {Access} access
 	 */
 	getStatus: async (access) => {
-		await access.can("npmos_services:list");
+		await access.can("waf_policy:view");
 		const enabled = await getSetting("waf.enabled");
 		const active = getRunningValue("waf.enabled");
 		return {
@@ -33,7 +33,7 @@ const internalWaf = {
 	 * @param {boolean} [apply]  restart now
 	 */
 	setEnabled: async (access, enabled, apply = true) => {
-		await access.can("npmos_services:manage");
+		await access.can("waf_policy:manage");
 		await setSetting("waf.enabled", enabled);
 		await internalAuditLog.add(access, {
 			action: enabled ? "enabled" : "disabled",
@@ -52,7 +52,7 @@ const internalWaf = {
 	 * @param {Access} access
 	 */
 	getPolicy: async (access) => {
-		await access.can("npmos_services:list");
+		await access.can("waf_policy:view");
 		return { ...getPolicyState(), content: await readPolicyFile() };
 	},
 
@@ -61,7 +61,7 @@ const internalWaf = {
 	 * @param {Access} access
 	 */
 	applyPolicy: async (access) => {
-		await access.can("npmos_services:manage");
+		await access.can("waf_policy:apply");
 		const result = await regenerateNow({ force: true });
 		await internalAuditLog.add(access, {
 			action: "regenerated",
