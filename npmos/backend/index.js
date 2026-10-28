@@ -48,6 +48,10 @@ async function appStart() {
 						});
 					});
 				});
+				// NPMOS: nginx keeps idle connections to the backend up to 60 s; Node closed them after 5 s,
+				// and a request nginx sent on a connection just being closed failed with 502 (Broken pipe)
+				server.keepAliveTimeout = 65000;
+				server.headersTimeout = 66000;
 			})
 			.catch((err) => {
 				logger.error(`Startup Error: ${err.message}`, err);
