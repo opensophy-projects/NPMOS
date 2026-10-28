@@ -143,7 +143,12 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
     [ "$i" = 60 ] && fail "SQLi was not blocked (last status $(status "$SQLI"))"
     sleep 2
   done
-  [ "$(status "$XSS")" = 403 ] || fail "XSS was not blocked"
+  # a request handled while the agent restarts a service (after a new policy) can pass: retried
+  for i in $(seq 1 30); do
+    [ "$(status "$XSS")" = 403 ] && break
+    [ "$i" = 30 ] && fail "XSS was not blocked"
+    sleep 2
+  done
   [ "$(status "/?q=hello")" = 200 ] || fail "a normal request was blocked"
 
   # events of the agent's security log, newest first. The attack is repeated while waiting: the agent
