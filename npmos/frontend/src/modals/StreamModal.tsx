@@ -10,14 +10,16 @@ import { intl, T } from "src/locale";
 import { validateString } from "src/modules/Validations";
 import { showObjectSuccess } from "src/notifications";
 
-const showStreamModal = (id: number | "new") => {
-	EasyModal.show(StreamModal, { id });
+// NPMOS: "Duplicate" in the hosts table opens the form filled from another host
+const showStreamModal = (id: number | "new", isClone = false) => {
+	EasyModal.show(StreamModal, { id, isClone } as Omit<Props, "visible" | "remove">);
 };
 
 interface Props extends InnerModalProps {
 	id: number | "new";
+	isClone?: boolean;
 }
-const StreamModal = EasyModal.create(({ id, visible, remove }: Props) => {
+const StreamModal = EasyModal.create(({ id, isClone = false, visible, remove }: Props) => {
 	const { data, isLoading, error } = useStream(id);
 	const { data: allStreams } = useStreams();
 	const suggestions = useDirectorySuggestions(allStreams);
@@ -43,7 +45,7 @@ const StreamModal = EasyModal.create(({ id, visible, remove }: Props) => {
 		}
 
 		const { ...payload } = {
-			id: id === "new" ? undefined : id,
+			id: id === "new" || isClone ? undefined : id,
 			...values,
 			meta,
 			forwardingPort: values.forwardingPort || null,
@@ -106,7 +108,10 @@ const StreamModal = EasyModal.create(({ id, visible, remove }: Props) => {
 						<Form>
 							<Modal.Header closeButton>
 								<Modal.Title>
-									<T id={data?.id ? "object.edit" : "object.add"} tData={{ object: "stream" }} />
+									<T
+										id={!isClone && data?.id ? "object.edit" : "object.add"}
+										tData={{ object: "stream" }}
+									/>
 								</Modal.Title>
 							</Modal.Header>
 							<Modal.Body className="p-0">

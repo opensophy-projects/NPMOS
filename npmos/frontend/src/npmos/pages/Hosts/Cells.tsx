@@ -1,10 +1,20 @@
 // Cells of the hosts table with quick actions (as the proxy status of a DNS record in Cloudflare).
-import { IconCopy, IconDots, IconExternalLink, IconPencil, IconPlugConnected, IconTrash } from "@tabler/icons-react";
+import {
+	IconCopy,
+	IconCopyPlus,
+	IconDots,
+	IconExternalLink,
+	IconHistory,
+	IconPencil,
+	IconPlugConnected,
+	IconTrash,
+} from "@tabler/icons-react";
 import cn from "classnames";
 import type { AccessList, Certificate } from "src/api/backend";
 import { intl, T } from "src/locale";
 import { showReachabilityModal } from "src/modals";
 import { Dropdown, type DropdownItem } from "../../ui/Dropdown";
+import { dateTime, timeAgo } from "../../ui/time";
 import styles from "./Hosts.module.css";
 import { EXPIRING_DAYS, type HostRow, type MtlsState, type WafState } from "./rows";
 
@@ -23,6 +33,10 @@ export interface CellContext {
 	setAccess: (row: HostRow, listId: number | null) => void;
 	setCertificate: (row: HostRow, certificateId: number | "new") => void;
 	openCertificates: () => void;
+	/** opens the create form filled from the host */
+	duplicate: (row: HostRow) => void;
+	/** who changed the host and when */
+	history: (row: HostRow) => void;
 }
 
 /** a chip that opens the menu (hover shows the accent border) */
@@ -272,6 +286,40 @@ export function AccessCell({ row, ctx }: { row: HostRow; ctx: CellContext }) {
 	);
 }
 
+export function TargetCell({ row }: { row: HostRow }) {
+	if (!row.target) return <span className={styles.target}>—</span>;
+	const title = row.upstream === "down" ? `${row.target}\n${row.upstreamErrors.join("\n")}` : row.target;
+	return (
+		<span className={styles.targetLine} title={title}>
+			{row.upstream && (
+				<span
+					className={cn(styles.dot, row.upstream === "ok" ? styles["dot-online"] : styles["dot-error"])}
+					role="img"
+					aria-label={t(`npmos.hosts.upstream.${row.upstream}`)}
+				/>
+			)}
+			<span className={styles.target}>{row.target}</span>
+		</span>
+	);
+}
+
+/** when the host was changed last and by whom; opens the history */
+export function ChangedCell({ row, ctx }: { row: HostRow; ctx: CellContext }) {
+	const change = row.change;
+	if (!change) return <span className={styles.muted}>—</span>;
+	return (
+		<button
+			type="button"
+			className={styles.changed}
+			title={dateTime(change.createdOn)}
+			onClick={() => ctx.history(row)}
+		>
+			<span>{timeAgo(change.createdOn, Date.now(), "narrow")}</span>
+			<span className={styles.changedBy}>{change.user?.name ?? t("npmos.hosts.history.system")}</span>
+		</button>
+	);
+}
+
 export function StatusCell({ row, ctx }: { row: HostRow; ctx: CellContext }) {
 	const label =
 		row.status === "error" ? "npmos.hosts.status.error" : row.status === "disabled" ? "disabled" : "online";
@@ -300,6 +348,22 @@ export function ActionsCell({ row, ctx }: { row: HostRow; ctx: CellContext }) {
 			icon: <IconPencil size={16} />,
 			label: <T id="action.edit" />,
 			onSelect: () => ctx.edit(row),
+		},
+		...(ctx.canManage(row)
+			? [
+					{
+						key: "duplicate",
+						icon: <IconCopyPlus size={16} />,
+						label: <T id="npmos.hosts.duplicate" />,
+						onSelect: () => ctx.duplicate(row),
+					},
+				]
+			: []),
+		{
+			key: "history",
+			icon: <IconHistory size={16} />,
+			label: <T id="npmos.hosts.history" />,
+			onSelect: () => ctx.history(row),
 		},
 		...(web
 			? [

@@ -680,6 +680,9 @@
 	"npmos.hosts.bulk.delete-title": {
 		"defaultMessage": "Удалить хосты"
 	},
+	"npmos.hosts.column.changed": {
+		"defaultMessage": "Изменён"
+	},
 	"npmos.hosts.column.type": {
 		"defaultMessage": "Тип"
 	},
@@ -709,6 +712,9 @@
 	},
 	"npmos.hosts.done.waf": {
 		"defaultMessage": "режим WAF сохранён"
+	},
+	"npmos.hosts.duplicate": {
+		"defaultMessage": "Дублировать"
 	},
 	"npmos.hosts.empty": {
 		"defaultMessage": "Хостов пока нет. Добавьте первый кнопкой «Добавить»."
@@ -769,6 +775,39 @@
 	},
 	"npmos.hosts.filters.reset": {
 		"defaultMessage": "Сбросить фильтры"
+	},
+	"npmos.hosts.history": {
+		"defaultMessage": "История изменений"
+	},
+	"npmos.hosts.history.action.created": {
+		"defaultMessage": "создал(а) хост"
+	},
+	"npmos.hosts.history.action.deleted": {
+		"defaultMessage": "удалил(а) хост"
+	},
+	"npmos.hosts.history.action.disabled": {
+		"defaultMessage": "выключил(а) хост"
+	},
+	"npmos.hosts.history.action.enabled": {
+		"defaultMessage": "включил(а) хост"
+	},
+	"npmos.hosts.history.action.other": {
+		"defaultMessage": "{action}"
+	},
+	"npmos.hosts.history.action.updated": {
+		"defaultMessage": "изменил(а) настройки"
+	},
+	"npmos.hosts.history.action.updated-waf": {
+		"defaultMessage": "изменил(а) режим WAF"
+	},
+	"npmos.hosts.history.empty": {
+		"defaultMessage": "Изменений этого хоста пока нет."
+	},
+	"npmos.hosts.history.note": {
+		"defaultMessage": "Из журнала аудита: изменения в NPMOS и через его API. Для изменений указаны поменявшиеся настройки."
+	},
+	"npmos.hosts.history.system": {
+		"defaultMessage": "Система"
 	},
 	"npmos.hosts.import": {
 		"defaultMessage": "Импорт хостов (JSON)"
@@ -857,6 +896,12 @@
 	"npmos.hosts.rec.show": {
 		"defaultMessage": "Показать"
 	},
+	"npmos.hosts.rec.upstream-down": {
+		"defaultMessage": "Апстрим не отвечает у хостов: {count}"
+	},
+	"npmos.hosts.rec.upstream-down.hint": {
+		"defaultMessage": "NPMOS не смог подключиться к адресу, куда хост передаёт запросы: посетители получат 502. Проверьте, что сервис запущен, а адрес и порт указаны верно."
+	},
 	"npmos.hosts.rec.waf-detect": {
 		"defaultMessage": "WAF только обнаруживает атаки: хостов {count}"
 	},
@@ -943,6 +988,15 @@
 	},
 	"npmos.hosts.type.stream.hint": {
 		"defaultMessage": "Пробросить TCP/UDP-порт"
+	},
+	"npmos.hosts.upstream": {
+		"defaultMessage": "Апстрим"
+	},
+	"npmos.hosts.upstream.down": {
+		"defaultMessage": "Не отвечает"
+	},
+	"npmos.hosts.upstream.ok": {
+		"defaultMessage": "Отвечает"
 	},
 	"npmos.hosts.view": {
 		"defaultMessage": "Вид"

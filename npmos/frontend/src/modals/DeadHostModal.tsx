@@ -18,14 +18,16 @@ import { useDeadHost, useDeadHosts, useDirectorySuggestions, useSetDeadHost } fr
 import { intl, T } from "src/locale";
 import { showObjectSuccess } from "src/notifications";
 
-const showDeadHostModal = (id: number | "new") => {
-	EasyModal.show(DeadHostModal, { id });
+// NPMOS: "Duplicate" in the hosts table opens the form filled from another host
+const showDeadHostModal = (id: number | "new", isClone = false) => {
+	EasyModal.show(DeadHostModal, { id, isClone } as Omit<Props, "visible" | "remove">);
 };
 
 interface Props extends InnerModalProps {
 	id: number | "new";
+	isClone?: boolean;
 }
-const DeadHostModal = EasyModal.create(({ id, visible, remove }: Props) => {
+const DeadHostModal = EasyModal.create(({ id, isClone = false, visible, remove }: Props) => {
 	const { data, isLoading, error } = useDeadHost(id);
 	const { mutate: setDeadHost } = useSetDeadHost();
 	const { data: allDeadHosts } = useDeadHosts();
@@ -51,7 +53,7 @@ const DeadHostModal = EasyModal.create(({ id, visible, remove }: Props) => {
 		}
 
 		const { ...payload } = {
-			id: id === "new" ? undefined : id,
+			id: id === "new" || isClone ? undefined : id,
 			...values,
 			meta,
 		};
@@ -111,7 +113,10 @@ const DeadHostModal = EasyModal.create(({ id, visible, remove }: Props) => {
 						<Form>
 							<Modal.Header closeButton>
 								<Modal.Title>
-									<T id={data?.id ? "object.edit" : "object.add"} tData={{ object: "dead-host" }} />
+									<T
+										id={!isClone && data?.id ? "object.edit" : "object.add"}
+										tData={{ object: "dead-host" }}
+									/>
 								</Modal.Title>
 							</Modal.Header>
 							<Modal.Body className="p-0">

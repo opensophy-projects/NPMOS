@@ -3,6 +3,7 @@ import express from "express";
 import jwtdecode from "../lib/express/jwt-decode.js";
 import validator from "../lib/validator/index.js";
 import { debug, express as logger } from "../logger.js";
+import internalHosts, { HOST_OBJECTS } from "./hosts.js";
 import internalServices from "./services.js";
 import internalWafAgent from "./waf/agent-settings.js";
 import internalWafEvents from "./waf/events.js";
@@ -47,6 +48,13 @@ router.param("version_id", (req, res, next, id) => {
 		return res.status(400).send({ error: { code: 400, message: "Invalid version id" } });
 	}
 	req.params.version_id = Number.parseInt(id, 10);
+	next();
+});
+
+router.param("object_type", (_req, res, next, type) => {
+	if (!Object.hasOwn(HOST_OBJECTS, type)) {
+		return res.status(400).send({ error: { code: 400, message: "Invalid host type" } });
+	}
 	next();
 });
 
@@ -99,6 +107,33 @@ router
 	.options((_, res) => res.sendStatus(204))
 	.all(jwtdecode())
 	.post(handle((req, res) => internalServices.restart(res.locals.access, req.params.service), 202));
+
+/**
+ * GET /api/npmos/hosts/changes — the last change of every visible host (audit log)
+ */
+router
+	.route("/hosts/changes")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalHosts.changes(res.locals.access)));
+
+/**
+ * GET /api/npmos/hosts/changes/:object_type/:host_id — changes of one host, newest first
+ */
+router
+	.route("/hosts/changes/:object_type/:host_id")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((req, res) => internalHosts.history(res.locals.access, req.params.object_type, req.params.host_id)));
+
+/**
+ * GET /api/npmos/hosts/upstreams — whether the upstreams of proxy hosts and TCP streams accept connections
+ */
+router
+	.route("/hosts/upstreams")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalHosts.upstreams(res.locals.access)));
 
 /**
  * GET /api/npmos/waf — {enabled, active, restartRequired}

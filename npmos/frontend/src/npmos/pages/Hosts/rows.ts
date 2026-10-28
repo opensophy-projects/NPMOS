@@ -2,7 +2,7 @@
 // (docs/ROADMAP.md, phase 2 "Hosts: one table"). Pure functions: rows, filters, sorting,
 // recommendations and export; the page and the cells live next to it.
 import type { Certificate, DeadHost, ProxyHost, RedirectionHost, Stream } from "src/api/backend";
-import type { WafSettings } from "../../api";
+import type { HostLastChange, HostObjectType, UpstreamCheck, WafSettings } from "../../api";
 
 export const HOST_TYPES = ["proxy", "redirect", "stream", "dead"] as const;
 export type HostType = (typeof HOST_TYPES)[number];
@@ -11,6 +11,15 @@ export type HostStatus = "online" | "error" | "disabled";
 export type TlsKind = "none" | "letsencrypt" | "custom";
 export type WafState = "off" | "detect" | "prevent";
 export type MtlsState = "off" | "required" | "optional";
+export type UpstreamState = "ok" | "down";
+
+/** object type of each host type in the audit log and the NPMOS API */
+export const OBJECT_TYPE: Record<HostType, HostObjectType> = {
+	proxy: "proxy-host",
+	redirect: "redirection-host",
+	stream: "stream",
+	dead: "dead-host",
+};
 
 /** days before a certificate expires that make it "expiring" (yellow) */
 export const EXPIRING_DAYS = 14;
@@ -42,6 +51,12 @@ export interface HostRow {
 	accessListIds: number[];
 	group: string;
 	modifiedOn: string;
+	/** proxy hosts and TCP streams: whether every upstream accepts connections; null: not checked */
+	upstream: UpstreamState | null;
+	/** "host:port — error" of the upstreams that do not answer */
+	upstreamErrors: string[];
+	/** the last change in the audit log */
+	change: HostLastChange | null;
 	raw: ProxyHost | RedirectionHost | Stream | DeadHost;
 }
 
@@ -82,6 +97,8 @@ export interface Sources {
 	stream?: Stream[];
 	dead?: DeadHost[];
 	waf?: Record<string, WafSettings>;
+	upstreams?: UpstreamCheck[];
+	changes?: HostLastChange[];
 }
 
 const common = (
@@ -103,11 +120,26 @@ const common = (
 	modifiedOn: host.modifiedOn,
 });
 
+const upstreamOf = (checks: UpstreamCheck[]): Pick<HostRow, "upstream" | "upstreamErrors"> => {
+	if (!checks.length) return { upstream: null, upstreamErrors: [] };
+	const failed = checks.filter((c) => !c.ok);
+	return {
+		upstream: failed.length ? "down" : "ok",
+		upstreamErrors: failed.map((c) => `${c.host}:${c.port} — ${c.error ?? "?"}`),
+	};
+};
+
 export function toRows(sources: Sources, now = Date.now()): HostRow[] {
 	const rows: HostRow[] = [];
+	// both lists are joined to the rows by audit object type and id
+	const extras = (type: HostType, id: number) => ({
+		...upstreamOf((sources.upstreams ?? []).filter((c) => c.type === OBJECT_TYPE[type] && c.objectId === id)),
+		change: sources.changes?.find((c) => c.type === OBJECT_TYPE[type] && c.objectId === id) ?? null,
+	});
 	for (const host of sources.proxy ?? []) {
 		rows.push({
 			...common("proxy", host, now),
+			...extras("proxy", host.id),
 			names: host.domainNames,
 			target: `${host.forwardScheme}://${host.forwardHost}:${host.forwardPort}`,
 			protocols: [],
@@ -121,6 +153,7 @@ export function toRows(sources: Sources, now = Date.now()): HostRow[] {
 		const scheme = host.forwardScheme === "$scheme" ? "" : `${host.forwardScheme}://`;
 		rows.push({
 			...common("redirect", host, now),
+			...extras("redirect", host.id),
 			names: host.domainNames,
 			target: `${host.forwardHttpCode} → ${scheme}${host.forwardDomainName}`,
 			protocols: [],
@@ -134,6 +167,7 @@ export function toRows(sources: Sources, now = Date.now()): HostRow[] {
 		const protocols = [host.tcpForwarding && "tcp", host.udpForwarding && "udp"].filter(Boolean) as string[];
 		rows.push({
 			...common("stream", host, now),
+			...extras("stream", host.id),
 			names: [`:${host.incomingPort}`],
 			target: `${host.forwardingHost}:${host.forwardingPort}`,
 			protocols,
@@ -146,6 +180,7 @@ export function toRows(sources: Sources, now = Date.now()): HostRow[] {
 	for (const host of sources.dead ?? []) {
 		rows.push({
 			...common("dead", host, now),
+			...extras("dead", host.id),
 			names: host.domainNames,
 			target: "",
 			protocols: [],
@@ -163,7 +198,7 @@ export function toRows(sources: Sources, now = Date.now()): HostRow[] {
 export type TlsFilter = TlsKind | "expiring";
 
 /** fields with a fixed list of values */
-export const ENUM_FIELDS = ["type", "status", "tls", "waf", "mtls", "access", "group"] as const;
+export const ENUM_FIELDS = ["type", "status", "tls", "waf", "mtls", "access", "upstream", "group"] as const;
 /** free-text fields */
 export const TEXT_FIELDS = ["name", "target"] as const;
 export type FilterField = (typeof ENUM_FIELDS)[number] | (typeof TEXT_FIELDS)[number];
@@ -176,6 +211,7 @@ export const FILTER_FIELDS: FilterField[] = [
 	"waf",
 	"mtls",
 	"access",
+	"upstream",
 	"group",
 ];
 export const isTextField = (field: FilterField) => (TEXT_FIELDS as readonly string[]).includes(field);
@@ -246,6 +282,8 @@ function fieldMatches(row: HostRow, field: FilterField, value: string): boolean 
 			return value === "public"
 				? row.accessPublic
 				: !row.accessPublic && row.accessListIds.includes(Number(value));
+		case "upstream":
+			return row.upstream === value;
 		case "group":
 			return row.group === value;
 	}
@@ -277,7 +315,7 @@ export function matches(row: HostRow, filters: Filters): boolean {
 
 // ---- sorting ----
 
-export type SortKey = "name" | "type" | "target" | "tls" | "waf" | "mtls" | "group" | "status";
+export type SortKey = "name" | "type" | "target" | "tls" | "waf" | "mtls" | "group" | "status" | "changed";
 export interface Sort {
 	key: SortKey;
 	desc: boolean;
@@ -319,6 +357,9 @@ const sortValue = (row: HostRow, key: SortKey): string | number => {
 			return row.group || "￿";
 		case "status":
 			return rank[row.status];
+		case "changed":
+			// the newest change first
+			return -(row.change ? new Date(row.change.createdOn).getTime() : 0);
 	}
 };
 
@@ -343,6 +384,7 @@ export type RecommendationId =
 	| "expired"
 	| "expiring"
 	| "nginx-error"
+	| "upstream-down"
 	| "waf-off"
 	| "waf-detect";
 
@@ -371,6 +413,12 @@ export function recommendations(rows: HostRow[], wafGloballyEnabled: boolean | u
 			level: "alert",
 			rows: active.filter((r) => r.status === "error"),
 			filter: [{ field: "status", op: "is", value: "error" }],
+		},
+		{
+			id: "upstream-down",
+			level: "alert",
+			rows: active.filter((r) => r.upstream === "down"),
+			filter: [{ field: "upstream", op: "is", value: "down" }],
 		},
 		{
 			id: "expiring",

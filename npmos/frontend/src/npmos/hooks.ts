@@ -1,7 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import {
+	getHostChanges,
+	getHostHistory,
 	getServiceLogs,
 	getServices,
+	getUpstreamChecks,
 	getWafAgent,
 	getWafCustomPolicy,
 	getWafEvents,
@@ -9,8 +12,12 @@ import {
 	getWafHosts,
 	getWafPolicy,
 	getWafStatus,
+	type HostChange,
+	type HostLastChange,
+	type HostObjectType,
 	type Service,
 	type ServiceLogLine,
+	type UpstreamCheck,
 	type WafAgentState,
 	type WafCustomPolicy,
 	type WafEvents,
@@ -86,4 +93,29 @@ export const useWafCustomPolicy = () =>
 	useQuery<WafCustomPolicy, Error>({
 		queryKey: ["npmos-waf-custom-policy"],
 		queryFn: getWafCustomPolicy,
+	});
+
+export const useHostChanges = (options = {}) =>
+	useQuery<HostLastChange[], Error>({
+		queryKey: ["npmos-host-changes"],
+		queryFn: getHostChanges,
+		staleTime: 15000,
+		// the upstream dialogs save without telling this page
+		refetchInterval: 30000,
+		...options,
+	});
+
+export const useHostHistory = (type: HostObjectType, id: number) =>
+	useQuery<HostChange[], Error>({
+		queryKey: ["npmos-host-history", type, id],
+		queryFn: () => getHostHistory(type, id),
+	});
+
+/** the backend caches each check for 30 s */
+export const useUpstreamChecks = (options = {}) =>
+	useQuery<UpstreamCheck[], Error>({
+		queryKey: ["npmos-upstreams"],
+		queryFn: getUpstreamChecks,
+		refetchInterval: 60000,
+		...options,
 	});

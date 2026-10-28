@@ -680,6 +680,9 @@
 	"npmos.hosts.bulk.delete-title": {
 		"defaultMessage": "Delete hosts"
 	},
+	"npmos.hosts.column.changed": {
+		"defaultMessage": "Changed"
+	},
 	"npmos.hosts.column.type": {
 		"defaultMessage": "Type"
 	},
@@ -709,6 +712,9 @@
 	},
 	"npmos.hosts.done.waf": {
 		"defaultMessage": "WAF mode saved"
+	},
+	"npmos.hosts.duplicate": {
+		"defaultMessage": "Duplicate"
 	},
 	"npmos.hosts.empty": {
 		"defaultMessage": "No hosts yet. Add the first one with the «Add» button."
@@ -769,6 +775,39 @@
 	},
 	"npmos.hosts.filters.reset": {
 		"defaultMessage": "Reset filters"
+	},
+	"npmos.hosts.history": {
+		"defaultMessage": "Change history"
+	},
+	"npmos.hosts.history.action.created": {
+		"defaultMessage": "created the host"
+	},
+	"npmos.hosts.history.action.deleted": {
+		"defaultMessage": "deleted the host"
+	},
+	"npmos.hosts.history.action.disabled": {
+		"defaultMessage": "disabled the host"
+	},
+	"npmos.hosts.history.action.enabled": {
+		"defaultMessage": "enabled the host"
+	},
+	"npmos.hosts.history.action.other": {
+		"defaultMessage": "{action}"
+	},
+	"npmos.hosts.history.action.updated": {
+		"defaultMessage": "changed the settings"
+	},
+	"npmos.hosts.history.action.updated-waf": {
+		"defaultMessage": "changed the WAF mode"
+	},
+	"npmos.hosts.history.empty": {
+		"defaultMessage": "No changes recorded for this host yet."
+	},
+	"npmos.hosts.history.note": {
+		"defaultMessage": "From the audit log: changes made in NPMOS and through its API. For an update, the changed settings are listed."
+	},
+	"npmos.hosts.history.system": {
+		"defaultMessage": "System"
 	},
 	"npmos.hosts.import": {
 		"defaultMessage": "Import hosts (JSON)"
@@ -857,6 +896,12 @@
 	"npmos.hosts.rec.show": {
 		"defaultMessage": "Show"
 	},
+	"npmos.hosts.rec.upstream-down": {
+		"defaultMessage": "{count, plural, one {# host does} other {# hosts do}} not reach the upstream"
+	},
+	"npmos.hosts.rec.upstream-down.hint": {
+		"defaultMessage": "NPMOS could not open a connection to the address the host forwards to: visitors get 502. Check that the service is running and the address and port are right."
+	},
 	"npmos.hosts.rec.waf-detect": {
 		"defaultMessage": "WAF only detects on {count, plural, one {# host} other {# hosts}}"
 	},
@@ -943,6 +988,15 @@
 	},
 	"npmos.hosts.type.stream.hint": {
 		"defaultMessage": "Forward a TCP/UDP port"
+	},
+	"npmos.hosts.upstream": {
+		"defaultMessage": "Upstream"
+	},
+	"npmos.hosts.upstream.down": {
+		"defaultMessage": "Not responding"
+	},
+	"npmos.hosts.upstream.ok": {
+		"defaultMessage": "Responds"
 	},
 	"npmos.hosts.view": {
 		"defaultMessage": "Display options"

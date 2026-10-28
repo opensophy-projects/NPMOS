@@ -38,10 +38,22 @@ import {
 } from "src/modules/Permissions";
 import { showError, showSuccess } from "src/notifications";
 import { setWafHost, WAF_DEFAULTS } from "../../api";
-import { useWafHosts, useWafStatus } from "../../hooks";
+import { useHostChanges, useUpstreamChecks, useWafHosts, useWafStatus } from "../../hooks";
 import { showConfirmModal } from "../../modals/ConfirmModal";
+import { showHostHistoryModal } from "../../modals/HostHistoryModal";
 import { createHost, deleteHost, OBJECT, QUERY_KEY, toggleHost, updateHost } from "./api";
-import { AccessCell, ActionsCell, type CellContext, MtlsCell, NameCell, StatusCell, TlsCell, WafCell } from "./Cells";
+import {
+	AccessCell,
+	ActionsCell,
+	type CellContext,
+	ChangedCell,
+	MtlsCell,
+	NameCell,
+	StatusCell,
+	TargetCell,
+	TlsCell,
+	WafCell,
+} from "./Cells";
 import styles from "./Hosts.module.css";
 import { Recommendations } from "./Recommendations";
 import {
@@ -54,8 +66,9 @@ import {
 	HOST_TYPES,
 	type HostRow,
 	type HostType,
-	matches,
 	type MtlsState,
+	matches,
+	OBJECT_TYPE,
 	parseImport,
 	recommendations,
 	type Sort,
@@ -89,8 +102,8 @@ const SECTION: Record<HostType, Section> = {
 	dead: DEAD_HOSTS,
 };
 
-const EDIT: Record<HostType, (id: number | "new") => void> = {
-	proxy: (id) => showProxyHostModal(id),
+const EDIT: Record<HostType, (id: number | "new", isClone?: boolean) => void> = {
+	proxy: showProxyHostModal,
 	redirect: showRedirectionHostModal,
 	stream: showStreamModal,
 	dead: showDeadHostModal,
@@ -104,6 +117,7 @@ const SORT_COLUMN: Partial<Record<Column | "name", SortKey>> = {
 	waf: "waf",
 	mtls: "mtls",
 	status: "status",
+	changed: "changed",
 };
 
 /** meta as stored: without the nginx state the API adds */
@@ -121,11 +135,16 @@ const download = (name: string, content: string, type: string) => {
 	URL.revokeObjectURL(url);
 };
 
+const VIEW_VERSION = 2;
 const viewKey = (userId?: number) => `npmos.hosts.view.${userId ?? 0}`;
 const loadView = (userId?: number): View => {
 	try {
 		const stored = JSON.parse(window.localStorage.getItem(viewKey(userId)) || "null");
-		if (stored && Array.isArray(stored.hidden)) return { hidden: stored.hidden, compact: !!stored.compact };
+		if (stored && Array.isArray(stored.hidden)) {
+			// views saved before a column existed keep it hidden, like the default
+			const hidden = stored.v === VIEW_VERSION ? stored.hidden : [...stored.hidden, "changed"];
+			return { hidden, compact: !!stored.compact };
+		}
 	} catch {
 		// private mode, broken value: defaults
 	}
@@ -151,6 +170,8 @@ function HostsPage() {
 	const wafStatus = useWafStatus({ enabled: isAdmin(roles) });
 	const certificates = useCertificates([], { enabled: hasPermission(CERTIFICATES, VIEW, perms, roles) });
 	const accessLists = useAccessLists([], { enabled: hasPermission(ACCESS_LISTS, VIEW, perms, roles) });
+	const changes = useHostChanges();
+	const upstreams = useUpstreamChecks({ enabled: can("proxy", VIEW) || can("stream", VIEW) });
 
 	const filters = useMemo(() => filtersFromParams(params), [params]);
 	const sortKey = (params.get("sort") as SortKey) || "name";
@@ -165,7 +186,7 @@ function HostsPage() {
 	const setView = (next: View) => {
 		setViewState(next);
 		try {
-			window.localStorage.setItem(viewKey(me?.id), JSON.stringify(next));
+			window.localStorage.setItem(viewKey(me?.id), JSON.stringify({ ...next, v: VIEW_VERSION }));
 		} catch {
 			// the view just is not remembered
 		}
@@ -208,8 +229,10 @@ function HostsPage() {
 				stream: stream.data,
 				dead: dead.data,
 				waf: waf.data,
+				upstreams: upstreams.data,
+				changes: changes.data,
 			}),
-		[proxy.data, redirect.data, stream.data, dead.data, waf.data],
+		[proxy.data, redirect.data, stream.data, dead.data, waf.data, upstreams.data, changes.data],
 	);
 	const rows = useMemo(
 		() =>
@@ -246,6 +269,7 @@ function HostsPage() {
 			queryClient.invalidateQueries({ queryKey: [QUERY_KEY[type]] });
 		}
 		queryClient.invalidateQueries({ queryKey: ["npmos-waf-hosts"] });
+		queryClient.invalidateQueries({ queryKey: ["npmos-host-changes"] });
 	};
 
 	/** runs changes of one or more hosts, reports the result, refreshes the lists */
@@ -332,6 +356,8 @@ function HostsPage() {
 			return run([row], (r) => changeCertificate(r, certificateId), t("npmos.hosts.done.certificate"));
 		},
 		openCertificates: () => navigate("/certificates"),
+		duplicate: (row) => EDIT[row.type](row.id, true),
+		history: (row) => showHostHistoryModal(OBJECT_TYPE[row.type], row.id, row.names.join(", ")),
 	};
 
 	const selectedRows = rows.filter((r) => selected.has(r.key) && can(r.type, MANAGE));
@@ -457,11 +483,7 @@ function HostsPage() {
 					</span>
 				);
 			case "target":
-				return (
-					<span className={styles.target} title={row.target}>
-						{row.target || "—"}
-					</span>
-				);
+				return <TargetCell row={row} />;
 			case "tls":
 				return <TlsCell row={row} ctx={ctx} />;
 			case "waf":
@@ -472,6 +494,8 @@ function HostsPage() {
 				return <AccessCell row={row} ctx={ctx} />;
 			case "status":
 				return <StatusCell row={row} ctx={ctx} />;
+			case "changed":
+				return <ChangedCell row={row} ctx={ctx} />;
 		}
 	};
 

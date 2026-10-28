@@ -33,7 +33,7 @@ import {
 
 const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id }, values);
 
-export const COLUMNS = ["type", "target", "tls", "waf", "mtls", "access", "status"] as const;
+export const COLUMNS = ["type", "target", "tls", "waf", "mtls", "access", "status", "changed"] as const;
 export type Column = (typeof COLUMNS)[number];
 export const COLUMN_LABEL: Record<Column, string> = {
 	type: "npmos.hosts.column.type",
@@ -43,6 +43,7 @@ export const COLUMN_LABEL: Record<Column, string> = {
 	mtls: "mTLS",
 	access: "column.access",
 	status: "column.status",
+	changed: "npmos.hosts.column.changed",
 };
 export const columnLabel = (column: Column) =>
 	column === "waf" || column === "mtls" ? COLUMN_LABEL[column] : t(COLUMN_LABEL[column]);
@@ -51,7 +52,8 @@ export interface View {
 	hidden: Column[];
 	compact: boolean;
 }
-export const DEFAULT_VIEW: View = { hidden: [], compact: false };
+/** "Changed" is shown on request: the table should fit a laptop screen */
+export const DEFAULT_VIEW: View = { hidden: ["changed"], compact: false };
 
 /** search field in the inset frame of cards */
 export const Search = forwardRef<HTMLInputElement, { value: string; onChange: (value: string) => void }>(
@@ -95,6 +97,7 @@ const FIELD_LABEL: Record<FilterField, string> = {
 	waf: "WAF",
 	mtls: "mTLS",
 	access: "column.access",
+	upstream: "npmos.hosts.upstream",
 	group: "proxy-host.directory",
 };
 const fieldLabel = (field: FilterField) =>
@@ -130,6 +133,8 @@ export function fieldValues(field: FilterField, options: FilterOptions): { value
 				{ value: "public", label: t("access-list.public") },
 				...options.accessLists.map((l) => ({ value: String(l.id), label: l.name })),
 			];
+		case "upstream":
+			return ["ok", "down"].map((v) => ({ value: v, label: t(`npmos.hosts.upstream.${v}`) }));
 		case "group":
 			return options.groups.map((g) => ({ value: g, label: g }));
 		default:

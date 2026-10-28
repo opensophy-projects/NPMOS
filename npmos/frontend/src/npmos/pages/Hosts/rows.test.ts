@@ -224,4 +224,54 @@ describe("hosts rows", () => {
 		expect(dropped).toBe(4);
 		expect(() => parseImport("{}", { certificateIds: [], accessListIds: [] })).toThrow();
 	});
+
+	it("joins upstream checks and audit changes to the rows", () => {
+		const joined = toRows(
+			{
+				...sources,
+				upstreams: [
+					{ type: "proxy-host", objectId: 1, host: "10.0.0.5", port: 8080, ok: true, ms: 1 },
+					{ type: "proxy-host", objectId: 2, host: "10.0.0.6", port: 443, ok: false, error: "timeout" },
+					// a stream with the same id is another host
+					{ type: "stream", objectId: 1, host: "x", port: 1, ok: false, error: "ECONNREFUSED" },
+				],
+				changes: [
+					{
+						type: "proxy-host",
+						objectId: 2,
+						id: 9,
+						action: "updated",
+						createdOn: "2026-10-26T00:00:00Z",
+						user: null,
+						fields: [],
+					},
+					{
+						type: "proxy-host",
+						objectId: 1,
+						id: 8,
+						action: "created",
+						createdOn: "2026-10-20T00:00:00Z",
+						user: null,
+						fields: [],
+					},
+				],
+			},
+			NOW,
+		);
+		const byKey = Object.fromEntries(joined.map((r) => [r.key, r]));
+		expect(byKey["proxy-1"].upstream).toBe("ok");
+		expect(byKey["proxy-2"].upstream).toBe("down");
+		expect(byKey["proxy-2"].upstreamErrors).toEqual(["10.0.0.6:443 — timeout"]);
+		expect(byKey["redirect-3"].upstream).toBeNull();
+		expect(matches(byKey["proxy-2"], { q: "", rules: [{ field: "upstream", op: "is", value: "down" }] })).toBe(
+			true,
+		);
+		expect(
+			recommendations(joined, true)
+				.find((r) => r.id === "upstream-down")
+				?.rows.map((r) => r.key),
+		).toEqual(["proxy-2"]);
+		const newest = sortRows(joined, { key: "changed", desc: false }).map((r) => r.key);
+		expect(newest.slice(0, 2)).toEqual(["proxy-2", "proxy-1"]);
+	});
 });
