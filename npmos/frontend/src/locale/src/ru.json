@@ -575,6 +575,9 @@
 	"notfound.title": {
 		"defaultMessage": "Упс… Вы попали на страницу ошибки"
 	},
+	"notification": {
+		"defaultMessage": "Уведомление"
+	},
 	"notification.error": {
 		"defaultMessage": "Ошибка"
 	},
@@ -610,6 +613,81 @@
 	},
 	"npmos.2fa.error-start": {
 		"defaultMessage": "Не удалось начать настройку 2FA"
+	},
+	"npmos.analytics": {
+		"defaultMessage": "Аналитика"
+	},
+	"npmos.analytics.actions": {
+		"defaultMessage": "Действия защиты"
+	},
+	"npmos.analytics.all-hosts": {
+		"defaultMessage": "Все хосты"
+	},
+	"npmos.analytics.attacks": {
+		"defaultMessage": "Атак"
+	},
+	"npmos.analytics.countries": {
+		"defaultMessage": "Страны"
+	},
+	"npmos.analytics.detected": {
+		"defaultMessage": "Только обнаружено"
+	},
+	"npmos.analytics.last-blocked": {
+		"defaultMessage": "Последние заблокированные запросы"
+	},
+	"npmos.analytics.levels": {
+		"defaultMessage": "Уровни атак"
+	},
+	"npmos.analytics.no-attacks": {
+		"defaultMessage": "За этот период атак не было"
+	},
+	"npmos.analytics.none": {
+		"defaultMessage": "За этот период ничего нет"
+	},
+	"npmos.analytics.note": {
+		"defaultMessage": "Короткие периоды считаются по событиям, график длинных — по почасовой статистике; срок хранения задаётся в «WAF → События → Хранение». Готовность обучения по хостам появится в фазе 8."
+	},
+	"npmos.analytics.prevented": {
+		"defaultMessage": "Заблокировано"
+	},
+	"npmos.analytics.prevented-n": {
+		"defaultMessage": "заблокировано {n}"
+	},
+	"npmos.analytics.requests": {
+		"defaultMessage": "Запросов"
+	},
+	"npmos.analytics.requests.none": {
+		"defaultMessage": "Агент ещё не прислал статистику трафика"
+	},
+	"npmos.analytics.series.detect": {
+		"defaultMessage": "Обнаружено (Detect)"
+	},
+	"npmos.analytics.series.other": {
+		"defaultMessage": "Другие действия"
+	},
+	"npmos.analytics.series.prevent": {
+		"defaultMessage": "Заблокировано (Prevent)"
+	},
+	"npmos.analytics.sources": {
+		"defaultMessage": "Источников атак"
+	},
+	"npmos.analytics.subtitle": {
+		"defaultMessage": "Атаки на хосты под защитой WAF по событиям, которые хранит NPMOS. Нажмите на строку, чтобы открыть её события."
+	},
+	"npmos.analytics.timeline": {
+		"defaultMessage": "Атаки во времени"
+	},
+	"npmos.analytics.top-hosts": {
+		"defaultMessage": "Самые атакуемые хосты"
+	},
+	"npmos.analytics.top-sources": {
+		"defaultMessage": "Главные источники атак (Critical, High)"
+	},
+	"npmos.analytics.top-types": {
+		"defaultMessage": "Типы атак"
+	},
+	"npmos.analytics.top-uris": {
+		"defaultMessage": "Самые атакуемые URI"
 	},
 	"npmos.audit.name.agent": {
 		"defaultMessage": "Настройки агента WAF"
@@ -685,6 +763,132 @@
 	},
 	"npmos.common.warning": {
 		"defaultMessage": "Предупреждение"
+	},
+	"npmos.events.attack-type": {
+		"defaultMessage": "Тип атаки"
+	},
+	"npmos.events.confidence": {
+		"defaultMessage": "Уверенность"
+	},
+	"npmos.events.country": {
+		"defaultMessage": "Страна"
+	},
+	"npmos.events.empty": {
+		"defaultMessage": "Событий с такими фильтрами нет. Здесь появляются атаки на хосты под защитой WAF."
+	},
+	"npmos.events.export": {
+		"defaultMessage": "Экспорт"
+	},
+	"npmos.events.filter-by": {
+		"defaultMessage": "Показать только эти события"
+	},
+	"npmos.events.filters": {
+		"defaultMessage": "Фильтры"
+	},
+	"npmos.events.filters.remove": {
+		"defaultMessage": "Убрать фильтр"
+	},
+	"npmos.events.filters.reset": {
+		"defaultMessage": "Сбросить"
+	},
+	"npmos.events.from": {
+		"defaultMessage": "С"
+	},
+	"npmos.events.important-only": {
+		"defaultMessage": "Только важные (Critical, High)"
+	},
+	"npmos.events.indicators": {
+		"defaultMessage": "Индикаторы"
+	},
+	"npmos.events.ingest-error": {
+		"defaultMessage": "События не сохраняются:"
+	},
+	"npmos.events.kind.all": {
+		"defaultMessage": "Все"
+	},
+	"npmos.events.kind.security": {
+		"defaultMessage": "Атаки"
+	},
+	"npmos.events.kind.system": {
+		"defaultMessage": "Сообщения агента"
+	},
+	"npmos.events.newer": {
+		"defaultMessage": "Новее"
+	},
+	"npmos.events.older": {
+		"defaultMessage": "Старше"
+	},
+	"npmos.events.override": {
+		"defaultMessage": "Исключение"
+	},
+	"npmos.events.period": {
+		"defaultMessage": "Период"
+	},
+	"npmos.events.period.1h": {
+		"defaultMessage": "1 ч"
+	},
+	"npmos.events.period.24h": {
+		"defaultMessage": "24 ч"
+	},
+	"npmos.events.period.30d": {
+		"defaultMessage": "30 д"
+	},
+	"npmos.events.period.7d": {
+		"defaultMessage": "7 д"
+	},
+	"npmos.events.period.custom": {
+		"defaultMessage": "Свой"
+	},
+	"npmos.events.raw": {
+		"defaultMessage": "Событие в том виде, как его записал агент"
+	},
+	"npmos.events.response-code": {
+		"defaultMessage": "Код ответа"
+	},
+	"npmos.events.retention": {
+		"defaultMessage": "Хранение"
+	},
+	"npmos.events.retention.aggregate-days": {
+		"defaultMessage": "Почасовая статистика, дней"
+	},
+	"npmos.events.retention.days": {
+		"defaultMessage": "События, дней"
+	},
+	"npmos.events.retention.hint": {
+		"defaultMessage": "Старые дни удаляются целиком раз в час. Графики аналитики строятся по почасовой статистике."
+	},
+	"npmos.events.retention.invalid": {
+		"defaultMessage": "События: 1–365 дней; статистика: не меньше, чем события, и до 1830."
+	},
+	"npmos.events.retention.oldest": {
+		"defaultMessage": "Самое старое: {time}"
+	},
+	"npmos.events.retention.saved": {
+		"defaultMessage": "Срок хранения сохранён"
+	},
+	"npmos.events.retention.stored": {
+		"defaultMessage": "{events, plural, one {Хранится # событие} few {Хранится # события} many {Хранится # событий} other {Хранится # события}}"
+	},
+	"npmos.events.rule": {
+		"defaultMessage": "Правило"
+	},
+	"npmos.events.score": {
+		"defaultMessage": "Оценка"
+	},
+	"npmos.events.score.max": {
+		"defaultMessage": "Оценка до"
+	},
+	"npmos.events.score.min": {
+		"defaultMessage": "Оценка от"
+	},
+	"npmos.events.to": {
+		"defaultMessage": "по (пусто — сейчас)"
+	},
+	"npmos.events.total": {
+		"defaultMessage": "{total, plural, one {# событие} few {# события} many {# событий} other {# события}}"
+	},
+	"npmos.events.total-capped": {
+		"defaultMessage": "Больше {total} событий"
 	},
 	"npmos.glossary": {
 		"defaultMessage": "Глоссарий"
@@ -800,6 +1004,9 @@
 	"npmos.hosts.add": {
 		"defaultMessage": "Добавить"
 	},
+	"npmos.hosts.attacks.title": {
+		"defaultMessage": "{events} атак за 24 ч, заблокировано {prevented}; нажмите, чтобы открыть события"
+	},
 	"npmos.hosts.bulk.certificate": {
 		"defaultMessage": "Сертификат"
 	},
@@ -808,6 +1015,9 @@
 	},
 	"npmos.hosts.bulk.delete-title": {
 		"defaultMessage": "Удалить хосты"
+	},
+	"npmos.hosts.column.attacks": {
+		"defaultMessage": "Атаки 24 ч"
 	},
 	"npmos.hosts.column.changed": {
 		"defaultMessage": "Изменён"
@@ -1214,6 +1424,276 @@
 	"npmos.notice.warning": {
 		"defaultMessage": "Предупреждение"
 	},
+	"npmos.notifications": {
+		"defaultMessage": "Уведомления"
+	},
+	"npmos.notifications.actions": {
+		"defaultMessage": "Действия"
+	},
+	"npmos.notifications.active": {
+		"defaultMessage": "{n, plural, one {# активно} few {# активно} many {# активно} other {# активно}}"
+	},
+	"npmos.notifications.channel.add": {
+		"defaultMessage": "Добавить канал"
+	},
+	"npmos.notifications.channel.delete": {
+		"defaultMessage": "Удалить канал"
+	},
+	"npmos.notifications.channel.delete.text": {
+		"defaultMessage": "Удалить канал «{name}»? Правила перестанут отправлять в него."
+	},
+	"npmos.notifications.channel.edit": {
+		"defaultMessage": "Канал"
+	},
+	"npmos.notifications.channel.email": {
+		"defaultMessage": "Почта"
+	},
+	"npmos.notifications.channel.new": {
+		"defaultMessage": "Новый канал"
+	},
+	"npmos.notifications.channel.telegram": {
+		"defaultMessage": "Telegram"
+	},
+	"npmos.notifications.channel.webhook": {
+		"defaultMessage": "Webhook"
+	},
+	"npmos.notifications.channels": {
+		"defaultMessage": "Каналы"
+	},
+	"npmos.notifications.channels.none": {
+		"defaultMessage": "Каналов пока нет. Добавьте почтовый сервер, webhook или бота Telegram."
+	},
+	"npmos.notifications.delete": {
+		"defaultMessage": "Удалить"
+	},
+	"npmos.notifications.deleted": {
+		"defaultMessage": "Удалено"
+	},
+	"npmos.notifications.delivered": {
+		"defaultMessage": "доставлено"
+	},
+	"npmos.notifications.disable": {
+		"defaultMessage": "Выключить"
+	},
+	"npmos.notifications.edit": {
+		"defaultMessage": "Изменить"
+	},
+	"npmos.notifications.email.from": {
+		"defaultMessage": "Отправитель"
+	},
+	"npmos.notifications.email.host": {
+		"defaultMessage": "SMTP-сервер"
+	},
+	"npmos.notifications.email.password": {
+		"defaultMessage": "Пароль"
+	},
+	"npmos.notifications.email.port": {
+		"defaultMessage": "Порт"
+	},
+	"npmos.notifications.email.security": {
+		"defaultMessage": "Шифрование"
+	},
+	"npmos.notifications.email.security.none": {
+		"defaultMessage": "Нет (локальный relay)"
+	},
+	"npmos.notifications.email.security.starttls": {
+		"defaultMessage": "STARTTLS (587)"
+	},
+	"npmos.notifications.email.security.tls": {
+		"defaultMessage": "TLS (465)"
+	},
+	"npmos.notifications.email.to": {
+		"defaultMessage": "Получатели"
+	},
+	"npmos.notifications.email.to.hint": {
+		"defaultMessage": "Через запятую"
+	},
+	"npmos.notifications.email.username": {
+		"defaultMessage": "Логин (пусто — без авторизации)"
+	},
+	"npmos.notifications.email.verify-tls": {
+		"defaultMessage": "Проверять сертификат сервера"
+	},
+	"npmos.notifications.enable": {
+		"defaultMessage": "Включить"
+	},
+	"npmos.notifications.enabled": {
+		"defaultMessage": "Включено"
+	},
+	"npmos.notifications.failed": {
+		"defaultMessage": "не доставлено:"
+	},
+	"npmos.notifications.language": {
+		"defaultMessage": "Язык сообщений"
+	},
+	"npmos.notifications.language.en": {
+		"defaultMessage": "Английский"
+	},
+	"npmos.notifications.language.ru": {
+		"defaultMessage": "Русский"
+	},
+	"npmos.notifications.log": {
+		"defaultMessage": "Последние отправки"
+	},
+	"npmos.notifications.log.none": {
+		"defaultMessage": "Пока ничего не отправлялось"
+	},
+	"npmos.notifications.name": {
+		"defaultMessage": "Название"
+	},
+	"npmos.notifications.off": {
+		"defaultMessage": "выключен"
+	},
+	"npmos.notifications.param.days": {
+		"defaultMessage": "Дней до истечения"
+	},
+	"npmos.notifications.param.host": {
+		"defaultMessage": "Хост"
+	},
+	"npmos.notifications.param.minutes": {
+		"defaultMessage": "Через, минут"
+	},
+	"npmos.notifications.param.threshold": {
+		"defaultMessage": "Порог, событий"
+	},
+	"npmos.notifications.param.window": {
+		"defaultMessage": "Окно, минут"
+	},
+	"npmos.notifications.repeat": {
+		"defaultMessage": "Напоминать каждые, минут"
+	},
+	"npmos.notifications.repeat.hint": {
+		"defaultMessage": "Пока проблема не решена; 0 — только один раз."
+	},
+	"npmos.notifications.resolved": {
+		"defaultMessage": "Сообщить, когда решено"
+	},
+	"npmos.notifications.rule.add": {
+		"defaultMessage": "Добавить правило"
+	},
+	"npmos.notifications.rule.agent_down": {
+		"defaultMessage": "Агент WAF не отвечает"
+	},
+	"npmos.notifications.rule.agent_down.hint": {
+		"defaultMessage": "Агент open-appsec не отвечает заданное время, когда WAF включён."
+	},
+	"npmos.notifications.rule.agent_down.params": {
+		"defaultMessage": "через {minutes} мин"
+	},
+	"npmos.notifications.rule.attack_spike": {
+		"defaultMessage": "Всплеск атак"
+	},
+	"npmos.notifications.rule.attack_spike.hint": {
+		"defaultMessage": "Важных событий WAF (Critical, High) за окно времени не меньше порога."
+	},
+	"npmos.notifications.rule.attack_spike.params": {
+		"defaultMessage": "{threshold} за {window} мин, {host}"
+	},
+	"npmos.notifications.rule.cert_expiry": {
+		"defaultMessage": "Истекает сертификат"
+	},
+	"npmos.notifications.rule.cert_expiry.hint": {
+		"defaultMessage": "Сертификат истекает в течение заданного числа дней (или уже истёк)."
+	},
+	"npmos.notifications.rule.cert_expiry.params": {
+		"defaultMessage": "за {days} дн."
+	},
+	"npmos.notifications.rule.delete": {
+		"defaultMessage": "Удалить правило"
+	},
+	"npmos.notifications.rule.delete.text": {
+		"defaultMessage": "Удалить правило «{name}»?"
+	},
+	"npmos.notifications.rule.edit": {
+		"defaultMessage": "Правило"
+	},
+	"npmos.notifications.rule.host_problem": {
+		"defaultMessage": "Ошибка конфигурации хоста"
+	},
+	"npmos.notifications.rule.host_problem.hint": {
+		"defaultMessage": "nginx не принял конфигурацию включённого хоста (как красная рекомендация в таблице хостов)."
+	},
+	"npmos.notifications.rule.new": {
+		"defaultMessage": "Новое правило"
+	},
+	"npmos.notifications.rule.no-channels": {
+		"defaultMessage": "каналы не выбраны"
+	},
+	"npmos.notifications.rule.policy_error": {
+		"defaultMessage": "Политика WAF не применена"
+	},
+	"npmos.notifications.rule.policy_error.hint": {
+		"defaultMessage": "Агент не принял политику, которую сгенерировал NPMOS."
+	},
+	"npmos.notifications.rule.service_down": {
+		"defaultMessage": "Сервис не работает"
+	},
+	"npmos.notifications.rule.service_down.hint": {
+		"defaultMessage": "Сервис стека («Система → Сервисы») остановлен, перезапускается или нездоров."
+	},
+	"npmos.notifications.rule.type": {
+		"defaultMessage": "Что отслеживать"
+	},
+	"npmos.notifications.rules": {
+		"defaultMessage": "Правила"
+	},
+	"npmos.notifications.rules.none": {
+		"defaultMessage": "Правил пока нет: ничего не отправляется."
+	},
+	"npmos.notifications.saved": {
+		"defaultMessage": "Сохранено"
+	},
+	"npmos.notifications.secret.keep": {
+		"defaultMessage": "Сохранён. Оставьте пустым, чтобы не менять."
+	},
+	"npmos.notifications.status.firing": {
+		"defaultMessage": "Проблема"
+	},
+	"npmos.notifications.status.resolved": {
+		"defaultMessage": "Решено"
+	},
+	"npmos.notifications.status.test": {
+		"defaultMessage": "Проверка"
+	},
+	"npmos.notifications.subtitle": {
+		"defaultMessage": "Куда NPMOS сообщает о проблемах и атаках: в первую очередь почта, webhook в ваши системы, Telegram — если у сервера есть интернет."
+	},
+	"npmos.notifications.telegram.api": {
+		"defaultMessage": "Адрес Bot API"
+	},
+	"npmos.notifications.telegram.api.hint": {
+		"defaultMessage": "Пусто — api.telegram.org. Здесь можно указать локальный Bot API сервер или прокси."
+	},
+	"npmos.notifications.telegram.chat": {
+		"defaultMessage": "ID чата"
+	},
+	"npmos.notifications.telegram.chat.hint": {
+		"defaultMessage": "Число (у групп начинается с -100) или @канал."
+	},
+	"npmos.notifications.telegram.internet": {
+		"defaultMessage": "Telegram работает, только если у сервера есть выход в интернет (или к Bot API серверу). Без него NPMOS работает дальше, сообщения просто не доставляются."
+	},
+	"npmos.notifications.telegram.token": {
+		"defaultMessage": "Токен бота"
+	},
+	"npmos.notifications.test": {
+		"defaultMessage": "Проверить"
+	},
+	"npmos.notifications.test.failed": {
+		"defaultMessage": "{name}: не доставлено — {error}"
+	},
+	"npmos.notifications.test.ok": {
+		"defaultMessage": "{name}: проверочное сообщение отправлено"
+	},
+	"npmos.notifications.webhook.secret": {
+		"defaultMessage": "Ключ подписи"
+	},
+	"npmos.notifications.webhook.secret.hint": {
+		"defaultMessage": "Тело JSON приходит с заголовками X-NPMOS-Signature: sha256=HMAC(ключ, timestamp + \".\" + тело) и X-NPMOS-Timestamp."
+	},
+	"npmos.notifications.webhook.url": {
+		"defaultMessage": "URL"
+	},
 	"npmos.overview.all-good": {
 		"defaultMessage": "Всё в порядке"
 	},
@@ -1230,7 +1710,7 @@
 		"defaultMessage": "Последнее событие"
 	},
 	"npmos.overview.analytics.note": {
-		"defaultMessage": "По хвосту логов агента. Графики, периоды и топы появятся вместе с аналитикой (фаза 4)."
+		"defaultMessage": "Сохранённые события агента за последние 24 часа. Графики — в «WAF → Аналитика»."
 	},
 	"npmos.overview.analytics.prevented": {
 		"defaultMessage": "Из них заблокировано"
@@ -1745,6 +2225,219 @@
 	"npmos.services.version": {
 		"defaultMessage": "Версия"
 	},
+	"npmos.settings.events-retention": {
+		"defaultMessage": "Срок хранения событий безопасности"
+	},
+	"npmos.system.after-restart": {
+		"defaultMessage": "после перезапуска"
+	},
+	"npmos.system.env.DEFAULT_CERT_ID": {
+		"defaultMessage": "Сертификат по умолчанию"
+	},
+	"npmos.system.env.DEFAULT_CERT_ID.hint": {
+		"defaultMessage": "Отдаётся на HTTPS-запросы к именам, которых нет ни у одного хоста (иначе — самоподписанный)."
+	},
+	"npmos.system.env.DEFAULT_CERT_ID.none": {
+		"defaultMessage": "Самоподписанный"
+	},
+	"npmos.system.env.DISABLE_GRAVATAR": {
+		"defaultMessage": "Без Gravatar"
+	},
+	"npmos.system.env.DISABLE_GRAVATAR.hint": {
+		"defaultMessage": "Аватары пользователей не загружаются с gravatar.com."
+	},
+	"npmos.system.env.DISABLE_H3_QUIC": {
+		"defaultMessage": "Отключить HTTP/3 (QUIC)"
+	},
+	"npmos.system.env.DISABLE_H3_QUIC.hint": {
+		"defaultMessage": "UDP 443 не обслуживается, браузеры используют HTTP/2."
+	},
+	"npmos.system.env.DISABLE_HTTP": {
+		"defaultMessage": "Отключить обычный HTTP (порт 80)"
+	},
+	"npmos.system.env.DISABLE_HTTP.hint": {
+		"defaultMessage": "Работает только HTTPS. Проверка ACME HTTP-01 перестанет работать."
+	},
+	"npmos.system.env.ENABLE_MPTCP": {
+		"defaultMessage": "Multipath TCP"
+	},
+	"npmos.system.env.ENABLE_MPTCP.hint": {
+		"defaultMessage": "Принимать соединения MPTCP (нужна поддержка ядра хоста)."
+	},
+	"npmos.system.env.LISTEN_PROXY_PROTOCOL_HTTP": {
+		"defaultMessage": "PROXY protocol на HTTP"
+	},
+	"npmos.system.env.LISTEN_PROXY_PROTOCOL_HTTP.hint": {
+		"defaultMessage": "Только за балансировщиком, который его отправляет: прямые клиенты получат отказ."
+	},
+	"npmos.system.env.LISTEN_PROXY_PROTOCOL_HTTPS": {
+		"defaultMessage": "PROXY protocol на HTTPS"
+	},
+	"npmos.system.env.LISTEN_PROXY_PROTOCOL_HTTPS.hint": {
+		"defaultMessage": "Как для HTTP; требует отключить HTTP/3."
+	},
+	"npmos.system.env.LOGROTATIONS": {
+		"defaultMessage": "Хранить ротаций логов nginx"
+	},
+	"npmos.system.env.LOGROTATIONS.hint": {
+		"defaultMessage": "Журналы доступа и ошибок nginx, ротация раз в день; их читает CrowdSec."
+	},
+	"npmos.system.env.NGINX_DISABLE_TLS12": {
+		"defaultMessage": "Отключить TLS 1.2"
+	},
+	"npmos.system.env.NGINX_DISABLE_TLS12.hint": {
+		"defaultMessage": "Только TLS 1.3: старые клиенты не подключатся."
+	},
+	"npmos.system.env.NGINX_FORCE_X25519MLKEM768": {
+		"defaultMessage": "Только постквантовый обмен ключами"
+	},
+	"npmos.system.env.NGINX_FORCE_X25519MLKEM768.hint": {
+		"defaultMessage": "Только X25519MLKEM768; требует отключить TLS 1.2 и кривые secp."
+	},
+	"npmos.system.env.NGINX_LOAD_GEOIP2_MODULE": {
+		"defaultMessage": "Модуль GeoIP2"
+	},
+	"npmos.system.env.NGINX_LOAD_GEOIP2_MODULE.hint": {
+		"defaultMessage": "Страна клиента в nginx (нужна база GeoIP2)."
+	},
+	"npmos.system.env.NGINX_LOAD_LDAP_MODULE": {
+		"defaultMessage": "Модуль аутентификации LDAP"
+	},
+	"npmos.system.env.NGINX_LOAD_LDAP_MODULE.hint": {
+		"defaultMessage": "Basic-аутентификация через каталог LDAP."
+	},
+	"npmos.system.env.NGINX_LOAD_NJS_MODULE": {
+		"defaultMessage": "Модуль njs"
+	},
+	"npmos.system.env.NGINX_LOAD_NJS_MODULE.hint": {
+		"defaultMessage": "JavaScript в nginx для своей конфигурации."
+	},
+	"npmos.system.env.NGINX_LOAD_NTLM_MODULE": {
+		"defaultMessage": "Модуль NTLM"
+	},
+	"npmos.system.env.NGINX_LOAD_NTLM_MODULE.hint": {
+		"defaultMessage": "Сохраняет NTLM-соединения с апстримами (аутентификация Windows)."
+	},
+	"npmos.system.env.NGINX_LOAD_VHOST_TRAFFIC_STATUS_MODULE": {
+		"defaultMessage": "Модуль статистики трафика"
+	},
+	"npmos.system.env.NGINX_LOAD_VHOST_TRAFFIC_STATUS_MODULE.hint": {
+		"defaultMessage": "Статистика трафика по хостам в nginx."
+	},
+	"npmos.system.env.NGINX_LOG_NOT_FOUND": {
+		"defaultMessage": "Писать в лог «файл не найден»"
+	},
+	"npmos.system.env.NGINX_LOG_NOT_FOUND.hint": {
+		"defaultMessage": "404 для отсутствующих файлов тоже попадают в журнал ошибок."
+	},
+	"npmos.system.env.NGINX_QUIC_BPF": {
+		"defaultMessage": "QUIC с eBPF"
+	},
+	"npmos.system.env.NGINX_QUIC_BPF.hint": {
+		"defaultMessage": "Направляет пакеты QUIC в нужный процесс nginx; на некоторых хостах требует дополнительных привилегий."
+	},
+	"npmos.system.env.NGINX_TRUST_RSA_PKCS1": {
+		"defaultMessage": "Разрешить подписи RSA PKCS#1"
+	},
+	"npmos.system.env.NGINX_TRUST_RSA_PKCS1.hint": {
+		"defaultMessage": "Только для старых клиентов."
+	},
+	"npmos.system.env.NGINX_TRUST_SECPR1": {
+		"defaultMessage": "Разрешить кривые secp"
+	},
+	"npmos.system.env.NGINX_TRUST_SECPR1.hint": {
+		"defaultMessage": "Кривые NIST secp256r1/secp384r1 для обмена ключами."
+	},
+	"npmos.system.env.NGINX_WORKER_CONNECTIONS": {
+		"defaultMessage": "Соединений на процесс"
+	},
+	"npmos.system.env.NGINX_WORKER_CONNECTIONS.hint": {
+		"defaultMessage": "Предел одновременных соединений одного процесса nginx."
+	},
+	"npmos.system.env.NGINX_WORKER_PROCESSES": {
+		"defaultMessage": "Процессы nginx"
+	},
+	"npmos.system.env.NGINX_WORKER_PROCESSES.hint": {
+		"defaultMessage": "«Авто» — по одному на ядро процессора."
+	},
+	"npmos.system.env.NPMOS_CHECK_VERSION": {
+		"defaultMessage": "Проверять обновления"
+	},
+	"npmos.system.env.NPMOS_CHECK_VERSION.hint": {
+		"defaultMessage": "Запрашивает у GitHub новые версии NPMOS."
+	},
+	"npmos.system.env.TRUST_CLOUDFLARE": {
+		"defaultMessage": "Доверять Cloudflare"
+	},
+	"npmos.system.env.TRUST_CLOUDFLARE.hint": {
+		"defaultMessage": "Реальный IP клиента берётся из заголовков Cloudflare; диапазоны его адресов скачиваются."
+	},
+	"npmos.system.env.TZ": {
+		"defaultMessage": "Часовой пояс"
+	},
+	"npmos.system.env.TZ.hint": {
+		"defaultMessage": "Время в журналах, продлении сертификатов и скриптах запуска контейнера."
+	},
+	"npmos.system.env.auto": {
+		"defaultMessage": "Авто"
+	},
+	"npmos.system.group.external": {
+		"defaultMessage": "Внешние сервисы"
+	},
+	"npmos.system.group.external.hint": {
+		"defaultMessage": "NPMOS работает без интернета; эти опции заставляют его обращаться наружу."
+	},
+	"npmos.system.group.general": {
+		"defaultMessage": "Общие"
+	},
+	"npmos.system.group.general.hint": {
+		"defaultMessage": "Часовой пояс и сертификат для неизвестных имён."
+	},
+	"npmos.system.group.logs": {
+		"defaultMessage": "Журналы"
+	},
+	"npmos.system.group.logs.hint": {
+		"defaultMessage": "Сколько хранятся журналы nginx и события безопасности."
+	},
+	"npmos.system.group.network": {
+		"defaultMessage": "Сеть"
+	},
+	"npmos.system.group.network.hint": {
+		"defaultMessage": "Как NPMOS принимает соединения: HTTP, HTTP/3, PROXY protocol, Cloudflare."
+	},
+	"npmos.system.group.nginx": {
+		"defaultMessage": "Nginx"
+	},
+	"npmos.system.group.nginx.hint": {
+		"defaultMessage": "Процессы, соединения и дополнительные модули nginx."
+	},
+	"npmos.system.group.tls": {
+		"defaultMessage": "TLS"
+	},
+	"npmos.system.group.tls.hint": {
+		"defaultMessage": "Версии протокола и обмен ключами HTTPS."
+	},
+	"npmos.system.internet": {
+		"defaultMessage": "интернет"
+	},
+	"npmos.system.pending": {
+		"defaultMessage": "Часть настроек сохранена, но ещё не применена: нужен перезапуск NPMOS (соединения прервутся на несколько секунд)."
+	},
+	"npmos.system.restart": {
+		"defaultMessage": "Перезапустить сейчас"
+	},
+	"npmos.system.restarting": {
+		"defaultMessage": "NPMOS перезапускается, чтобы применить настройки; панель вернётся примерно через 30 с"
+	},
+	"npmos.system.save": {
+		"defaultMessage": "Сохранить"
+	},
+	"npmos.system.save-restart": {
+		"defaultMessage": "Сохранить и перезапустить NPMOS"
+	},
+	"npmos.system.saved": {
+		"defaultMessage": "Сохранено: применится при следующем перезапуске NPMOS"
+	},
 	"npmos.waf": {
 		"defaultMessage": "WAF"
 	},
@@ -1832,20 +2525,11 @@
 	"npmos.waf.events.action": {
 		"defaultMessage": "Действие"
 	},
-	"npmos.waf.events.all": {
-		"defaultMessage": "Все события"
-	},
 	"npmos.waf.events.component": {
 		"defaultMessage": "Компонент агента"
 	},
 	"npmos.waf.events.description": {
 		"defaultMessage": "Журнал безопасности агента open-appsec: обнаруженные и заблокированные атаки и события самого агента"
-	},
-	"npmos.waf.events.empty-all": {
-		"defaultMessage": "Событий пока нет"
-	},
-	"npmos.waf.events.empty-important": {
-		"defaultMessage": "Важных событий нет. Здесь появятся атаки на хосты под защитой WAF."
 	},
 	"npmos.waf.events.event": {
 		"defaultMessage": "Событие"
@@ -1855,9 +2539,6 @@
 	},
 	"npmos.waf.events.host": {
 		"defaultMessage": "Хост"
-	},
-	"npmos.waf.events.important": {
-		"defaultMessage": "Важные события"
 	},
 	"npmos.waf.events.matched": {
 		"defaultMessage": "Что обнаружил WAF"
@@ -1880,17 +2561,11 @@
 	"npmos.waf.events.severity": {
 		"defaultMessage": "Важность"
 	},
-	"npmos.waf.events.shown": {
-		"defaultMessage": "Показано {shown} из {total}"
-	},
 	"npmos.waf.events.source-ip": {
 		"defaultMessage": "IP источника"
 	},
 	"npmos.waf.events.time": {
 		"defaultMessage": "Время"
-	},
-	"npmos.waf.events.truncated": {
-		"defaultMessage": "Читается только последняя часть файлов логов агента."
 	},
 	"npmos.waf.events.unavailable": {
 		"defaultMessage": "Каталог логов агента недоступен: запущен ли агент open-appsec?"

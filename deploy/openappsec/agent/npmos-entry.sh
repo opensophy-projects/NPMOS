@@ -32,17 +32,14 @@ else
     unset CROWDSEC_ENABLED
 fi
 
-# Profile settings in settings.json. The agent gets settings only from the Check Point cloud, which
-# NPMOS never uses, so the file is ours.
-# - fail-open of the nginx attachment (WAF -> Agent)
-# - no bulk mode for logs: in bulk mode a service keeps its security events in memory and writes them
-#   every 2 s, so events of the last seconds were lost whenever the agent restarted a service (it does
-#   so a few seconds after start); NPMOS reads the log files, there is no cloud upload to batch
+# Fail-open of the nginx attachment: profile settings in settings.json. The agent gets settings only
+# from the Check Point cloud, which NPMOS never uses, so the file is ours.
+# Not agent.config.log.useBulkMode=false: without bulk mode every log goes to all streams at once on
+# the request path, the HTTP transaction handler then neither logs nor blocks (checked in CI).
 mkdir -p /etc/cp/conf
-printf '{"agentSettings": [%s, %s, %s]}\n' \
+printf '{"agentSettings": [%s, %s]}\n' \
     "{\"key\": \"agent.failOpenState.nginxModule\", \"value\": \"$NPMOS_FAIL_OPEN\"}" \
     "{\"key\": \"agent.failOpenTimeout.nginxModule\", \"value\": \"$NPMOS_FAIL_OPEN_TIMEOUT_MS\"}" \
-    '{"key": "agent.config.log.useBulkMode", "value": "false"}' \
     > /etc/cp/conf/settings.json
 
 # what this start applied, for "saved, restart the agent to apply" in the GUI

@@ -610,3 +610,22 @@
 .dot-error {
 	background: var(--tblr-red);
 }
+
+/* attacks of the last 24 h: bars per hour (NPMOS series colour) and the number */
+.attacks {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.375rem;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--foreground);
+	font: inherit;
+	font-variant-numeric: tabular-nums;
+}
+.attacks svg {
+	fill: var(--series-1);
+}
+.attacks:hover {
+	color: var(--accent);
+}

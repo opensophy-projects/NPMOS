@@ -1,13 +1,18 @@
 // NPMOS API: /api/npmos/*
 import express from "express";
+import db from "../db.js";
+import errs from "../lib/error.js";
 import jwtdecode from "../lib/express/jwt-decode.js";
-import validator from "../lib/validator/index.js";
+import validator from "../lib/validator/api.js";
 import { debug, express as logger } from "../logger.js";
+import internalAnalytics from "./events/analytics.js";
+import internalEvents from "./events/index.js";
 import internalHosts, { HOST_OBJECTS } from "./hosts.js";
+import internalNotifications from "./notifications/index.js";
 import internalRbac from "./rbac/index.js";
 import internalServices from "./services.js";
+import internalSystem from "./system/index.js";
 import internalWafAgent from "./waf/agent-settings.js";
-import internalWafEvents from "./waf/events.js";
 import internalWafExpert from "./waf/expert.js";
 import internalWafHosts from "./waf/hosts.js";
 import internalWaf from "./waf/index.js";
@@ -52,7 +57,7 @@ router.param("version_id", (req, res, next, id) => {
 	next();
 });
 
-for (const name of ["role_id", "user_id"]) {
+for (const name of ["role_id", "user_id", "channel_id", "rule_id"]) {
 	router.param(name, (req, res, next, id) => {
 		if (!/^[1-9][0-9]{0,9}$/.test(id)) {
 			return res.status(400).send({ error: { code: 400, message: `Invalid ${name}` } });
@@ -61,6 +66,13 @@ for (const name of ["role_id", "user_id"]) {
 		next();
 	});
 }
+
+router.param("event_id", (_req, res, next, id) => {
+	if (!/^[1-9][0-9]{0,17}$/.test(id)) {
+		return res.status(400).send({ error: { code: 400, message: "Invalid event id" } });
+	}
+	next();
+});
 
 router.param("object_type", (_req, res, next, type) => {
 	if (!Object.hasOwn(HOST_OBJECTS, type)) {
@@ -407,23 +419,345 @@ router
 	.all(jwtdecode())
 	.put(handle((req, res) => internalWafAgent.uploadModel(res.locals.access, req, req.query.apply !== "false")));
 
+const language = { enum: ["ru", "en"] };
+/** config of a channel by type (secrets: omitted or null keeps the stored one) */
+const CHANNEL_CONFIG = {
+	email: {
+		type: "object",
+		additionalProperties: false,
+		required: ["host", "port", "security", "from", "to"],
+		properties: {
+			host: { type: "string", minLength: 1, maxLength: 255, pattern: "^[A-Za-z0-9.:\\[\\]_-]+$" },
+			port: { type: "integer", minimum: 1, maximum: 65535 },
+			security: { enum: ["none", "starttls", "tls"] },
+			verify_tls: { type: "boolean" },
+			username: { type: "string", maxLength: 255 },
+			password: { type: ["string", "null"], maxLength: 1024 },
+			from: { type: "string", minLength: 3, maxLength: 255 },
+			to: {
+				type: "array",
+				minItems: 1,
+				maxItems: 20,
+				items: { type: "string", pattern: "^[^\\s@,]+@[^\\s@,]+$", maxLength: 255 },
+			},
+			language,
+		},
+	},
+	webhook: {
+		type: "object",
+		additionalProperties: false,
+		required: ["url"],
+		properties: {
+			url: { type: "string", pattern: "^https?://", maxLength: 2048 },
+			secret: { type: ["string", "null"], maxLength: 1024 },
+			language,
+		},
+	},
+	telegram: {
+		type: "object",
+		additionalProperties: false,
+		required: ["chat_id"],
+		properties: {
+			token: { type: ["string", "null"], pattern: "^[0-9]+:[A-Za-z0-9_-]+$", maxLength: 255 },
+			chat_id: { type: "string", pattern: "^-?[0-9]+$|^@[A-Za-z0-9_]{4,}$", maxLength: 64 },
+			api_url: { type: "string", pattern: "^(https?://.+)?$", maxLength: 2048 },
+			language,
+		},
+	},
+};
+
+/** a channel body; `create`: type and config are required */
+const channelBody = async (body, create, type) => {
+	const data = await validator(
+		{
+			type: "object",
+			additionalProperties: false,
+			required: create ? ["name", "type", "config"] : [],
+			properties: {
+				name: { type: "string", minLength: 1, maxLength: 100 },
+				type: { enum: Object.keys(CHANNEL_CONFIG) },
+				enabled: { type: "boolean" },
+				config: { type: "object" },
+			},
+		},
+		body,
+	);
+	const channelType = data.type || type;
+	if (data.config) {
+		data.config = await validator(CHANNEL_CONFIG[channelType], data.config);
+		if (create && channelType === "telegram" && !data.config.token) {
+			throw new errs.ValidationError("The bot token is required");
+		}
+	}
+	return data;
+};
+
+const ruleSchema = (create) => ({
+	type: "object",
+	additionalProperties: false,
+	required: create ? ["name", "type", "channel_ids"] : [],
+	properties: {
+		name: { type: "string", minLength: 1, maxLength: 100 },
+		type: { enum: ["attack_spike", "agent_down", "policy_error", "service_down", "cert_expiry", "host_problem"] },
+		enabled: { type: "boolean" },
+		params: { type: "object", maxProperties: 10 },
+		channel_ids: { type: "array", maxItems: 20, items: { type: "integer", minimum: 1 } },
+		repeat_minutes: { type: "integer", minimum: 0, maximum: 10080 },
+		notify_resolved: { type: "boolean" },
+	},
+});
+
 /**
- * GET /api/npmos/waf/events?view=important|all&host=<domain>&query=<text>&limit=200 — newest first
+ * GET /api/npmos/notifications — channels (no secrets), rules, last deliveries, types
  */
 router
-	.route("/waf/events")
+	.route("/notifications")
 	.options((_, res) => res.sendStatus(204))
 	.all(jwtdecode())
-	.get(
-		handle((req, res) =>
-			internalWafEvents.list(res.locals.access, {
-				view: String(req.query.view || "important"),
-				host: String(req.query.host || ""),
-				query: String(req.query.query || "").slice(0, 200),
-				limit: Number.parseInt(req.query.limit, 10) || 200,
-			}),
+	.get(handle((_, res) => internalNotifications.get(res.locals.access)));
+
+/**
+ * POST /api/npmos/notifications/channels — {name, type: email|webhook|telegram, enabled?, config}
+ * PUT/DELETE /api/npmos/notifications/channels/:channel_id; POST .../test — a test message now
+ */
+router
+	.route("/notifications/channels")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(
+			async (req, res) =>
+				internalNotifications.createChannel(res.locals.access, await channelBody(req.body, true)),
+			201,
 		),
 	);
+
+router
+	.route("/notifications/channels/:channel_id")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.put(
+		handle(async (req, res) => {
+			await res.locals.access.can("notifications:manage");
+			const channel = await db()("npmos_notification_channel").where("id", req.params.channel_id).first();
+			if (!channel) throw new errs.ItemNotFoundError(req.params.channel_id);
+			return internalNotifications.updateChannel(
+				res.locals.access,
+				req.params.channel_id,
+				await channelBody(req.body, false, channel.type),
+			);
+		}),
+	)
+	.delete(handle((req, res) => internalNotifications.deleteChannel(res.locals.access, req.params.channel_id)));
+
+router
+	.route("/notifications/channels/:channel_id/test")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(handle((req, res) => internalNotifications.testChannel(res.locals.access, req.params.channel_id)));
+
+/**
+ * POST /api/npmos/notifications/rules — {name, type, params?, channel_ids, repeat_minutes?, notify_resolved?}
+ * PUT/DELETE /api/npmos/notifications/rules/:rule_id
+ */
+router
+	.route("/notifications/rules")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(
+			async (req, res) =>
+				internalNotifications.createRule(res.locals.access, await validator(ruleSchema(true), req.body)),
+			201,
+		),
+	);
+
+router
+	.route("/notifications/rules/:rule_id")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.put(
+		handle(async (req, res) =>
+			internalNotifications.updateRule(
+				res.locals.access,
+				req.params.rule_id,
+				await validator(ruleSchema(false), req.body),
+			),
+		),
+	)
+	.delete(handle((req, res) => internalNotifications.deleteRule(res.locals.access, req.params.rule_id)));
+
+/**
+ * GET /api/npmos/system/settings — env settings of NPMplus: value saved, value running
+ * PUT /api/npmos/system/settings — {values: [{env, value}], apply?}: apply restarts npmos
+ * POST /api/npmos/system/settings/apply — restart npmos with what was saved
+ */
+router
+	.route("/system/settings")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalSystem.getSettings(res.locals.access)))
+	.put(
+		handle(async (req, res) =>
+			internalSystem.setSettings(
+				res.locals.access,
+				await validator(
+					{
+						type: "object",
+						additionalProperties: false,
+						required: ["values"],
+						properties: {
+							values: {
+								type: "array",
+								maxItems: 50,
+								items: {
+									type: "object",
+									additionalProperties: false,
+									required: ["env", "value"],
+									properties: {
+										env: { type: "string", pattern: "^[A-Z0-9_]{1,64}$" },
+										value: { type: ["boolean", "integer", "string"] },
+									},
+								},
+							},
+							apply: { type: "boolean" },
+						},
+					},
+					req.body,
+				),
+			),
+		),
+	);
+
+router
+	.route("/system/settings/apply")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(handle((_, res) => internalSystem.apply(res.locals.access), 202));
+
+/**
+ * GET /api/npmos/analytics?period=1h|24h|7d|30d&host=<domain> — KPI, timeline, top lists
+ */
+router
+	.route("/analytics")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((req, res) => internalAnalytics.get(res.locals.access, req.query)));
+
+/**
+ * GET /api/npmos/analytics/hosts — attacks per host and hour of the last 24 h
+ */
+router
+	.route("/analytics/hosts")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalAnalytics.hosts(res.locals.access)));
+
+/**
+ * GET /api/npmos/events — security events of the agent, newest first. Filters: from, to (ISO, default
+ * the last 24 h), kind=security|system|all, important=true, host, ip, action, severity, type
+ * (comma-separated), min_score, max_score, q (text); limit (≤ 500), before (cursor: next of a page)
+ */
+router
+	.route("/events")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((req, res) => internalEvents.list(res.locals.access, req.query)));
+
+const CSV_COLUMNS = [
+	"time",
+	"severity",
+	"action",
+	"incident_type",
+	"source_ip",
+	"source_country",
+	"host",
+	"method",
+	"uri",
+	"query",
+	"response_code",
+	"location",
+	"parameter",
+	"sample",
+	"indicators",
+	"score",
+	"rule",
+	"name",
+	"kind",
+	"id",
+];
+
+const csvCell = (value) => {
+	if (value === null || value === undefined) return "";
+	let s = String(value);
+	// a cell starting with = + - @ would be a formula in a spreadsheet
+	if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
+	return /[",\n\r]/.test(s) ? `"${s.replaceAll('"', '""')}"` : s;
+};
+
+/**
+ * GET /api/npmos/events/export?format=csv|json&<filters of /events> — up to 100 000 events
+ */
+router
+	.route("/events/export")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(async (req, res, next) => {
+		try {
+			const { rows, capped } = await internalEvents.export(res.locals.access, req.query);
+			const name = `npmos-events-${new Date().toISOString().slice(0, 19).replaceAll(":", "-")}`;
+			res.set("X-NPMOS-Export-Capped", String(capped));
+			if (req.query.format === "json") {
+				res.set("Content-Disposition", `attachment; filename="${name}.json"`);
+				res.type("application/json").send(JSON.stringify(rows, null, 2));
+				return;
+			}
+			const lines = [CSV_COLUMNS.join(","), ...rows.map((r) => CSV_COLUMNS.map((c) => csvCell(r[c])).join(","))];
+			res.set("Content-Disposition", `attachment; filename="${name}.csv"`);
+			res.type("text/csv").send(`\ufeff${lines.join("\r\n")}\r\n`);
+		} catch (err) {
+			debug(logger, `${req.method.toUpperCase()} ${req.originalUrl}: ${err}`);
+			next(err);
+		}
+	});
+
+/**
+ * GET /api/npmos/events/settings — retention, storage, state of the ingest
+ * PUT /api/npmos/events/settings — {days, aggregate_days}
+ */
+router
+	.route("/events/settings")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalEvents.getSettings(res.locals.access)))
+	.put(
+		handle(async (req, res) =>
+			internalEvents.setSettings(
+				res.locals.access,
+				await validator(
+					{
+						type: "object",
+						additionalProperties: false,
+						required: ["days", "aggregate_days"],
+						properties: {
+							days: { type: "integer", minimum: 1, maximum: 365 },
+							aggregate_days: { type: "integer", minimum: 1, maximum: 1830 },
+						},
+					},
+					req.body,
+				),
+			),
+		),
+	);
+
+/**
+ * GET /api/npmos/events/:event_id?time=<ISO> — one event with its raw JSON
+ */
+router
+	.route("/events/:event_id")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((req, res) => internalEvents.get(res.locals.access, req.params.event_id, req.query.time)));
 
 /**
  * GET /api/npmos/waf/policy/custom — expert YAML fragment in force, its versions

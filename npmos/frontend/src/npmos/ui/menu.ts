@@ -46,6 +46,7 @@ export const navigation: NavItem[] = [
 				id: "waf",
 				label: "npmos.waf",
 				items: [
+					{ id: "waf-analytics", label: "npmos.analytics", to: "/waf/analytics", rbac: "analytics" },
 					{ id: "waf-events", label: "npmos.waf.events", to: "/waf/events", rbac: "waf_events" },
 					{ id: "waf-policy", label: "npmos.waf.expert", to: "/waf/policy", rbac: "waf_policy" },
 					{ id: "waf-agent", label: "npmos.waf.agent", to: "/waf/agent", rbac: "waf_policy" },
@@ -69,6 +70,7 @@ export const navigation: NavItem[] = [
 		label: "npmos.nav.system",
 		items: [
 			{ id: "services", label: "npmos.services", to: "/system/services", rbac: "services" },
+			{ id: "notifications", label: "npmos.notifications", to: "/system/notifications", rbac: "notifications" },
 			{ id: "settings", label: "settings", to: "/settings", rbac: "settings" },
 			// for everyone: the English terms of the interface explained
 			{ id: "glossary", label: "npmos.glossary", to: "/glossary" },

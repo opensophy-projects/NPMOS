@@ -17,10 +17,10 @@ import {
 	STREAMS,
 	VIEW,
 } from "src/modules/Permissions";
-import { useServices, useUpstreamChecks, useWafEvents, useWafHosts, useWafStatus } from "../../hooks";
+import { useEvents, useServices, useUpstreamChecks, useWafHosts, useWafStatus } from "../../hooks";
+import { useCan } from "../../rbac/hooks";
 import { Admonition, type AdmonitionVariant } from "../../ui/Admonition";
 import { timeAgo } from "../../ui/time";
-import { useCan } from "../../rbac/hooks";
 import { filtersToParams, HOST_TYPES, type HostRow, type HostType, recommendations, toRows } from "../Hosts/rows";
 import {
 	certificateNotices,
@@ -41,7 +41,6 @@ const SECTION: Record<HostType, Section> = {
 };
 
 const VARIANT: Record<NoticeLevel, AdmonitionVariant> = { alert: "alert", warning: "warning", info: "tip" };
-const DAY = 24 * 60 * 60 * 1000;
 
 function Panel({ title, link, children }: { title: ReactNode; link?: string; children: ReactNode }) {
 	return (
@@ -109,7 +108,13 @@ function OverviewPage() {
 	const certificates = useCertificates([], { enabled: hasPermission(CERTIFICATES, VIEW, perms, roles) });
 	const wafStatus = useWafStatus({ enabled: rbac("waf_policy") });
 	const services = useServices({ enabled: rbac("services"), refetchInterval: 15000 });
-	const events = useWafEvents("important", "", false, { enabled: rbac("waf_events"), refetchInterval: 30000 });
+	const eventsOptions = { enabled: rbac("waf_events"), refetchInterval: 30000 };
+	const events = useEvents({ period: "24h", important: true, limit: 1 }, false, eventsOptions);
+	const preventedEvents = useEvents(
+		{ period: "24h", important: true, action: "prevent", limit: 1 },
+		false,
+		eventsOptions,
+	);
 
 	if (!me || [proxy, redirect, stream, dead].some((q, i) => can(HOST_TYPES[i]) && q.isLoading)) {
 		return <LoadingPage />;
@@ -136,8 +141,10 @@ function OverviewPage() {
 	const proxies = rows.filter((r) => r.type === "proxy");
 	const wafCount = (state: string) => proxies.filter((r) => r.waf === state).length;
 	const running = (services.data ?? []).filter((s) => !serviceProblem(s)).length;
-	const recent = (events.data?.events ?? []).filter((e) => e.time && Date.now() - Date.parse(e.time) < DAY);
-	const prevented = recent.filter((e) => /prevent|drop|block/i.test(e.action)).length;
+	const recent = events.data ? `${events.data.total}${events.data.totalCapped ? "+" : ""}` : "—";
+	const prevented = preventedEvents.data
+		? `${preventedEvents.data.total}${preventedEvents.data.totalCapped ? "+" : ""}`
+		: "—";
 
 	return (
 		<div className={styles.page}>
@@ -227,11 +234,14 @@ function OverviewPage() {
 					)}
 
 					{rbac("waf_events") && (
-						<Panel title={<T id="npmos.overview.analytics" />} link="/waf/events">
+						<Panel
+							title={<T id="npmos.overview.analytics" />}
+							link={rbac("analytics") ? "/waf/analytics" : "/waf/events?important=1"}
+						>
 							<Line
 								label={<T id="npmos.overview.analytics.important" />}
-								value={recent.length}
-								tone={recent.length ? "warning" : "ok"}
+								value={recent}
+								tone={events.data?.total ? "warning" : "ok"}
 							/>
 							<Line label={<T id="npmos.overview.analytics.prevented" />} value={prevented} />
 							<Line

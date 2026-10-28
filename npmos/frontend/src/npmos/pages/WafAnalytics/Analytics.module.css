@@ -1,0 +1,28 @@
+/* WAF → Analytics: panels in two columns, the timeline and the last blocked requests full width */
+.grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 1rem;
+}
+@media (max-width: 900px) {
+	.grid {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+.panel {
+	margin: 0;
+	padding: 1rem 1.125rem;
+}
+.wide {
+	grid-column: 1 / -1;
+}
+.panelTitle {
+	margin: 0 0 0.75rem;
+	font-size: 0.9375rem;
+	font-weight: 500;
+}
+.note {
+	margin: 0;
+	color: var(--foreground-muted);
+	font-size: 0.8125rem;
+}

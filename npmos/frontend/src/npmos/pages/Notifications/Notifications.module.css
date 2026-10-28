@@ -1,0 +1,71 @@
+/* System → Notifications: cards of channels, rules and deliveries */
+.card {
+	margin: 0;
+	padding: 1rem 1.125rem;
+}
+.cardHead {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	margin-bottom: 0.75rem;
+}
+.cardTitle {
+	margin: 0;
+	font-size: 1rem;
+	font-weight: 500;
+}
+.empty {
+	margin: 0;
+	color: var(--foreground-muted);
+	font-size: 0.875rem;
+}
+.list {
+	display: flex;
+	flex-direction: column;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+.item {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	padding: 0.625rem 0;
+	border-top: 1px solid var(--border);
+}
+.item:first-child {
+	border-top: 0;
+}
+.icon {
+	display: inline-flex;
+	color: var(--foreground-muted);
+}
+.main {
+	flex: 1;
+	min-width: 0;
+}
+.name {
+	font-weight: 500;
+}
+.sub {
+	overflow: hidden;
+	color: var(--foreground-muted);
+	font-size: 0.8125rem;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.more {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 2rem;
+	height: 2rem;
+	border: 1px solid var(--border-strong);
+	border-radius: var(--radius-sm);
+	background: var(--background);
+	color: var(--foreground);
+}
+.title {
+	white-space: normal !important;
+}

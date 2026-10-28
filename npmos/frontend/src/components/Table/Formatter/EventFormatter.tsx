@@ -1,10 +1,12 @@
 import {
 	IconArrowsCross,
+	IconBell,
 	IconBolt,
 	IconBoltOff,
 	IconDisc,
 	IconLock,
 	IconServer,
+	IconSettings,
 	IconShield,
 	IconShieldCheck,
 	IconUser,
@@ -23,6 +25,7 @@ const NPMOS_NAMES: Record<string, string> = {
 	"local_policy.yaml": "npmos.audit.name.policy",
 	"local_policy.yaml (expert)": "npmos.audit.name.expert",
 	diagnostics: "npmos.audit.name.diagnostics",
+	"events.retention": "npmos.settings.events-retention",
 };
 
 const getEventValue = (event: AuditLog) => {
@@ -33,6 +36,8 @@ const getEventValue = (event: AuditLog) => {
 		case "service":
 		case "waf":
 		case "role":
+		case "setting":
+		case "notification":
 			return NPMOS_NAMES[event.meta?.name]
 				? intl.formatMessage({ id: NPMOS_NAMES[event.meta.name] })
 				: event.meta?.name;
@@ -94,6 +99,12 @@ const getIcon = (row: AuditLog) => {
 			break;
 		case "role":
 			ico = <IconUsersGroup size={16} className={c} />;
+			break;
+		case "setting":
+			ico = <IconSettings size={16} className={c} />;
+			break;
+		case "notification":
+			ico = <IconBell size={16} className={c} />;
 			break;
 	}
 

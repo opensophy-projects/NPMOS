@@ -53,6 +53,9 @@ importers:
       mysql2:
         specifier: 3.23.0
         version: 3.23.0(@types/node@26.1.1)
+      nodemailer:
+        specifier: 10.2.1
+        version: 10.2.1
       objection:
         specifier: 3.1.5
         version: 3.1.5(knex@3.3.0(better-sqlite3@12.11.1)(mysql2@3.23.0(@types/node@26.1.1))(pg@8.22.0))
@@ -823,6 +826,10 @@ packages:
   node-abi@3.94.0:
     resolution: {integrity: sha512-W5ZNO5KRPB5TkYmGVD9F6YqhsglXJzE6etpbmT+f6EQElhiX/UTG551cnsRGvLG3fyZEg9HwaDmNmj5nwJ4z9g==}
     engines: {node: '>=10'}
+
+  nodemailer@10.2.1:
+    resolution: {integrity: sha512-ZrDNsPFoDMwefNs7sJwrYiEJ/CG4ClJWDZv05iNJsEBWa8GRDry1QJHTJxsuTAY9eDDKjX4k+q3SxslXJOao7w==}
+    engines: {node: '>=20.0.0'}
 
   normalize-path@3.0.0:
     resolution: {integrity: sha512-6eZs5Ls3WtCisHWp9S2GUy8dqkpGi4BVSz3GaqiE6ezub0512ESztXUwUB6C6IKbQkY2Pnb/mD4WYojCRwcwLA==}
@@ -1867,6 +1874,8 @@ snapshots:
   node-abi@3.94.0:
     dependencies:
       semver: 7.8.5
+
+  nodemailer@10.2.1: {}
 
   normalize-path@3.0.0: {}
 

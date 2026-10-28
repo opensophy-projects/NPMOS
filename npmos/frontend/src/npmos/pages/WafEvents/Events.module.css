@@ -1,0 +1,139 @@
+/* WAF → Events: period switch, filter panel, rows of the table (with the hosts table styles) */
+.periods {
+	display: inline-flex;
+	padding: 0.1875rem;
+	border-radius: var(--radius-sm);
+	background: var(--card-frame);
+	box-shadow: var(--shadow-inset);
+}
+.period {
+	height: 1.875rem;
+	padding: 0 0.625rem;
+	border: 0;
+	border-radius: var(--radius-xs);
+	background: none;
+	color: var(--foreground-muted);
+	font-size: 0.8125rem;
+	font-weight: 500;
+	white-space: nowrap;
+}
+.period:hover {
+	color: var(--foreground);
+}
+.periodOn {
+	background: var(--background);
+	color: var(--foreground);
+	box-shadow: 0 0 0 1px var(--border-strong);
+}
+.custom {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem;
+	font-size: 0.875rem;
+}
+.custom input {
+	width: auto;
+}
+.kinds {
+	display: flex;
+	gap: 0.25rem;
+	margin-right: auto;
+}
+
+/* filter panel */
+.section + .section {
+	margin-top: 0.875rem;
+}
+.sectionTitle {
+	margin-bottom: 0.375rem;
+	color: var(--foreground-muted);
+	font-size: 0.75rem;
+	font-weight: 500;
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+}
+.options {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.25rem 1rem;
+}
+.options label {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.375rem;
+	margin: 0;
+	font-size: 0.875rem;
+}
+.scores {
+	display: grid;
+	grid-template-columns: 1fr auto 1fr;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+/* table */
+.row {
+	cursor: pointer;
+}
+.time {
+	color: var(--foreground-muted);
+	font-variant-numeric: tabular-nums;
+}
+.request {
+	max-width: 28rem;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.method {
+	margin-right: 0.375rem;
+	color: var(--foreground-muted);
+}
+.sub {
+	color: var(--foreground-muted);
+	font-size: 0.8125rem;
+}
+.link {
+	padding: 0;
+	border: 0;
+	background: none;
+	color: inherit;
+	font: inherit;
+	text-decoration: underline dotted;
+	text-underline-offset: 3px;
+}
+.link:hover {
+	color: var(--accent);
+}
+.score {
+	font-variant-numeric: tabular-nums;
+}
+.pager {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.625rem 1rem;
+	border-top: 1px solid var(--border);
+	color: var(--foreground-muted);
+	font-size: 0.875rem;
+}
+.pagerButtons {
+	display: flex;
+	gap: 0.375rem;
+	margin-left: auto;
+}
+
+/* retention panel */
+.retention {
+	display: grid;
+	grid-template-columns: 1fr 6rem;
+	align-items: center;
+	gap: 0.5rem 0.75rem;
+	font-size: 0.875rem;
+}
+.facts {
+	margin-top: 0.75rem;
+	color: var(--foreground-muted);
+	font-size: 0.8125rem;
+}

@@ -6,19 +6,19 @@
 - **GUI (фаза N).** Переносится в настройки NPMOS, которые хранятся в БД. Env остаётся только как значение для первого запуска; если значение в БД задано, оно приоритетнее env.
 - **NPMOS фиксирует.** Значение задаёт NPMOS, администратору его менять не нужно (часто ради local-first).
 
-Изменение настройки из GUI, которая сейчас читается в `envs.sh`/`start.sh` при старте, требует перезапуска процесса. Перезапуск делает сам NPMOS через `npmos-control` (фаза 1), а не администратор.
+Изменение настройки из GUI, которая читается в `envs.sh`/`start.sh` при старте, требует перезапуска процесса. Значения хранятся в БД (`system.env`), backend пишет их в `/data/npmos/runtime.env`, `envs.sh` принимает из него только известные имена со значением своего формата (неверная строка не может остановить контейнер). Перезапуск делает сам NPMOS через `npmos-control` (кнопка «Сохранить и перезапустить»), а не администратор.
 
 ## NPMplus (контейнер `npmos`)
 
 | Переменная | Upstream по умолчанию | NPMOS по умолчанию | Класс | Фаза |
 |---|---|---|---|---|
-| `TZ` | — (обязательна) | `UTC` | GUI (Система → Настройки) | 4 |
+| `TZ` | — (обязательна) | `UTC` | GUI (Система → Настройки → Общие) | 4 ✅ |
 | `PUID`, `PGID` | `0` | `0` | Bootstrap | — |
 | `HTTP_PORT`, `HTTPS_PORT`, `NPM_PORT`, `GOA_PORT` | 80, 443, 81, 91 | те же; внешние порты — `NPMOS_*_PORT` | Bootstrap | — |
 | `IPV4_BINDING`, `IPV6_BINDING`, `NPM_*_BINDING`, `GOA_*_BINDING`, `*_LISTEN_LOCALHOST` | все адреса | те же | Bootstrap | — |
 | `DISABLE_IPV6` | `false` | `NPMOS_DISABLE_IPV6`, `false` | Bootstrap | — |
-| `DISABLE_HTTP`, `DISABLE_H3_QUIC`, `ENABLE_MPTCP`, `NGINX_QUIC_BPF` | `false` | `false` | GUI (Система → Сеть) | 4 |
-| `LISTEN_PROXY_PROTOCOL*` | `false` | `false` | GUI (Система → Сеть) | 4 |
+| `DISABLE_HTTP`, `DISABLE_H3_QUIC`, `ENABLE_MPTCP`, `NGINX_QUIC_BPF` | `false` | `false` | GUI (Система → Настройки → Сеть) | 4 ✅ |
+| `LISTEN_PROXY_PROTOCOL_HTTP`, `LISTEN_PROXY_PROTOCOL_HTTPS` | `false` | `false` | GUI (Система → Настройки → Сеть) | 4 ✅ |
 | `DB_POSTGRES_*` | — (SQLite) | Postgres из compose, пароль из `DB_POSTGRES_PASSWORD_FILE` | Bootstrap | 0 ✅ |
 | `DB_MYSQL_*` | — | не используется | Bootstrap (поддержка upstream сохраняется) | — |
 | `COOKIE_SECRET` | случайный при каждом старте | `COOKIE_SECRET_FILE` от `npmos-init` ✅ | Bootstrap (секрет) | 0 |
@@ -26,22 +26,22 @@
 | `ACME_SERVER`, `ACME_EMAIL`, `ACME_EAB_KID`, `ACME_EAB_HMAC_KEY`, `ACME_PROFILE`, `ACME_KEY_TYPE`, `ACME_KEY_SIZE`, `ACME_MUST_STAPLE`, `ACME_OCSP_STAPLING`, `ACME_SERVER_TLS_VERIFY` | Let's Encrypt | Let's Encrypt; аккаунт регистрируется при первом запросе сертификата, при старте обращений нет ✅ | GUI (Сертификаты → ACME) | 6 |
 | `CUSTOM_OCSP_STAPLING` | `false` | `false` | GUI (Сертификаты) | 6 |
 | `CERTBOT_RUN_INTERVAL` | 3 ч | 3 ч | GUI (Сертификаты) | 6 |
-| `DEFAULT_CERT_ID` | 0 | 0 | GUI (Система → Настройки) | 4 |
+| `DEFAULT_CERT_ID` | 0 | 0 | GUI (Система → Настройки → Общие) | 4 ✅ |
 | `ECH_ROTATION_INTERVAL` | 1 ч | 1 ч | GUI (Сертификаты) | 6 |
-| `NGINX_WORKER_PROCESSES`, `NGINX_WORKER_CONNECTIONS`, `NGINX_LOG_NOT_FOUND` | auto, 512, false | те же | GUI (Система → Nginx) | 4 |
-| `NGINX_FORCE_X25519MLKEM768`, `NGINX_DISABLE_TLS12`, `NGINX_TRUST_SECPR1`, `NGINX_TRUST_RSA_PKCS1` | | те же | GUI (Система → TLS) | 4 |
+| `NGINX_WORKER_PROCESSES`, `NGINX_WORKER_CONNECTIONS`, `NGINX_LOG_NOT_FOUND` | auto, 512, false | те же | GUI (Система → Настройки → Nginx) | 4 ✅ |
+| `NGINX_FORCE_X25519MLKEM768`, `NGINX_DISABLE_TLS12`, `NGINX_TRUST_SECPR1`, `NGINX_TRUST_RSA_PKCS1` | | те же | GUI (Система → Настройки → TLS) | 4 ✅ |
 | `DISABLE_NGINX_BEAUTIFIER` | `false` | `false` | NPMOS фиксирует | — |
 | `NGINX_LOAD_OPENAPPSEC_ATTACHMENT_MODULE` | `false` | `false` | GUI (WAF → Агент: «Включить WAF»), значение из БД пишется в `/data/npmos/runtime.env` | 1 ✅ |
-| `NGINX_LOAD_NJS_MODULE`, `NGINX_LOAD_GEOIP2_MODULE`, `NGINX_LOAD_LDAP_MODULE`, `NGINX_LOAD_NTLM_MODULE`, `NGINX_LOAD_VHOST_TRAFFIC_STATUS_MODULE` | `false` | `false` | GUI (Система → Модули nginx) | 4 |
-| `TRUST_CLOUDFLARE` | `false` | `false` (загрузка IP-диапазонов Cloudflare — только при явном включении) | GUI (Система → Сеть) | 4 |
-| `DISABLE_GRAVATAR` | `false` | **`true`** ✅ | GUI (Система → Внешние сервисы) | 4 |
-| `NPMOS_CHECK_VERSION` | — (проверка всегда включена) | **`false`** ✅ | GUI (Система → Обновления) | 4 |
-| `LOGROTATE`, `LOGROTATIONS` | `false`, 3 | **`true`** (логи нужны CrowdSec и аналитике), 3 | NPMOS фиксирует `LOGROTATE`; срок хранения — GUI | 4 |
-| `GOA`, `GOACLA` | `false` | `false` | Заменяется аналитикой NPMOS | 4 |
-| `PHP83`, `PHP84`, `PHP85` | `false` | `false` | GUI (Система → PHP) | 4 |
+| `NGINX_LOAD_NJS_MODULE`, `NGINX_LOAD_GEOIP2_MODULE`, `NGINX_LOAD_LDAP_MODULE`, `NGINX_LOAD_NTLM_MODULE`, `NGINX_LOAD_VHOST_TRAFFIC_STATUS_MODULE` | `false` | `false` | GUI (Система → Настройки → Nginx) | 4 ✅ |
+| `TRUST_CLOUDFLARE` | `false` | `false` (загрузка IP-диапазонов Cloudflare — только при явном включении) | GUI (Система → Настройки → Сеть, помечено «интернет») | 4 ✅ |
+| `DISABLE_GRAVATAR` | `false` | **`true`** ✅ | GUI (Система → Настройки → Внешние сервисы) | 4 ✅ |
+| `NPMOS_CHECK_VERSION` | — (проверка всегда включена) | **`false`** ✅ | GUI (Система → Настройки → Внешние сервисы) | 4 ✅ |
+| `LOGROTATE`, `LOGROTATIONS` | `false`, 3 | **`true`** (логи нужны CrowdSec и аналитике), 3 | NPMOS фиксирует `LOGROTATE`; `LOGROTATIONS` — GUI (Система → Настройки → Журналы) | 4 ✅ |
+| `GOA`, `GOACLA` | `false` | `false` | Заменяется аналитикой NPMOS (WAF → Аналитика) | 4 ✅ |
+| `PHP83`, `PHP84`, `PHP85` | `false` | `false` | PHP нет в образе NPMOS; если понадобится — GUI | позже |
 | `INITIAL_DEFAULT_PAGE` | `congratulations` | то же | NPMOS фиксирует (настройка «страница по умолчанию» уже есть в GUI upstream) | — |
 | `OIDC_ISSUER_URL`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `OIDC_REDIRECT_DOMAIN`, `OIDC_REQUIRE_VERIFIED_EMAIL`, `OIDC_DISABLE_PASSWORD` | — | — | GUI (Администрирование → Вход через OIDC) | 3 |
-| `AUTH_REQUEST_*_UPSTREAM` (Anubis, Tinyauth, oauth2-proxy, VoidAuth, Authelia, Authentik) | — | — | GUI (Безопасность → Внешняя аутентификация) | 4 |
+| `AUTH_REQUEST_*_UPSTREAM` (Anubis, Tinyauth, oauth2-proxy, VoidAuth, Authelia, Authentik) | — | — | GUI (Безопасность → Внешняя аутентификация) | позже |
 | `ENABLE_PRERUN` | `false` | `false` | NPMOS фиксирует (скрипты до запуска противоречат «всё через GUI») | — |
 | `NODE_TLS_REJECT_UNAUTHORIZED` | — | — | Не используется; доверенные CA для OIDC/ACME добавляются в GUI | 6 |
 | `REGENERATE_ALL` | — | — | Кнопка «Пересоздать конфигурацию» в Система → Сервисы | 1 ✅ |

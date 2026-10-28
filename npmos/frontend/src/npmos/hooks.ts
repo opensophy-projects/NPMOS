@@ -1,5 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import {
+	type Analytics,
+	type AnalyticsPeriod,
+	type EventQuery,
+	type EventsPage,
+	type EventsSettings,
+	getAnalytics,
+	getEvent,
+	getEvents,
+	getEventsSettings,
+	getHostAttacks,
 	getHostChanges,
 	getHostHistory,
 	getServiceLogs,
@@ -7,21 +17,20 @@ import {
 	getUpstreamChecks,
 	getWafAgent,
 	getWafCustomPolicy,
-	getWafEvents,
 	getWafHost,
 	getWafHosts,
 	getWafPolicy,
 	getWafStatus,
+	type HostAttacks,
 	type HostChange,
 	type HostLastChange,
 	type HostObjectType,
+	type SecurityEventFull,
 	type Service,
 	type ServiceLogLine,
 	type UpstreamCheck,
 	type WafAgentState,
 	type WafCustomPolicy,
-	type WafEvents,
-	type WafEventsView,
 	type WafHost,
 	type WafPolicyState,
 	type WafSettings,
@@ -74,12 +83,44 @@ export const useWafPolicy = () =>
 		refetchInterval: 10000,
 	});
 
-export const useWafEvents = (view: WafEventsView, query: string, follow: boolean, options = {}) =>
-	useQuery<WafEvents, Error>({
-		queryKey: ["npmos-waf-events", view, query],
-		queryFn: () => getWafEvents({ view, query: query || undefined }),
+export const useAnalytics = (period: AnalyticsPeriod, host: string, options = {}) =>
+	useQuery<Analytics, Error>({
+		queryKey: ["npmos-analytics", period, host],
+		queryFn: () => getAnalytics(period, host || undefined),
+		refetchInterval: 30000,
+		placeholderData: (previous) => previous,
+		...options,
+	});
+
+export const useHostAttacks = (options = {}) =>
+	useQuery<HostAttacks[], Error>({
+		queryKey: ["npmos-host-attacks"],
+		queryFn: getHostAttacks,
+		refetchInterval: 60000,
+		...options,
+	});
+
+/** a page of stored events; `follow`: refreshed every 5 s */
+export const useEvents = (query: EventQuery, follow: boolean, options = {}) =>
+	useQuery<EventsPage, Error>({
+		queryKey: ["npmos-events", query],
+		queryFn: () => getEvents(query),
 		refetchInterval: follow ? 5000 : false,
 		placeholderData: (previous) => previous,
+		...options,
+	});
+
+export const useEvent = (id: string, time: string) =>
+	useQuery<SecurityEventFull, Error>({
+		queryKey: ["npmos-event", id, time],
+		queryFn: () => getEvent(id, time),
+		staleTime: Number.POSITIVE_INFINITY,
+	});
+
+export const useEventsSettings = (options = {}) =>
+	useQuery<EventsSettings, Error>({
+		queryKey: ["npmos-events-settings"],
+		queryFn: getEventsSettings,
 		...options,
 	});
 

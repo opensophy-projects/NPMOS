@@ -575,6 +575,9 @@
 	"notfound.title": {
 		"defaultMessage": "Oops… You just found an error page"
 	},
+	"notification": {
+		"defaultMessage": "Notification"
+	},
 	"notification.error": {
 		"defaultMessage": "Error"
 	},
@@ -610,6 +613,81 @@
 	},
 	"npmos.2fa.error-start": {
 		"defaultMessage": "Failed to start 2FA setup"
+	},
+	"npmos.analytics": {
+		"defaultMessage": "Analytics"
+	},
+	"npmos.analytics.actions": {
+		"defaultMessage": "Security actions"
+	},
+	"npmos.analytics.all-hosts": {
+		"defaultMessage": "All hosts"
+	},
+	"npmos.analytics.attacks": {
+		"defaultMessage": "Attacks"
+	},
+	"npmos.analytics.countries": {
+		"defaultMessage": "Countries"
+	},
+	"npmos.analytics.detected": {
+		"defaultMessage": "Detected only"
+	},
+	"npmos.analytics.last-blocked": {
+		"defaultMessage": "Last blocked requests"
+	},
+	"npmos.analytics.levels": {
+		"defaultMessage": "Attack severity"
+	},
+	"npmos.analytics.no-attacks": {
+		"defaultMessage": "No attacks in this period"
+	},
+	"npmos.analytics.none": {
+		"defaultMessage": "Nothing in this period"
+	},
+	"npmos.analytics.note": {
+		"defaultMessage": "Short periods are counted from the events, the timeline of longer ones from the hourly statistics; both are kept as set in WAF → Events → Retention. Learning readiness per host comes with phase 8."
+	},
+	"npmos.analytics.prevented": {
+		"defaultMessage": "Blocked"
+	},
+	"npmos.analytics.prevented-n": {
+		"defaultMessage": "blocked {n}"
+	},
+	"npmos.analytics.requests": {
+		"defaultMessage": "Requests"
+	},
+	"npmos.analytics.requests.none": {
+		"defaultMessage": "The agent has not reported traffic statistics yet"
+	},
+	"npmos.analytics.series.detect": {
+		"defaultMessage": "Detected (Detect)"
+	},
+	"npmos.analytics.series.other": {
+		"defaultMessage": "Other actions"
+	},
+	"npmos.analytics.series.prevent": {
+		"defaultMessage": "Blocked (Prevent)"
+	},
+	"npmos.analytics.sources": {
+		"defaultMessage": "Attack sources"
+	},
+	"npmos.analytics.subtitle": {
+		"defaultMessage": "Attacks on the hosts protected by the WAF, from the events NPMOS stores. Click a line to see its events."
+	},
+	"npmos.analytics.timeline": {
+		"defaultMessage": "Attacks over time"
+	},
+	"npmos.analytics.top-hosts": {
+		"defaultMessage": "Most attacked hosts"
+	},
+	"npmos.analytics.top-sources": {
+		"defaultMessage": "Top attack sources (Critical, High)"
+	},
+	"npmos.analytics.top-types": {
+		"defaultMessage": "Attack types"
+	},
+	"npmos.analytics.top-uris": {
+		"defaultMessage": "Most attacked URIs"
 	},
 	"npmos.audit.name.agent": {
 		"defaultMessage": "WAF agent settings"
@@ -685,6 +763,132 @@
 	},
 	"npmos.common.warning": {
 		"defaultMessage": "Warning"
+	},
+	"npmos.events.attack-type": {
+		"defaultMessage": "Attack type"
+	},
+	"npmos.events.confidence": {
+		"defaultMessage": "Confidence"
+	},
+	"npmos.events.country": {
+		"defaultMessage": "Country"
+	},
+	"npmos.events.empty": {
+		"defaultMessage": "No events for these filters. Attacks on hosts protected by the WAF appear here."
+	},
+	"npmos.events.export": {
+		"defaultMessage": "Export"
+	},
+	"npmos.events.filter-by": {
+		"defaultMessage": "Show only these events"
+	},
+	"npmos.events.filters": {
+		"defaultMessage": "Filters"
+	},
+	"npmos.events.filters.remove": {
+		"defaultMessage": "Remove filter"
+	},
+	"npmos.events.filters.reset": {
+		"defaultMessage": "Reset"
+	},
+	"npmos.events.from": {
+		"defaultMessage": "From"
+	},
+	"npmos.events.important-only": {
+		"defaultMessage": "Important only (Critical, High)"
+	},
+	"npmos.events.indicators": {
+		"defaultMessage": "Indicators"
+	},
+	"npmos.events.ingest-error": {
+		"defaultMessage": "Events are not being stored:"
+	},
+	"npmos.events.kind.all": {
+		"defaultMessage": "All"
+	},
+	"npmos.events.kind.security": {
+		"defaultMessage": "Attacks"
+	},
+	"npmos.events.kind.system": {
+		"defaultMessage": "Agent notices"
+	},
+	"npmos.events.newer": {
+		"defaultMessage": "Newer"
+	},
+	"npmos.events.older": {
+		"defaultMessage": "Older"
+	},
+	"npmos.events.override": {
+		"defaultMessage": "Exception"
+	},
+	"npmos.events.period": {
+		"defaultMessage": "Period"
+	},
+	"npmos.events.period.1h": {
+		"defaultMessage": "1 h"
+	},
+	"npmos.events.period.24h": {
+		"defaultMessage": "24 h"
+	},
+	"npmos.events.period.30d": {
+		"defaultMessage": "30 d"
+	},
+	"npmos.events.period.7d": {
+		"defaultMessage": "7 d"
+	},
+	"npmos.events.period.custom": {
+		"defaultMessage": "Custom"
+	},
+	"npmos.events.raw": {
+		"defaultMessage": "Event as written by the agent"
+	},
+	"npmos.events.response-code": {
+		"defaultMessage": "Response code"
+	},
+	"npmos.events.retention": {
+		"defaultMessage": "Retention"
+	},
+	"npmos.events.retention.aggregate-days": {
+		"defaultMessage": "Hourly statistics, days"
+	},
+	"npmos.events.retention.days": {
+		"defaultMessage": "Events, days"
+	},
+	"npmos.events.retention.hint": {
+		"defaultMessage": "Older days are removed every hour as a whole. Charts of analytics use the hourly statistics."
+	},
+	"npmos.events.retention.invalid": {
+		"defaultMessage": "Events: 1–365 days; statistics: from the events' days up to 1830."
+	},
+	"npmos.events.retention.oldest": {
+		"defaultMessage": "Oldest: {time}"
+	},
+	"npmos.events.retention.saved": {
+		"defaultMessage": "Retention saved"
+	},
+	"npmos.events.retention.stored": {
+		"defaultMessage": "{events, plural, one {# event stored} other {# events stored}}"
+	},
+	"npmos.events.rule": {
+		"defaultMessage": "Rule"
+	},
+	"npmos.events.score": {
+		"defaultMessage": "Score"
+	},
+	"npmos.events.score.max": {
+		"defaultMessage": "Score to"
+	},
+	"npmos.events.score.min": {
+		"defaultMessage": "Score from"
+	},
+	"npmos.events.to": {
+		"defaultMessage": "to (empty: now)"
+	},
+	"npmos.events.total": {
+		"defaultMessage": "{total, plural, one {# event} other {# events}}"
+	},
+	"npmos.events.total-capped": {
+		"defaultMessage": "More than {total} events"
 	},
 	"npmos.glossary": {
 		"defaultMessage": "Glossary"
@@ -800,6 +1004,9 @@
 	"npmos.hosts.add": {
 		"defaultMessage": "Add"
 	},
+	"npmos.hosts.attacks.title": {
+		"defaultMessage": "{events} attacks in 24 h, {prevented} blocked; click to see the events"
+	},
 	"npmos.hosts.bulk.certificate": {
 		"defaultMessage": "Certificate"
 	},
@@ -808,6 +1015,9 @@
 	},
 	"npmos.hosts.bulk.delete-title": {
 		"defaultMessage": "Delete hosts"
+	},
+	"npmos.hosts.column.attacks": {
+		"defaultMessage": "Attacks 24 h"
 	},
 	"npmos.hosts.column.changed": {
 		"defaultMessage": "Changed"
@@ -1214,6 +1424,276 @@
 	"npmos.notice.warning": {
 		"defaultMessage": "Warning"
 	},
+	"npmos.notifications": {
+		"defaultMessage": "Notifications"
+	},
+	"npmos.notifications.actions": {
+		"defaultMessage": "Actions"
+	},
+	"npmos.notifications.active": {
+		"defaultMessage": "{n, plural, one {# active} other {# active}}"
+	},
+	"npmos.notifications.channel.add": {
+		"defaultMessage": "Add channel"
+	},
+	"npmos.notifications.channel.delete": {
+		"defaultMessage": "Delete channel"
+	},
+	"npmos.notifications.channel.delete.text": {
+		"defaultMessage": "Delete the channel \"{name}\"? Rules stop sending to it."
+	},
+	"npmos.notifications.channel.edit": {
+		"defaultMessage": "Channel"
+	},
+	"npmos.notifications.channel.email": {
+		"defaultMessage": "Email"
+	},
+	"npmos.notifications.channel.new": {
+		"defaultMessage": "New channel"
+	},
+	"npmos.notifications.channel.telegram": {
+		"defaultMessage": "Telegram"
+	},
+	"npmos.notifications.channel.webhook": {
+		"defaultMessage": "Webhook"
+	},
+	"npmos.notifications.channels": {
+		"defaultMessage": "Channels"
+	},
+	"npmos.notifications.channels.none": {
+		"defaultMessage": "No channels yet. Add an email server, a webhook or a Telegram bot."
+	},
+	"npmos.notifications.delete": {
+		"defaultMessage": "Delete"
+	},
+	"npmos.notifications.deleted": {
+		"defaultMessage": "Deleted"
+	},
+	"npmos.notifications.delivered": {
+		"defaultMessage": "delivered"
+	},
+	"npmos.notifications.disable": {
+		"defaultMessage": "Disable"
+	},
+	"npmos.notifications.edit": {
+		"defaultMessage": "Edit"
+	},
+	"npmos.notifications.email.from": {
+		"defaultMessage": "From"
+	},
+	"npmos.notifications.email.host": {
+		"defaultMessage": "SMTP server"
+	},
+	"npmos.notifications.email.password": {
+		"defaultMessage": "Password"
+	},
+	"npmos.notifications.email.port": {
+		"defaultMessage": "Port"
+	},
+	"npmos.notifications.email.security": {
+		"defaultMessage": "Encryption"
+	},
+	"npmos.notifications.email.security.none": {
+		"defaultMessage": "None (local relay)"
+	},
+	"npmos.notifications.email.security.starttls": {
+		"defaultMessage": "STARTTLS (587)"
+	},
+	"npmos.notifications.email.security.tls": {
+		"defaultMessage": "TLS (465)"
+	},
+	"npmos.notifications.email.to": {
+		"defaultMessage": "Recipients"
+	},
+	"npmos.notifications.email.to.hint": {
+		"defaultMessage": "Separated by commas"
+	},
+	"npmos.notifications.email.username": {
+		"defaultMessage": "Login (empty: no authentication)"
+	},
+	"npmos.notifications.email.verify-tls": {
+		"defaultMessage": "Check the server's certificate"
+	},
+	"npmos.notifications.enable": {
+		"defaultMessage": "Enable"
+	},
+	"npmos.notifications.enabled": {
+		"defaultMessage": "Enabled"
+	},
+	"npmos.notifications.failed": {
+		"defaultMessage": "not delivered:"
+	},
+	"npmos.notifications.language": {
+		"defaultMessage": "Language of messages"
+	},
+	"npmos.notifications.language.en": {
+		"defaultMessage": "English"
+	},
+	"npmos.notifications.language.ru": {
+		"defaultMessage": "Russian"
+	},
+	"npmos.notifications.log": {
+		"defaultMessage": "Last deliveries"
+	},
+	"npmos.notifications.log.none": {
+		"defaultMessage": "Nothing has been sent yet"
+	},
+	"npmos.notifications.name": {
+		"defaultMessage": "Name"
+	},
+	"npmos.notifications.off": {
+		"defaultMessage": "off"
+	},
+	"npmos.notifications.param.days": {
+		"defaultMessage": "Days before expiry"
+	},
+	"npmos.notifications.param.host": {
+		"defaultMessage": "Host"
+	},
+	"npmos.notifications.param.minutes": {
+		"defaultMessage": "After, minutes"
+	},
+	"npmos.notifications.param.threshold": {
+		"defaultMessage": "Threshold, events"
+	},
+	"npmos.notifications.param.window": {
+		"defaultMessage": "Window, minutes"
+	},
+	"npmos.notifications.repeat": {
+		"defaultMessage": "Remind every, minutes"
+	},
+	"npmos.notifications.repeat.hint": {
+		"defaultMessage": "While the problem lasts; 0 — only once."
+	},
+	"npmos.notifications.resolved": {
+		"defaultMessage": "Message when resolved"
+	},
+	"npmos.notifications.rule.add": {
+		"defaultMessage": "Add rule"
+	},
+	"npmos.notifications.rule.agent_down": {
+		"defaultMessage": "WAF agent not answering"
+	},
+	"npmos.notifications.rule.agent_down.hint": {
+		"defaultMessage": "The open-appsec agent does not answer for the given time while the WAF is on."
+	},
+	"npmos.notifications.rule.agent_down.params": {
+		"defaultMessage": "after {minutes} min"
+	},
+	"npmos.notifications.rule.attack_spike": {
+		"defaultMessage": "Attack spike"
+	},
+	"npmos.notifications.rule.attack_spike.hint": {
+		"defaultMessage": "Important WAF events (Critical, High) in a time window reach a threshold."
+	},
+	"npmos.notifications.rule.attack_spike.params": {
+		"defaultMessage": "{threshold} in {window} min, {host}"
+	},
+	"npmos.notifications.rule.cert_expiry": {
+		"defaultMessage": "Certificate expiring"
+	},
+	"npmos.notifications.rule.cert_expiry.hint": {
+		"defaultMessage": "A certificate expires within the given number of days (or has expired)."
+	},
+	"npmos.notifications.rule.cert_expiry.params": {
+		"defaultMessage": "{days} d ahead"
+	},
+	"npmos.notifications.rule.delete": {
+		"defaultMessage": "Delete rule"
+	},
+	"npmos.notifications.rule.delete.text": {
+		"defaultMessage": "Delete the rule \"{name}\"?"
+	},
+	"npmos.notifications.rule.edit": {
+		"defaultMessage": "Rule"
+	},
+	"npmos.notifications.rule.host_problem": {
+		"defaultMessage": "Host configuration error"
+	},
+	"npmos.notifications.rule.host_problem.hint": {
+		"defaultMessage": "nginx did not take the configuration of an enabled host (as the red recommendation of the hosts table)."
+	},
+	"npmos.notifications.rule.new": {
+		"defaultMessage": "New rule"
+	},
+	"npmos.notifications.rule.no-channels": {
+		"defaultMessage": "no channels"
+	},
+	"npmos.notifications.rule.policy_error": {
+		"defaultMessage": "WAF policy not applied"
+	},
+	"npmos.notifications.rule.policy_error.hint": {
+		"defaultMessage": "The agent did not take the policy NPMOS generated."
+	},
+	"npmos.notifications.rule.service_down": {
+		"defaultMessage": "Service down"
+	},
+	"npmos.notifications.rule.service_down.hint": {
+		"defaultMessage": "A service of the stack (System → Services) is stopped, restarting or unhealthy."
+	},
+	"npmos.notifications.rule.type": {
+		"defaultMessage": "What to watch"
+	},
+	"npmos.notifications.rules": {
+		"defaultMessage": "Rules"
+	},
+	"npmos.notifications.rules.none": {
+		"defaultMessage": "No rules yet: nothing is sent."
+	},
+	"npmos.notifications.saved": {
+		"defaultMessage": "Saved"
+	},
+	"npmos.notifications.secret.keep": {
+		"defaultMessage": "Stored. Leave empty to keep it."
+	},
+	"npmos.notifications.status.firing": {
+		"defaultMessage": "Problem"
+	},
+	"npmos.notifications.status.resolved": {
+		"defaultMessage": "Resolved"
+	},
+	"npmos.notifications.status.test": {
+		"defaultMessage": "Test"
+	},
+	"npmos.notifications.subtitle": {
+		"defaultMessage": "Where NPMOS reports problems and attacks: email first, a webhook to your systems, Telegram if the server has internet."
+	},
+	"npmos.notifications.telegram.api": {
+		"defaultMessage": "Bot API address"
+	},
+	"npmos.notifications.telegram.api.hint": {
+		"defaultMessage": "Empty: api.telegram.org. A local Bot API server or a proxy can be set here."
+	},
+	"npmos.notifications.telegram.chat": {
+		"defaultMessage": "Chat ID"
+	},
+	"npmos.notifications.telegram.chat.hint": {
+		"defaultMessage": "A number (groups start with -100) or @channel."
+	},
+	"npmos.notifications.telegram.internet": {
+		"defaultMessage": "Telegram works only if the server can reach the internet (or a Bot API server). Without it NPMOS keeps working, the messages are not delivered."
+	},
+	"npmos.notifications.telegram.token": {
+		"defaultMessage": "Bot token"
+	},
+	"npmos.notifications.test": {
+		"defaultMessage": "Test"
+	},
+	"npmos.notifications.test.failed": {
+		"defaultMessage": "{name}: not delivered — {error}"
+	},
+	"npmos.notifications.test.ok": {
+		"defaultMessage": "{name}: test message sent"
+	},
+	"npmos.notifications.webhook.secret": {
+		"defaultMessage": "Signing key"
+	},
+	"npmos.notifications.webhook.secret.hint": {
+		"defaultMessage": "The JSON body comes with X-NPMOS-Signature: sha256=HMAC(key, timestamp + \".\" + body) and X-NPMOS-Timestamp."
+	},
+	"npmos.notifications.webhook.url": {
+		"defaultMessage": "URL"
+	},
 	"npmos.overview.all-good": {
 		"defaultMessage": "All good"
 	},
@@ -1230,7 +1710,7 @@
 		"defaultMessage": "Last event"
 	},
 	"npmos.overview.analytics.note": {
-		"defaultMessage": "From the tail of the agent logs. Charts, periods and top lists come with analytics (phase 4)."
+		"defaultMessage": "Stored events of the agent for the last 24 hours. Charts are in WAF → Analytics."
 	},
 	"npmos.overview.analytics.prevented": {
 		"defaultMessage": "Of them blocked"
@@ -1745,6 +2225,219 @@
 	"npmos.services.version": {
 		"defaultMessage": "Version"
 	},
+	"npmos.settings.events-retention": {
+		"defaultMessage": "Retention of security events"
+	},
+	"npmos.system.after-restart": {
+		"defaultMessage": "after restart"
+	},
+	"npmos.system.env.DEFAULT_CERT_ID": {
+		"defaultMessage": "Default certificate"
+	},
+	"npmos.system.env.DEFAULT_CERT_ID.hint": {
+		"defaultMessage": "Answered for HTTPS requests to names no host has (otherwise a self-signed one)."
+	},
+	"npmos.system.env.DEFAULT_CERT_ID.none": {
+		"defaultMessage": "Self-signed"
+	},
+	"npmos.system.env.DISABLE_GRAVATAR": {
+		"defaultMessage": "No Gravatar"
+	},
+	"npmos.system.env.DISABLE_GRAVATAR.hint": {
+		"defaultMessage": "Avatars of users are not loaded from gravatar.com."
+	},
+	"npmos.system.env.DISABLE_H3_QUIC": {
+		"defaultMessage": "Turn off HTTP/3 (QUIC)"
+	},
+	"npmos.system.env.DISABLE_H3_QUIC.hint": {
+		"defaultMessage": "UDP 443 is not served; browsers use HTTP/2."
+	},
+	"npmos.system.env.DISABLE_HTTP": {
+		"defaultMessage": "Turn off plain HTTP (port 80)"
+	},
+	"npmos.system.env.DISABLE_HTTP.hint": {
+		"defaultMessage": "Only HTTPS is served. ACME HTTP-01 challenges stop working."
+	},
+	"npmos.system.env.ENABLE_MPTCP": {
+		"defaultMessage": "Multipath TCP"
+	},
+	"npmos.system.env.ENABLE_MPTCP.hint": {
+		"defaultMessage": "Accept MPTCP connections (the host kernel must support it)."
+	},
+	"npmos.system.env.LISTEN_PROXY_PROTOCOL_HTTP": {
+		"defaultMessage": "PROXY protocol on HTTP"
+	},
+	"npmos.system.env.LISTEN_PROXY_PROTOCOL_HTTP.hint": {
+		"defaultMessage": "Only behind a load balancer that sends it: direct clients are refused."
+	},
+	"npmos.system.env.LISTEN_PROXY_PROTOCOL_HTTPS": {
+		"defaultMessage": "PROXY protocol on HTTPS"
+	},
+	"npmos.system.env.LISTEN_PROXY_PROTOCOL_HTTPS.hint": {
+		"defaultMessage": "As for HTTP; needs HTTP/3 turned off."
+	},
+	"npmos.system.env.LOGROTATIONS": {
+		"defaultMessage": "Rotated nginx logs kept"
+	},
+	"npmos.system.env.LOGROTATIONS.hint": {
+		"defaultMessage": "Access and error logs of nginx, rotated daily; CrowdSec reads them."
+	},
+	"npmos.system.env.NGINX_DISABLE_TLS12": {
+		"defaultMessage": "Turn off TLS 1.2"
+	},
+	"npmos.system.env.NGINX_DISABLE_TLS12.hint": {
+		"defaultMessage": "Only TLS 1.3: old clients cannot connect."
+	},
+	"npmos.system.env.NGINX_FORCE_X25519MLKEM768": {
+		"defaultMessage": "Post-quantum key exchange only"
+	},
+	"npmos.system.env.NGINX_FORCE_X25519MLKEM768.hint": {
+		"defaultMessage": "X25519MLKEM768 only; needs TLS 1.2 off and secp curves off."
+	},
+	"npmos.system.env.NGINX_LOAD_GEOIP2_MODULE": {
+		"defaultMessage": "GeoIP2 module"
+	},
+	"npmos.system.env.NGINX_LOAD_GEOIP2_MODULE.hint": {
+		"defaultMessage": "Country of the client in nginx (needs a GeoIP2 database)."
+	},
+	"npmos.system.env.NGINX_LOAD_LDAP_MODULE": {
+		"defaultMessage": "LDAP authentication module"
+	},
+	"npmos.system.env.NGINX_LOAD_LDAP_MODULE.hint": {
+		"defaultMessage": "Basic authentication against an LDAP directory."
+	},
+	"npmos.system.env.NGINX_LOAD_NJS_MODULE": {
+		"defaultMessage": "njs module"
+	},
+	"npmos.system.env.NGINX_LOAD_NJS_MODULE.hint": {
+		"defaultMessage": "JavaScript in nginx for custom configuration."
+	},
+	"npmos.system.env.NGINX_LOAD_NTLM_MODULE": {
+		"defaultMessage": "NTLM module"
+	},
+	"npmos.system.env.NGINX_LOAD_NTLM_MODULE.hint": {
+		"defaultMessage": "Keeps NTLM connections to upstreams (Windows authentication)."
+	},
+	"npmos.system.env.NGINX_LOAD_VHOST_TRAFFIC_STATUS_MODULE": {
+		"defaultMessage": "Traffic status module"
+	},
+	"npmos.system.env.NGINX_LOAD_VHOST_TRAFFIC_STATUS_MODULE.hint": {
+		"defaultMessage": "Per-host traffic statistics in nginx."
+	},
+	"npmos.system.env.NGINX_LOG_NOT_FOUND": {
+		"defaultMessage": "Log \"file not found\""
+	},
+	"npmos.system.env.NGINX_LOG_NOT_FOUND.hint": {
+		"defaultMessage": "404 of missing files go to the error log too."
+	},
+	"npmos.system.env.NGINX_QUIC_BPF": {
+		"defaultMessage": "QUIC with eBPF"
+	},
+	"npmos.system.env.NGINX_QUIC_BPF.hint": {
+		"defaultMessage": "Routes QUIC packets to the right nginx worker; needs extra privileges on some hosts."
+	},
+	"npmos.system.env.NGINX_TRUST_RSA_PKCS1": {
+		"defaultMessage": "Allow RSA PKCS#1 signatures"
+	},
+	"npmos.system.env.NGINX_TRUST_RSA_PKCS1.hint": {
+		"defaultMessage": "For old clients only."
+	},
+	"npmos.system.env.NGINX_TRUST_SECPR1": {
+		"defaultMessage": "Allow secp curves"
+	},
+	"npmos.system.env.NGINX_TRUST_SECPR1.hint": {
+		"defaultMessage": "NIST curves secp256r1/secp384r1 for key exchange."
+	},
+	"npmos.system.env.NGINX_WORKER_CONNECTIONS": {
+		"defaultMessage": "Connections per worker"
+	},
+	"npmos.system.env.NGINX_WORKER_CONNECTIONS.hint": {
+		"defaultMessage": "Upper limit of simultaneous connections of one nginx process."
+	},
+	"npmos.system.env.NGINX_WORKER_PROCESSES": {
+		"defaultMessage": "nginx worker processes"
+	},
+	"npmos.system.env.NGINX_WORKER_PROCESSES.hint": {
+		"defaultMessage": "\"Auto\": one per CPU core."
+	},
+	"npmos.system.env.NPMOS_CHECK_VERSION": {
+		"defaultMessage": "Check for updates"
+	},
+	"npmos.system.env.NPMOS_CHECK_VERSION.hint": {
+		"defaultMessage": "Asks GitHub for new NPMOS releases."
+	},
+	"npmos.system.env.TRUST_CLOUDFLARE": {
+		"defaultMessage": "Trust Cloudflare"
+	},
+	"npmos.system.env.TRUST_CLOUDFLARE.hint": {
+		"defaultMessage": "The real client IP is taken from Cloudflare's headers; its IP ranges are downloaded."
+	},
+	"npmos.system.env.TZ": {
+		"defaultMessage": "Time zone"
+	},
+	"npmos.system.env.TZ.hint": {
+		"defaultMessage": "Times in logs, certificates renewal and the start scripts of the container."
+	},
+	"npmos.system.env.auto": {
+		"defaultMessage": "Auto"
+	},
+	"npmos.system.group.external": {
+		"defaultMessage": "External services"
+	},
+	"npmos.system.group.external.hint": {
+		"defaultMessage": "NPMOS works without internet; these options make it go out."
+	},
+	"npmos.system.group.general": {
+		"defaultMessage": "General"
+	},
+	"npmos.system.group.general.hint": {
+		"defaultMessage": "Time zone and the certificate for unknown names."
+	},
+	"npmos.system.group.logs": {
+		"defaultMessage": "Logs"
+	},
+	"npmos.system.group.logs.hint": {
+		"defaultMessage": "How long nginx logs and security events are kept."
+	},
+	"npmos.system.group.network": {
+		"defaultMessage": "Network"
+	},
+	"npmos.system.group.network.hint": {
+		"defaultMessage": "How NPMOS listens: HTTP, HTTP/3, PROXY protocol, Cloudflare."
+	},
+	"npmos.system.group.nginx": {
+		"defaultMessage": "Nginx"
+	},
+	"npmos.system.group.nginx.hint": {
+		"defaultMessage": "Processes, connections and optional modules of nginx."
+	},
+	"npmos.system.group.tls": {
+		"defaultMessage": "TLS"
+	},
+	"npmos.system.group.tls.hint": {
+		"defaultMessage": "Protocol versions and key exchange of HTTPS."
+	},
+	"npmos.system.internet": {
+		"defaultMessage": "internet"
+	},
+	"npmos.system.pending": {
+		"defaultMessage": "Some settings are saved but not applied yet: NPMOS needs a restart (connections drop for a few seconds)."
+	},
+	"npmos.system.restart": {
+		"defaultMessage": "Restart now"
+	},
+	"npmos.system.restarting": {
+		"defaultMessage": "NPMOS restarts to apply the settings; the panel is back in about 30 s"
+	},
+	"npmos.system.save": {
+		"defaultMessage": "Save"
+	},
+	"npmos.system.save-restart": {
+		"defaultMessage": "Save and restart NPMOS"
+	},
+	"npmos.system.saved": {
+		"defaultMessage": "Saved: applied at the next restart of NPMOS"
+	},
 	"npmos.waf": {
 		"defaultMessage": "WAF"
 	},
@@ -1832,20 +2525,11 @@
 	"npmos.waf.events.action": {
 		"defaultMessage": "Action"
 	},
-	"npmos.waf.events.all": {
-		"defaultMessage": "All events"
-	},
 	"npmos.waf.events.component": {
 		"defaultMessage": "Agent component"
 	},
 	"npmos.waf.events.description": {
 		"defaultMessage": "Security log of the open-appsec agent: attacks it detected or blocked and its own events"
-	},
-	"npmos.waf.events.empty-all": {
-		"defaultMessage": "No events yet"
-	},
-	"npmos.waf.events.empty-important": {
-		"defaultMessage": "No important events. Attacks on hosts protected by the WAF appear here."
 	},
 	"npmos.waf.events.event": {
 		"defaultMessage": "Event"
@@ -1855,9 +2539,6 @@
 	},
 	"npmos.waf.events.host": {
 		"defaultMessage": "Host"
-	},
-	"npmos.waf.events.important": {
-		"defaultMessage": "Important events"
 	},
 	"npmos.waf.events.matched": {
 		"defaultMessage": "What the WAF matched"
@@ -1880,17 +2561,11 @@
 	"npmos.waf.events.severity": {
 		"defaultMessage": "Severity"
 	},
-	"npmos.waf.events.shown": {
-		"defaultMessage": "Shown {shown} of {total}"
-	},
 	"npmos.waf.events.source-ip": {
 		"defaultMessage": "Source IP"
 	},
 	"npmos.waf.events.time": {
 		"defaultMessage": "Time"
-	},
-	"npmos.waf.events.truncated": {
-		"defaultMessage": "Only the latest part of the agent's log files is read."
 	},
 	"npmos.waf.events.unavailable": {
 		"defaultMessage": "The agent's log directory is not readable: is the open-appsec agent running?"
