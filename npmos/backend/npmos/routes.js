@@ -9,6 +9,8 @@ import internalAnalytics from "./events/analytics.js";
 import internalEvents from "./events/index.js";
 import internalHosts, { HOST_OBJECTS } from "./hosts.js";
 import internalNotifications from "./notifications/index.js";
+import internalPki from "./pki/index.js";
+import internalMtls, { usedBy as mtlsUsedBy } from "./pki/mtls.js";
 import internalRbac from "./rbac/index.js";
 import internalServices from "./services.js";
 import internalSystem from "./system/index.js";
@@ -66,7 +68,7 @@ router.param("version_id", (req, res, next, id) => {
 	next();
 });
 
-for (const name of ["role_id", "user_id", "channel_id", "rule_id"]) {
+for (const name of ["role_id", "user_id", "channel_id", "rule_id", "ca_id", "cert_id", "link_id"]) {
 	router.param(name, (req, res, next, id) => {
 		if (!/^[1-9][0-9]{0,9}$/.test(id)) {
 			return res.status(400).send({ error: { code: 400, message: `Invalid ${name}` } });
@@ -1024,5 +1026,464 @@ router
 			}
 		}
 	});
+
+// ---------------------------------------------------------------------------------------------
+// PKI and mTLS (phase 6)
+
+router.param("host_type", (_req, res, next, value) => {
+	if (!["proxy_host", "stream"].includes(value)) {
+		return res.status(400).send({ error: { code: 400, message: "host_type: proxy_host or stream" } });
+	}
+	next();
+});
+
+/** a file as JSON (the GUI saves it): {filename, content_type, data_base64} */
+const fileJson = ({ filename, type, data }) => ({
+	filename,
+	content_type: type,
+	data_base64: Buffer.from(data).toString("base64"),
+});
+
+const subjectSchema = {
+	type: "object",
+	additionalProperties: false,
+	properties: Object.fromEntries(
+		["common_name", "organization", "organizational_unit", "country", "state", "locality", "email"].map((k) => [
+			k,
+			{ type: "string", maxLength: 128 },
+		]),
+	),
+};
+
+const sansSchema = {
+	type: "object",
+	additionalProperties: false,
+	properties: Object.fromEntries(
+		["dns", "ip", "email"].map((k) => [
+			k,
+			{ type: "array", maxItems: 100, items: { type: "string", maxLength: 253 } },
+		]),
+	),
+};
+
+const p12Properties = {
+	password: { type: "string", maxLength: 128 },
+	compatible: { type: "boolean" },
+};
+
+/**
+ * GET /api/npmos/pki — CAs, certificates, settings
+ */
+router
+	.route("/pki")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalPki.overview(res.locals.access)));
+
+/**
+ * PUT /api/npmos/pki/settings — {public_url, crl_days, client_days, server_days, key_type, p12_compatible, templates}
+ */
+router
+	.route("/pki/settings")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.put(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: [
+						"public_url",
+						"crl_days",
+						"client_days",
+						"server_days",
+						"key_type",
+						"p12_compatible",
+						"templates",
+					],
+					properties: {
+						public_url: { type: "string", maxLength: 255 },
+						crl_days: { type: "integer" },
+						client_days: { type: "integer" },
+						server_days: { type: "integer" },
+						key_type: { type: "string" },
+						p12_compatible: { type: "boolean" },
+						templates: {
+							type: "array",
+							maxItems: 100,
+							items: {
+								type: "object",
+								additionalProperties: false,
+								required: ["id", "name", "profile", "ca_id", "days", "key_type"],
+								properties: {
+									id: { type: "string" },
+									name: { type: "string" },
+									profile: { type: "string" },
+									ca_id: { anyOf: [{ type: "integer" }, { type: "null" }] },
+									days: { type: "integer" },
+									key_type: { type: "string" },
+									subject: subjectSchema,
+								},
+							},
+						},
+					},
+				},
+				req.body,
+			);
+			return internalPki.setSettings(res.locals.access, data);
+		}),
+	);
+
+/**
+ * POST /api/npmos/pki/cas — new CA: {kind: root|intermediate, name, parent_id?, subject, key_type?, days?}
+ */
+router
+	.route("/pki/cas")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["kind", "name", "subject"],
+					properties: {
+						kind: { type: "string", enum: ["root", "intermediate"] },
+						name: { type: "string", maxLength: 100 },
+						parent_id: { type: "integer" },
+						subject: subjectSchema,
+						key_type: { type: "string" },
+						days: { type: "integer" },
+					},
+				},
+				req.body,
+			);
+			return internalPki.createCa(res.locals.access, data);
+		}, 201),
+	);
+
+/**
+ * POST /api/npmos/pki/cas/import — {kind: root|external, name, cert_pem, key_pem?, key_password?, crl_pem?}
+ */
+router
+	.route("/pki/cas/import")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["kind", "name", "cert_pem"],
+					properties: {
+						kind: { type: "string", enum: ["root", "external"] },
+						name: { type: "string", maxLength: 100 },
+						cert_pem: { type: "string", maxLength: 1000000 },
+						key_pem: { type: "string", maxLength: 100000 },
+						key_password: { type: "string", maxLength: 1024 },
+						crl_pem: { type: "string", maxLength: 10000000 },
+					},
+				},
+				req.body,
+			);
+			return internalPki.importCa(res.locals.access, data);
+		}, 201),
+	);
+
+/**
+ * GET    /api/npmos/pki/cas/:ca_id
+ * PUT    /api/npmos/pki/cas/:ca_id — {name?, crl_pem? (external CAs)}
+ * DELETE /api/npmos/pki/cas/:ca_id
+ */
+router
+	.route("/pki/cas/:ca_id")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((req, res) => internalPki.getCa(res.locals.access, req.params.ca_id)))
+	.put(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					properties: {
+						name: { type: "string", maxLength: 100 },
+						crl_pem: { type: "string", maxLength: 10000000 },
+					},
+				},
+				req.body,
+			);
+			return internalPki.updateCa(res.locals.access, req.params.ca_id, data);
+		}),
+	)
+	.delete(handle((req, res) => internalPki.deleteCa(res.locals.access, req.params.ca_id, mtlsUsedBy)));
+
+/**
+ * POST /api/npmos/pki/cas/:ca_id/export — {format: cert|chain|crl|key, password? (key)}
+ */
+router
+	.route("/pki/cas/:ca_id/export")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["format"],
+					properties: { format: { type: "string" }, password: { type: "string", maxLength: 128 } },
+				},
+				req.body,
+			);
+			return fileJson(
+				await internalPki.exportCa(res.locals.access, req.params.ca_id, data.format, data.password),
+			);
+		}),
+	);
+
+const issueProperties = {
+	ca_id: { type: "integer" },
+	profile: { type: "string", enum: ["client", "server"] },
+	subject: subjectSchema,
+	sans: sansSchema,
+	days: { type: "integer" },
+	key_type: { type: "string" },
+	csr_pem: { type: "string", maxLength: 100000 },
+	template: { type: "string", maxLength: 100 },
+	notes: { type: "string", maxLength: 500 },
+	store_key: { type: "boolean" },
+	include_key_pem: { type: "boolean" },
+	link_hours: { type: "integer" },
+	install: { type: "boolean" },
+	...p12Properties,
+};
+
+/**
+ * POST /api/npmos/pki/certs — issue: {ca_id, profile, subject | csr_pem, sans?, days?, key_type?, template?,
+ *   notes?, store_key?, password?, compatible?, include_key_pem?, link_hours?, install?}
+ *   → {certificate, files: {cert_pem, chain_pem, p12_base64?, password?, key_pem?}, link?}
+ */
+router
+	.route("/pki/certs")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["ca_id", "profile"],
+					properties: issueProperties,
+				},
+				req.body,
+			);
+			return internalPki.issue(res.locals.access, data);
+		}, 201),
+	);
+
+/**
+ * POST /api/npmos/pki/certs/revoke — {ids, reason}
+ */
+router
+	.route("/pki/certs/revoke")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["ids", "reason"],
+					properties: {
+						ids: { type: "array", minItems: 1, maxItems: 1000, items: { type: "integer", minimum: 1 } },
+						reason: { type: "string" },
+					},
+				},
+				req.body,
+			);
+			return internalPki.revoke(res.locals.access, data.ids, data.reason);
+		}),
+	);
+
+/**
+ * POST /api/npmos/pki/certs/:cert_id/renew — {days?, key_type?, csr_pem?, revoke_old?, password?, ...}
+ */
+router
+	.route("/pki/certs/:cert_id/renew")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					properties: {
+						days: issueProperties.days,
+						key_type: issueProperties.key_type,
+						csr_pem: issueProperties.csr_pem,
+						store_key: issueProperties.store_key,
+						include_key_pem: issueProperties.include_key_pem,
+						link_hours: issueProperties.link_hours,
+						revoke_old: { type: "boolean" },
+						...p12Properties,
+					},
+				},
+				req.body,
+			);
+			return internalPki.renew(res.locals.access, req.params.cert_id, data);
+		}, 201),
+	);
+
+/**
+ * POST /api/npmos/pki/certs/:cert_id/download — {format: cert|chain|key|p12, password?, compatible?}
+ */
+router
+	.route("/pki/certs/:cert_id/download")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["format"],
+					properties: { format: { type: "string" }, ...p12Properties },
+				},
+				req.body,
+			);
+			return fileJson(await internalPki.download(res.locals.access, req.params.cert_id, data.format, data));
+		}),
+	);
+
+/**
+ * GET  /api/npmos/pki/certs/:cert_id/links — one-time links of a certificate
+ * POST /api/npmos/pki/certs/:cert_id/links — {hours, password?, compatible?} (kept key)
+ */
+router
+	.route("/pki/certs/:cert_id/links")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((req, res) => internalPki.links(res.locals.access, req.params.cert_id)))
+	.post(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["hours"],
+					properties: { hours: { type: "integer" }, ...p12Properties },
+				},
+				req.body,
+			);
+			return internalPki.createLink(res.locals.access, req.params.cert_id, data);
+		}, 201),
+	);
+
+/**
+ * DELETE /api/npmos/pki/links/:link_id
+ */
+router
+	.route("/pki/links/:link_id")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.delete(handle((req, res) => internalPki.deleteLink(res.locals.access, req.params.link_id)));
+
+/**
+ * GET /api/npmos/pki/public/crl/:ca_id.crl — CRL (DER), without login: the distribution point of
+ * certificates
+ */
+router.get("/pki/public/crl/:file", async (req, res, next) => {
+	try {
+		const match = /^([1-9][0-9]{0,9})\.crl$/.exec(req.params.file);
+		const der = match ? await internalPki.publicCrl(Number.parseInt(match[1], 10)) : null;
+		if (!der) return res.status(404).send({ error: { code: 404, message: "No such CRL" } });
+		res.set("Content-Type", "application/pkix-crl");
+		res.set("Cache-Control", "max-age=300");
+		res.send(der);
+	} catch (err) {
+		next(err);
+	}
+});
+
+/**
+ * GET /api/npmos/pki/public/download/:token — one-time link, without login
+ */
+router.get("/pki/public/download/:token", async (req, res, next) => {
+	try {
+		const file = await internalPki.takeLink(req.params.token);
+		res.set("Cache-Control", "no-store");
+		if (!file) {
+			return res.status(410).send({ error: { code: 410, message: "The link was used or has expired" } });
+		}
+		res.set("Content-Type", "application/x-pkcs12");
+		res.attachment(file.filename);
+		res.send(file.data);
+	} catch (err) {
+		next(err);
+	}
+});
+
+/**
+ * GET /api/npmos/mtls — mTLS of hosts and streams: {proxy_host: {<id>: {...}}, stream: {...}}
+ */
+router
+	.route("/mtls")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalMtls.list(res.locals.access)));
+
+/**
+ * GET /api/npmos/mtls/:host_type/:host_id
+ * PUT /api/npmos/mtls/:host_type/:host_id — {enabled, ca_ids, mode, depth, send_ca_names, rules, required_paths, headers}
+ */
+router
+	.route("/mtls/:host_type/:host_id")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((req, res) => internalMtls.get(res.locals.access, req.params.host_type, req.params.host_id)))
+	.put(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["enabled", "ca_ids"],
+					properties: {
+						enabled: { type: "boolean" },
+						ca_ids: { type: "array", maxItems: 50, items: { type: "integer", minimum: 1 } },
+						mode: { type: "string" },
+						depth: { type: "integer" },
+						send_ca_names: { type: "boolean" },
+						rules: {
+							type: "array",
+							maxItems: 20,
+							items: {
+								type: "object",
+								additionalProperties: false,
+								required: ["field", "op", "values"],
+								properties: {
+									field: { type: "string" },
+									op: { type: "string" },
+									values: { type: "array", maxItems: 50, items: { type: "string", maxLength: 200 } },
+								},
+							},
+						},
+						required_paths: { type: "array", maxItems: 200, items: { type: "string" } },
+						headers: { type: "boolean" },
+					},
+				},
+				req.body,
+			);
+			return internalMtls.set(res.locals.access, req.params.host_type, req.params.host_id, data);
+		}),
+	);
 
 export default router;

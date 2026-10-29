@@ -7,6 +7,8 @@ import utils from "../lib/utils.js";
 import { debug, nginx as logger } from "../logger.js";
 // NPMOS: the WAF policy has rules per proxy host, regenerate it whenever a host config changes
 import { scheduleRegenerate as scheduleWafPolicy } from "../npmos/waf/policy.js";
+// NPMOS: mTLS of hosts and streams from PKI and mTLS (CAs, CRLs, rules, locations)
+import { prepareHost as prepareMtls } from "../npmos/pki/mtls.js";
 import internalProxyHostAccessList from "./proxy-host-access-list.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -273,6 +275,8 @@ const internalNginx = {
 		}
 
 		host.env = process.env;
+		// NPMOS: npmos_mtls of the templates (before the locations are rendered)
+		await prepareMtls(host_type, host);
 
 		if (
 			host.forward_host &&

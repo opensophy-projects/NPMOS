@@ -115,7 +115,9 @@ export const evaluate = async (now = new Date()) => {
 			if (alert.pending) continue;
 			const repeat =
 				rule.repeat_minutes > 0 && previous && now - new Date(previous.at) >= rule.repeat_minutes * 60000;
-			if (!previous || repeat) {
+			// a new stage (certificates: 30, 7, 1 days left, expired) is a new message
+			const stage = alert.values?.stage !== undefined && previous?.values?.stage !== alert.values.stage;
+			if (!previous || repeat || stage) {
 				if (targets.length) await send(rule, targets, "firing", alert, now);
 				state[alert.key] = { at: now.toISOString(), values: alert.values };
 				changed = true;

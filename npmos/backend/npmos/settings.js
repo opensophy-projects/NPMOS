@@ -78,6 +78,29 @@ const DEFINITIONS = {
 			);
 		},
 	},
+	// PKI and mTLS, see pki/index.js. public_url: address of NPMOS where clients and servers get CRLs
+	// and one-time links (empty: no CRL distribution point in certificates, links on the address of
+	// the GUI); templates of certificates
+	pki: {
+		default: () => ({
+			public_url: "",
+			crl_days: 30,
+			client_days: 365,
+			server_days: 397,
+			key_type: "ec-p256",
+			p12_compatible: true,
+			templates: [],
+		}),
+		validate: (v) =>
+			typeof v?.public_url === "string" &&
+			(v.public_url === "" || /^https?:\/\/[A-Za-z0-9.:[\]_-]+(\/[A-Za-z0-9._~/-]*)?$/.test(v.public_url)) &&
+			[v.crl_days, v.client_days, v.server_days].every((d) => Number.isInteger(d) && d >= 1 && d <= 3650) &&
+			v.crl_days <= 365 &&
+			typeof v.key_type === "string" &&
+			typeof v.p12_compatible === "boolean" &&
+			Array.isArray(v.templates) &&
+			v.templates.length <= 100,
+	},
 	// OIDC groups → roles (Administration → Roles), see rbac/index.js
 	"rbac.oidc": {
 		default: () => ({ claim: "groups", requestScope: false }),
