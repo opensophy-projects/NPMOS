@@ -60,6 +60,20 @@ export interface CellContext {
 	attacks?: Map<string, HostAttacks>;
 	/** the WAF events of the host */
 	events: (row: HostRow) => void;
+	/** the CrowdSec bouncer of NPMOS; absent without crowdsec:view */
+	crowdsec?: {
+		/** the bouncer is on (CrowdSec → Settings) */
+		enabled: boolean;
+		/** hosts it leaves out: `${type}-${id}` */
+		off: Set<string>;
+		/** bans of the last 24 h by domain */
+		bans: Record<string, number>;
+		canManage: boolean;
+		set: (row: HostRow, bouncer: boolean) => void;
+		/** the alerts of the host in CrowdSec */
+		open: (row: HostRow) => void;
+		settings: () => void;
+	};
 }
 
 /** a chip that opens the menu (hover shows the accent border) */
@@ -574,6 +588,74 @@ export function ActionsCell({ row, ctx }: { row: HostRow; ctx: CellContext }) {
 			ariaLabel={t("npmos.hosts.actions")}
 			triggerClassName={styles.iconTrigger}
 			trigger={<IconDots size={18} />}
+			items={items}
+		/>
+	);
+}
+
+export function CrowdsecCell({ row, ctx }: { row: HostRow; ctx: CellContext }) {
+	const cs = ctx.crowdsec;
+	// the bouncer works in http(s): streams are not checked
+	if (!cs || row.type === "stream") return <span className={styles.muted}>—</span>;
+	const bans = row.names.reduce((n, name) => n + (cs.bans[name.toLowerCase()] ?? 0), 0);
+	const on = cs.enabled && !cs.off.has(row.key);
+	const chip = (
+		<>
+			<T
+				id={
+					!cs.enabled
+						? "npmos.hosts.crowdsec.bouncer-off"
+						: on
+							? "npmos.hosts.crowdsec.on"
+							: "npmos.hosts.crowdsec.off"
+				}
+			/>
+			{bans > 0 && <span className={styles.more}>{intl.formatNumber(bans)}</span>}
+		</>
+	);
+	const title = t("npmos.hosts.crowdsec.title", { bans });
+	const items: DropdownItem[] = [
+		...(cs.canManage && cs.enabled
+			? [
+					{
+						key: "on",
+						label: <T id="npmos.hosts.crowdsec.on" />,
+						active: on,
+						onSelect: () => cs.set(row, true),
+					},
+					{
+						key: "off",
+						label: (
+							<span className={styles.option}>
+								<T id="npmos.hosts.crowdsec.off" />
+								<span className={styles.optionHint}>
+									<T id="npmos.hosts.crowdsec.off.hint" />
+								</span>
+							</span>
+						),
+						active: !on,
+						onSelect: () => cs.set(row, false),
+					},
+				]
+			: []),
+		...(!cs.enabled && cs.canManage
+			? [{ key: "settings", label: <T id="npmos.hosts.crowdsec.enable" />, onSelect: cs.settings }]
+			: []),
+		{
+			key: "alerts",
+			divider: cs.canManage,
+			label: <T id="npmos.hosts.crowdsec.alerts" />,
+			onSelect: () => cs.open(row),
+		},
+	];
+	return (
+		<Dropdown
+			floating
+			inline
+			ariaLabel="CrowdSec"
+			title={title}
+			triggerClassName={styles.trigger}
+			trigger={<Trigger tone={on ? "accent" : undefined}>{chip}</Trigger>}
 			items={items}
 		/>
 	);

@@ -33,7 +33,18 @@ import {
 
 const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id }, values);
 
-export const COLUMNS = ["type", "target", "tls", "waf", "attacks", "mtls", "access", "status", "changed"] as const;
+export const COLUMNS = [
+	"type",
+	"target",
+	"tls",
+	"waf",
+	"attacks",
+	"crowdsec",
+	"mtls",
+	"access",
+	"status",
+	"changed",
+] as const;
 export type Column = (typeof COLUMNS)[number];
 export const COLUMN_LABEL: Record<Column, string> = {
 	type: "npmos.hosts.column.type",
@@ -41,20 +52,21 @@ export const COLUMN_LABEL: Record<Column, string> = {
 	tls: "column.ssl",
 	waf: "WAF",
 	attacks: "npmos.hosts.column.attacks",
+	crowdsec: "CrowdSec",
 	mtls: "mTLS",
 	access: "column.access",
 	status: "column.status",
 	changed: "npmos.hosts.column.changed",
 };
 export const columnLabel = (column: Column) =>
-	column === "waf" || column === "mtls" ? COLUMN_LABEL[column] : t(COLUMN_LABEL[column]);
+	column === "waf" || column === "mtls" || column === "crowdsec" ? COLUMN_LABEL[column] : t(COLUMN_LABEL[column]);
 
 export interface View {
 	hidden: Column[];
 	compact: boolean;
 }
-/** "Changed" and "Attacks 24 h" are shown on request: the table should fit a laptop screen */
-export const DEFAULT_VIEW: View = { hidden: ["changed", "attacks"], compact: false };
+/** "Changed", "Attacks 24 h" and "CrowdSec" are shown on request: the table should fit a laptop screen */
+export const DEFAULT_VIEW: View = { hidden: ["changed", "attacks", "crowdsec"], compact: false };
 
 /** search field in the inset frame of cards */
 export const Search = forwardRef<HTMLInputElement, { value: string; onChange: (value: string) => void }>(

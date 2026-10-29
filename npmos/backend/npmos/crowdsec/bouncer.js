@@ -7,7 +7,7 @@ import db from "../../db.js";
 import internalNginx from "../../internal/nginx.js";
 import { global as logger } from "../../logger.js";
 import { decrypt } from "../secrets.js";
-import { renderBouncer, renderNginx } from "./config.js";
+import { HEADER, renderBouncer, renderNginx } from "./config.js";
 import { bouncerKey } from "./lapi.js";
 
 const DATA_CONF = process.env.NPMOS_CROWDSEC_BOUNCER_CONF || "/data/crowdsec/crowdsec.conf";
@@ -52,7 +52,10 @@ export const applyBouncer = async (settings, { reload = true } = {}) => {
 	if (settings.bouncer.enabled) {
 		const template = await readText(NGINX_TEMPLATE);
 		if (template === null) throw new Error(`${NGINX_TEMPLATE} is missing: the image has no CrowdSec bouncer`);
-		const rendered = renderNginx(template);
+		const rendered = renderNginx(
+			template,
+			settings.bouncer.admin ? [] : [process.env.NPM_PORT || "81", process.env.GOA_PORT || "91"],
+		);
 		perHost = rendered.perHost;
 		if (!rendered.perHost) logger.warn("NPMOS CrowdSec: unknown bouncer code, hosts cannot be left out");
 		nginx = rendered.text;

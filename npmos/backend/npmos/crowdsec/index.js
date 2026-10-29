@@ -554,9 +554,17 @@ const internalCrowdsec = {
 				try {
 					const archive = path.join(dir, "snapshot.tar.gz");
 					await writeFile(archive, body);
-					await run("tar", ["-xzf", archive, "-C", dir, "--no-same-owner", ".index.json", "data"]).catch(() =>
-						run("tar", ["-xzf", archive, "-C", dir, "--no-same-owner"]),
-					);
+					// only .index.json and plain files in data/: no other paths, links or devices
+					const { stdout } = await run("tar", ["-tvzf", archive], { maxBuffer: 16 * 1024 * 1024 });
+					for (const line of stdout.split("\n").filter(Boolean)) {
+						const name = line.split(/\s+/).slice(5).join(" ").replace(/^\.\//, "");
+						if (!/^[-d]/.test(line) || line.includes(" -> "))
+							throw new hub.HubError("The archive may hold files only");
+						if (!/^(\.index\.json|data\/?|data\/[A-Za-z0-9_.-]+)$/.test(name)) {
+							throw new hub.HubError(`Unexpected file in the archive: ${name}`);
+						}
+					}
+					await run("tar", ["-xzf", archive, "-C", dir, "--no-same-owner"]);
 					indexText = await readFile(path.join(dir, ".index.json"), "utf8").catch(() => {
 						throw new hub.HubError("The archive has no .index.json");
 					});
@@ -725,6 +733,7 @@ const internalCrowdsec = {
 		await access.can("crowdsec:view");
 		const rows = await db()("npmos_crowdsec_host");
 		return {
+			bouncer_enabled: (await settings()).bouncer.enabled,
 			per_host: perHostSupported(),
 			bans: await bansByHost().catch(() => ({})),
 			hosts: rows.map((r) => ({ host_type: r.host_type, host_id: r.host_id, bouncer: !!r.bouncer })),

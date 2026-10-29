@@ -1,5 +1,5 @@
-// Sidebar navigation (docs/ROADMAP.md, phase 2). Only pages that exist are listed; CrowdSec,
-// learning and updates join their groups in later phases.
+// Sidebar navigation (docs/ROADMAP.md, phase 2). Only pages that exist are listed; learning and
+// updates join their groups in later phases.
 // Items of NPMOS sections are shown by the roles of the user (`rbac`: resource whose "view" opens it).
 import {
 	ACCESS_LISTS,
@@ -53,6 +53,7 @@ export const navigation: NavItem[] = [
 					{ id: "waf-agent", label: "npmos.waf.agent", to: "/waf/agent", rbac: "waf_policy" },
 				],
 			},
+			{ id: "crowdsec", label: "npmos.crowdsec", to: "/crowdsec", rbac: "crowdsec" },
 			{ id: "access", label: "access-lists", to: "/access", section: ACCESS_LISTS },
 		],
 	},

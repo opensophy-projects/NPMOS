@@ -335,6 +335,9 @@
 	"created-on": {
 		"defaultMessage": "Created: {date}"
 	},
+	"crowdsec": {
+		"defaultMessage": "CrowdSec"
+	},
 	"dashboard": {
 		"defaultMessage": "Dashboard"
 	},
@@ -632,6 +635,12 @@
 	"npmos.analytics.countries": {
 		"defaultMessage": "Countries"
 	},
+	"npmos.analytics.crowdsec-alerts": {
+		"defaultMessage": "{count} CrowdSec alerts"
+	},
+	"npmos.analytics.crowdsec-bans": {
+		"defaultMessage": "CrowdSec bans"
+	},
 	"npmos.analytics.detected": {
 		"defaultMessage": "Detected only"
 	},
@@ -767,8 +776,824 @@
 	"npmos.common.warning": {
 		"defaultMessage": "Warning"
 	},
+	"npmos.crowdsec": {
+		"defaultMessage": "CrowdSec"
+	},
+	"npmos.crowdsec.actions": {
+		"defaultMessage": "Actions"
+	},
+	"npmos.crowdsec.activity": {
+		"defaultMessage": "Activity"
+	},
+	"npmos.crowdsec.agent.off": {
+		"defaultMessage": "The WAF agent does not use these decisions; switch it on in"
+	},
+	"npmos.crowdsec.agent.on": {
+		"defaultMessage": "The WAF agent also checks client IPs against these decisions (mode: {mode})."
+	},
+	"npmos.crowdsec.agent.open": {
+		"defaultMessage": "WAF → Agent"
+	},
+	"npmos.crowdsec.alerts.active": {
+		"defaultMessage": "Only with an active decision"
+	},
+	"npmos.crowdsec.alerts.none": {
+		"defaultMessage": "No alerts."
+	},
+	"npmos.crowdsec.alerts.search": {
+		"defaultMessage": "Scenario, IP, country or host"
+	},
+	"npmos.crowdsec.allowlist.expressions": {
+		"defaultMessage": "Expressions"
+	},
+	"npmos.crowdsec.allowlist.expressions.hint": {
+		"defaultMessage": "Conditions on events in the expression language of CrowdSec, one per line."
+	},
+	"npmos.crowdsec.allowlist.hint": {
+		"defaultMessage": "Events of these addresses never lead to a ban. Add the addresses of administrators: the bouncer also protects the NPMOS interface."
+	},
+	"npmos.crowdsec.allowlist.ips": {
+		"defaultMessage": "IP addresses and CIDR ranges"
+	},
+	"npmos.crowdsec.allowlist.ips.hint": {
+		"defaultMessage": "One per line; also left out of blocklists."
+	},
+	"npmos.crowdsec.allowlist.private": {
+		"defaultMessage": "Never ban private addresses"
+	},
+	"npmos.crowdsec.allowlist.private.hint": {
+		"defaultMessage": "10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, loopback and link-local (parser crowdsecurity/whitelists). Turn off only to test in a closed network."
+	},
+	"npmos.crowdsec.allowlist.title": {
+		"defaultMessage": "Allowlist"
+	},
+	"npmos.crowdsec.apply": {
+		"defaultMessage": "Apply now"
+	},
+	"npmos.crowdsec.appsec.configs": {
+		"defaultMessage": "AppSec configurations"
+	},
+	"npmos.crowdsec.appsec.configs.hint": {
+		"defaultMessage": "Names from the hub, one per line; they are installed when saving."
+	},
+	"npmos.crowdsec.appsec.enabled": {
+		"defaultMessage": "Check requests with AppSec"
+	},
+	"npmos.crowdsec.appsec.failure": {
+		"defaultMessage": "If AppSec does not answer"
+	},
+	"npmos.crowdsec.appsec.failure.deny": {
+		"defaultMessage": "Block the request"
+	},
+	"npmos.crowdsec.appsec.failure.passthrough": {
+		"defaultMessage": "Let the request through"
+	},
+	"npmos.crowdsec.appsec.hint": {
+		"defaultMessage": "The bouncer sends requests to the AppSec engine of CrowdSec, which blocks exploits of known vulnerabilities (virtual patching). Works with the bouncer of NPMOS."
+	},
+	"npmos.crowdsec.appsec.title": {
+		"defaultMessage": "CrowdSec AppSec"
+	},
+	"npmos.crowdsec.ban": {
+		"defaultMessage": "Ban"
+	},
+	"npmos.crowdsec.ban.do": {
+		"defaultMessage": "Ban ({count})"
+	},
+	"npmos.crowdsec.ban.done": {
+		"defaultMessage": "Banned: {count}"
+	},
+	"npmos.crowdsec.ban.reason": {
+		"defaultMessage": "Reason (for the audit log)"
+	},
+	"npmos.crowdsec.ban.title": {
+		"defaultMessage": "Ban addresses"
+	},
+	"npmos.crowdsec.ban.values": {
+		"defaultMessage": "IP addresses and CIDR ranges"
+	},
+	"npmos.crowdsec.ban.values.hint": {
+		"defaultMessage": "One per line, or separated by commas or spaces; up to 10,000."
+	},
+	"npmos.crowdsec.blocklist.add": {
+		"defaultMessage": "Add blocklist"
+	},
+	"npmos.crowdsec.blocklist.count": {
+		"defaultMessage": "Decisions"
+	},
+	"npmos.crowdsec.blocklist.delete": {
+		"defaultMessage": "Delete blocklist"
+	},
+	"npmos.crowdsec.blocklist.delete.text": {
+		"defaultMessage": "Delete the blocklist {name}? Its {count} decisions are removed."
+	},
+	"npmos.crowdsec.blocklist.duration.hint": {
+		"defaultMessage": "Longer than the time between downloads, so that the bans do not expire in between."
+	},
+	"npmos.crowdsec.blocklist.edit": {
+		"defaultMessage": "Edit blocklist"
+	},
+	"npmos.crowdsec.blocklist.enabled": {
+		"defaultMessage": "Ban the addresses of this list"
+	},
+	"npmos.crowdsec.blocklist.file": {
+		"defaultMessage": "File with the list"
+	},
+	"npmos.crowdsec.blocklist.file.lines": {
+		"defaultMessage": "File, {count} lines"
+	},
+	"npmos.crowdsec.blocklist.file.replace": {
+		"defaultMessage": "New file (empty: keep the list)"
+	},
+	"npmos.crowdsec.blocklist.format": {
+		"defaultMessage": "One IP or CIDR per line; comments after # or ; are skipped. Up to 20 MB and 200,000 addresses. Addresses of the allowlist are left out."
+	},
+	"npmos.crowdsec.blocklist.insecure": {
+		"defaultMessage": "Do not verify the TLS certificate"
+	},
+	"npmos.crowdsec.blocklist.insecure.hint": {
+		"defaultMessage": "Only for another NPMOS node with a self-signed certificate in a trusted network."
+	},
+	"npmos.crowdsec.blocklist.refresh": {
+		"defaultMessage": "Download again"
+	},
+	"npmos.crowdsec.blocklist.refresh.0": {
+		"defaultMessage": "Only by hand"
+	},
+	"npmos.crowdsec.blocklist.refresh.1440": {
+		"defaultMessage": "Every day"
+	},
+	"npmos.crowdsec.blocklist.refresh.15": {
+		"defaultMessage": "Every 15 minutes"
+	},
+	"npmos.crowdsec.blocklist.refresh.360": {
+		"defaultMessage": "Every 6 hours"
+	},
+	"npmos.crowdsec.blocklist.refresh.60": {
+		"defaultMessage": "Every hour"
+	},
+	"npmos.crowdsec.blocklist.saved": {
+		"defaultMessage": "Blocklist saved: {count} decisions"
+	},
+	"npmos.crowdsec.blocklist.source": {
+		"defaultMessage": "Source"
+	},
+	"npmos.crowdsec.blocklist.source.file": {
+		"defaultMessage": "File"
+	},
+	"npmos.crowdsec.blocklist.source.url": {
+		"defaultMessage": "URL"
+	},
+	"npmos.crowdsec.blocklist.sync": {
+		"defaultMessage": "Download now"
+	},
+	"npmos.crowdsec.blocklist.sync-failed": {
+		"defaultMessage": "Blocklist saved, but not downloaded: {error}"
+	},
+	"npmos.crowdsec.blocklist.synced": {
+		"defaultMessage": "Decisions: {count}, skipped lines: {invalid}"
+	},
+	"npmos.crowdsec.blocklist.synced-on": {
+		"defaultMessage": "Updated"
+	},
+	"npmos.crowdsec.blocklist.token": {
+		"defaultMessage": "Token (optional)"
+	},
+	"npmos.crowdsec.blocklist.too-large": {
+		"defaultMessage": "The file is larger than 20 MB"
+	},
+	"npmos.crowdsec.blocklist.url": {
+		"defaultMessage": "URL of the list"
+	},
+	"npmos.crowdsec.blocklist.url.hint": {
+		"defaultMessage": "Another NPMOS node: its address with /api/npmos/crowdsec/public/decisions and its token. NPMOS downloads it itself, only from here, with a 30 s timeout."
+	},
+	"npmos.crowdsec.blocklists.hint": {
+		"defaultMessage": "Lists of IPs and CIDRs banned on this node instead of the community blocklist of the CrowdSec cloud: a file, or a URL downloaded on a schedule (another NPMOS node or any list in the same format)."
+	},
+	"npmos.crowdsec.blocklists.none": {
+		"defaultMessage": "No blocklists."
+	},
+	"npmos.crowdsec.bouncer.admin": {
+		"defaultMessage": "Check the interface of NPMOS too"
+	},
+	"npmos.crowdsec.bouncer.admin.hint": {
+		"defaultMessage": "Off: a ban never locks administrators out of the GUI (port of the interface and of GoAccess). On: banned addresses cannot open it either; put the addresses of administrators in the allowlist first."
+	},
+	"npmos.crowdsec.bouncer.appsec": {
+		"defaultMessage": "WAF agent"
+	},
+	"npmos.crowdsec.bouncer.enabled": {
+		"defaultMessage": "Check requests in nginx"
+	},
+	"npmos.crowdsec.bouncer.exclude": {
+		"defaultMessage": "Paths not checked"
+	},
+	"npmos.crowdsec.bouncer.exclude.hint": {
+		"defaultMessage": "One path per line, for example health checks of a load balancer."
+	},
+	"npmos.crowdsec.bouncer.fallback": {
+		"defaultMessage": "Unknown decision type"
+	},
+	"npmos.crowdsec.bouncer.hint": {
+		"defaultMessage": "nginx of NPMOS checks every request against the decisions: a banned address gets the ban page, a captcha address the captcha. Instead of editing crowdsec.conf; its key is registered automatically."
+	},
+	"npmos.crowdsec.bouncer.hosts": {
+		"defaultMessage": "Single hosts are left out in the Hosts table (CrowdSec column)."
+	},
+	"npmos.crowdsec.bouncer.mode": {
+		"defaultMessage": "Mode"
+	},
+	"npmos.crowdsec.bouncer.mode.live": {
+		"defaultMessage": "Live"
+	},
+	"npmos.crowdsec.bouncer.mode.live.hint": {
+		"defaultMessage": "Asks the local API about each new address (cached for a second): bans work at once."
+	},
+	"npmos.crowdsec.bouncer.mode.stream": {
+		"defaultMessage": "Stream"
+	},
+	"npmos.crowdsec.bouncer.mode.stream.hint": {
+		"defaultMessage": "Downloads all decisions periodically: fewer requests to CrowdSec, bans work after the next download."
+	},
+	"npmos.crowdsec.bouncer.npmos": {
+		"defaultMessage": "nginx of NPMOS"
+	},
+	"npmos.crowdsec.bouncer.pull": {
+		"defaultMessage": "Last request"
+	},
+	"npmos.crowdsec.bouncer.revoked": {
+		"defaultMessage": "Revoked"
+	},
+	"npmos.crowdsec.bouncer.title": {
+		"defaultMessage": "Bouncer of NPMOS"
+	},
+	"npmos.crowdsec.bouncer.type": {
+		"defaultMessage": "Software"
+	},
+	"npmos.crowdsec.bouncer.update-frequency": {
+		"defaultMessage": "Download every, s"
+	},
+	"npmos.crowdsec.bouncers": {
+		"defaultMessage": "Bouncers"
+	},
+	"npmos.crowdsec.bouncers.hint": {
+		"defaultMessage": "Components that enforce decisions. npmos is nginx of NPMOS, appsec the WAF agent (IP reputation); their keys come from npmos-init."
+	},
+	"npmos.crowdsec.capi": {
+		"defaultMessage": "The Central API of CrowdSec (signal sharing, community blocklist) is not used: local blocklists and the decisions of other NPMOS nodes replace it."
+	},
+	"npmos.crowdsec.captcha.needs-provider": {
+		"defaultMessage": "A captcha needs a captcha provider in the bouncer settings; without one the bouncer bans instead."
+	},
+	"npmos.crowdsec.captcha.provider": {
+		"defaultMessage": "Captcha provider"
+	},
+	"npmos.crowdsec.captcha.provider.hcaptcha": {
+		"defaultMessage": "hCaptcha"
+	},
+	"npmos.crowdsec.captcha.provider.none": {
+		"defaultMessage": "None"
+	},
+	"npmos.crowdsec.captcha.provider.recaptcha": {
+		"defaultMessage": "reCAPTCHA"
+	},
+	"npmos.crowdsec.captcha.provider.turnstile": {
+		"defaultMessage": "Turnstile"
+	},
+	"npmos.crowdsec.captcha.secret-key": {
+		"defaultMessage": "Secret key"
+	},
+	"npmos.crowdsec.captcha.site-key": {
+		"defaultMessage": "Site key"
+	},
+	"npmos.crowdsec.decision": {
+		"defaultMessage": "Decision"
+	},
+	"npmos.crowdsec.decision.all": {
+		"defaultMessage": "All decisions"
+	},
+	"npmos.crowdsec.decision.ban": {
+		"defaultMessage": "Ban"
+	},
+	"npmos.crowdsec.decision.captcha": {
+		"defaultMessage": "Captcha"
+	},
+	"npmos.crowdsec.decisions.none": {
+		"defaultMessage": "No active decisions."
+	},
+	"npmos.crowdsec.decisions.search": {
+		"defaultMessage": "IP, range or scenario"
+	},
+	"npmos.crowdsec.duration": {
+		"defaultMessage": "Duration"
+	},
+	"npmos.crowdsec.duration.12h": {
+		"defaultMessage": "12 hours"
+	},
+	"npmos.crowdsec.duration.15m": {
+		"defaultMessage": "15 minutes"
+	},
+	"npmos.crowdsec.duration.1h": {
+		"defaultMessage": "1 hour"
+	},
+	"npmos.crowdsec.duration.24h": {
+		"defaultMessage": "24 hours"
+	},
+	"npmos.crowdsec.duration.30d": {
+		"defaultMessage": "30 days"
+	},
+	"npmos.crowdsec.duration.4h": {
+		"defaultMessage": "4 hours"
+	},
+	"npmos.crowdsec.duration.7d": {
+		"defaultMessage": "7 days"
+	},
+	"npmos.crowdsec.events": {
+		"defaultMessage": "Events"
+	},
+	"npmos.crowdsec.host": {
+		"defaultMessage": "Host"
+	},
+	"npmos.crowdsec.hub.hint": {
+		"defaultMessage": "The hub snapshot of this node: nothing is downloaded from the internet. A new snapshot is uploaded here (.index.json of cscli hub update --with-content, or the archive of scripts/crowdsec-hub-snapshot.sh with data files). Installing or removing restarts CrowdSec."
+	},
+	"npmos.crowdsec.hub.index-updated": {
+		"defaultMessage": "Hub index updated: {count} items"
+	},
+	"npmos.crowdsec.hub.install": {
+		"defaultMessage": "Install"
+	},
+	"npmos.crowdsec.hub.install.done": {
+		"defaultMessage": "Installed or updated: {count}"
+	},
+	"npmos.crowdsec.hub.installed-only": {
+		"defaultMessage": "Installed only"
+	},
+	"npmos.crowdsec.hub.locked": {
+		"defaultMessage": "Needed by the settings of NPMOS or by an installed collection, or a local file"
+	},
+	"npmos.crowdsec.hub.more": {
+		"defaultMessage": "{count} more: narrow the search"
+	},
+	"npmos.crowdsec.hub.needed-by": {
+		"defaultMessage": "Part of: {names}"
+	},
+	"npmos.crowdsec.hub.online": {
+		"defaultMessage": "Update the index online"
+	},
+	"npmos.crowdsec.hub.remove": {
+		"defaultMessage": "Remove"
+	},
+	"npmos.crowdsec.hub.remove.done": {
+		"defaultMessage": "Removed: {count}"
+	},
+	"npmos.crowdsec.hub.required": {
+		"defaultMessage": "Needed by NPMOS"
+	},
+	"npmos.crowdsec.hub.search": {
+		"defaultMessage": "Name or description"
+	},
+	"npmos.crowdsec.hub.status.broken": {
+		"defaultMessage": "Broken link"
+	},
+	"npmos.crowdsec.hub.status.installed": {
+		"defaultMessage": "Installed"
+	},
+	"npmos.crowdsec.hub.status.local": {
+		"defaultMessage": "Local file"
+	},
+	"npmos.crowdsec.hub.status.not-installed": {
+		"defaultMessage": "Not installed"
+	},
+	"npmos.crowdsec.hub.status.outdated": {
+		"defaultMessage": "Outdated"
+	},
+	"npmos.crowdsec.hub.status.tainted": {
+		"defaultMessage": "Changed by hand"
+	},
+	"npmos.crowdsec.hub.status.up-to-date": {
+		"defaultMessage": "Up to date"
+	},
+	"npmos.crowdsec.hub.type": {
+		"defaultMessage": "Type"
+	},
+	"npmos.crowdsec.hub.type.all": {
+		"defaultMessage": "All types"
+	},
+	"npmos.crowdsec.hub.type.appsec-configs": {
+		"defaultMessage": "AppSec configurations"
+	},
+	"npmos.crowdsec.hub.type.appsec-rules": {
+		"defaultMessage": "AppSec rules"
+	},
+	"npmos.crowdsec.hub.type.collections": {
+		"defaultMessage": "Collections"
+	},
+	"npmos.crowdsec.hub.type.contexts": {
+		"defaultMessage": "Contexts"
+	},
+	"npmos.crowdsec.hub.type.parsers": {
+		"defaultMessage": "Parsers"
+	},
+	"npmos.crowdsec.hub.type.postoverflows": {
+		"defaultMessage": "Postoverflows"
+	},
+	"npmos.crowdsec.hub.type.scenarios": {
+		"defaultMessage": "Scenarios"
+	},
+	"npmos.crowdsec.hub.upgrade": {
+		"defaultMessage": "Upgrade outdated ({count})"
+	},
+	"npmos.crowdsec.hub.upgraded": {
+		"defaultMessage": "Upgraded: {count}"
+	},
+	"npmos.crowdsec.hub.upload": {
+		"defaultMessage": "Upload snapshot"
+	},
+	"npmos.crowdsec.hub.uploaded": {
+		"defaultMessage": "Hub snapshot loaded: {count} items, {data} data files"
+	},
+	"npmos.crowdsec.ip": {
+		"defaultMessage": "IP address"
+	},
+	"npmos.crowdsec.lapi.down": {
+		"defaultMessage": "Unavailable"
+	},
+	"npmos.crowdsec.lapi.down.text": {
+		"defaultMessage": "The local API of CrowdSec does not answer: {error}."
+	},
+	"npmos.crowdsec.lapi.ok": {
+		"defaultMessage": "Works"
+	},
+	"npmos.crowdsec.left": {
+		"defaultMessage": "Left"
+	},
+	"npmos.crowdsec.left.days": {
+		"defaultMessage": "{days} d"
+	},
+	"npmos.crowdsec.left.hours": {
+		"defaultMessage": "{hours} h {minutes} min"
+	},
+	"npmos.crowdsec.left.minutes": {
+		"defaultMessage": "{minutes} min"
+	},
+	"npmos.crowdsec.left.seconds": {
+		"defaultMessage": "{seconds} s"
+	},
+	"npmos.crowdsec.log-level": {
+		"defaultMessage": "Log level of CrowdSec"
+	},
+	"npmos.crowdsec.log-level.debug": {
+		"defaultMessage": "Debugging"
+	},
+	"npmos.crowdsec.log-level.error": {
+		"defaultMessage": "Errors"
+	},
+	"npmos.crowdsec.log-level.info": {
+		"defaultMessage": "Information"
+	},
+	"npmos.crowdsec.log-level.warning": {
+		"defaultMessage": "Warnings"
+	},
+	"npmos.crowdsec.machine.heartbeat": {
+		"defaultMessage": "Last heartbeat"
+	},
+	"npmos.crowdsec.machine.local": {
+		"defaultMessage": "CrowdSec agent"
+	},
+	"npmos.crowdsec.machine.npmos": {
+		"defaultMessage": "NPMOS"
+	},
+	"npmos.crowdsec.machine.pending": {
+		"defaultMessage": "Not validated"
+	},
+	"npmos.crowdsec.machine.push": {
+		"defaultMessage": "Last alert"
+	},
+	"npmos.crowdsec.machines": {
+		"defaultMessage": "Machines"
+	},
+	"npmos.crowdsec.machines.hint": {
+		"defaultMessage": "Agents that send alerts to the local API. localhost is the agent of CrowdSec itself, npmos-… is NPMOS (bans by hand, blocklists)."
+	},
+	"npmos.crowdsec.metrics.appsec": {
+		"defaultMessage": "AppSec: blocked / checked requests"
+	},
+	"npmos.crowdsec.metrics.decisions-of": {
+		"defaultMessage": "Decisions: {origin}"
+	},
+	"npmos.crowdsec.metrics.none": {
+		"defaultMessage": "No metrics: CrowdSec does not answer."
+	},
+	"npmos.crowdsec.metrics.overflows": {
+		"defaultMessage": "Scenarios that triggered"
+	},
+	"npmos.crowdsec.metrics.overflows.none": {
+		"defaultMessage": "No scenario has triggered since CrowdSec started."
+	},
+	"npmos.crowdsec.metrics.parsed": {
+		"defaultMessage": "Log lines parsed"
+	},
+	"npmos.crowdsec.metrics.sources": {
+		"defaultMessage": "Lines read by source"
+	},
+	"npmos.crowdsec.metrics.sources.none": {
+		"defaultMessage": "Nothing read yet."
+	},
+	"npmos.crowdsec.move-down": {
+		"defaultMessage": "Move down"
+	},
+	"npmos.crowdsec.move-up": {
+		"defaultMessage": "Move up"
+	},
+	"npmos.crowdsec.name": {
+		"defaultMessage": "Name"
+	},
+	"npmos.crowdsec.none-found": {
+		"defaultMessage": "Nothing found."
+	},
+	"npmos.crowdsec.online-hub": {
+		"defaultMessage": "Allow online hub updates"
+	},
+	"npmos.crowdsec.online-hub.hint": {
+		"defaultMessage": "The Hub tab can then download the index from the CrowdSec CDN, and installing an item downloads its missing data files (60 s timeout). Off: only uploaded snapshots."
+	},
+	"npmos.crowdsec.open-services": {
+		"defaultMessage": "Open Services"
+	},
+	"npmos.crowdsec.open-settings": {
+		"defaultMessage": "Change settings"
+	},
+	"npmos.crowdsec.openappsec-ban.enabled": {
+		"defaultMessage": "Ban after repeated blocked requests"
+	},
+	"npmos.crowdsec.openappsec-ban.events": {
+		"defaultMessage": "Blocked requests"
+	},
+	"npmos.crowdsec.openappsec-ban.hint": {
+		"defaultMessage": "open-appsec blocks single requests; this rule bans the address for repeated attacks, so that its next requests do not reach the WAF."
+	},
+	"npmos.crowdsec.openappsec-ban.minutes": {
+		"defaultMessage": "Within, minutes"
+	},
+	"npmos.crowdsec.openappsec-ban.profile": {
+		"defaultMessage": "The decision and its duration come from the first matching profile below."
+	},
+	"npmos.crowdsec.openappsec-ban.title": {
+		"defaultMessage": "Ban attackers blocked by the WAF"
+	},
+	"npmos.crowdsec.origin": {
+		"defaultMessage": "Origin"
+	},
+	"npmos.crowdsec.origin.CAPI": {
+		"defaultMessage": "Community blocklist"
+	},
+	"npmos.crowdsec.origin.all": {
+		"defaultMessage": "All origins"
+	},
+	"npmos.crowdsec.origin.appsec": {
+		"defaultMessage": "AppSec"
+	},
+	"npmos.crowdsec.origin.crowdsec": {
+		"defaultMessage": "Scenarios"
+	},
+	"npmos.crowdsec.origin.cscli": {
+		"defaultMessage": "By hand"
+	},
+	"npmos.crowdsec.origin.lists": {
+		"defaultMessage": "Blocklists"
+	},
+	"npmos.crowdsec.other.title": {
+		"defaultMessage": "Other"
+	},
+	"npmos.crowdsec.page": {
+		"defaultMessage": "{from}–{to} of {total}"
+	},
+	"npmos.crowdsec.page.next": {
+		"defaultMessage": "Next"
+	},
+	"npmos.crowdsec.page.prev": {
+		"defaultMessage": "Previous"
+	},
+	"npmos.crowdsec.profile.add": {
+		"defaultMessage": "Add profile"
+	},
+	"npmos.crowdsec.profile.done": {
+		"defaultMessage": "Done"
+	},
+	"npmos.crowdsec.profile.edit": {
+		"defaultMessage": "Edit profile"
+	},
+	"npmos.crowdsec.profile.enabled": {
+		"defaultMessage": "Profile enabled"
+	},
+	"npmos.crowdsec.profile.escalate": {
+		"defaultMessage": "Longer for each next ban"
+	},
+	"npmos.crowdsec.profile.escalate.hint": {
+		"defaultMessage": "Each next decision for the same address lasts {duration} longer."
+	},
+	"npmos.crowdsec.profile.escalates": {
+		"defaultMessage": "Escalates"
+	},
+	"npmos.crowdsec.profile.filter": {
+		"defaultMessage": "Expression (optional)"
+	},
+	"npmos.crowdsec.profile.filter.hint": {
+		"defaultMessage": "An extra condition in the expression language of CrowdSec. A wrong one is rejected when CrowdSec starts, and the previous settings come back."
+	},
+	"npmos.crowdsec.profile.name.format": {
+		"defaultMessage": "Lowercase letters, digits, _ and -"
+	},
+	"npmos.crowdsec.profile.name.taken": {
+		"defaultMessage": "Another profile has this name"
+	},
+	"npmos.crowdsec.profile.scenarios": {
+		"defaultMessage": "Only these scenarios (optional)"
+	},
+	"npmos.crowdsec.profile.scenarios.hint": {
+		"defaultMessage": "Names of scenarios, one per line; empty: all."
+	},
+	"npmos.crowdsec.profile.scope": {
+		"defaultMessage": "Alerts about"
+	},
+	"npmos.crowdsec.profile.takes": {
+		"defaultMessage": "Takes"
+	},
+	"npmos.crowdsec.profiles.hint": {
+		"defaultMessage": "What CrowdSec decides for an alert: the first enabled profile that takes it, from the top."
+	},
+	"npmos.crowdsec.profiles.none": {
+		"defaultMessage": "No enabled profile: alerts make no decisions."
+	},
+	"npmos.crowdsec.profiles.title": {
+		"defaultMessage": "Profiles"
+	},
+	"npmos.crowdsec.protection": {
+		"defaultMessage": "Protection"
+	},
+	"npmos.crowdsec.protection.agent": {
+		"defaultMessage": "IP reputation in the WAF agent"
+	},
+	"npmos.crowdsec.protection.appsec": {
+		"defaultMessage": "CrowdSec AppSec: virtual patching of known vulnerabilities"
+	},
+	"npmos.crowdsec.protection.bouncer": {
+		"defaultMessage": "Bouncer of NPMOS: bans and captchas in nginx"
+	},
+	"npmos.crowdsec.protection.nginx": {
+		"defaultMessage": "Reads the access and error logs of nginx"
+	},
+	"npmos.crowdsec.protection.openappsec": {
+		"defaultMessage": "Reads the security log of open-appsec"
+	},
+	"npmos.crowdsec.protection.openappsec-ban": {
+		"defaultMessage": "Ban after {events} requests blocked by open-appsec in {minutes} min"
+	},
+	"npmos.crowdsec.scenario": {
+		"defaultMessage": "Scenario"
+	},
+	"npmos.crowdsec.scope.Ip": {
+		"defaultMessage": "An IP address"
+	},
+	"npmos.crowdsec.scope.Range": {
+		"defaultMessage": "A range"
+	},
+	"npmos.crowdsec.scope.any": {
+		"defaultMessage": "Anything"
+	},
+	"npmos.crowdsec.secret.kept": {
+		"defaultMessage": "Saved; empty keeps it"
+	},
+	"npmos.crowdsec.select-all": {
+		"defaultMessage": "Select all"
+	},
+	"npmos.crowdsec.settings.applied": {
+		"defaultMessage": "Settings applied, CrowdSec restarted"
+	},
+	"npmos.crowdsec.settings.pending": {
+		"defaultMessage": "The files of CrowdSec differ from the settings ({files}): they are applied at the next save or now."
+	},
+	"npmos.crowdsec.settings.restarting": {
+		"defaultMessage": "CrowdSec restarts with the new files; if it does not start, the previous ones come back."
+	},
+	"npmos.crowdsec.settings.save": {
+		"defaultMessage": "Save and apply"
+	},
+	"npmos.crowdsec.settings.saved": {
+		"defaultMessage": "Settings saved"
+	},
+	"npmos.crowdsec.share": {
+		"defaultMessage": "Decisions for other NPMOS nodes"
+	},
+	"npmos.crowdsec.share.disable": {
+		"defaultMessage": "Forbid"
+	},
+	"npmos.crowdsec.share.enable": {
+		"defaultMessage": "Allow and create a token"
+	},
+	"npmos.crowdsec.share.hint": {
+		"defaultMessage": "Other nodes add this address with the token as a URL blocklist and get the bans of this node (not those of its blocklists). No login, only the token; it is shown once."
+	},
+	"npmos.crowdsec.share.new-token": {
+		"defaultMessage": "New token"
+	},
+	"npmos.crowdsec.share.token": {
+		"defaultMessage": "Token for other nodes (copy it now, it is not shown again):"
+	},
+	"npmos.crowdsec.simulated": {
+		"defaultMessage": "Simulation"
+	},
+	"npmos.crowdsec.source": {
+		"defaultMessage": "Source"
+	},
+	"npmos.crowdsec.sources.hint": {
+		"defaultMessage": "What CrowdSec reads to find attackers."
+	},
+	"npmos.crowdsec.sources.nginx": {
+		"defaultMessage": "Logs of nginx"
+	},
+	"npmos.crowdsec.sources.nginx.hint": {
+		"defaultMessage": "Access and error logs of all hosts: scanners, brute force of passwords, probing of known vulnerabilities (collection ZoeyVid/npmplus)."
+	},
+	"npmos.crowdsec.sources.openappsec": {
+		"defaultMessage": "Security log of open-appsec"
+	},
+	"npmos.crowdsec.sources.openappsec.hint": {
+		"defaultMessage": "Requests the WAF blocked; needed for the rule below."
+	},
+	"npmos.crowdsec.sources.title": {
+		"defaultMessage": "Sources of logs"
+	},
+	"npmos.crowdsec.status": {
+		"defaultMessage": "Status"
+	},
+	"npmos.crowdsec.subtitle": {
+		"defaultMessage": "Detects attackers in the logs of nginx and open-appsec and bans them. Runs locally: no CrowdSec console, no cloud."
+	},
+	"npmos.crowdsec.summary.alerts": {
+		"defaultMessage": "Alerts in 24 h"
+	},
+	"npmos.crowdsec.summary.bouncers": {
+		"defaultMessage": "Bouncers"
+	},
+	"npmos.crowdsec.summary.decisions": {
+		"defaultMessage": "Active decisions"
+	},
+	"npmos.crowdsec.summary.hub": {
+		"defaultMessage": "Hub items / outdated"
+	},
+	"npmos.crowdsec.summary.lapi": {
+		"defaultMessage": "Local API"
+	},
+	"npmos.crowdsec.summary.machines": {
+		"defaultMessage": "Machines"
+	},
+	"npmos.crowdsec.tab.alerts": {
+		"defaultMessage": "Alerts"
+	},
+	"npmos.crowdsec.tab.blocklists": {
+		"defaultMessage": "Blocklists"
+	},
+	"npmos.crowdsec.tab.decisions": {
+		"defaultMessage": "Decisions"
+	},
+	"npmos.crowdsec.tab.hub": {
+		"defaultMessage": "Hub"
+	},
+	"npmos.crowdsec.tab.overview": {
+		"defaultMessage": "Overview"
+	},
+	"npmos.crowdsec.tab.registry": {
+		"defaultMessage": "Machines and bouncers"
+	},
+	"npmos.crowdsec.tab.settings": {
+		"defaultMessage": "Settings"
+	},
+	"npmos.crowdsec.time": {
+		"defaultMessage": "Time"
+	},
+	"npmos.crowdsec.unban": {
+		"defaultMessage": "Unban"
+	},
+	"npmos.crowdsec.unban.done": {
+		"defaultMessage": "Decisions removed: {count}"
+	},
+	"npmos.crowdsec.unban.selected": {
+		"defaultMessage": "Unban selected ({count})"
+	},
+	"npmos.crowdsec.value": {
+		"defaultMessage": "Address"
+	},
+	"npmos.crowdsec.version": {
+		"defaultMessage": "Version"
+	},
 	"npmos.events.attack-type": {
 		"defaultMessage": "Attack type"
+	},
+	"npmos.events.ban-ip": {
+		"defaultMessage": "Ban IP in CrowdSec"
 	},
 	"npmos.events.confidence": {
 		"defaultMessage": "Confidence"
@@ -811,6 +1636,9 @@
 	},
 	"npmos.events.kind.all": {
 		"defaultMessage": "All"
+	},
+	"npmos.events.kind.crowdsec": {
+		"defaultMessage": "CrowdSec"
 	},
 	"npmos.events.kind.security": {
 		"defaultMessage": "Attacks"
@@ -1034,11 +1862,38 @@
 	"npmos.hosts.copy-domain": {
 		"defaultMessage": "Copy domain"
 	},
+	"npmos.hosts.crowdsec.alerts": {
+		"defaultMessage": "Alerts of the host"
+	},
+	"npmos.hosts.crowdsec.bouncer-off": {
+		"defaultMessage": "Bouncer off"
+	},
+	"npmos.hosts.crowdsec.enable": {
+		"defaultMessage": "Turn the bouncer on"
+	},
+	"npmos.hosts.crowdsec.off": {
+		"defaultMessage": "Left out"
+	},
+	"npmos.hosts.crowdsec.off.hint": {
+		"defaultMessage": "The bouncer does not check requests to this host"
+	},
+	"npmos.hosts.crowdsec.on": {
+		"defaultMessage": "Checked"
+	},
+	"npmos.hosts.crowdsec.title": {
+		"defaultMessage": "Bans in 24 h: {bans}"
+	},
 	"npmos.hosts.done.access": {
 		"defaultMessage": "access saved"
 	},
 	"npmos.hosts.done.certificate": {
 		"defaultMessage": "certificate saved"
+	},
+	"npmos.hosts.done.crowdsec.off": {
+		"defaultMessage": "The bouncer leaves the host out"
+	},
+	"npmos.hosts.done.crowdsec.on": {
+		"defaultMessage": "The bouncer checks the host"
 	},
 	"npmos.hosts.done.deleted": {
 		"defaultMessage": "deleted"
@@ -3068,6 +3923,12 @@
 	"npmos.rbac.action.apply.desc": {
 		"defaultMessage": "Send the policy to the agent now"
 	},
+	"npmos.rbac.action.decide": {
+		"defaultMessage": "Ban"
+	},
+	"npmos.rbac.action.decide.desc": {
+		"defaultMessage": "Ban and unban addresses by hand, download blocklists"
+	},
 	"npmos.rbac.action.export_key": {
 		"defaultMessage": "Export keys"
 	},
@@ -3258,7 +4119,7 @@
 		"defaultMessage": "CrowdSec"
 	},
 	"npmos.rbac.resource.crowdsec.desc": {
-		"defaultMessage": "Alerts, bans, scenarios (phase 7)"
+		"defaultMessage": "Alerts, bans, blocklists, hub and settings of CrowdSec"
 	},
 	"npmos.rbac.resource.dead_hosts": {
 		"defaultMessage": "404 hosts"
@@ -4007,6 +4868,15 @@
 	"object.empty": {
 		"defaultMessage": "There are no {objects}"
 	},
+	"object.event.applied": {
+		"defaultMessage": "Applied {object}"
+	},
+	"object.event.banned": {
+		"defaultMessage": "Banned {object}"
+	},
+	"object.event.captcha": {
+		"defaultMessage": "Captcha {object}"
+	},
 	"object.event.created": {
 		"defaultMessage": "Created {object}"
 	},
@@ -4022,8 +4892,14 @@
 	"object.event.exported": {
 		"defaultMessage": "Exported {object}"
 	},
+	"object.event.installed": {
+		"defaultMessage": "Installed {object}"
+	},
 	"object.event.regenerated": {
 		"defaultMessage": "Regenerated {object}"
+	},
+	"object.event.removed": {
+		"defaultMessage": "Removed {object}"
 	},
 	"object.event.renewed": {
 		"defaultMessage": "Renewed {object}"
@@ -4033,6 +4909,9 @@
 	},
 	"object.event.revoked": {
 		"defaultMessage": "Revoked {object}"
+	},
+	"object.event.unbanned": {
+		"defaultMessage": "Unbanned {object}"
 	},
 	"object.event.updated": {
 		"defaultMessage": "Updated {object}"

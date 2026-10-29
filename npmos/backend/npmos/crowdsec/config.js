@@ -32,6 +32,8 @@ const LOCATION = /^\/[^\s"'\\]*$/;
 export const defaults = () => ({
 	bouncer: {
 		enabled: false,
+		// check the interface of NPMOS too (off: a ban never locks the administrators out)
+		admin: false,
 		mode: "live",
 		fallback: "ban",
 		update_frequency: 10,
@@ -106,7 +108,9 @@ export const normalize = (v) => {
 	const d = defaults();
 	const s = { ...d, ...v };
 	const b = { ...d.bouncer, ...s.bouncer, captcha: { ...d.bouncer.captcha, ...s.bouncer?.captcha } };
-	if (typeof b.enabled !== "boolean") throw new ConfigError("bouncer.enabled must be a boolean");
+	if (typeof b.enabled !== "boolean" || typeof b.admin !== "boolean") {
+		throw new ConfigError("bouncer.enabled and bouncer.admin must be booleans");
+	}
 	if (!["live", "stream"].includes(b.mode)) throw new ConfigError("Bouncer mode: live or stream");
 	if (!DECISION_TYPES.includes(b.fallback)) throw new ConfigError("Fallback remediation: ban or captcha");
 	if (!Number.isInteger(b.update_frequency) || b.update_frequency < 1 || b.update_frequency > 3600) {
@@ -396,11 +400,22 @@ export const unwantedItems = (s) => (s.allowlist.private ? [] : [["parsers", PRI
 
 const HOOK = "cs.Allow(ngx.var.remote_addr)";
 
-/** conf.d/crowdsec.conf from the one of NPMplus; perHost: false if its Lua code changed */
-export const renderNginx = (template) => {
+/**
+ * conf.d/crowdsec.conf from the one of NPMplus; perHost: false if its Lua code changed.
+ * adminPorts: ports of the interface of NPMOS (and GoAccess) the bouncer leaves out, so that a ban
+ * never locks the administrators out of the GUI; empty: the interface is checked too.
+ */
+export const renderNginx = (template, adminPorts = []) => {
 	if (!template.includes(HOOK)) return { text: template, perHost: false };
 	const text = template.replace(HOOK, `if ngx.var.npmos_crowdsec_off ~= "1" then\n\t\t\t${HOOK}\n\t\tend`);
-	return { text: `${HEADER}map $host $npmos_crowdsec_off {\n\tdefault 0;\n}\n\n${text}`, perHost: true };
+	const ports = adminPorts
+		.filter((p) => /^\d{1,5}$/.test(String(p)))
+		.map((p) => `\t"${p}" 1;\n`)
+		.join("");
+	return {
+		text: `${HEADER}map $server_port $npmos_crowdsec_off {\n\tdefault 0;\n${ports}}\n\n${text}`,
+		perHost: true,
+	};
 };
 
 /** messages of the fatal errors CrowdSec logged at its last start */

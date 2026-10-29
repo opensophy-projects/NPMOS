@@ -514,4 +514,117 @@ for i in $(seq 1 30); do
   sleep 2
 done
 
+# --- phase 7 ---
+
+page() { curl -s -o /dev/null -w '%{http_code}' --max-time 10 -H 'Host: test.local' "$HTTP$1"; }
+wait_page() { # path, code, message
+  for i in $(seq 1 15); do
+    [ "$(page "$1")" = "$2" ] && return 0
+    sleep 2
+  done
+  fail "$3: expected $2, got $(page "$1")"
+}
+# settings of CrowdSec: AppSec on/off, the filter of the only profile
+cs_settings() {
+  $CURL --max-time 300 -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/crowdsec/settings" -d "{
+  \"bouncer\": {\"enabled\": true, \"admin\": false, \"mode\": \"live\", \"fallback\": \"ban\", \"update_frequency\": 10,
+    \"exclude_locations\": [], \"captcha\": {\"provider\": \"\", \"site_key\": \"\", \"secret_key\": \"\"}},
+  \"sources\": {\"nginx\": true, \"openappsec\": true},
+  \"appsec\": {\"enabled\": $1, \"failure_action\": \"passthrough\", \"configs\": [\"crowdsecurity/appsec-default\"]},
+  \"profiles\": [{\"name\": \"ip\", \"enabled\": true, \"scope\": \"Ip\", \"scenarios\": [], \"filter\": \"$2\",
+    \"type\": \"ban\", \"duration\": \"4h\", \"escalate\": false}],
+  \"allowlist\": {\"ips\": [], \"expressions\": [], \"private\": false},
+  \"openappsec_ban\": {\"enabled\": true, \"events\": 3, \"minutes\": 10}, \"log_level\": \"info\", \"online_hub\": false}"
+}
+
+step "CrowdSec: the local API answers, NPMOS is a machine of its own"
+for i in $(seq 1 30); do
+  $CURL "$ADMIN/api/npmos/crowdsec" | tr -d ' \n' | grep -q '"lapi":{"healthy":true' && break
+  [ "$i" = 30 ] && fail "the local API of CrowdSec does not answer: $($CURL "$ADMIN/api/npmos/crowdsec")"
+  sleep 2
+done
+$CURL "$ADMIN/api/npmos/crowdsec/registry" | grep -q '"name": *"npmos-' || fail "NPMOS is not a machine of CrowdSec"
+
+# the closed network has private addresses only: they are not allowlisted here
+step "CrowdSec: settings from the GUI are applied, CrowdSec restarts (bouncer and AppSec on)"
+cs_settings true "" | tr -d ' \n' | grep -q '"restarted":true' || fail "the settings did not restart CrowdSec"
+
+step "CrowdSec: a broken profile is refused at the start of CrowdSec, the previous files come back"
+answer=$(cs_settings true "Alert.Broken(((" 2>&1 || true)
+echo "$answer" | grep -q 'previous ones are restored' || fail "a broken profile was not rolled back: $answer"
+$CURL "$ADMIN/api/npmos/crowdsec" | tr -d ' \n' | grep -q '"lapi":{"healthy":true' \
+  || fail "CrowdSec is not healthy after the rollback"
+$CURL "$ADMIN/api/npmos/crowdsec/settings" | grep -q '"filter": *""' || fail "the broken profile was kept"
+
+step "CrowdSec: a ban by hand blocks the tester on its hosts, not in the interface of NPMOS"
+api_json "$ADMIN/api/npmos/crowdsec/decisions" -d "{\"values\": [\"$client_ip\"], \"duration\": \"10m\", \"reason\": \"smoke\"}" \
+  | grep -q '"count": *1' || fail "the ban was not added"
+wait_page / 403 "test.local for a banned address"
+$CURL "$ADMIN/api/npmos/crowdsec/decisions?q=$client_ip" | grep -q '"scenario": *"npmos/manual"' \
+  || fail "the ban is not among the decisions"
+
+step "CrowdSec: a host left out by the bouncer lets the banned address in"
+api_json -X PUT "$ADMIN/api/npmos/crowdsec/hosts/proxy_host/1" -d '{"bouncer": false}' > /dev/null
+wait_page / 200 "test.local left out by the bouncer"
+api_json -X PUT "$ADMIN/api/npmos/crowdsec/hosts/proxy_host/1" -d '{"bouncer": true}' > /dev/null
+wait_page / 403 "test.local checked by the bouncer again"
+
+step "CrowdSec: unban lets the tester in"
+api_json "$ADMIN/api/npmos/crowdsec/decisions/delete" -d "{\"values\": [\"$client_ip\"]}" | grep -q '"deleted": *[1-9]' \
+  || fail "the ban was not removed"
+wait_page / 200 "test.local after the unban"
+
+step "CrowdSec: AppSec blocks a probe of /.env, its alert becomes a security event"
+wait_page /.env 403 "a probe of /.env with AppSec"
+for i in $(seq 1 45); do
+  $CURL "$ADMIN/api/npmos/events?kind=crowdsec&limit=5" | grep -q '"kind": *"crowdsec"' && break
+  [ "$i" = 45 ] && fail "no CrowdSec alert in the events: $($CURL "$ADMIN/api/npmos/events?kind=crowdsec&limit=5")"
+  sleep 2
+done
+api_json "$ADMIN/api/npmos/crowdsec/decisions/delete" -d "{\"values\": [\"$client_ip\"]}" > /dev/null || true
+
+if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
+  step "CrowdSec: three requests blocked by open-appsec ban the address"
+  for i in $(seq 1 30); do
+    page "$SQLI" > /dev/null
+    $CURL "$ADMIN/api/npmos/crowdsec/decisions?q=$client_ip" | grep -q 'npmos/openappsec-prevent' && break
+    [ "$i" = 30 ] && fail "blocked requests of open-appsec did not ban: $($CURL "$ADMIN/api/npmos/crowdsec/alerts?limit=5")"
+    sleep 2
+  done
+  wait_page / 403 "test.local for an address banned for its attacks"
+  api_json "$ADMIN/api/npmos/crowdsec/decisions/delete" -d "{\"values\": [\"$client_ip\"]}" > /dev/null
+  wait_page / 200 "test.local after the unban"
+fi
+
+step "CrowdSec: a blocklist file becomes decisions, the allowlist and bad lines are left out"
+printf '# smoke\n203.0.113.10\n203.0.113.0/28 range\nnot-an-ip\n2001:db8::10\n' > /tmp/list.txt
+list=$($CURL -X POST -H 'Content-Type: text/plain' --data-binary @/tmp/list.txt \
+  "$ADMIN/api/npmos/crowdsec/blocklists?name=smoke&duration=1h")
+echo "$list" | tr -d ' \n' | grep -q '"count":3' || fail "the blocklist did not make 3 decisions: $list"
+$CURL "$ADMIN/api/npmos/crowdsec/decisions?origin=lists" | grep -q '"value": *"203.0.113.0/28"' \
+  || fail "the range of the blocklist is not banned"
+
+step "CrowdSec: other nodes take the decisions of this one with its token only"
+api_json "$ADMIN/api/npmos/crowdsec/decisions" -d '{"values": ["192.0.2.77"], "duration": "1h"}' > /dev/null
+token=$(api_json -X PUT "$ADMIN/api/npmos/crowdsec/share" -d '{"enabled": true}' | tr -d ' \n' \
+  | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
+[ -n "$token" ] || fail "no token for other nodes"
+expect "$(curl -sS -k -o /dev/null -w '%{http_code}' "$ADMIN/api/npmos/crowdsec/public/decisions")" 403 "the export without a token"
+export=$(curl -sS -k -H "Authorization: Bearer $token" "$ADMIN/api/npmos/crowdsec/public/decisions")
+echo "$export" | grep -q '^192.0.2.77$' || fail "the export has no decision by hand: $export"
+echo "$export" | grep -q '203.0.113.10' && fail "the export has the decisions of a blocklist"
+node=$(api_json "$ADMIN/api/npmos/crowdsec/blocklists" -d "{\"name\": \"node\", \"source\": \"url\",
+  \"url\": \"$ADMIN/api/npmos/crowdsec/public/decisions\", \"token\": \"$token\", \"insecure\": true, \"refresh_minutes\": 60}")
+echo "$node" | tr -d ' \n' | grep -q '"error":""' || fail "the decisions of another node were not taken: $node"
+
+step "CrowdSec: a hub item installs from the offline snapshot and is removed again"
+api_json --max-time 300 "$ADMIN/api/npmos/crowdsec/hub" \
+  -d '{"type": "collections", "name": "crowdsecurity/nextcloud", "action": "install"}' \
+  | grep -q 'scenarios/crowdsecurity/nextcloud-bf' || fail "the collection did not install with its scenario"
+$CURL "$ADMIN/api/npmos/crowdsec/hub?type=collections&q=nextcloud&installed=true" | grep -q '"status": *"up-to-date"' \
+  || fail "the installed collection is not up to date"
+api_json --max-time 300 "$ADMIN/api/npmos/crowdsec/hub" \
+  -d '{"type": "collections", "name": "crowdsecurity/nextcloud", "action": "remove"}' \
+  | grep -q 'collections/crowdsecurity/nextcloud' || fail "the collection was not removed"
+
 echo "OK: closed-network smoke passed"

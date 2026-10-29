@@ -335,6 +335,9 @@
 	"created-on": {
 		"defaultMessage": "Создан: {date}"
 	},
+	"crowdsec": {
+		"defaultMessage": "CrowdSec"
+	},
 	"dashboard": {
 		"defaultMessage": "Обзор"
 	},
@@ -632,6 +635,12 @@
 	"npmos.analytics.countries": {
 		"defaultMessage": "Страны"
 	},
+	"npmos.analytics.crowdsec-alerts": {
+		"defaultMessage": "Алертов CrowdSec: {count}"
+	},
+	"npmos.analytics.crowdsec-bans": {
+		"defaultMessage": "Банов CrowdSec"
+	},
 	"npmos.analytics.detected": {
 		"defaultMessage": "Только обнаружено"
 	},
@@ -767,8 +776,824 @@
 	"npmos.common.warning": {
 		"defaultMessage": "Предупреждение"
 	},
+	"npmos.crowdsec": {
+		"defaultMessage": "CrowdSec"
+	},
+	"npmos.crowdsec.actions": {
+		"defaultMessage": "Действия"
+	},
+	"npmos.crowdsec.activity": {
+		"defaultMessage": "Активность"
+	},
+	"npmos.crowdsec.agent.off": {
+		"defaultMessage": "Агент WAF не использует эти решения; включается в разделе"
+	},
+	"npmos.crowdsec.agent.on": {
+		"defaultMessage": "Агент WAF тоже проверяет IP клиентов по этим решениям (режим: {mode})."
+	},
+	"npmos.crowdsec.agent.open": {
+		"defaultMessage": "WAF → Агент"
+	},
+	"npmos.crowdsec.alerts.active": {
+		"defaultMessage": "Только с активным решением"
+	},
+	"npmos.crowdsec.alerts.none": {
+		"defaultMessage": "Алертов нет."
+	},
+	"npmos.crowdsec.alerts.search": {
+		"defaultMessage": "Сценарий, IP, страна или хост"
+	},
+	"npmos.crowdsec.allowlist.expressions": {
+		"defaultMessage": "Выражения"
+	},
+	"npmos.crowdsec.allowlist.expressions.hint": {
+		"defaultMessage": "Условия на события на языке выражений CrowdSec, по одному в строке."
+	},
+	"npmos.crowdsec.allowlist.hint": {
+		"defaultMessage": "События с этих адресов никогда не приводят к бану. Добавьте адреса администраторов: баунсер защищает и интерфейс NPMOS."
+	},
+	"npmos.crowdsec.allowlist.ips": {
+		"defaultMessage": "IP-адреса и диапазоны CIDR"
+	},
+	"npmos.crowdsec.allowlist.ips.hint": {
+		"defaultMessage": "По одному в строке; не банятся и из блок-листов."
+	},
+	"npmos.crowdsec.allowlist.private": {
+		"defaultMessage": "Не банить частные адреса"
+	},
+	"npmos.crowdsec.allowlist.private.hint": {
+		"defaultMessage": "10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, loopback и link-local (парсер crowdsecurity/whitelists). Выключайте только для проверки в закрытой сети."
+	},
+	"npmos.crowdsec.allowlist.title": {
+		"defaultMessage": "Белый список"
+	},
+	"npmos.crowdsec.apply": {
+		"defaultMessage": "Применить сейчас"
+	},
+	"npmos.crowdsec.appsec.configs": {
+		"defaultMessage": "Конфигурации AppSec"
+	},
+	"npmos.crowdsec.appsec.configs.hint": {
+		"defaultMessage": "Имена из hub, по одному в строке; устанавливаются при сохранении."
+	},
+	"npmos.crowdsec.appsec.enabled": {
+		"defaultMessage": "Проверять запросы через AppSec"
+	},
+	"npmos.crowdsec.appsec.failure": {
+		"defaultMessage": "Если AppSec не отвечает"
+	},
+	"npmos.crowdsec.appsec.failure.deny": {
+		"defaultMessage": "Блокировать запрос"
+	},
+	"npmos.crowdsec.appsec.failure.passthrough": {
+		"defaultMessage": "Пропускать запрос"
+	},
+	"npmos.crowdsec.appsec.hint": {
+		"defaultMessage": "Баунсер отправляет запросы в движок AppSec CrowdSec, который блокирует эксплойты известных уязвимостей (виртуальные патчи). Работает вместе с баунсером NPMOS."
+	},
+	"npmos.crowdsec.appsec.title": {
+		"defaultMessage": "CrowdSec AppSec"
+	},
+	"npmos.crowdsec.ban": {
+		"defaultMessage": "Забанить"
+	},
+	"npmos.crowdsec.ban.do": {
+		"defaultMessage": "Забанить ({count})"
+	},
+	"npmos.crowdsec.ban.done": {
+		"defaultMessage": "Забанено: {count}"
+	},
+	"npmos.crowdsec.ban.reason": {
+		"defaultMessage": "Причина (для журнала аудита)"
+	},
+	"npmos.crowdsec.ban.title": {
+		"defaultMessage": "Забанить адреса"
+	},
+	"npmos.crowdsec.ban.values": {
+		"defaultMessage": "IP-адреса и диапазоны CIDR"
+	},
+	"npmos.crowdsec.ban.values.hint": {
+		"defaultMessage": "По одному в строке или через запятую и пробел; до 10 000."
+	},
+	"npmos.crowdsec.blocklist.add": {
+		"defaultMessage": "Добавить блок-лист"
+	},
+	"npmos.crowdsec.blocklist.count": {
+		"defaultMessage": "Решений"
+	},
+	"npmos.crowdsec.blocklist.delete": {
+		"defaultMessage": "Удалить блок-лист"
+	},
+	"npmos.crowdsec.blocklist.delete.text": {
+		"defaultMessage": "Удалить блок-лист {name}? Его решения ({count}) будут сняты."
+	},
+	"npmos.crowdsec.blocklist.duration.hint": {
+		"defaultMessage": "Больше интервала скачивания, чтобы баны не истекали между загрузками."
+	},
+	"npmos.crowdsec.blocklist.edit": {
+		"defaultMessage": "Изменить блок-лист"
+	},
+	"npmos.crowdsec.blocklist.enabled": {
+		"defaultMessage": "Банить адреса из этого списка"
+	},
+	"npmos.crowdsec.blocklist.file": {
+		"defaultMessage": "Файл со списком"
+	},
+	"npmos.crowdsec.blocklist.file.lines": {
+		"defaultMessage": "Файл, строк: {count}"
+	},
+	"npmos.crowdsec.blocklist.file.replace": {
+		"defaultMessage": "Новый файл (пусто: оставить список)"
+	},
+	"npmos.crowdsec.blocklist.format": {
+		"defaultMessage": "Один IP или CIDR в строке; комментарии после # или ; пропускаются. До 20 МБ и 200 000 адресов. Адреса из белого списка не банятся."
+	},
+	"npmos.crowdsec.blocklist.insecure": {
+		"defaultMessage": "Не проверять TLS-сертификат"
+	},
+	"npmos.crowdsec.blocklist.insecure.hint": {
+		"defaultMessage": "Только для другого узла NPMOS с самоподписанным сертификатом в доверенной сети."
+	},
+	"npmos.crowdsec.blocklist.refresh": {
+		"defaultMessage": "Скачивать заново"
+	},
+	"npmos.crowdsec.blocklist.refresh.0": {
+		"defaultMessage": "Только вручную"
+	},
+	"npmos.crowdsec.blocklist.refresh.1440": {
+		"defaultMessage": "Каждый день"
+	},
+	"npmos.crowdsec.blocklist.refresh.15": {
+		"defaultMessage": "Каждые 15 минут"
+	},
+	"npmos.crowdsec.blocklist.refresh.360": {
+		"defaultMessage": "Каждые 6 часов"
+	},
+	"npmos.crowdsec.blocklist.refresh.60": {
+		"defaultMessage": "Каждый час"
+	},
+	"npmos.crowdsec.blocklist.saved": {
+		"defaultMessage": "Блок-лист сохранён: решений {count}"
+	},
+	"npmos.crowdsec.blocklist.source": {
+		"defaultMessage": "Источник"
+	},
+	"npmos.crowdsec.blocklist.source.file": {
+		"defaultMessage": "Файл"
+	},
+	"npmos.crowdsec.blocklist.source.url": {
+		"defaultMessage": "URL"
+	},
+	"npmos.crowdsec.blocklist.sync": {
+		"defaultMessage": "Обновить сейчас"
+	},
+	"npmos.crowdsec.blocklist.sync-failed": {
+		"defaultMessage": "Блок-лист сохранён, но не скачан: {error}"
+	},
+	"npmos.crowdsec.blocklist.synced": {
+		"defaultMessage": "Решений: {count}, пропущено строк: {invalid}"
+	},
+	"npmos.crowdsec.blocklist.synced-on": {
+		"defaultMessage": "Обновлён"
+	},
+	"npmos.crowdsec.blocklist.token": {
+		"defaultMessage": "Токен (необязательно)"
+	},
+	"npmos.crowdsec.blocklist.too-large": {
+		"defaultMessage": "Файл больше 20 МБ"
+	},
+	"npmos.crowdsec.blocklist.url": {
+		"defaultMessage": "URL списка"
+	},
+	"npmos.crowdsec.blocklist.url.hint": {
+		"defaultMessage": "Другой узел NPMOS: его адрес с /api/npmos/crowdsec/public/decisions и его токен. NPMOS скачивает его сам, только отсюда, с таймаутом 30 с."
+	},
+	"npmos.crowdsec.blocklists.hint": {
+		"defaultMessage": "Списки IP и CIDR, которые банятся на этом узле вместо community blocklist облака CrowdSec: файл или URL, который скачивается по расписанию (другой узел NPMOS или любой список того же формата)."
+	},
+	"npmos.crowdsec.blocklists.none": {
+		"defaultMessage": "Блок-листов нет."
+	},
+	"npmos.crowdsec.bouncer.admin": {
+		"defaultMessage": "Проверять и интерфейс NPMOS"
+	},
+	"npmos.crowdsec.bouncer.admin.hint": {
+		"defaultMessage": "Выключено: бан никогда не закрывает администраторам доступ к интерфейсу (порт интерфейса и GoAccess). Включено: забаненные адреса не откроют и его; сначала внесите адреса администраторов в белый список."
+	},
+	"npmos.crowdsec.bouncer.appsec": {
+		"defaultMessage": "Агент WAF"
+	},
+	"npmos.crowdsec.bouncer.enabled": {
+		"defaultMessage": "Проверять запросы в nginx"
+	},
+	"npmos.crowdsec.bouncer.exclude": {
+		"defaultMessage": "Пути без проверки"
+	},
+	"npmos.crowdsec.bouncer.exclude.hint": {
+		"defaultMessage": "Один путь в строке, например проверки здоровья балансировщика."
+	},
+	"npmos.crowdsec.bouncer.fallback": {
+		"defaultMessage": "Неизвестный тип решения"
+	},
+	"npmos.crowdsec.bouncer.hint": {
+		"defaultMessage": "nginx NPMOS проверяет каждый запрос по решениям: забаненный адрес получает страницу бана, адрес с капчей — капчу. Вместо ручной правки crowdsec.conf; ключ регистрируется автоматически."
+	},
+	"npmos.crowdsec.bouncer.hosts": {
+		"defaultMessage": "Отдельные хосты исключаются в таблице «Хосты» (колонка CrowdSec)."
+	},
+	"npmos.crowdsec.bouncer.mode": {
+		"defaultMessage": "Режим"
+	},
+	"npmos.crowdsec.bouncer.mode.live": {
+		"defaultMessage": "Live"
+	},
+	"npmos.crowdsec.bouncer.mode.live.hint": {
+		"defaultMessage": "Спрашивает локальный API о каждом новом адресе (кэш на секунду): баны действуют сразу."
+	},
+	"npmos.crowdsec.bouncer.mode.stream": {
+		"defaultMessage": "Stream"
+	},
+	"npmos.crowdsec.bouncer.mode.stream.hint": {
+		"defaultMessage": "Периодически скачивает все решения: меньше запросов к CrowdSec, баны действуют после следующей загрузки."
+	},
+	"npmos.crowdsec.bouncer.npmos": {
+		"defaultMessage": "nginx NPMOS"
+	},
+	"npmos.crowdsec.bouncer.pull": {
+		"defaultMessage": "Последний запрос"
+	},
+	"npmos.crowdsec.bouncer.revoked": {
+		"defaultMessage": "Отозван"
+	},
+	"npmos.crowdsec.bouncer.title": {
+		"defaultMessage": "Баунсер NPMOS"
+	},
+	"npmos.crowdsec.bouncer.type": {
+		"defaultMessage": "Программа"
+	},
+	"npmos.crowdsec.bouncer.update-frequency": {
+		"defaultMessage": "Скачивать каждые, с"
+	},
+	"npmos.crowdsec.bouncers": {
+		"defaultMessage": "Баунсеры"
+	},
+	"npmos.crowdsec.bouncers.hint": {
+		"defaultMessage": "Компоненты, которые применяют решения. npmos — nginx NPMOS, appsec — агент WAF (репутация IP); их ключи создаёт npmos-init."
+	},
+	"npmos.crowdsec.capi": {
+		"defaultMessage": "Центральный API CrowdSec (обмен сигналами, community blocklist) не используется: его заменяют локальные блок-листы и решения других узлов NPMOS."
+	},
+	"npmos.crowdsec.captcha.needs-provider": {
+		"defaultMessage": "Для капчи нужен провайдер капчи в настройках баунсера; без него баунсер банит."
+	},
+	"npmos.crowdsec.captcha.provider": {
+		"defaultMessage": "Провайдер капчи"
+	},
+	"npmos.crowdsec.captcha.provider.hcaptcha": {
+		"defaultMessage": "hCaptcha"
+	},
+	"npmos.crowdsec.captcha.provider.none": {
+		"defaultMessage": "Нет"
+	},
+	"npmos.crowdsec.captcha.provider.recaptcha": {
+		"defaultMessage": "reCAPTCHA"
+	},
+	"npmos.crowdsec.captcha.provider.turnstile": {
+		"defaultMessage": "Turnstile"
+	},
+	"npmos.crowdsec.captcha.secret-key": {
+		"defaultMessage": "Секретный ключ"
+	},
+	"npmos.crowdsec.captcha.site-key": {
+		"defaultMessage": "Ключ сайта"
+	},
+	"npmos.crowdsec.decision": {
+		"defaultMessage": "Решение"
+	},
+	"npmos.crowdsec.decision.all": {
+		"defaultMessage": "Все решения"
+	},
+	"npmos.crowdsec.decision.ban": {
+		"defaultMessage": "Бан"
+	},
+	"npmos.crowdsec.decision.captcha": {
+		"defaultMessage": "Капча"
+	},
+	"npmos.crowdsec.decisions.none": {
+		"defaultMessage": "Активных решений нет."
+	},
+	"npmos.crowdsec.decisions.search": {
+		"defaultMessage": "IP, диапазон или сценарий"
+	},
+	"npmos.crowdsec.duration": {
+		"defaultMessage": "Срок"
+	},
+	"npmos.crowdsec.duration.12h": {
+		"defaultMessage": "12 часов"
+	},
+	"npmos.crowdsec.duration.15m": {
+		"defaultMessage": "15 минут"
+	},
+	"npmos.crowdsec.duration.1h": {
+		"defaultMessage": "1 час"
+	},
+	"npmos.crowdsec.duration.24h": {
+		"defaultMessage": "24 часа"
+	},
+	"npmos.crowdsec.duration.30d": {
+		"defaultMessage": "30 дней"
+	},
+	"npmos.crowdsec.duration.4h": {
+		"defaultMessage": "4 часа"
+	},
+	"npmos.crowdsec.duration.7d": {
+		"defaultMessage": "7 дней"
+	},
+	"npmos.crowdsec.events": {
+		"defaultMessage": "Событий"
+	},
+	"npmos.crowdsec.host": {
+		"defaultMessage": "Хост"
+	},
+	"npmos.crowdsec.hub.hint": {
+		"defaultMessage": "Снимок hub на этом узле: из интернета ничего не скачивается. Новый снимок загружается здесь (.index.json от cscli hub update --with-content или архив scripts/crowdsec-hub-snapshot.sh с файлами данных). Установка и удаление перезапускают CrowdSec."
+	},
+	"npmos.crowdsec.hub.index-updated": {
+		"defaultMessage": "Индекс hub обновлён: элементов {count}"
+	},
+	"npmos.crowdsec.hub.install": {
+		"defaultMessage": "Установить"
+	},
+	"npmos.crowdsec.hub.install.done": {
+		"defaultMessage": "Установлено или обновлено: {count}"
+	},
+	"npmos.crowdsec.hub.installed-only": {
+		"defaultMessage": "Только установленные"
+	},
+	"npmos.crowdsec.hub.locked": {
+		"defaultMessage": "Нужен настройкам NPMOS или установленной коллекции, либо это локальный файл"
+	},
+	"npmos.crowdsec.hub.more": {
+		"defaultMessage": "Ещё {count}: уточните поиск"
+	},
+	"npmos.crowdsec.hub.needed-by": {
+		"defaultMessage": "Входит в: {names}"
+	},
+	"npmos.crowdsec.hub.online": {
+		"defaultMessage": "Обновить индекс онлайн"
+	},
+	"npmos.crowdsec.hub.remove": {
+		"defaultMessage": "Удалить"
+	},
+	"npmos.crowdsec.hub.remove.done": {
+		"defaultMessage": "Удалено: {count}"
+	},
+	"npmos.crowdsec.hub.required": {
+		"defaultMessage": "Нужен NPMOS"
+	},
+	"npmos.crowdsec.hub.search": {
+		"defaultMessage": "Название или описание"
+	},
+	"npmos.crowdsec.hub.status.broken": {
+		"defaultMessage": "Битая ссылка"
+	},
+	"npmos.crowdsec.hub.status.installed": {
+		"defaultMessage": "Установлен"
+	},
+	"npmos.crowdsec.hub.status.local": {
+		"defaultMessage": "Локальный файл"
+	},
+	"npmos.crowdsec.hub.status.not-installed": {
+		"defaultMessage": "Не установлен"
+	},
+	"npmos.crowdsec.hub.status.outdated": {
+		"defaultMessage": "Устарел"
+	},
+	"npmos.crowdsec.hub.status.tainted": {
+		"defaultMessage": "Изменён вручную"
+	},
+	"npmos.crowdsec.hub.status.up-to-date": {
+		"defaultMessage": "Актуален"
+	},
+	"npmos.crowdsec.hub.type": {
+		"defaultMessage": "Тип"
+	},
+	"npmos.crowdsec.hub.type.all": {
+		"defaultMessage": "Все типы"
+	},
+	"npmos.crowdsec.hub.type.appsec-configs": {
+		"defaultMessage": "Конфигурации AppSec"
+	},
+	"npmos.crowdsec.hub.type.appsec-rules": {
+		"defaultMessage": "Правила AppSec"
+	},
+	"npmos.crowdsec.hub.type.collections": {
+		"defaultMessage": "Коллекции"
+	},
+	"npmos.crowdsec.hub.type.contexts": {
+		"defaultMessage": "Контексты"
+	},
+	"npmos.crowdsec.hub.type.parsers": {
+		"defaultMessage": "Парсеры"
+	},
+	"npmos.crowdsec.hub.type.postoverflows": {
+		"defaultMessage": "Postoverflows"
+	},
+	"npmos.crowdsec.hub.type.scenarios": {
+		"defaultMessage": "Сценарии"
+	},
+	"npmos.crowdsec.hub.upgrade": {
+		"defaultMessage": "Обновить устаревшие ({count})"
+	},
+	"npmos.crowdsec.hub.upgraded": {
+		"defaultMessage": "Обновлено: {count}"
+	},
+	"npmos.crowdsec.hub.upload": {
+		"defaultMessage": "Загрузить снимок"
+	},
+	"npmos.crowdsec.hub.uploaded": {
+		"defaultMessage": "Снимок hub загружен: элементов {count}, файлов данных {data}"
+	},
+	"npmos.crowdsec.ip": {
+		"defaultMessage": "IP-адрес"
+	},
+	"npmos.crowdsec.lapi.down": {
+		"defaultMessage": "Недоступен"
+	},
+	"npmos.crowdsec.lapi.down.text": {
+		"defaultMessage": "Локальный API CrowdSec не отвечает: {error}."
+	},
+	"npmos.crowdsec.lapi.ok": {
+		"defaultMessage": "Работает"
+	},
+	"npmos.crowdsec.left": {
+		"defaultMessage": "Осталось"
+	},
+	"npmos.crowdsec.left.days": {
+		"defaultMessage": "{days} дн."
+	},
+	"npmos.crowdsec.left.hours": {
+		"defaultMessage": "{hours} ч {minutes} мин"
+	},
+	"npmos.crowdsec.left.minutes": {
+		"defaultMessage": "{minutes} мин"
+	},
+	"npmos.crowdsec.left.seconds": {
+		"defaultMessage": "{seconds} с"
+	},
+	"npmos.crowdsec.log-level": {
+		"defaultMessage": "Уровень журнала CrowdSec"
+	},
+	"npmos.crowdsec.log-level.debug": {
+		"defaultMessage": "Отладка"
+	},
+	"npmos.crowdsec.log-level.error": {
+		"defaultMessage": "Ошибки"
+	},
+	"npmos.crowdsec.log-level.info": {
+		"defaultMessage": "Информация"
+	},
+	"npmos.crowdsec.log-level.warning": {
+		"defaultMessage": "Предупреждения"
+	},
+	"npmos.crowdsec.machine.heartbeat": {
+		"defaultMessage": "Последний сигнал"
+	},
+	"npmos.crowdsec.machine.local": {
+		"defaultMessage": "Агент CrowdSec"
+	},
+	"npmos.crowdsec.machine.npmos": {
+		"defaultMessage": "NPMOS"
+	},
+	"npmos.crowdsec.machine.pending": {
+		"defaultMessage": "Не подтверждена"
+	},
+	"npmos.crowdsec.machine.push": {
+		"defaultMessage": "Последний алерт"
+	},
+	"npmos.crowdsec.machines": {
+		"defaultMessage": "Машины"
+	},
+	"npmos.crowdsec.machines.hint": {
+		"defaultMessage": "Агенты, которые отправляют алерты в локальный API. localhost — агент самого CrowdSec, npmos-… — NPMOS (ручные баны, блок-листы)."
+	},
+	"npmos.crowdsec.metrics.appsec": {
+		"defaultMessage": "AppSec: заблокировано / проверено запросов"
+	},
+	"npmos.crowdsec.metrics.decisions-of": {
+		"defaultMessage": "Решений: {origin}"
+	},
+	"npmos.crowdsec.metrics.none": {
+		"defaultMessage": "Нет метрик: CrowdSec не отвечает."
+	},
+	"npmos.crowdsec.metrics.overflows": {
+		"defaultMessage": "Сработавшие сценарии"
+	},
+	"npmos.crowdsec.metrics.overflows.none": {
+		"defaultMessage": "С запуска CrowdSec не сработал ни один сценарий."
+	},
+	"npmos.crowdsec.metrics.parsed": {
+		"defaultMessage": "Строк журналов разобрано"
+	},
+	"npmos.crowdsec.metrics.sources": {
+		"defaultMessage": "Прочитано строк по источникам"
+	},
+	"npmos.crowdsec.metrics.sources.none": {
+		"defaultMessage": "Пока ничего не прочитано."
+	},
+	"npmos.crowdsec.move-down": {
+		"defaultMessage": "Ниже"
+	},
+	"npmos.crowdsec.move-up": {
+		"defaultMessage": "Выше"
+	},
+	"npmos.crowdsec.name": {
+		"defaultMessage": "Название"
+	},
+	"npmos.crowdsec.none-found": {
+		"defaultMessage": "Ничего не найдено."
+	},
+	"npmos.crowdsec.online-hub": {
+		"defaultMessage": "Разрешить онлайн-обновление hub"
+	},
+	"npmos.crowdsec.online-hub.hint": {
+		"defaultMessage": "Тогда на вкладке Hub можно скачать индекс с CDN CrowdSec, а установка элемента докачивает недостающие файлы данных (таймаут 60 с). Выключено: только загруженные снимки."
+	},
+	"npmos.crowdsec.open-services": {
+		"defaultMessage": "Открыть «Сервисы»"
+	},
+	"npmos.crowdsec.open-settings": {
+		"defaultMessage": "Изменить настройки"
+	},
+	"npmos.crowdsec.openappsec-ban.enabled": {
+		"defaultMessage": "Банить после повторных заблокированных запросов"
+	},
+	"npmos.crowdsec.openappsec-ban.events": {
+		"defaultMessage": "Заблокированных запросов"
+	},
+	"npmos.crowdsec.openappsec-ban.hint": {
+		"defaultMessage": "open-appsec блокирует отдельные запросы; это правило банит адрес за повторные атаки, и его следующие запросы уже не доходят до WAF."
+	},
+	"npmos.crowdsec.openappsec-ban.minutes": {
+		"defaultMessage": "За, минут"
+	},
+	"npmos.crowdsec.openappsec-ban.profile": {
+		"defaultMessage": "Решение и его срок берутся из первого подходящего профиля ниже."
+	},
+	"npmos.crowdsec.openappsec-ban.title": {
+		"defaultMessage": "Банить атакующих, которых блокирует WAF"
+	},
+	"npmos.crowdsec.origin": {
+		"defaultMessage": "Источник"
+	},
+	"npmos.crowdsec.origin.CAPI": {
+		"defaultMessage": "Community blocklist"
+	},
+	"npmos.crowdsec.origin.all": {
+		"defaultMessage": "Все источники"
+	},
+	"npmos.crowdsec.origin.appsec": {
+		"defaultMessage": "AppSec"
+	},
+	"npmos.crowdsec.origin.crowdsec": {
+		"defaultMessage": "Сценарии"
+	},
+	"npmos.crowdsec.origin.cscli": {
+		"defaultMessage": "Вручную"
+	},
+	"npmos.crowdsec.origin.lists": {
+		"defaultMessage": "Блок-листы"
+	},
+	"npmos.crowdsec.other.title": {
+		"defaultMessage": "Прочее"
+	},
+	"npmos.crowdsec.page": {
+		"defaultMessage": "{from}–{to} из {total}"
+	},
+	"npmos.crowdsec.page.next": {
+		"defaultMessage": "Дальше"
+	},
+	"npmos.crowdsec.page.prev": {
+		"defaultMessage": "Назад"
+	},
+	"npmos.crowdsec.profile.add": {
+		"defaultMessage": "Добавить профиль"
+	},
+	"npmos.crowdsec.profile.done": {
+		"defaultMessage": "Готово"
+	},
+	"npmos.crowdsec.profile.edit": {
+		"defaultMessage": "Изменить профиль"
+	},
+	"npmos.crowdsec.profile.enabled": {
+		"defaultMessage": "Профиль включён"
+	},
+	"npmos.crowdsec.profile.escalate": {
+		"defaultMessage": "Дольше за каждый следующий бан"
+	},
+	"npmos.crowdsec.profile.escalate.hint": {
+		"defaultMessage": "Каждое следующее решение для того же адреса на {duration} дольше."
+	},
+	"npmos.crowdsec.profile.escalates": {
+		"defaultMessage": "С эскалацией"
+	},
+	"npmos.crowdsec.profile.filter": {
+		"defaultMessage": "Выражение (необязательно)"
+	},
+	"npmos.crowdsec.profile.filter.hint": {
+		"defaultMessage": "Дополнительное условие на языке выражений CrowdSec. Ошибочное отвергается при запуске CrowdSec, и возвращаются прежние настройки."
+	},
+	"npmos.crowdsec.profile.name.format": {
+		"defaultMessage": "Строчные латинские буквы, цифры, _ и -"
+	},
+	"npmos.crowdsec.profile.name.taken": {
+		"defaultMessage": "Это имя уже занято"
+	},
+	"npmos.crowdsec.profile.scenarios": {
+		"defaultMessage": "Только эти сценарии (необязательно)"
+	},
+	"npmos.crowdsec.profile.scenarios.hint": {
+		"defaultMessage": "Имена сценариев, по одному в строке; пусто — все."
+	},
+	"npmos.crowdsec.profile.scope": {
+		"defaultMessage": "Алерты о"
+	},
+	"npmos.crowdsec.profile.takes": {
+		"defaultMessage": "Принимает"
+	},
+	"npmos.crowdsec.profiles.hint": {
+		"defaultMessage": "Что CrowdSec решает по алерту: первый сверху включённый профиль, который его принимает."
+	},
+	"npmos.crowdsec.profiles.none": {
+		"defaultMessage": "Нет включённых профилей: по алертам не будет решений."
+	},
+	"npmos.crowdsec.profiles.title": {
+		"defaultMessage": "Профили реагирования"
+	},
+	"npmos.crowdsec.protection": {
+		"defaultMessage": "Защита"
+	},
+	"npmos.crowdsec.protection.agent": {
+		"defaultMessage": "Репутация IP в агенте WAF"
+	},
+	"npmos.crowdsec.protection.appsec": {
+		"defaultMessage": "CrowdSec AppSec: виртуальные патчи известных уязвимостей"
+	},
+	"npmos.crowdsec.protection.bouncer": {
+		"defaultMessage": "Баунсер NPMOS: баны и капча в nginx"
+	},
+	"npmos.crowdsec.protection.nginx": {
+		"defaultMessage": "Читает журналы доступа и ошибок nginx"
+	},
+	"npmos.crowdsec.protection.openappsec": {
+		"defaultMessage": "Читает журнал безопасности open-appsec"
+	},
+	"npmos.crowdsec.protection.openappsec-ban": {
+		"defaultMessage": "Бан после {events} запросов, заблокированных open-appsec за {minutes} мин"
+	},
+	"npmos.crowdsec.scenario": {
+		"defaultMessage": "Сценарий"
+	},
+	"npmos.crowdsec.scope.Ip": {
+		"defaultMessage": "IP-адресе"
+	},
+	"npmos.crowdsec.scope.Range": {
+		"defaultMessage": "Диапазоне"
+	},
+	"npmos.crowdsec.scope.any": {
+		"defaultMessage": "Любом"
+	},
+	"npmos.crowdsec.secret.kept": {
+		"defaultMessage": "Сохранён; пусто — оставить"
+	},
+	"npmos.crowdsec.select-all": {
+		"defaultMessage": "Выбрать все"
+	},
+	"npmos.crowdsec.settings.applied": {
+		"defaultMessage": "Настройки применены, CrowdSec перезапущен"
+	},
+	"npmos.crowdsec.settings.pending": {
+		"defaultMessage": "Файлы CrowdSec не совпадают с настройками ({files}): они применятся при следующем сохранении или сейчас."
+	},
+	"npmos.crowdsec.settings.restarting": {
+		"defaultMessage": "CrowdSec перезапускается с новыми файлами; если он не запустится, вернутся прежние."
+	},
+	"npmos.crowdsec.settings.save": {
+		"defaultMessage": "Сохранить и применить"
+	},
+	"npmos.crowdsec.settings.saved": {
+		"defaultMessage": "Настройки сохранены"
+	},
+	"npmos.crowdsec.share": {
+		"defaultMessage": "Решения для других узлов NPMOS"
+	},
+	"npmos.crowdsec.share.disable": {
+		"defaultMessage": "Запретить"
+	},
+	"npmos.crowdsec.share.enable": {
+		"defaultMessage": "Разрешить и создать токен"
+	},
+	"npmos.crowdsec.share.hint": {
+		"defaultMessage": "Другие узлы добавляют этот адрес с токеном как блок-лист по URL и получают баны этого узла (без банов из его блок-листов). Без входа, только по токену; он показывается один раз."
+	},
+	"npmos.crowdsec.share.new-token": {
+		"defaultMessage": "Новый токен"
+	},
+	"npmos.crowdsec.share.token": {
+		"defaultMessage": "Токен для других узлов (скопируйте сейчас, он больше не показывается):"
+	},
+	"npmos.crowdsec.simulated": {
+		"defaultMessage": "Симуляция"
+	},
+	"npmos.crowdsec.source": {
+		"defaultMessage": "Источник"
+	},
+	"npmos.crowdsec.sources.hint": {
+		"defaultMessage": "Что CrowdSec читает, чтобы находить атакующих."
+	},
+	"npmos.crowdsec.sources.nginx": {
+		"defaultMessage": "Журналы nginx"
+	},
+	"npmos.crowdsec.sources.nginx.hint": {
+		"defaultMessage": "Журналы доступа и ошибок всех хостов: сканеры, подбор паролей, проверка известных уязвимостей (коллекция ZoeyVid/npmplus)."
+	},
+	"npmos.crowdsec.sources.openappsec": {
+		"defaultMessage": "Журнал безопасности open-appsec"
+	},
+	"npmos.crowdsec.sources.openappsec.hint": {
+		"defaultMessage": "Запросы, которые заблокировал WAF; нужен для правила ниже."
+	},
+	"npmos.crowdsec.sources.title": {
+		"defaultMessage": "Источники логов"
+	},
+	"npmos.crowdsec.status": {
+		"defaultMessage": "Состояние"
+	},
+	"npmos.crowdsec.subtitle": {
+		"defaultMessage": "Находит атакующих по логам nginx и open-appsec и банит их. Работает локально: без консоли CrowdSec и без облака."
+	},
+	"npmos.crowdsec.summary.alerts": {
+		"defaultMessage": "Алертов за 24 ч"
+	},
+	"npmos.crowdsec.summary.bouncers": {
+		"defaultMessage": "Баунсеров"
+	},
+	"npmos.crowdsec.summary.decisions": {
+		"defaultMessage": "Активных решений"
+	},
+	"npmos.crowdsec.summary.hub": {
+		"defaultMessage": "Элементов hub / устарело"
+	},
+	"npmos.crowdsec.summary.lapi": {
+		"defaultMessage": "Локальный API"
+	},
+	"npmos.crowdsec.summary.machines": {
+		"defaultMessage": "Машин"
+	},
+	"npmos.crowdsec.tab.alerts": {
+		"defaultMessage": "Алерты"
+	},
+	"npmos.crowdsec.tab.blocklists": {
+		"defaultMessage": "Блок-листы"
+	},
+	"npmos.crowdsec.tab.decisions": {
+		"defaultMessage": "Решения"
+	},
+	"npmos.crowdsec.tab.hub": {
+		"defaultMessage": "Hub"
+	},
+	"npmos.crowdsec.tab.overview": {
+		"defaultMessage": "Обзор"
+	},
+	"npmos.crowdsec.tab.registry": {
+		"defaultMessage": "Машины и баунсеры"
+	},
+	"npmos.crowdsec.tab.settings": {
+		"defaultMessage": "Настройки"
+	},
+	"npmos.crowdsec.time": {
+		"defaultMessage": "Время"
+	},
+	"npmos.crowdsec.unban": {
+		"defaultMessage": "Разбанить"
+	},
+	"npmos.crowdsec.unban.done": {
+		"defaultMessage": "Снято решений: {count}"
+	},
+	"npmos.crowdsec.unban.selected": {
+		"defaultMessage": "Разбанить выбранные ({count})"
+	},
+	"npmos.crowdsec.value": {
+		"defaultMessage": "Адрес"
+	},
+	"npmos.crowdsec.version": {
+		"defaultMessage": "Версия"
+	},
 	"npmos.events.attack-type": {
 		"defaultMessage": "Тип атаки"
+	},
+	"npmos.events.ban-ip": {
+		"defaultMessage": "Забанить IP в CrowdSec"
 	},
 	"npmos.events.confidence": {
 		"defaultMessage": "Уверенность"
@@ -811,6 +1636,9 @@
 	},
 	"npmos.events.kind.all": {
 		"defaultMessage": "Все"
+	},
+	"npmos.events.kind.crowdsec": {
+		"defaultMessage": "CrowdSec"
 	},
 	"npmos.events.kind.security": {
 		"defaultMessage": "Атаки"
@@ -1034,11 +1862,38 @@
 	"npmos.hosts.copy-domain": {
 		"defaultMessage": "Скопировать домен"
 	},
+	"npmos.hosts.crowdsec.alerts": {
+		"defaultMessage": "Алерты хоста"
+	},
+	"npmos.hosts.crowdsec.bouncer-off": {
+		"defaultMessage": "Баунсер выкл."
+	},
+	"npmos.hosts.crowdsec.enable": {
+		"defaultMessage": "Включить баунсер"
+	},
+	"npmos.hosts.crowdsec.off": {
+		"defaultMessage": "Исключён"
+	},
+	"npmos.hosts.crowdsec.off.hint": {
+		"defaultMessage": "Баунсер не проверяет запросы к этому хосту"
+	},
+	"npmos.hosts.crowdsec.on": {
+		"defaultMessage": "Проверяется"
+	},
+	"npmos.hosts.crowdsec.title": {
+		"defaultMessage": "Банов за 24 ч: {bans}"
+	},
 	"npmos.hosts.done.access": {
 		"defaultMessage": "доступ сохранён"
 	},
 	"npmos.hosts.done.certificate": {
 		"defaultMessage": "сертификат сохранён"
+	},
+	"npmos.hosts.done.crowdsec.off": {
+		"defaultMessage": "Баунсер не проверяет хост"
+	},
+	"npmos.hosts.done.crowdsec.on": {
+		"defaultMessage": "Баунсер проверяет хост"
 	},
 	"npmos.hosts.done.deleted": {
 		"defaultMessage": "удалён"
@@ -3068,6 +3923,12 @@
 	"npmos.rbac.action.apply.desc": {
 		"defaultMessage": "Отправлять политику агенту сразу"
 	},
+	"npmos.rbac.action.decide": {
+		"defaultMessage": "Баны"
+	},
+	"npmos.rbac.action.decide.desc": {
+		"defaultMessage": "Банить и разбанивать адреса вручную, обновлять блок-листы"
+	},
 	"npmos.rbac.action.export_key": {
 		"defaultMessage": "Экспорт ключей"
 	},
@@ -3258,7 +4119,7 @@
 		"defaultMessage": "CrowdSec"
 	},
 	"npmos.rbac.resource.crowdsec.desc": {
-		"defaultMessage": "Алерты, баны, сценарии (фаза 7)"
+		"defaultMessage": "Алерты, баны, блок-листы, hub и настройки CrowdSec"
 	},
 	"npmos.rbac.resource.dead_hosts": {
 		"defaultMessage": "404-хосты"
@@ -4007,6 +4868,15 @@
 	"object.empty": {
 		"defaultMessage": "{objects} отсутствуют"
 	},
+	"object.event.applied": {
+		"defaultMessage": "{object}: применение"
+	},
+	"object.event.banned": {
+		"defaultMessage": "{object}: бан"
+	},
+	"object.event.captcha": {
+		"defaultMessage": "{object}: капча"
+	},
 	"object.event.created": {
 		"defaultMessage": "{object} создан"
 	},
@@ -4022,8 +4892,14 @@
 	"object.event.exported": {
 		"defaultMessage": "{object}: выгрузка"
 	},
+	"object.event.installed": {
+		"defaultMessage": "{object}: установка"
+	},
 	"object.event.regenerated": {
 		"defaultMessage": "{object}: конфигурация пересоздана"
+	},
+	"object.event.removed": {
+		"defaultMessage": "{object}: удаление"
 	},
 	"object.event.renewed": {
 		"defaultMessage": "{object} продлен"
@@ -4033,6 +4909,9 @@
 	},
 	"object.event.revoked": {
 		"defaultMessage": "{object}: отзыв"
+	},
+	"object.event.unbanned": {
+		"defaultMessage": "{object}: разбан"
 	},
 	"object.event.updated": {
 		"defaultMessage": "{object} обновлен"

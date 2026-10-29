@@ -193,6 +193,8 @@ export interface Analytics {
 		prevented: number;
 		detected: number;
 		sources: number;
+		crowdsecAlerts: number;
+		crowdsecBans: number;
 		readiness: null;
 	};
 	timeline: { t: string; prevent: number; detect: number; other: number }[];

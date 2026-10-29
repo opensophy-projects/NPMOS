@@ -40,6 +40,7 @@ import { setWafHost, WAF_DEFAULTS } from "../../api";
 import { useHostAttacks, useHostChanges, useUpstreamChecks, useWafHosts, useWafStatus } from "../../hooks";
 import { showConfirmModal } from "../../modals/ConfirmModal";
 import { showHostHistoryModal } from "../../modals/HostHistoryModal";
+import { setHostBouncer, useCrowdsecHosts } from "../../crowdsec/api";
 import { fromApiRule, getPki, type MtlsHostType, setMtlsHost, useMtlsHosts, usePki } from "../../pki/api";
 import { showCaModal } from "../../pki/CaModal";
 import { showIssueModal } from "../../pki/IssueModal";
@@ -58,6 +59,7 @@ import {
 	TargetCell,
 	TlsCell,
 	WafCell,
+	CrowdsecCell,
 } from "./Cells";
 import styles from "./Hosts.module.css";
 import { Recommendations } from "./Recommendations";
@@ -140,9 +142,20 @@ const download = (name: string, content: string, type: string) => {
 	URL.revokeObjectURL(url);
 };
 
-const VIEW_VERSION = 3;
+/** host types of the CrowdSec API */
+const CROWDSEC_TYPE: Record<HostType, string> = {
+	proxy: "proxy_host",
+	redirect: "redirection_host",
+	dead: "dead_host",
+	stream: "stream",
+};
+const CROWDSEC_TYPE_BACK: Record<string, HostType> = Object.fromEntries(
+	Object.entries(CROWDSEC_TYPE).map(([k, v]) => [v, k as HostType]),
+);
+
+const VIEW_VERSION = 4;
 /** columns added after a version of the stored view: hidden in views saved before them */
-const NEW_COLUMNS: Record<number, Column[]> = { 2: ["changed"], 3: ["attacks"] };
+const NEW_COLUMNS: Record<number, Column[]> = { 2: ["changed"], 3: ["attacks"], 4: ["crowdsec"] };
 const viewKey = (userId?: number) => `npmos.hosts.view.${userId ?? 0}`;
 const loadView = (userId?: number): View => {
 	try {
@@ -185,6 +198,7 @@ function HostsPage() {
 	const changes = useHostChanges();
 	const upstreams = useUpstreamChecks({ enabled: can("proxy", VIEW) || can("stream", VIEW) });
 	const attacks = useHostAttacks({ enabled: rbac("analytics") });
+	const crowdsec = useCrowdsecHosts({ enabled: rbac("crowdsec") });
 	const attacksByHost = useMemo(
 		() => (attacks.data ? new Map(attacks.data.map((a) => [a.host, a])) : undefined),
 		[attacks.data],
@@ -290,6 +304,7 @@ function HostsPage() {
 		queryClient.invalidateQueries({ queryKey: ["npmos-mtls-hosts"] });
 		queryClient.invalidateQueries({ queryKey: ["npmos-pki"] });
 		queryClient.invalidateQueries({ queryKey: ["npmos-host-changes"] });
+		queryClient.invalidateQueries({ queryKey: ["npmos-crowdsec-hosts"] });
 	};
 
 	/** runs changes of one or more hosts, reports the result, refreshes the lists */
@@ -482,6 +497,27 @@ function HostsPage() {
 		duplicate: (row) => EDIT[row.type](row.id, true),
 		history: (row) => showHostHistoryModal(OBJECT_TYPE[row.type], row.id, row.names.join(", ")),
 		attacks: attacksByHost,
+		crowdsec: crowdsec.data
+			? {
+					enabled: crowdsec.data.bouncerEnabled,
+					off: new Set(
+						crowdsec.data.hosts
+							.filter((h) => !h.bouncer)
+							.map((h) => `${CROWDSEC_TYPE_BACK[h.hostType] ?? h.hostType}-${h.hostId}`),
+					),
+					bans: crowdsec.data.bans,
+					canManage: rbac("crowdsec", "manage"),
+					set: (row, bouncer) =>
+						run(
+							[row],
+							(r) => setHostBouncer(CROWDSEC_TYPE[r.type], r.id, bouncer),
+							t(bouncer ? "npmos.hosts.done.crowdsec.on" : "npmos.hosts.done.crowdsec.off"),
+						),
+					open: (row) =>
+						navigate(`/crowdsec?${new URLSearchParams({ tab: "alerts", q: row.names[0] ?? "" })}`),
+					settings: () => navigate("/crowdsec?tab=settings"),
+				}
+			: undefined,
 		events: (row) =>
 			navigate(`/waf/events?${new URLSearchParams({ host: row.names.map((n) => n.toLowerCase()).join(",") })}`),
 	};
@@ -624,6 +660,8 @@ function HostsPage() {
 				return <ChangedCell row={row} ctx={ctx} />;
 			case "attacks":
 				return <AttacksCell row={row} ctx={ctx} />;
+			case "crowdsec":
+				return <CrowdsecCell row={row} ctx={ctx} />;
 		}
 	};
 

@@ -151,7 +151,9 @@ test("bouncer of nginx: hosts can be left out", async () => {
 	const template = 'access_by_lua_block {\n\tlocal cs = require "crowdsec"\n\t\tcs.Allow(ngx.var.remote_addr)\n}\n';
 	const { text, perHost } = renderNginx(template);
 	assert.equal(perHost, true);
-	assert.match(text, /map \$host \$npmos_crowdsec_off/);
+	assert.match(text, /map \$server_port \$npmos_crowdsec_off/);
+	assert.doesNotMatch(text, /"81" 1;/);
+	assert.match(renderNginx(template, ["81", "91"]).text, /\t"81" 1;\n\t"91" 1;\n\}/);
 	assert.match(text, /if ngx\.var\.npmos_crowdsec_off ~= "1" then\n\t+cs\.Allow/);
 	assert.equal(renderNginx("other code").perHost, false);
 

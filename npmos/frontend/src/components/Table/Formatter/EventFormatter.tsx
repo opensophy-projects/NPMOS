@@ -7,6 +7,7 @@ import {
 	IconDisc,
 	IconLock,
 	IconLockAccess,
+	IconShieldHalf,
 	IconServer,
 	IconSettings,
 	IconShield,
@@ -43,6 +44,7 @@ const getEventValue = (event: AuditLog) => {
 		case "notification":
 		case "pki":
 		case "mtls":
+		case "crowdsec":
 			return NPMOS_NAMES[event.meta?.name]
 				? intl.formatMessage({ id: NPMOS_NAMES[event.meta.name] })
 				: event.meta?.name;
@@ -116,6 +118,9 @@ const getIcon = (row: AuditLog) => {
 			break;
 		case "mtls":
 			ico = <IconLockAccess size={16} className={c} />;
+			break;
+		case "crowdsec":
+			ico = <IconShieldHalf size={16} className={c} />;
 			break;
 	}
 

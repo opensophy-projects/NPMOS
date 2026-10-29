@@ -4,7 +4,7 @@ import type { EventQuery } from "../../api";
 
 export const PERIODS = ["1h", "24h", "7d", "30d", "custom"] as const;
 export type Period = (typeof PERIODS)[number];
-export const KINDS = ["security", "system", "all"] as const;
+export const KINDS = ["security", "crowdsec", "system", "all"] as const;
 export type Kind = (typeof KINDS)[number];
 export const ACTIONS = ["Prevent", "Detect", "Accept"] as const;
 export const SEVERITIES = ["Critical", "High", "Medium", "Low", "Info"] as const;

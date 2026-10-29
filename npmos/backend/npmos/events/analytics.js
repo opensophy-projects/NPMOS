@@ -75,6 +75,16 @@ const internalAnalytics = {
 		const important = (b) =>
 			b.whereRaw(`lower(severity) in (${IMPORTANT_SEVERITIES.map(() => "?").join(",")})`, IMPORTANT_SEVERITIES);
 
+		const crowdsecQuery = () => {
+			const b = knex(EVENT_TABLE).where("kind", "crowdsec").where("time", ">=", from).where("time", "<=", to);
+			if (host) b.where("host", host);
+			return b
+				.count({ alerts: "*" })
+				.select(knex.raw("SUM(CASE WHEN action IN ('ban', 'captcha') THEN 1 ELSE 0 END) AS bans"))
+				.first();
+		};
+		const crowdsec = await crowdsecQuery();
+
 		// counts by action, severity, type and host: from the events (exact for any period they cover)
 		const [byAction, bySeverity, byType, byHost, sources, uris, topSources, countries, lastBlocked] =
 			await Promise.all([
@@ -195,6 +205,9 @@ const internalAnalytics = {
 				sources: Number(sources?.n ?? 0),
 				// readiness of learning per host: phase 8 (smartsync-tuning)
 				readiness: null,
+				// alerts of CrowdSec in the period, those with a ban or captcha (phase 7)
+				crowdsec_alerts: Number(crowdsec?.alerts ?? 0),
+				crowdsec_bans: Number(crowdsec?.bans ?? 0),
 			},
 			timeline,
 			actions: count(byAction, "action", "action"),
