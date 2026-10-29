@@ -22,6 +22,8 @@ import { showProfileModal } from "../../crowdsec/ProfileModal";
 import { useCan } from "../../rbac/hooks";
 import styles from "../Pki/Pki.module.css";
 
+const SCENARIO_PLACEHOLDER = "crowdsecurity/http-probing\nnpmos/openappsec-prevent";
+
 const lines = (text: string) =>
 	text
 		.split("\n")
@@ -95,6 +97,7 @@ export function SettingsTab({
 	const [ips, setIps] = useState(data.allowlist.ips.join("\n"));
 	const [expressions, setExpressions] = useState(data.allowlist.expressions.join("\n"));
 	const [configs, setConfigs] = useState(data.appsec.configs.join("\n"));
+	const [simulated, setSimulated] = useState(data.simulation.scenarios.join("\n"));
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	// biome-ignore lint/correctness/useExhaustiveDependencies: the form starts over when the saved settings change
@@ -104,6 +107,7 @@ export function SettingsTab({
 		setIps(data.allowlist.ips.join("\n"));
 		setExpressions(data.allowlist.expressions.join("\n"));
 		setConfigs(data.appsec.configs.join("\n"));
+		setSimulated(data.simulation.scenarios.join("\n"));
 	}, [JSON.stringify(data)]);
 
 	const b = s.bouncer;
@@ -126,6 +130,7 @@ export function SettingsTab({
 				bouncer: { ...b, excludeLocations: lines(excluded), captcha: { ...b.captcha, secretKey: secret } },
 				allowlist: { ...s.allowlist, ips: lines(ips), expressions: lines(expressions) },
 				appsec: { ...s.appsec, configs: lines(configs) },
+				simulation: { ...s.simulation, scenarios: lines(simulated) },
 			});
 			setSecret("");
 			showSuccess(t(r.result?.restarted ? "npmos.crowdsec.settings.applied" : "npmos.crowdsec.settings.saved"));
@@ -578,6 +583,31 @@ export function SettingsTab({
 							<T id="npmos.crowdsec.allowlist.expressions.hint" />
 						</div>
 					</div>
+				</div>
+			</Section>
+
+			<Section heading="npmos.crowdsec.simulation.title" hint="npmos.crowdsec.simulation.hint">
+				<Check
+					label="npmos.crowdsec.simulation.all"
+					hint="npmos.crowdsec.simulation.all.hint"
+					checked={s.simulation.all}
+					disabled={!manage}
+					onChange={(all) => setS({ ...s, simulation: { ...s.simulation, all } })}
+				/>
+				<label className="form-label" htmlFor="cs-simulated">
+					<T id={s.simulation.all ? "npmos.crowdsec.simulation.except" : "npmos.crowdsec.simulation.only"} />
+				</label>
+				<textarea
+					id="cs-simulated"
+					className="form-control font-monospace"
+					rows={3}
+					disabled={!manage}
+					placeholder={SCENARIO_PLACEHOLDER}
+					value={simulated}
+					onChange={(e) => setSimulated(e.target.value)}
+				/>
+				<div className="form-hint">
+					<T id="npmos.crowdsec.simulation.scenarios.hint" />
 				</div>
 			</Section>
 

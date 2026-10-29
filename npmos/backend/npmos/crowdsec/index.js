@@ -473,8 +473,31 @@ const internalCrowdsec = {
 				).trim(),
 			);
 			const r = await lapi.registry();
-			return { ...r, own_machine: own };
+			return { ...r, own_machine: own, protected: lapi.PROTECTED };
 		});
+	},
+
+	/**
+	 * Deletes a stale machine or bouncer (an old registration, a node that is gone).
+	 * @param {Access} access
+	 * @param {"machines"|"bouncers"} kind
+	 * @param {string} name
+	 */
+	deleteRegistered: async (access, kind, name) => {
+		await access.can("crowdsec:manage");
+		const own = lapi.machineId(
+			(
+				await readFile(
+					path.join(process.env.NPMOS_SECRETS_DIR || "/run/npmos-secrets", "crowdsec_machine_password"),
+					"utf8",
+				).catch(() => "")
+			).trim(),
+		);
+		if (kind === "machines" && name === own) throw new errs.ValidationError("This is the machine of NPMOS itself");
+		const deleted = await wrap(() => lapi.deleteRegistered(kind, name));
+		if (!deleted) throw new errs.ItemNotFoundError(name);
+		await audit(access, "deleted", { name: `CrowdSec ${kind === "machines" ? "machine" : "bouncer"} ${name}` });
+		return true;
 	},
 
 	/** @param {Access} access */

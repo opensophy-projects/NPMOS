@@ -1037,6 +1037,12 @@
 	"npmos.crowdsec.bouncers": {
 		"defaultMessage": "Баунсеры"
 	},
+	"npmos.crowdsec.bouncers.delete": {
+		"defaultMessage": "Удалить баунсер"
+	},
+	"npmos.crowdsec.bouncers.delete.text": {
+		"defaultMessage": "Удалить баунсер {name}? Его ключ сразу перестанет работать."
+	},
 	"npmos.crowdsec.bouncers.hint": {
 		"defaultMessage": "Компоненты, которые применяют решения. npmos — nginx NPMOS, appsec — агент WAF (репутация IP); их ключи создаёт npmos-init."
 	},
@@ -1274,6 +1280,12 @@
 	"npmos.crowdsec.machines": {
 		"defaultMessage": "Машины"
 	},
+	"npmos.crowdsec.machines.delete": {
+		"defaultMessage": "Удалить машину"
+	},
+	"npmos.crowdsec.machines.delete.text": {
+		"defaultMessage": "Удалить машину {name}? Она больше не сможет отправлять алерты, её прежние алерты останутся. Работающий узел зарегистрируется снова при следующем запуске."
+	},
 	"npmos.crowdsec.machines.hint": {
 		"defaultMessage": "Агенты, которые отправляют алерты в локальный API. localhost — агент самого CrowdSec, npmos-… — NPMOS (ручные баны, блок-листы)."
 	},
@@ -1451,6 +1463,9 @@
 	"npmos.crowdsec.protection.openappsec-ban": {
 		"defaultMessage": "Бан после {events} запросов, заблокированных open-appsec за {minutes} мин"
 	},
+	"npmos.crowdsec.registry.deleted": {
+		"defaultMessage": "Удалено"
+	},
 	"npmos.crowdsec.scenario": {
 		"defaultMessage": "Сценарий"
 	},
@@ -1503,6 +1518,27 @@
 		"defaultMessage": "Токен для других узлов (скопируйте сейчас, он больше не показывается):"
 	},
 	"npmos.crowdsec.simulated": {
+		"defaultMessage": "Симуляция"
+	},
+	"npmos.crowdsec.simulation.all": {
+		"defaultMessage": "Симулировать все сценарии"
+	},
+	"npmos.crowdsec.simulation.all.hint": {
+		"defaultMessage": "Сценарии никого не банят, кроме перечисленных ниже. Ручные баны и блок-листы действуют."
+	},
+	"npmos.crowdsec.simulation.except": {
+		"defaultMessage": "Сценарии, которые всё же банят"
+	},
+	"npmos.crowdsec.simulation.hint": {
+		"defaultMessage": "Сценарий в симуляции создаёт алерты, но его решения не применяются: новый сценарий можно проверить на реальном трафике, прежде чем он начнёт банить."
+	},
+	"npmos.crowdsec.simulation.only": {
+		"defaultMessage": "Сценарии в симуляции"
+	},
+	"npmos.crowdsec.simulation.scenarios.hint": {
+		"defaultMessage": "По одному сценарию в строке, как в hub (автор/имя). Их алерты отмечены «Симуляция» на вкладке «Алерты»."
+	},
+	"npmos.crowdsec.simulation.title": {
 		"defaultMessage": "Симуляция"
 	},
 	"npmos.crowdsec.source": {

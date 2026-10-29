@@ -20,6 +20,7 @@ import {
 	renderNginx,
 	renderProfiles,
 	renderScenario,
+	renderSimulation,
 	requiredItems,
 	unwantedItems,
 } from "./config.js";
@@ -305,4 +306,16 @@ test("blocklists, exports, metrics and logs", () => {
 		['failed to compile profiles: bad "x"'],
 	);
 	assert.match(machineId("secret"), /^npmos-[0-9a-f]{12}$/);
+});
+
+test("simulation: all but the exclusions, or only the listed scenarios", () => {
+	assert.deepEqual(normalize({}).simulation, { all: false, scenarios: [] });
+	const only = YAML.parse(renderSimulation(normalize({ simulation: { scenarios: ["crowdsecurity/http-probing"] } })));
+	assert.deepEqual(only, { simulation: false, exclusions: ["crowdsecurity/http-probing"] });
+	assert.equal(YAML.parse(renderSimulation(normalize({ simulation: { all: true } }))).simulation, true);
+	assert.throws(() => normalize({ simulation: { scenarios: ["bad name"] } }), ConfigError);
+	assert.equal(
+		YAML.parse(renderConfigLocal(normalize({}), { registrationToken: "x" })).config_paths.simulation_path,
+		"/etc/crowdsec/npmos-simulation.yaml",
+	);
 });

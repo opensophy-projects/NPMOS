@@ -636,4 +636,12 @@ api_json --max-time 300 "$ADMIN/api/npmos/crowdsec/hub" \
   -d '{"type": "collections", "name": "crowdsecurity/nextcloud", "action": "remove"}' \
   | grep -q 'collections/crowdsecurity/nextcloud' || fail "the collection was not removed"
 
+step "CrowdSec: the machines and bouncers of the stack cannot be deleted, an unknown one is not found"
+for target in machines/localhost bouncers/npmos bouncers/appsec; do
+  code=$(curl -sk -o /dev/null -w '%{http_code}' -b "$JAR" -X DELETE "$ADMIN/api/npmos/crowdsec/registry/$target")
+  [ "$code" = 400 ] || fail "$target of the stack was not protected: HTTP $code"
+done
+code=$(curl -sk -o /dev/null -w '%{http_code}' -b "$JAR" -X DELETE "$ADMIN/api/npmos/crowdsec/registry/machines/nope")
+[ "$code" = 404 ] || fail "deleting an unknown machine: HTTP $code"
+
 echo "OK: closed-network smoke passed"

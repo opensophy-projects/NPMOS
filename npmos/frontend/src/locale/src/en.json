@@ -1037,6 +1037,12 @@
 	"npmos.crowdsec.bouncers": {
 		"defaultMessage": "Bouncers"
 	},
+	"npmos.crowdsec.bouncers.delete": {
+		"defaultMessage": "Delete bouncer"
+	},
+	"npmos.crowdsec.bouncers.delete.text": {
+		"defaultMessage": "Delete the bouncer {name}? Its key stops working at once."
+	},
 	"npmos.crowdsec.bouncers.hint": {
 		"defaultMessage": "Components that enforce decisions. npmos is nginx of NPMOS, appsec the WAF agent (IP reputation); their keys come from npmos-init."
 	},
@@ -1274,6 +1280,12 @@
 	"npmos.crowdsec.machines": {
 		"defaultMessage": "Machines"
 	},
+	"npmos.crowdsec.machines.delete": {
+		"defaultMessage": "Delete machine"
+	},
+	"npmos.crowdsec.machines.delete.text": {
+		"defaultMessage": "Delete the machine {name}? It can no longer send alerts; its old alerts stay. A node that still runs registers again on its next start."
+	},
 	"npmos.crowdsec.machines.hint": {
 		"defaultMessage": "Agents that send alerts to the local API. localhost is the agent of CrowdSec itself, npmos-… is NPMOS (bans by hand, blocklists)."
 	},
@@ -1451,6 +1463,9 @@
 	"npmos.crowdsec.protection.openappsec-ban": {
 		"defaultMessage": "Ban after {events} requests blocked by open-appsec in {minutes} min"
 	},
+	"npmos.crowdsec.registry.deleted": {
+		"defaultMessage": "Deleted"
+	},
 	"npmos.crowdsec.scenario": {
 		"defaultMessage": "Scenario"
 	},
@@ -1503,6 +1518,27 @@
 		"defaultMessage": "Token for other nodes (copy it now, it is not shown again):"
 	},
 	"npmos.crowdsec.simulated": {
+		"defaultMessage": "Simulation"
+	},
+	"npmos.crowdsec.simulation.all": {
+		"defaultMessage": "Simulate all scenarios"
+	},
+	"npmos.crowdsec.simulation.all.hint": {
+		"defaultMessage": "Nobody is banned by scenarios, except the ones listed below. Manual bans and blocklists still apply."
+	},
+	"npmos.crowdsec.simulation.except": {
+		"defaultMessage": "Scenarios that still ban"
+	},
+	"npmos.crowdsec.simulation.hint": {
+		"defaultMessage": "A simulated scenario still raises alerts, but its decisions are not applied: check a new scenario on real traffic before it bans anyone."
+	},
+	"npmos.crowdsec.simulation.only": {
+		"defaultMessage": "Simulated scenarios"
+	},
+	"npmos.crowdsec.simulation.scenarios.hint": {
+		"defaultMessage": "One scenario per line, as in the hub (author/name). Their alerts are marked «Simulation» on the Alerts tab."
+	},
+	"npmos.crowdsec.simulation.title": {
 		"defaultMessage": "Simulation"
 	},
 	"npmos.crowdsec.source": {

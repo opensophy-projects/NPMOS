@@ -11,6 +11,7 @@ import {
 	renderConfigLocal,
 	renderProfiles,
 	renderScenario,
+	renderSimulation,
 	requiredItems,
 	fatalMessages,
 	unwantedItems,
@@ -29,6 +30,7 @@ export const FILES = {
 	profiles: "profiles.yaml",
 	allowlist: "parsers/s02-enrich/npmos-allowlist.yaml",
 	scenario: "scenarios/npmos-openappsec-prevent.yaml",
+	simulation: "npmos-simulation.yaml",
 	config: "config.yaml.local",
 };
 
@@ -57,6 +59,7 @@ export const render = async (settings) => ({
 	profiles: renderProfiles(settings),
 	allowlist: renderAllowlist(settings),
 	scenario: renderScenario(settings),
+	simulation: renderSimulation(settings),
 	config: renderConfigLocal(settings, { registrationToken: await registrationToken() }),
 });
 

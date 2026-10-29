@@ -243,3 +243,32 @@ export const registry = async () => {
 		database.close();
 	}
 };
+
+/** machines and bouncers NPMOS never deletes: CrowdSec itself, NPMOS, the open-appsec agent */
+export const PROTECTED = { machines: ["localhost"], bouncers: ["npmos", "appsec"] };
+
+/**
+ * Deletes a machine or a bouncer, as cscli does: in the database of CrowdSec (alerts of a machine
+ * stay, their owner becomes empty — ON DELETE SET NULL).
+ * @param {"machines"|"bouncers"} kind
+ * @param {string} name
+ * @returns {Promise<boolean>} false: there was none
+ */
+export const deleteRegistered = async (kind, name) => {
+	const column = { machines: "machine_id", bouncers: "name" }[kind];
+	if (!column) throw new LapiError(`Unknown kind: ${kind}`);
+	if (PROTECTED[kind].includes(name)) throw new LapiError(`${name} is needed by the stack and cannot be deleted`);
+	const { default: Database } = await import("better-sqlite3");
+	let database;
+	try {
+		database = new Database(DB_FILE, { fileMustExist: true, timeout: 5000 });
+	} catch (err) {
+		throw new LapiError(`The CrowdSec database is not writable: ${err.message}`);
+	}
+	try {
+		database.pragma("foreign_keys = ON");
+		return database.prepare(`DELETE FROM ${kind} WHERE ${column} = ?`).run(name).changes > 0;
+	} finally {
+		database.close();
+	}
+};

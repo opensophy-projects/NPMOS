@@ -1672,6 +1672,21 @@ router
 	.all(jwtdecode())
 	.get(handle((_, res) => internalCrowdsec.registry(res.locals.access)));
 
+/**
+ * DELETE /api/npmos/crowdsec/registry/:kind/:name — kind: machines or bouncers
+ */
+router
+	.route("/crowdsec/registry/:kind/:name")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.delete(
+		handle((req, res) => {
+			if (!["machines", "bouncers"].includes(req.params.kind))
+				throw new errs.ValidationError("machines or bouncers");
+			return internalCrowdsec.deleteRegistered(res.locals.access, req.params.kind, req.params.name);
+		}),
+	);
+
 router
 	.route("/crowdsec/metrics")
 	.options((_, res) => res.sendStatus(204))

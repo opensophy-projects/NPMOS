@@ -1,6 +1,6 @@
 // CrowdSec → Blocklists: local lists instead of the community blocklist (a file or a URL) and the
 // export of this node's decisions that other NPMOS nodes subscribe to.
-import { IconDots, IconPlus } from "@tabler/icons-react";
+import { IconDots, IconPlus, IconTrash } from "@tabler/icons-react";
 import cn from "classnames";
 import { useState } from "react";
 import { T } from "src/locale";
@@ -10,6 +10,7 @@ import {
 	type Blocklist,
 	type Bouncer,
 	deleteBlocklist,
+	deleteRegistered,
 	type Machine,
 	setShare,
 	shareUrl,
@@ -249,10 +250,40 @@ export function BlocklistsTab({ shareEnabled, refresh }: { shareEnabled: boolean
 
 const ago = (date: string | null) => (date ? <span title={dateTime(date)}>{timeAgo(date)}</span> : "—");
 
+function DeleteRegistered({ kind, name, onDone }: { kind: "machines" | "bouncers"; name: string; onDone: () => void }) {
+	return (
+		<button
+			type="button"
+			className="btn btn-sm btn-ghost-danger btn-icon"
+			title={t("action.delete")}
+			onClick={() =>
+				showConfirmModal({
+					tTitle: `npmos.crowdsec.${kind}.delete`,
+					tConfirm: "action.delete",
+					danger: true,
+					children: <T id={`npmos.crowdsec.${kind}.delete.text`} data={{ name }} />,
+					onConfirm: async () => {
+						await deleteRegistered(kind, name);
+						showSuccess(t("npmos.crowdsec.registry.deleted"));
+						onDone();
+					},
+				})
+			}
+		>
+			<IconTrash size={16} />
+		</button>
+	);
+}
+
 export function RegistryTab() {
+	const can = useCan();
+	const manage = can("crowdsec", "manage");
 	const registry = useRegistry({ refetchInterval: 30000 });
 	if (registry.isError) return <p className="text-danger">{(registry.error as Error).message}</p>;
 	const data = registry.data;
+	const reload = () => registry.refetch();
+	const deletable = (kind: "machines" | "bouncers", name: string) =>
+		manage && !data?.protected?.[kind]?.includes(name) && !(kind === "machines" && name === data?.ownMachine);
 	return (
 		<>
 			<section className={cn("card", styles.card)}>
@@ -281,6 +312,7 @@ export function RegistryTab() {
 								<th>
 									<T id="npmos.crowdsec.machine.push" />
 								</th>
+								{manage && <th className="w-1" />}
 							</tr>
 						</thead>
 						<tbody>
@@ -308,6 +340,13 @@ export function RegistryTab() {
 									<td className={styles.sub}>{m.version || "—"}</td>
 									<td>{ago(m.lastHeartbeat)}</td>
 									<td>{ago(m.lastPush)}</td>
+									{manage && (
+										<td>
+											{deletable("machines", m.name) && (
+												<DeleteRegistered kind="machines" name={m.name} onDone={reload} />
+											)}
+										</td>
+									)}
 								</tr>
 							))}
 						</tbody>
@@ -337,6 +376,7 @@ export function RegistryTab() {
 								<th>
 									<T id="npmos.crowdsec.bouncer.pull" />
 								</th>
+								{manage && <th className="w-1" />}
 							</tr>
 						</thead>
 						<tbody>
@@ -360,6 +400,13 @@ export function RegistryTab() {
 										{[b.type, b.version].filter(Boolean).join(" ") || "—"}
 									</td>
 									<td>{ago(b.lastPull)}</td>
+									{manage && (
+										<td>
+											{deletable("bouncers", b.name) && (
+												<DeleteRegistered kind="bouncers" name={b.name} onDone={reload} />
+											)}
+										</td>
+									)}
 								</tr>
 							))}
 						</tbody>

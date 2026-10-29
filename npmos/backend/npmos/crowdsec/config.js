@@ -12,6 +12,8 @@ export const APPSEC_LISTEN = "0.0.0.0:7422";
 export const APPSEC_URL = "http://crowdsec:7422";
 export const LAPI_URL = "http://crowdsec:8080";
 /** hub index for the crowdsec container: served by NPMOS (rootfs conf.d/npmos-crowdsec-hub.conf) */
+// our own file: the simulation.yaml of the image stays as it is
+export const SIMULATION_PATH = "/etc/crowdsec/npmos-simulation.yaml";
 export const HUB_URL_TEMPLATE = "http://npmos:7480/.npmos/crowdsec-hub/%s/%s";
 /** hub items the files of NPMOS need: parsers of its sources, the AppSec engine */
 export const OPENAPPSEC_PARSER = "openappsec/openappsec-logs";
@@ -66,6 +68,8 @@ export const defaults = () => ({
 	],
 	allowlist: { ips: [], expressions: [], private: true },
 	openappsec_ban: { enabled: true, events: 5, minutes: 10 },
+	// simulation.yaml: all = simulate every scenario except the listed ones; otherwise only the listed ones
+	simulation: { all: false, scenarios: [] },
 	log_level: "info",
 	online_hub: false,
 });
@@ -207,6 +211,16 @@ export const normalize = (v) => {
 		throw new ConfigError("Window: 1–1440 minutes");
 	}
 
+	const sim = { ...d.simulation, ...s.simulation };
+	if (typeof sim.all !== "boolean") throw new ConfigError("simulation.all must be a boolean");
+	if (!Array.isArray(sim.scenarios) || sim.scenarios.length > 100) {
+		throw new ConfigError("Simulated scenarios: up to 100");
+	}
+	sim.scenarios = [...new Set(sim.scenarios.map((x) => String(x).trim()).filter(Boolean))];
+	for (const sc of sim.scenarios) {
+		if (!HUB_NAME.test(sc)) throw new ConfigError(`Invalid scenario: ${sc}`);
+	}
+
 	if (!LOG_LEVELS.includes(s.log_level)) throw new ConfigError("Unknown log level");
 	if (typeof s.online_hub !== "boolean") throw new ConfigError("online_hub must be a boolean");
 
@@ -217,6 +231,7 @@ export const normalize = (v) => {
 		profiles,
 		allowlist: { ips, expressions, private: allow.private },
 		openappsec_ban: ban,
+		simulation: { all: sim.all, scenarios: sim.scenarios },
 		log_level: s.log_level,
 		online_hub: s.online_hub,
 	};
@@ -324,11 +339,16 @@ export const renderScenario = (s) => {
 };
 
 /** config.yaml.local: merged by CrowdSec over config.yaml of the image */
+/** simulation.yaml of CrowdSec: simulated decisions are stored but not applied by the bouncers */
+export const renderSimulation = (s) =>
+	HEADER + YAML.stringify({ simulation: s.simulation.all, exclusions: s.simulation.scenarios }, { lineWidth: 0 });
+
 export const renderConfigLocal = (s, { registrationToken }) =>
 	HEADER +
 	YAML.stringify(
 		{
 			common: { log_level: s.log_level },
+			config_paths: { simulation_path: SIMULATION_PATH },
 			cscli: { hub_branch: "master", __hub_url_template__: HUB_URL_TEMPLATE },
 			api: {
 				server: {

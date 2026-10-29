@@ -52,6 +52,8 @@ export interface CrowdsecSettings {
 	profiles: CrowdsecProfile[];
 	allowlist: { ips: string[]; expressions: string[]; private: boolean };
 	openappsecBan: { enabled: boolean; events: number; minutes: number };
+	/** all: every scenario except the listed ones is simulated; otherwise only the listed ones */
+	simulation: { all: boolean; scenarios: string[] };
 	logLevel: (typeof LOG_LEVELS)[number];
 	onlineHub: boolean;
 }
@@ -259,8 +261,14 @@ export const ban = (data: { values: string[]; type?: string; duration?: string; 
 export const unban = (data: { ids?: number[]; values?: string[] }) =>
 	api.post({ url: "/npmos/crowdsec/decisions/delete", data }) as Promise<{ deleted: number }>;
 
-export const getRegistry = (): Promise<{ machines: Machine[]; bouncers: Bouncer[]; ownMachine: string }> =>
-	api.get({ url: "/npmos/crowdsec/registry" });
+export const getRegistry = (): Promise<{
+	machines: Machine[];
+	bouncers: Bouncer[];
+	ownMachine: string;
+	protected: { machines: string[]; bouncers: string[] };
+}> => api.get({ url: "/npmos/crowdsec/registry" });
+export const deleteRegistered = (kind: "machines" | "bouncers", name: string) =>
+	api.del({ url: `/npmos/crowdsec/registry/${kind}/${encodeURIComponent(name)}` });
 export const useRegistry = (options = {}) =>
 	useQuery({ queryKey: ["npmos-crowdsec-registry"], queryFn: getRegistry, staleTime: 10000, ...options });
 
