@@ -288,7 +288,12 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
   wait_status "$SQLI" 403 "SQLi is not blocked with the v1beta2 policy"
   $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf/hosts/1" \
     -d '{"enabled": true, "mode": "prevent-learn", "minimum_confidence": "high", "objects": null}' > /dev/null
-  $CURL "$ADMIN/api/npmos/waf/policy" | grep -q '"format": *"v1beta1"' || fail "the policy is not back to v1beta1"
+  # the policy is generated again a moment after the host changes
+  for i in $(seq 1 30); do
+    $CURL "$ADMIN/api/npmos/waf/policy" | grep -q '"format": *"v1beta1"' && break
+    [ "$i" = 30 ] && fail "the policy is not back to v1beta1: $($CURL "$ADMIN/api/npmos/waf/policy" | head -c 400)"
+    sleep 1
+  done
 
   step "WAF -> Policy: the v1beta2 example of open-appsec is imported and applied by the agent"
   applied_at() { $CURL "$ADMIN/api/npmos/waf" | json | grep -o '"lastPolicyUpdate":"[^"]*"'; }
