@@ -4841,6 +4841,12 @@
 	"npmos.waf.location.inherit": {
 		"defaultMessage": "As the host"
 	},
+	"npmos.waf.location.objects": {
+		"defaultMessage": "Own objects of the policy"
+	},
+	"npmos.waf.location.objects.hint": {
+		"defaultMessage": "Practices, triggers, response and the rest for this location only; its exceptions come on top of those of the host."
+	},
 	"npmos.waf.location.off": {
 		"defaultMessage": "Off"
 	},

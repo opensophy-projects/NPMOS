@@ -386,7 +386,7 @@ router
 
 /**
  * GET /api/npmos/waf/hosts/:host_id
- * PUT /api/npmos/waf/hosts/:host_id — {enabled, mode, minimum_confidence, locations?: [{path, inherit, ...}]}
+ * PUT /api/npmos/waf/hosts/:host_id — {enabled, mode, minimum_confidence, locations?: [{path, inherit, objects?, ...}]}
  */
 router
 	.route("/waf/hosts/:host_id")
@@ -413,6 +413,8 @@ router
 									path: { type: "string" },
 									inherit: { type: "boolean" },
 									...wafSettings.properties,
+									// own objects of the location; null: those of the host
+									objects: wafHostObjects,
 								},
 							},
 						},

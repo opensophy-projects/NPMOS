@@ -4841,6 +4841,12 @@
 	"npmos.waf.location.inherit": {
 		"defaultMessage": "Как у хоста"
 	},
+	"npmos.waf.location.objects": {
+		"defaultMessage": "Свои объекты политики"
+	},
+	"npmos.waf.location.objects.hint": {
+		"defaultMessage": "Практики, триггеры, ответ и остальное — только для этой локации; её исключения добавляются к исключениям хоста."
+	},
 	"npmos.waf.location.off": {
 		"defaultMessage": "Выключено"
 	},
