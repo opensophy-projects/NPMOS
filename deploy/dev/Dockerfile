@@ -13,7 +13,7 @@ RUN --mount=type=secret,id=ca_bundle,required=false sh /seed.sh
 
 # Backend dependencies NPMOS adds to upstream's (node_modules of the upstream image lack them).
 # Versions come from our package.json; all of them are pure JS without dependencies of their own.
-FROM docker.io/library/node:24-alpine AS backend-deps
+FROM docker.io/library/node:26-alpine AS backend-deps
 ARG NPMOS_BACKEND_DEPS="yaml nodemailer"
 COPY backend/package.json /src/package.json
 WORKDIR /deps
