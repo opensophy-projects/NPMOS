@@ -4,9 +4,13 @@ import EasyModal, { type InnerModalProps } from "ez-modal-react";
 import Modal from "react-bootstrap/Modal";
 import { Button } from "src/components";
 import { intl, T } from "src/locale";
+import { showError } from "src/notifications";
 import type { SecurityEvent } from "../api";
 import { useEvent } from "../hooks";
 import { ActionBadge, EventTime, SeverityBadge } from "../pages/WafEvents/badges";
+import { getPolicyObjects } from "../policy/api";
+import { showObjectModal } from "../policy/ObjectModal";
+import { useCan } from "../rbac/hooks";
 
 type FilterField = "ip" | "host";
 
@@ -28,7 +32,38 @@ function Field({ label, value }: { label: string; value?: React.ReactNode }) {
 	);
 }
 
+/**
+ * An exception (WAF → Policy) for what the event shows: its source, URL and parameter; added to the
+ * default policy. The administrator removes the conditions that are too narrow before saving.
+ */
+const createException = async (event: SecurityEvent) => {
+	try {
+		const data = await getPolicyObjects();
+		const condition = [
+			event.sourceIp && { key: "sourceIp", value: event.sourceIp },
+			event.uri && { key: "url", value: event.uri },
+			event.parameter && { key: "paramName", value: event.parameter },
+		].filter(Boolean);
+		const base = `event-${(event.sourceIp || event.host || "x").toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+		let name = base.replace(/-+$/, "");
+		for (let n = 2; data.objects.some((o) => o.kind === "exception" && o.name === name); n++) name = `${base}-${n}`;
+		showObjectModal({
+			kind: "exception",
+			objects: data.objects,
+			addToDefault: data.policy,
+			initial: {
+				name,
+				description: [event.name, event.host].filter(Boolean).join(" · ").slice(0, 500),
+				spec: { action: "accept", condition },
+			},
+		});
+	} catch (err: any) {
+		showError(err.message);
+	}
+};
+
 const WafEventModal = EasyModal.create(({ visible, remove, event: summary, onFilter }: Props) => {
+	const can = useCan();
 	const full = useEvent(summary.id, summary.time);
 	// lists may hold only a part of the fields: the whole event once it is loaded
 	const event: SecurityEvent = { ...summary, ...full.data };
@@ -114,6 +149,11 @@ const WafEventModal = EasyModal.create(({ visible, remove, event: summary, onFil
 				</pre>
 			</Modal.Body>
 			<Modal.Footer>
+				{event.kind === "security" && can("waf_policy", "manage") && (
+					<Button onClick={() => createException(event).then(remove)}>
+						<T id="npmos.events.create-exception" />
+					</Button>
+				)}
 				<Button onClick={remove}>
 					<T id="action.close" />
 				</Button>

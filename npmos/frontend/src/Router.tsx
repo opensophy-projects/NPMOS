@@ -26,6 +26,7 @@ const WafEvents = lazy(() => import("src/npmos/pages/WafEvents"));
 const WafAnalytics = lazy(() => import("src/npmos/pages/WafAnalytics"));
 const Notifications = lazy(() => import("src/npmos/pages/Notifications"));
 const WafPolicy = lazy(() => import("src/npmos/pages/WafPolicy"));
+const WafExpert = lazy(() => import("src/npmos/pages/WafExpert"));
 
 function Router() {
 	const health = useHealth();
@@ -80,6 +81,7 @@ function Router() {
 						<Route path="/waf/events" element={<WafEvents />} />
 						<Route path="/waf/analytics" element={<WafAnalytics />} />
 						<Route path="/waf/policy" element={<WafPolicy />} />
+						<Route path="/waf/expert" element={<WafExpert />} />
 						<Route path="/" element={<Overview />} />
 					</Routes>
 				</Suspense>

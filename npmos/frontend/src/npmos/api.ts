@@ -1,5 +1,6 @@
 // NPMOS API client (/api/npmos/*), see npmos/backend/npmos/routes.js
 import * as api from "src/api/backend/base";
+import type { HostObjects } from "./policy/api";
 
 export interface Service {
 	id: string;
@@ -70,6 +71,8 @@ export interface WafSettings {
 	enabled: boolean;
 	mode: WafMode;
 	minimumConfidence: WafConfidence;
+	/** template of the policy objects of the host (list of hosts only) */
+	template?: string | null;
 }
 
 export interface WafLocationSettings extends WafSettings {
@@ -80,6 +83,8 @@ export interface WafLocationSettings extends WafSettings {
 
 export interface WafHost extends WafSettings {
 	locations: WafLocationSettings[];
+	/** objects of the policy (WAF → Policy): a template or own references; null: the default policy */
+	objects?: HostObjects;
 }
 
 export const WAF_DEFAULTS: WafSettings = { enabled: false, mode: "detect-learn", minimumConfidence: "high" };
@@ -94,8 +99,10 @@ export const getWafHosts = (): Promise<Record<string, WafSettings>> => api.get({
 
 export const getWafHost = (id: number): Promise<WafHost> => api.get({ url: `/npmos/waf/hosts/${id}` });
 
-export const setWafHost = (id: number, data: WafSettings & { locations?: WafLocationSettings[] }): Promise<WafHost> =>
-	api.put({ url: `/npmos/waf/hosts/${id}`, data });
+export const setWafHost = (
+	id: number,
+	data: WafSettings & { locations?: WafLocationSettings[]; objects?: HostObjects },
+): Promise<WafHost> => api.put({ url: `/npmos/waf/hosts/${id}`, data });
 
 export const getWafPolicy = (): Promise<WafPolicyState & { content: string | null }> =>
 	api.get({ url: "/npmos/waf/policy" });

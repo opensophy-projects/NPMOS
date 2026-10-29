@@ -7,8 +7,8 @@ import { type CSSProperties, useCallback, useEffect, useLayoutEffect, useMemo, u
 import { useLocation, useNavigate } from "react-router-dom";
 import { useUser } from "src/hooks";
 import { intl, T } from "src/locale";
-import { Brand, LocaleSwitch, ThemeToggle, UserMenu } from "./Controls";
 import { useCan } from "../rbac/hooks";
+import { Brand, LocaleSwitch, ThemeToggle, UserMenu } from "./Controls";
 import { containsActive, filterItems, isActivePath, type NavItem, navigation, visibleItems } from "./menu";
 import styles from "./Shell.module.css";
 

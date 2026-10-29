@@ -1,16 +1,18 @@
-// WAF -> Policy (expert): the administrator's YAML fragments (v1beta1, the syntax of
-// local_policy.yaml) merged over the policy generated from the WAF settings of the hosts.
+// WAF -> Policy (expert): the administrator's YAML fragments merged over the policy NPMOS generates
+// from its objects. A fragment may use either syntax of local_policy.yaml (v1beta1 as
+// open-appsec-npm, or v1beta2); it is merged in v1beta2 terms (objects/format.js).
 //
 // Merge rules:
-//   - lists of named objects (practices, log-triggers, custom-responses, exceptions,
-//     trusted-sources, source-identifiers, policies.specific-rules): an object with the name of a
-//     generated one replaces it, others are added;
+//   - lists of named objects (practices, log triggers, responses, exceptions, trusted sources, source
+//     identifiers, specific rules): an object with the name of a generated one replaces it, others
+//     are added;
 //   - policies.default: keys of the fragment replace the generated ones.
-// Exceptions listed in policies.default apply to every host whose rule has none of its own (all
-// generated rules), e.g. trusted IPs or countries as in docs/tutor.md.
+// Exceptions listed in policies.default apply to every host whose rule has none of its own, e.g.
+// trusted IPs or countries as in docs/tutor.md.
 import YAML from "yaml";
 import db from "../../db.js";
 import errs from "../../lib/error.js";
+import { fromV1, SECTIONS_V2 } from "./objects/format.js";
 
 const NAMED_SECTIONS = [
 	"practices",
@@ -19,6 +21,7 @@ const NAMED_SECTIONS = [
 	"exceptions",
 	"trusted-sources",
 	"source-identifiers",
+	...SECTIONS_V2.filter((s) => s !== "exceptions"),
 ];
 const MAX_BYTES = 256 * 1024;
 
@@ -42,7 +45,7 @@ const checkNamedList = (list, where) => {
 
 /**
  * @param   {string} content  YAML
- * @returns {object}          the parsed fragment ({} for an empty one)
+ * @returns {object}          the parsed fragment in v1beta2 terms ({} for an empty one)
  */
 const parseCustom = (content) => {
 	if (typeof content !== "string") {
@@ -64,20 +67,26 @@ const parseCustom = (content) => {
 		throw new errs.ValidationError("The policy fragment must be a mapping (keys of local_policy.yaml)");
 	}
 	for (const key of Object.keys(doc)) {
-		if (key === "policies") {
+		if (key === "apiVersion") {
+			if (!["v1beta1", "v1beta2"].includes(doc.apiVersion)) {
+				throw new errs.ValidationError("apiVersion: v1beta1 or v1beta2");
+			}
+		} else if (key === "policies") {
 			if (!isObject(doc.policies)) {
 				throw new errs.ValidationError("policies: must be a mapping");
 			}
 			for (const k of Object.keys(doc.policies)) {
-				if (k !== "default" && k !== "specific-rules") {
-					throw new errs.ValidationError(`policies.${k}: unknown key (default, specific-rules)`);
+				if (k !== "default" && k !== "specific-rules" && k !== "specificRules") {
+					throw new errs.ValidationError(`policies.${k}: unknown key (default, specificRules)`);
 				}
 			}
 			if (doc.policies.default !== undefined && !isObject(doc.policies.default)) {
 				throw new errs.ValidationError("policies.default: must be a mapping");
 			}
-			if (doc.policies["specific-rules"] !== undefined) {
-				checkNamedList(doc.policies["specific-rules"], "policies.specific-rules");
+			for (const k of ["specific-rules", "specificRules"]) {
+				if (doc.policies[k] !== undefined) {
+					checkNamedList(doc.policies[k], `policies.${k}`);
+				}
 			}
 		} else if (NAMED_SECTIONS.includes(key)) {
 			checkNamedList(doc[key], key);
@@ -85,7 +94,7 @@ const parseCustom = (content) => {
 			throw new errs.ValidationError(`${key}: unknown section (policies, ${NAMED_SECTIONS.join(", ")})`);
 		}
 	}
-	return doc;
+	return fromV1(doc);
 };
 
 const mergeNamed = (generated = [], custom = []) => {
@@ -99,20 +108,17 @@ const mergeNamed = (generated = [], custom = []) => {
 };
 
 /**
- * @param   {object} policy  generated policy (not changed)
- * @param   {object} custom  parsed fragment
+ * @param   {object} policy  generated policy in v1beta2 terms (not changed)
+ * @param   {object} custom  parsed fragment (parseCustom)
  * @returns {object}
  */
 const mergeCustom = (policy, custom) => {
 	const result = structuredClone(policy);
 	if (custom.policies) {
 		result.policies.default = { ...result.policies.default, ...(custom.policies.default || {}) };
-		result.policies["specific-rules"] = mergeNamed(
-			result.policies["specific-rules"],
-			custom.policies["specific-rules"],
-		);
+		result.policies.specificRules = mergeNamed(result.policies.specificRules, custom.policies.specificRules);
 	}
-	for (const key of NAMED_SECTIONS) {
+	for (const key of SECTIONS_V2) {
 		if (custom[key]) {
 			result[key] = mergeNamed(result[key], custom[key]);
 		}

@@ -107,7 +107,7 @@ step "WAF: protecting a proxy host generates its rule in local_policy.yaml"
 $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf/hosts/1" \
   -d '{"enabled": true, "mode": "prevent-learn", "minimum_confidence": "high"}' > /dev/null
 for i in $(seq 1 10); do
-  $CURL "$ADMIN/api/npmos/waf/policy" | grep -q 'host: test.local\\n *name: npm-managed-specific-rule-proxyhost-1\\n' && break
+  $CURL "$ADMIN/api/npmos/waf/policy" | grep -q 'name: npm-managed-specific-rule-proxyhost-1\\n *host: test.local\\n' && break
   [ "$i" = 10 ] && fail "no rule for test.local in the policy: $($CURL "$ADMIN/api/npmos/waf/policy")"
   sleep 1
 done
@@ -224,6 +224,87 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
     sleep 2
   done
   $CURL "$ADMIN/api/npmos/waf/policy/custom" | grep -q '"comment": *"smoke: empty"' || fail "versions are not listed"
+
+  # WAF -> Policy (phase 5): objects of the policy through the API of the GUI
+  json() { tr -d ' \n'; }
+  object_id() {
+    $CURL "$ADMIN/api/npmos/waf/policy/objects" | json \
+      | grep -o "\"id\":[0-9]*,[^{}]*\"kind\":\"$1\",\"name\":\"$2\"" | head -1 | sed 's/"id":\([0-9]*\).*/\1/'
+  }
+  new_id() { json | grep -o '^{"id":[0-9]*' | grep -o '[0-9]*$'; }
+  last_version() { $CURL "$ADMIN/api/npmos/waf/policy/versions" | json | grep -o '^\[{"id":[0-9]*' | grep -o '[0-9]*$'; }
+  post_json() { $CURL -X "$1" -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf/policy$2" -d "$3"; }
+  wait_status() {
+    for i in $(seq 1 60); do
+      [ "$(status "$1")" = "$2" ] && return 0
+      sleep 2
+    done
+    fail "$3 (last status $(status "$1"))"
+  }
+
+  step "WAF -> Policy: an exception object in the default policy lets the attack through, a rollback blocks it again"
+  recommended=$(object_id threat_prevention npmos-recommended)
+  trigger=$(object_id log_trigger npmos-log)
+  response=$(object_id custom_response npmos-403)
+  [ -n "$recommended" ] && [ -n "$trigger" ] && [ -n "$response" ] || fail "built-in objects are missing"
+  exception=$(post_json POST /objects "{\"kind\": \"exception\", \"name\": \"smoke-office\",
+    \"spec\": {\"action\": \"accept\", \"condition\": [{\"key\": \"sourceIp\", \"value\": \"192.0.2.1\"},
+    {\"key\": \"sourceIp\", \"value\": \"$client_ip\"}]}}" | new_id)
+  [ -n "$exception" ] || fail "the exception was not created"
+  before=$(last_version)
+  default_policy="{\"mode\": \"inactive\", \"threatPreventionPractices\": [$recommended], \"triggers\": [$trigger],
+    \"customResponse\": $response"
+  post_json POST /preview "{\"policy\": $default_policy, \"exceptions\": [$exception]}}" | json \
+    | grep -q '"valid":true,"changed":true' || fail "the preview of the default policy is not valid"
+  post_json PUT /default "$default_policy, \"exceptions\": [$exception]}" > /dev/null
+  $CURL "$ADMIN/api/npmos/waf/policy" | grep -q -- "- $client_ip" || fail "the exception is not in local_policy.yaml (v1beta1 lists)"
+  wait_status "$SQLI" 200 "SQLi from an IP of the exception is still blocked"
+  [ "$($CURL -o /dev/null -w "%{http_code}" -X DELETE "$ADMIN/api/npmos/waf/policy/objects/$exception" 2>/dev/null || true)" = 400 ] \
+    || fail "an object in use was deleted"
+  post_json POST "/versions/$before/rollback" "" > /dev/null
+  wait_status "$SQLI" 403 "SQLi is not blocked after the rollback"
+
+  step "WAF -> Policy: a rate limit of the host switches local_policy.yaml to v1beta2 and limits requests"
+  limit=$(post_json POST /objects '{"kind": "access_control", "name": "smoke-limit",
+    "spec": {"rateLimit": {"overrideMode": "prevent", "rules": [{"uri": "/smoke-limit", "limit": 3, "unit": "minute"}]}}}' \
+    | new_id)
+  $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf/hosts/1" -d "{\"enabled\": true,
+    \"mode\": \"prevent-learn\", \"minimum_confidence\": \"high\", \"objects\": {\"accessControlPractices\": [$limit]}}" > /dev/null
+  for i in $(seq 1 30); do
+    $CURL "$ADMIN/api/npmos/waf/policy" | grep -q '"format": *"v1beta2"' && break
+    [ "$i" = 30 ] && fail "the policy is not v1beta2: $($CURL "$ADMIN/api/npmos/waf/policy" | head -c 400)"
+    sleep 1
+  done
+  limited=""
+  for i in $(seq 1 60); do
+    for _ in 1 2 3 4 5 6; do
+      [ "$(status /smoke-limit)" = 403 ] && limited=1
+    done
+    [ -n "$limited" ] && break
+    [ "$i" = 60 ] && fail "requests over the rate limit are not blocked"
+    sleep 2
+  done
+  [ "$(status /)" = 200 ] || fail "a path without a rate limit is blocked"
+  wait_status "$SQLI" 403 "SQLi is not blocked with the v1beta2 policy"
+  $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf/hosts/1" \
+    -d '{"enabled": true, "mode": "prevent-learn", "minimum_confidence": "high", "objects": null}' > /dev/null
+  $CURL "$ADMIN/api/npmos/waf/policy" | grep -q '"format": *"v1beta1"' || fail "the policy is not back to v1beta1"
+
+  step "WAF -> Policy: the v1beta2 example of open-appsec is imported and applied by the agent"
+  applied_at() { $CURL "$ADMIN/api/npmos/waf" | json | grep -o '"lastPolicyUpdate":"[^"]*"'; }
+  before=$(last_version)
+  previous=$(applied_at)
+  example=$(sed 's/\\/\\\\/g; s/"/\\"/g' /reference/v1beta2-example.yaml | awk '{printf "%s\\n", $0}')
+  post_json POST "/import?dry_run=true" "{\"content\": \"$example\"}" | json | grep -q '"errors":\[\]' \
+    || fail "the example is not imported: $(post_json POST "/import?dry_run=true" "{\"content\": \"$example\"}")"
+  post_json POST /import "{\"content\": \"$example\"}" | json | grep -q '"applied":true' || fail "the import was not applied"
+  for i in $(seq 1 60); do
+    [ "$(applied_at)" != "$previous" ] && break
+    [ "$i" = 60 ] && fail "the agent did not apply the imported policy"
+    sleep 2
+  done
+  post_json POST "/versions/$before/rollback" "" > /dev/null
+  wait_status "$SQLI" 403 "SQLi is not blocked after the rollback of the import"
 
   step "WAF: detect-learn lets attacks through"
   $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf/hosts/1" \

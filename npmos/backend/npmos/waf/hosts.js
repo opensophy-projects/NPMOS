@@ -1,9 +1,12 @@
 // WAF settings of proxy hosts and their locations (npmos_waf_host / npmos_waf_location).
 // Who may see or edit a proxy host may see or edit its WAF settings (upstream proxy_hosts:*
 // permissions, including ownership); a role with waf_policy:manage edits them on the hosts it sees.
-import internalAuditLog from "../../internal/audit-log.js";
+
 import db from "../../db.js";
+import internalAuditLog from "../../internal/audit-log.js";
 import errs from "../../lib/error.js";
+import { hostObjects } from "./objects/api.js";
+import { listObjects } from "./objects/store.js";
 import { CONFIDENCES, MODES, scheduleRegenerate } from "./policy.js";
 
 const DEFAULTS = { enabled: false, mode: "detect-learn", minimum_confidence: "high" };
@@ -13,6 +16,8 @@ const toSettings = (row) => ({
 	mode: row.mode,
 	minimum_confidence: row.minimum_confidence,
 });
+
+const parseObjects = (value) => (typeof value === "string" ? JSON.parse(value) : value) ?? null;
 
 const parseJson = (value) => (typeof value === "string" ? JSON.parse(value) : value) || [];
 
@@ -56,7 +61,7 @@ const internalWafHosts = {
 		}
 		const result = {};
 		for (const row of await query) {
-			result[row.proxy_host_id] = toSettings(row);
+			result[row.proxy_host_id] = { ...toSettings(row), template: parseObjects(row.objects)?.template ?? null };
 		}
 		return result;
 	},
@@ -64,7 +69,9 @@ const internalWafHosts = {
 	/**
 	 * @param {Access} access
 	 * @param {number} id  proxy host id
-	 * @returns {Promise<{enabled, mode, minimum_confidence, locations: Array<{path, inherit, enabled, mode, minimum_confidence}>}>}
+	 * @returns {Promise<{enabled, mode, minimum_confidence, objects, locations: Array<{path, inherit, enabled, mode, minimum_confidence}>}>}
+	 * objects: of the policy (WAF → Policy) the host uses, {template?, threatPreventionPractices?: [id], ...};
+	 * null: those of the default policy
 	 */
 	get: async (access, id) => {
 		await access.can("proxy_hosts:get", id);
@@ -79,13 +86,14 @@ const internalWafHosts = {
 				? { path: location.path, inherit: false, ...toSettings(own) }
 				: { path: location.path, inherit: true, ...settings };
 		});
-		return { ...settings, locations };
+		return { ...settings, objects: parseObjects(row?.objects), locations };
 	},
 
 	/**
 	 * @param {Access} access
 	 * @param {number} id  proxy host id
-	 * @param {{enabled, mode, minimum_confidence, locations?: Array<{path, inherit?, enabled, mode, minimum_confidence}>}} data
+	 * @param {{enabled, mode, minimum_confidence, objects?, locations?: Array<{path, inherit?, enabled, mode, minimum_confidence}>}} data
+	 *   objects: {template} or references (see get); absent: unchanged
 	 */
 	set: async (access, id, data) => {
 		// the WAF mode is a security setting: a role with waf_policy:manage changes it on the hosts
@@ -107,11 +115,14 @@ const internalWafHosts = {
 				validate(location, `WAF of location ${location.path}`);
 			}
 		}
+		const objects = data.objects === undefined ? undefined : hostObjects(data.objects, await listObjects());
 
 		const now = new Date();
 		await db().transaction(async (trx) => {
+			const values = { ...toSettings(data), modified_on: now };
+			if (objects !== undefined) values.objects = objects ? JSON.stringify(objects) : null;
 			await trx("npmos_waf_host")
-				.insert({ proxy_host_id: id, ...toSettings(data), modified_on: now })
+				.insert({ proxy_host_id: id, ...values })
 				.onConflict("proxy_host_id")
 				.merge();
 			if (data.locations) {
@@ -129,7 +140,7 @@ const internalWafHosts = {
 			action: "updated",
 			object_type: "waf",
 			object_id: id,
-			meta: { name: parseJson(host.domain_names).join(", "), ...toSettings(data) },
+			meta: { name: parseJson(host.domain_names).join(", "), ...toSettings(data), template: objects?.template },
 		});
 		scheduleRegenerate();
 		return internalWafHosts.get(access, id);

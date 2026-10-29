@@ -773,6 +773,9 @@
 	"npmos.events.country": {
 		"defaultMessage": "Страна"
 	},
+	"npmos.events.create-exception": {
+		"defaultMessage": "Создать исключение"
+	},
 	"npmos.events.empty": {
 		"defaultMessage": "Событий с такими фильтрами нет. Здесь появляются атаки на хосты под защитой WAF."
 	},
@@ -1370,6 +1373,18 @@
 	"npmos.hosts.waf.prevent.hint": {
 		"defaultMessage": "Атаки блокируются (ответ 403)"
 	},
+	"npmos.hosts.waf.template.api.hint": {
+		"defaultMessage": "Шаблон: для API, нестандартные HTTP-методы блокируются"
+	},
+	"npmos.hosts.waf.template.monitor.hint": {
+		"defaultMessage": "Шаблон: только обнаруживает и обучается"
+	},
+	"npmos.hosts.waf.template.recommended.hint": {
+		"defaultMessage": "Шаблон: блокирует атаки высокой уверенности"
+	},
+	"npmos.hosts.waf.template.strict.hint": {
+		"defaultMessage": "Шаблон: средняя уверенность, CSRF, раскрытие ошибок, редиректы, страница блокировки"
+	},
 	"npmos.nav.administration": {
 		"defaultMessage": "Администрирование"
 	},
@@ -1819,6 +1834,558 @@
 	},
 	"npmos.overview.waf.state": {
 		"defaultMessage": "Защита"
+	},
+	"npmos.policy": {
+		"defaultMessage": "Политика"
+	},
+	"npmos.policy.action.accept": {
+		"defaultMessage": "Пропускать (accept)"
+	},
+	"npmos.policy.action.drop": {
+		"defaultMessage": "Отбрасывать (drop)"
+	},
+	"npmos.policy.action.skip": {
+		"defaultMessage": "Не проверять (skip)"
+	},
+	"npmos.policy.action.suppressLog": {
+		"defaultMessage": "Не журналировать (suppressLog)"
+	},
+	"npmos.policy.add": {
+		"defaultMessage": "Добавить"
+	},
+	"npmos.policy.add-to-default": {
+		"defaultMessage": "Исключение будет также добавлено в политику по умолчанию: оно действует на все хосты, у которых нет своих исключений."
+	},
+	"npmos.policy.apply": {
+		"defaultMessage": "Применить"
+	},
+	"npmos.policy.back": {
+		"defaultMessage": "Назад"
+	},
+	"npmos.policy.builtin": {
+		"defaultMessage": "встроенный"
+	},
+	"npmos.policy.builtin-readonly": {
+		"defaultMessage": "Встроенный объект NPMOS: обновляется вместе с NPMOS и не редактируется. Сделайте копию, чтобы изменить."
+	},
+	"npmos.policy.condition.add": {
+		"defaultMessage": "Добавить условие"
+	},
+	"npmos.policy.condition.hint": {
+		"defaultMessage": "Условия с одним полем срабатывают при любом из значений; условия с разными полями должны выполняться одновременно."
+	},
+	"npmos.policy.condition.key": {
+		"defaultMessage": "Поле"
+	},
+	"npmos.policy.condition.value": {
+		"defaultMessage": "Значение"
+	},
+	"npmos.policy.confidence.critical": {
+		"defaultMessage": "Критическая"
+	},
+	"npmos.policy.confidence.high": {
+		"defaultMessage": "Высокая"
+	},
+	"npmos.policy.confidence.medium": {
+		"defaultMessage": "Средняя"
+	},
+	"npmos.policy.default": {
+		"defaultMessage": "Политика по умолчанию"
+	},
+	"npmos.policy.default.hint": {
+		"defaultMessage": "Действует для запросов к хостам без WAF и для всего, что хост не задаёт сам. Исключения политики по умолчанию действуют на все хосты."
+	},
+	"npmos.policy.default.mode-hint": {
+		"defaultMessage": "Обычно «неактивен»: WAF включается в настройках каждого хоста."
+	},
+	"npmos.policy.delete": {
+		"defaultMessage": "Удалить объект"
+	},
+	"npmos.policy.deleted": {
+		"defaultMessage": "{name} удалён"
+	},
+	"npmos.policy.description": {
+		"defaultMessage": "Описание"
+	},
+	"npmos.policy.diff": {
+		"defaultMessage": "Изменения local_policy.yaml"
+	},
+	"npmos.policy.duplicate": {
+		"defaultMessage": "Копия"
+	},
+	"npmos.policy.edit": {
+		"defaultMessage": "Изменить"
+	},
+	"npmos.policy.export": {
+		"defaultMessage": "Экспорт"
+	},
+	"npmos.policy.f.accessControlLogging.allowEvents": {
+		"defaultMessage": "Разрешённые контролем доступа"
+	},
+	"npmos.policy.f.accessControlLogging.dropEvents": {
+		"defaultMessage": "Отброшенные контролем доступа"
+	},
+	"npmos.policy.f.action": {
+		"defaultMessage": "Действие"
+	},
+	"npmos.policy.f.additionalSuspiciousEventsLogging.enabled": {
+		"defaultMessage": "Журналировать подозрительные запросы"
+	},
+	"npmos.policy.f.additionalSuspiciousEventsLogging.minSeverity": {
+		"defaultMessage": "Минимальная серьёзность"
+	},
+	"npmos.policy.f.additionalSuspiciousEventsLogging.responseBody": {
+		"defaultMessage": "Тело ответа"
+	},
+	"npmos.policy.f.additionalSuspiciousEventsLogging.responseCode": {
+		"defaultMessage": "Код ответа"
+	},
+	"npmos.policy.f.antiBot.overrideMode": {
+		"defaultMessage": "Антибот"
+	},
+	"npmos.policy.f.appsecLogging.allWebRequests": {
+		"defaultMessage": "Все запросы (много данных)"
+	},
+	"npmos.policy.f.appsecLogging.detectEvents": {
+		"defaultMessage": "Обнаруженные атаки"
+	},
+	"npmos.policy.f.appsecLogging.preventEvents": {
+		"defaultMessage": "Заблокированные атаки"
+	},
+	"npmos.policy.f.condition": {
+		"defaultMessage": "Условия"
+	},
+	"npmos.policy.f.extendedLogging.httpHeaders": {
+		"defaultMessage": "HTTP-заголовки"
+	},
+	"npmos.policy.f.extendedLogging.requestBody": {
+		"defaultMessage": "Тело запроса"
+	},
+	"npmos.policy.f.extendedLogging.urlPath": {
+		"defaultMessage": "Путь URL"
+	},
+	"npmos.policy.f.extendedLogging.urlQuery": {
+		"defaultMessage": "Параметры URL"
+	},
+	"npmos.policy.f.fileSecurity.overrideMode": {
+		"defaultMessage": "Проверка файлов"
+	},
+	"npmos.policy.f.httpResponseCode": {
+		"defaultMessage": "HTTP-код"
+	},
+	"npmos.policy.f.intrusionPrevention.overrideMode": {
+		"defaultMessage": "Предотвращение вторжений (IPS)"
+	},
+	"npmos.policy.f.messageBody": {
+		"defaultMessage": "Текст страницы"
+	},
+	"npmos.policy.f.messageTitle": {
+		"defaultMessage": "Заголовок страницы"
+	},
+	"npmos.policy.f.minNumOfSources": {
+		"defaultMessage": "Минимальное число источников"
+	},
+	"npmos.policy.f.mode": {
+		"defaultMessage": "Тип"
+	},
+	"npmos.policy.f.rateLimit.overrideMode": {
+		"defaultMessage": "Режим"
+	},
+	"npmos.policy.f.rateLimit.rules": {
+		"defaultMessage": "Правила"
+	},
+	"npmos.policy.f.redirectAddXEventId": {
+		"defaultMessage": "Добавлять идентификатор события (X-Event-ID)"
+	},
+	"npmos.policy.f.redirectUrl": {
+		"defaultMessage": "Перенаправлять на"
+	},
+	"npmos.policy.f.schemaValidation.overrideMode": {
+		"defaultMessage": "Проверка по схеме API"
+	},
+	"npmos.policy.f.snortSignatures.files": {
+		"defaultMessage": "Файлы сигнатур в агенте, по одному в строке"
+	},
+	"npmos.policy.f.snortSignatures.overrideMode": {
+		"defaultMessage": "Режим"
+	},
+	"npmos.policy.f.sourcesIdentifiers": {
+		"defaultMessage": "Идентификаторы"
+	},
+	"npmos.policy.f.webAttacks.maxBodySizeKb": {
+		"defaultMessage": "Максимальный размер тела, КБ"
+	},
+	"npmos.policy.f.webAttacks.maxHeaderSizeBytes": {
+		"defaultMessage": "Максимальный размер заголовка, байт"
+	},
+	"npmos.policy.f.webAttacks.maxObjectDepth": {
+		"defaultMessage": "Максимальная вложенность объектов"
+	},
+	"npmos.policy.f.webAttacks.maxUrlSizeBytes": {
+		"defaultMessage": "Максимальный размер URL, байт"
+	},
+	"npmos.policy.f.webAttacks.minimumConfidence": {
+		"defaultMessage": "Минимальная уверенность"
+	},
+	"npmos.policy.f.webAttacks.overrideMode": {
+		"defaultMessage": "Режим"
+	},
+	"npmos.policy.f.webAttacks.protections.csrfProtection": {
+		"defaultMessage": "Защита от CSRF"
+	},
+	"npmos.policy.f.webAttacks.protections.errorDisclosure": {
+		"defaultMessage": "Раскрытие ошибок"
+	},
+	"npmos.policy.f.webAttacks.protections.nonValidHttpMethods": {
+		"defaultMessage": "Блокировать нестандартные HTTP-методы"
+	},
+	"npmos.policy.f.webAttacks.protections.openRedirect": {
+		"defaultMessage": "Открытое перенаправление"
+	},
+	"npmos.policy.format.v1": {
+		"defaultMessage": "Агент получает политику в формате v1beta1 (как open-appsec-npm): действуют все исключения правила."
+	},
+	"npmos.policy.format.v2": {
+		"defaultMessage": "Политика использует возможности только v1beta2, поэтому агент получает v1beta2:"
+	},
+	"npmos.policy.from-template": {
+		"defaultMessage": "Заполнить из шаблона"
+	},
+	"npmos.policy.h.additionalSuspiciousEventsLogging": {
+		"defaultMessage": "Подозрительные запросы"
+	},
+	"npmos.policy.h.appsecLogging": {
+		"defaultMessage": "События"
+	},
+	"npmos.policy.h.extendedLogging": {
+		"defaultMessage": "Подробности"
+	},
+	"npmos.policy.h.premium": {
+		"defaultMessage": "Premium-версия агента"
+	},
+	"npmos.policy.h.snortSignatures": {
+		"defaultMessage": "Сигнатуры Snort"
+	},
+	"npmos.policy.h.webAttacks": {
+		"defaultMessage": "Веб-атаки (ML)"
+	},
+	"npmos.policy.hosts": {
+		"defaultMessage": "Хостов под защитой WAF: {count}."
+	},
+	"npmos.policy.identifier.add": {
+		"defaultMessage": "Добавить идентификатор"
+	},
+	"npmos.policy.identifier.type": {
+		"defaultMessage": "Идентификатор"
+	},
+	"npmos.policy.identifier.values": {
+		"defaultMessage": "Имена через запятую"
+	},
+	"npmos.policy.import": {
+		"defaultMessage": "Импорт"
+	},
+	"npmos.policy.import.apply": {
+		"defaultMessage": "Импортировать"
+	},
+	"npmos.policy.import.check": {
+		"defaultMessage": "Проверить"
+	},
+	"npmos.policy.import.content": {
+		"defaultMessage": "YAML"
+	},
+	"npmos.policy.import.create": {
+		"defaultMessage": "Новых объектов: {count}"
+	},
+	"npmos.policy.import.file": {
+		"defaultMessage": "Файл local_policy.yaml"
+	},
+	"npmos.policy.import.hint": {
+		"defaultMessage": "local_policy.yaml open-appsec (v1beta1 или v1beta2) или экспорт NPMOS. Импортируются объекты и политика по умолчанию; объекты с тем же именем обновляются, встроенные не меняются."
+	},
+	"npmos.policy.import.policy": {
+		"defaultMessage": "Политика по умолчанию будет заменена."
+	},
+	"npmos.policy.import.rules": {
+		"defaultMessage": "Правила хостов из файла ({count}) не импортируются: хосты выбирают объекты в своих настройках WAF."
+	},
+	"npmos.policy.import.skipped": {
+		"defaultMessage": "Встроенные, пропущены: {count}"
+	},
+	"npmos.policy.import.update": {
+		"defaultMessage": "Обновляемых объектов: {count}"
+	},
+	"npmos.policy.imported": {
+		"defaultMessage": "Политика импортирована"
+	},
+	"npmos.policy.key.countryCode": {
+		"defaultMessage": "Код страны"
+	},
+	"npmos.policy.key.countryName": {
+		"defaultMessage": "Страна"
+	},
+	"npmos.policy.key.hostName": {
+		"defaultMessage": "Имя хоста"
+	},
+	"npmos.policy.key.paramName": {
+		"defaultMessage": "Имя параметра"
+	},
+	"npmos.policy.key.paramValue": {
+		"defaultMessage": "Значение параметра"
+	},
+	"npmos.policy.key.protectionName": {
+		"defaultMessage": "Защита"
+	},
+	"npmos.policy.key.sourceIdentifier": {
+		"defaultMessage": "Идентификатор источника"
+	},
+	"npmos.policy.key.sourceIp": {
+		"defaultMessage": "IP или сеть источника"
+	},
+	"npmos.policy.key.url": {
+		"defaultMessage": "URL"
+	},
+	"npmos.policy.kind.access_control": {
+		"defaultMessage": "Контроль доступа"
+	},
+	"npmos.policy.kind.access_control.hint": {
+		"defaultMessage": "Ограничения частоты запросов по URI и источнику. С ними local_policy.yaml переходит на v1beta2."
+	},
+	"npmos.policy.kind.custom_response": {
+		"defaultMessage": "Ответ"
+	},
+	"npmos.policy.kind.custom_response.hint": {
+		"defaultMessage": "Что получает заблокированный клиент: код, страницу блокировки или перенаправление (v1beta2)."
+	},
+	"npmos.policy.kind.exception": {
+		"defaultMessage": "Исключение"
+	},
+	"npmos.policy.kind.exception.hint": {
+		"defaultMessage": "Запросы, которые WAF пропускает, отбрасывает или не журналирует: по источнику, URL, параметру, защите или стране."
+	},
+	"npmos.policy.kind.log_trigger": {
+		"defaultMessage": "Журналирование"
+	},
+	"npmos.policy.kind.log_trigger.hint": {
+		"defaultMessage": "Какие события агент пишет в журнал и с какими подробностями (NPMOS читает их для WAF → События)."
+	},
+	"npmos.policy.kind.source_identifiers": {
+		"defaultMessage": "Идентификаторы источника"
+	},
+	"npmos.policy.kind.source_identifiers.hint": {
+		"defaultMessage": "Как агент различает клиентов: IP, X-Forwarded-For, заголовок, cookie или ключ JWT."
+	},
+	"npmos.policy.kind.threat_prevention": {
+		"defaultMessage": "Практика защиты"
+	},
+	"npmos.policy.kind.threat_prevention.hint": {
+		"defaultMessage": "Что и насколько строго проверяет WAF: веб-атаки (ML), сигнатуры Snort; IPS, файлы, схема API и антибот требуют Premium-версии агента."
+	},
+	"npmos.policy.kind.trusted_sources": {
+		"defaultMessage": "Доверенные источники"
+	},
+	"npmos.policy.kind.trusted_sources.hint": {
+		"defaultMessage": "Источники, чей трафик быстрее обучает ML-модель."
+	},
+	"npmos.policy.kinds.access_control": {
+		"defaultMessage": "Ограничения частоты"
+	},
+	"npmos.policy.kinds.custom_response": {
+		"defaultMessage": "Ответы"
+	},
+	"npmos.policy.kinds.exception": {
+		"defaultMessage": "Исключения"
+	},
+	"npmos.policy.kinds.log_trigger": {
+		"defaultMessage": "Журналирование"
+	},
+	"npmos.policy.kinds.source_identifiers": {
+		"defaultMessage": "Идентификаторы"
+	},
+	"npmos.policy.kinds.threat_prevention": {
+		"defaultMessage": "Практики"
+	},
+	"npmos.policy.kinds.trusted_sources": {
+		"defaultMessage": "Доверенные источники"
+	},
+	"npmos.policy.mode.detect": {
+		"defaultMessage": "Обнаруживать"
+	},
+	"npmos.policy.mode.detect-learn": {
+		"defaultMessage": "Обнаруживать и обучаться"
+	},
+	"npmos.policy.mode.inactive": {
+		"defaultMessage": "Неактивен"
+	},
+	"npmos.policy.mode.inherited": {
+		"defaultMessage": "Как у правила"
+	},
+	"npmos.policy.mode.prevent": {
+		"defaultMessage": "Блокировать"
+	},
+	"npmos.policy.mode.prevent-learn": {
+		"defaultMessage": "Блокировать и обучаться"
+	},
+	"npmos.policy.name": {
+		"defaultMessage": "Имя"
+	},
+	"npmos.policy.name.hint": {
+		"defaultMessage": "Строчные латинские буквы, цифры, точка, дефис; используется в local_policy.yaml."
+	},
+	"npmos.policy.name.invalid": {
+		"defaultMessage": "Имя может содержать строчные латинские буквы, цифры, «.», «_» и «-» и должно начинаться и заканчиваться буквой или цифрой."
+	},
+	"npmos.policy.no-diff": {
+		"defaultMessage": "local_policy.yaml не меняется."
+	},
+	"npmos.policy.no-objects": {
+		"defaultMessage": "Объектов пока нет."
+	},
+	"npmos.policy.none": {
+		"defaultMessage": "Нет"
+	},
+	"npmos.policy.premium": {
+		"defaultMessage": "Premium"
+	},
+	"npmos.policy.previewing": {
+		"defaultMessage": "Собираем политику…"
+	},
+	"npmos.policy.rate.action": {
+		"defaultMessage": "Действие"
+	},
+	"npmos.policy.rate.add": {
+		"defaultMessage": "Добавить правило"
+	},
+	"npmos.policy.rate.limit": {
+		"defaultMessage": "Лимит"
+	},
+	"npmos.policy.rate.minute": {
+		"defaultMessage": "в минуту"
+	},
+	"npmos.policy.rate.second": {
+		"defaultMessage": "в секунду"
+	},
+	"npmos.policy.rate.unit": {
+		"defaultMessage": "Период"
+	},
+	"npmos.policy.rate.uri": {
+		"defaultMessage": "URI"
+	},
+	"npmos.policy.reason.file-security": {
+		"defaultMessage": "проверка файлов в практике {name} (Premium)"
+	},
+	"npmos.policy.reason.ips": {
+		"defaultMessage": "IPS в практике {name} (Premium)"
+	},
+	"npmos.policy.reason.rate-limit": {
+		"defaultMessage": "ограничения частоты {name}"
+	},
+	"npmos.policy.reason.redirect": {
+		"defaultMessage": "перенаправление в ответе {name}"
+	},
+	"npmos.policy.remove": {
+		"defaultMessage": "Убрать"
+	},
+	"npmos.policy.reset": {
+		"defaultMessage": "Сбросить"
+	},
+	"npmos.policy.response.block-page": {
+		"defaultMessage": "Страница блокировки"
+	},
+	"npmos.policy.response.redirect": {
+		"defaultMessage": "Перенаправление"
+	},
+	"npmos.policy.response.response-code-only": {
+		"defaultMessage": "Только HTTP-код"
+	},
+	"npmos.policy.review": {
+		"defaultMessage": "Просмотреть изменения"
+	},
+	"npmos.policy.rollback-confirm": {
+		"defaultMessage": "Вернуть объекты, политику по умолчанию и объекты хостов к версии {id}? Это сохранится как новая версия."
+	},
+	"npmos.policy.rule.accessControlPractices": {
+		"defaultMessage": "Ограничения частоты"
+	},
+	"npmos.policy.rule.customResponse": {
+		"defaultMessage": "Ответ"
+	},
+	"npmos.policy.rule.exceptions": {
+		"defaultMessage": "Исключения"
+	},
+	"npmos.policy.rule.mode": {
+		"defaultMessage": "Режим"
+	},
+	"npmos.policy.rule.sourceIdentifiers": {
+		"defaultMessage": "Идентификаторы источника"
+	},
+	"npmos.policy.rule.threatPreventionPractices": {
+		"defaultMessage": "Практики"
+	},
+	"npmos.policy.rule.triggers": {
+		"defaultMessage": "Журналирование"
+	},
+	"npmos.policy.rule.trustedSources": {
+		"defaultMessage": "Доверенные источники"
+	},
+	"npmos.policy.saved": {
+		"defaultMessage": "Политика применена"
+	},
+	"npmos.policy.subtitle": {
+		"defaultMessage": "Политика open-appsec из объектов: практики, ограничения частоты, журналирование, ответы, исключения. Хосты используют политику по умолчанию, шаблон или свои объекты."
+	},
+	"npmos.policy.tab.default": {
+		"defaultMessage": "По умолчанию"
+	},
+	"npmos.policy.tab.versions": {
+		"defaultMessage": "Версии"
+	},
+	"npmos.policy.template.api": {
+		"defaultMessage": "API"
+	},
+	"npmos.policy.template.monitor": {
+		"defaultMessage": "Только наблюдение"
+	},
+	"npmos.policy.template.recommended": {
+		"defaultMessage": "Рекомендуемый"
+	},
+	"npmos.policy.template.strict": {
+		"defaultMessage": "Строгий"
+	},
+	"npmos.policy.v2-hint": {
+		"defaultMessage": "Требует local_policy.yaml v1beta2"
+	},
+	"npmos.policy.version.created": {
+		"defaultMessage": "Создан: {kind} {name}"
+	},
+	"npmos.policy.version.default-policy": {
+		"defaultMessage": "Политика по умолчанию"
+	},
+	"npmos.policy.version.deleted": {
+		"defaultMessage": "Удалён: {kind} {name}"
+	},
+	"npmos.policy.version.import": {
+		"defaultMessage": "Импорт"
+	},
+	"npmos.policy.version.initial": {
+		"defaultMessage": "Состояние до первого изменения"
+	},
+	"npmos.policy.version.updated": {
+		"defaultMessage": "Изменён: {kind} {name}"
+	},
+	"npmos.policy.versions": {
+		"defaultMessage": "Версии"
+	},
+	"npmos.policy.versions.none": {
+		"defaultMessage": "Изменений пока не было."
+	},
+	"npmos.policy.view": {
+		"defaultMessage": "Открыть"
+	},
+	"npmos.policy.warning.exceptions": {
+		"defaultMessage": "У правила {rule} несколько исключений: в v1beta2 агент применяет только первое. Объедините их в одно исключение."
+	},
+	"npmos.policy.warning.missing": {
+		"defaultMessage": "Правило {rule} ссылается на несуществующий {name} (экспертный фрагмент?): агент его пропустит."
 	},
 	"npmos.rbac.action.apply": {
 		"defaultMessage": "Применение"
@@ -2629,6 +3196,21 @@
 	},
 	"npmos.waf.host-enabled": {
 		"defaultMessage": "Защищать с помощью open-appsec"
+	},
+	"npmos.waf.host-policy": {
+		"defaultMessage": "Объекты политики"
+	},
+	"npmos.waf.host-policy.custom": {
+		"defaultMessage": "Свои объекты"
+	},
+	"npmos.waf.host-policy.default": {
+		"defaultMessage": "Как в политике по умолчанию"
+	},
+	"npmos.waf.host-policy.hint": {
+		"defaultMessage": "Практики, ограничения частоты, ответ и исключения этого хоста (WAF → Политика). Исключения политики по умолчанию действуют тоже."
+	},
+	"npmos.waf.host-policy.template": {
+		"defaultMessage": "Шаблон: {name}"
 	},
 	"npmos.waf.last-policy-update": {
 		"defaultMessage": "Политика применена"

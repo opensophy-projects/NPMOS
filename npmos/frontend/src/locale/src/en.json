@@ -773,6 +773,9 @@
 	"npmos.events.country": {
 		"defaultMessage": "Country"
 	},
+	"npmos.events.create-exception": {
+		"defaultMessage": "Create exception"
+	},
 	"npmos.events.empty": {
 		"defaultMessage": "No events for these filters. Attacks on hosts protected by the WAF appear here."
 	},
@@ -1370,6 +1373,18 @@
 	"npmos.hosts.waf.prevent.hint": {
 		"defaultMessage": "Attacks are blocked with 403"
 	},
+	"npmos.hosts.waf.template.api.hint": {
+		"defaultMessage": "Template: for APIs, non-standard HTTP methods are blocked"
+	},
+	"npmos.hosts.waf.template.monitor.hint": {
+		"defaultMessage": "Template: only detects and learns"
+	},
+	"npmos.hosts.waf.template.recommended.hint": {
+		"defaultMessage": "Template: blocks attacks of high confidence"
+	},
+	"npmos.hosts.waf.template.strict.hint": {
+		"defaultMessage": "Template: medium confidence, CSRF, error disclosure, open redirect, block page"
+	},
 	"npmos.nav.administration": {
 		"defaultMessage": "Administration"
 	},
@@ -1819,6 +1834,558 @@
 	},
 	"npmos.overview.waf.state": {
 		"defaultMessage": "Protection"
+	},
+	"npmos.policy": {
+		"defaultMessage": "Policy"
+	},
+	"npmos.policy.action.accept": {
+		"defaultMessage": "Let through (accept)"
+	},
+	"npmos.policy.action.drop": {
+		"defaultMessage": "Drop (drop)"
+	},
+	"npmos.policy.action.skip": {
+		"defaultMessage": "Do not inspect (skip)"
+	},
+	"npmos.policy.action.suppressLog": {
+		"defaultMessage": "Do not log (suppressLog)"
+	},
+	"npmos.policy.add": {
+		"defaultMessage": "Add"
+	},
+	"npmos.policy.add-to-default": {
+		"defaultMessage": "The exception will also be added to the default policy: it applies to every host that does not set its own exceptions."
+	},
+	"npmos.policy.apply": {
+		"defaultMessage": "Apply"
+	},
+	"npmos.policy.back": {
+		"defaultMessage": "Back"
+	},
+	"npmos.policy.builtin": {
+		"defaultMessage": "built-in"
+	},
+	"npmos.policy.builtin-readonly": {
+		"defaultMessage": "A built-in object of NPMOS: it is updated with NPMOS and cannot be changed. Duplicate it to make your own."
+	},
+	"npmos.policy.condition.add": {
+		"defaultMessage": "Add condition"
+	},
+	"npmos.policy.condition.hint": {
+		"defaultMessage": "Conditions with the same field match any of their values; different fields must all match."
+	},
+	"npmos.policy.condition.key": {
+		"defaultMessage": "Field"
+	},
+	"npmos.policy.condition.value": {
+		"defaultMessage": "Value"
+	},
+	"npmos.policy.confidence.critical": {
+		"defaultMessage": "Critical"
+	},
+	"npmos.policy.confidence.high": {
+		"defaultMessage": "High"
+	},
+	"npmos.policy.confidence.medium": {
+		"defaultMessage": "Medium"
+	},
+	"npmos.policy.default": {
+		"defaultMessage": "Default policy"
+	},
+	"npmos.policy.default.hint": {
+		"defaultMessage": "Applies to requests of hosts without WAF and to what a host does not set itself. Exceptions of the default policy apply to every host."
+	},
+	"npmos.policy.default.mode-hint": {
+		"defaultMessage": "Usually inactive: hosts turn the WAF on in their settings."
+	},
+	"npmos.policy.delete": {
+		"defaultMessage": "Delete object"
+	},
+	"npmos.policy.deleted": {
+		"defaultMessage": "{name} deleted"
+	},
+	"npmos.policy.description": {
+		"defaultMessage": "Description"
+	},
+	"npmos.policy.diff": {
+		"defaultMessage": "Changes of local_policy.yaml"
+	},
+	"npmos.policy.duplicate": {
+		"defaultMessage": "Duplicate"
+	},
+	"npmos.policy.edit": {
+		"defaultMessage": "Edit"
+	},
+	"npmos.policy.export": {
+		"defaultMessage": "Export"
+	},
+	"npmos.policy.f.accessControlLogging.allowEvents": {
+		"defaultMessage": "Allowed by access control"
+	},
+	"npmos.policy.f.accessControlLogging.dropEvents": {
+		"defaultMessage": "Dropped by access control"
+	},
+	"npmos.policy.f.action": {
+		"defaultMessage": "Action"
+	},
+	"npmos.policy.f.additionalSuspiciousEventsLogging.enabled": {
+		"defaultMessage": "Log suspicious requests"
+	},
+	"npmos.policy.f.additionalSuspiciousEventsLogging.minSeverity": {
+		"defaultMessage": "Minimum severity"
+	},
+	"npmos.policy.f.additionalSuspiciousEventsLogging.responseBody": {
+		"defaultMessage": "Response body"
+	},
+	"npmos.policy.f.additionalSuspiciousEventsLogging.responseCode": {
+		"defaultMessage": "Response code"
+	},
+	"npmos.policy.f.antiBot.overrideMode": {
+		"defaultMessage": "Anti-bot"
+	},
+	"npmos.policy.f.appsecLogging.allWebRequests": {
+		"defaultMessage": "All requests (a lot of data)"
+	},
+	"npmos.policy.f.appsecLogging.detectEvents": {
+		"defaultMessage": "Detected attacks"
+	},
+	"npmos.policy.f.appsecLogging.preventEvents": {
+		"defaultMessage": "Blocked attacks"
+	},
+	"npmos.policy.f.condition": {
+		"defaultMessage": "Conditions"
+	},
+	"npmos.policy.f.extendedLogging.httpHeaders": {
+		"defaultMessage": "HTTP headers"
+	},
+	"npmos.policy.f.extendedLogging.requestBody": {
+		"defaultMessage": "Request body"
+	},
+	"npmos.policy.f.extendedLogging.urlPath": {
+		"defaultMessage": "URL path"
+	},
+	"npmos.policy.f.extendedLogging.urlQuery": {
+		"defaultMessage": "URL query"
+	},
+	"npmos.policy.f.fileSecurity.overrideMode": {
+		"defaultMessage": "File security"
+	},
+	"npmos.policy.f.httpResponseCode": {
+		"defaultMessage": "HTTP code"
+	},
+	"npmos.policy.f.intrusionPrevention.overrideMode": {
+		"defaultMessage": "Intrusion prevention (IPS)"
+	},
+	"npmos.policy.f.messageBody": {
+		"defaultMessage": "Text of the page"
+	},
+	"npmos.policy.f.messageTitle": {
+		"defaultMessage": "Title of the page"
+	},
+	"npmos.policy.f.minNumOfSources": {
+		"defaultMessage": "Minimum number of sources"
+	},
+	"npmos.policy.f.mode": {
+		"defaultMessage": "Type"
+	},
+	"npmos.policy.f.rateLimit.overrideMode": {
+		"defaultMessage": "Mode"
+	},
+	"npmos.policy.f.rateLimit.rules": {
+		"defaultMessage": "Rules"
+	},
+	"npmos.policy.f.redirectAddXEventId": {
+		"defaultMessage": "Add the event id (X-Event-ID)"
+	},
+	"npmos.policy.f.redirectUrl": {
+		"defaultMessage": "Redirect to"
+	},
+	"npmos.policy.f.schemaValidation.overrideMode": {
+		"defaultMessage": "API schema validation"
+	},
+	"npmos.policy.f.snortSignatures.files": {
+		"defaultMessage": "Files of signatures in the agent, one per line"
+	},
+	"npmos.policy.f.snortSignatures.overrideMode": {
+		"defaultMessage": "Mode"
+	},
+	"npmos.policy.f.sourcesIdentifiers": {
+		"defaultMessage": "Identifiers"
+	},
+	"npmos.policy.f.webAttacks.maxBodySizeKb": {
+		"defaultMessage": "Maximum body size, KB"
+	},
+	"npmos.policy.f.webAttacks.maxHeaderSizeBytes": {
+		"defaultMessage": "Maximum header size, bytes"
+	},
+	"npmos.policy.f.webAttacks.maxObjectDepth": {
+		"defaultMessage": "Maximum object depth"
+	},
+	"npmos.policy.f.webAttacks.maxUrlSizeBytes": {
+		"defaultMessage": "Maximum URL size, bytes"
+	},
+	"npmos.policy.f.webAttacks.minimumConfidence": {
+		"defaultMessage": "Minimum confidence"
+	},
+	"npmos.policy.f.webAttacks.overrideMode": {
+		"defaultMessage": "Mode"
+	},
+	"npmos.policy.f.webAttacks.protections.csrfProtection": {
+		"defaultMessage": "CSRF protection"
+	},
+	"npmos.policy.f.webAttacks.protections.errorDisclosure": {
+		"defaultMessage": "Error disclosure"
+	},
+	"npmos.policy.f.webAttacks.protections.nonValidHttpMethods": {
+		"defaultMessage": "Block non-standard HTTP methods"
+	},
+	"npmos.policy.f.webAttacks.protections.openRedirect": {
+		"defaultMessage": "Open redirect"
+	},
+	"npmos.policy.format.v1": {
+		"defaultMessage": "The agent gets the policy in v1beta1 (as open-appsec-npm): every exception of a rule applies."
+	},
+	"npmos.policy.format.v2": {
+		"defaultMessage": "The policy uses features of v1beta2 only, so the agent gets v1beta2:"
+	},
+	"npmos.policy.from-template": {
+		"defaultMessage": "Fill from template"
+	},
+	"npmos.policy.h.additionalSuspiciousEventsLogging": {
+		"defaultMessage": "Suspicious requests"
+	},
+	"npmos.policy.h.appsecLogging": {
+		"defaultMessage": "Events"
+	},
+	"npmos.policy.h.extendedLogging": {
+		"defaultMessage": "Details"
+	},
+	"npmos.policy.h.premium": {
+		"defaultMessage": "Premium edition of the agent"
+	},
+	"npmos.policy.h.snortSignatures": {
+		"defaultMessage": "Snort signatures"
+	},
+	"npmos.policy.h.webAttacks": {
+		"defaultMessage": "Web attacks (ML)"
+	},
+	"npmos.policy.hosts": {
+		"defaultMessage": "Hosts protected by the WAF: {count}."
+	},
+	"npmos.policy.identifier.add": {
+		"defaultMessage": "Add identifier"
+	},
+	"npmos.policy.identifier.type": {
+		"defaultMessage": "Identifier"
+	},
+	"npmos.policy.identifier.values": {
+		"defaultMessage": "Names, separated by commas"
+	},
+	"npmos.policy.import": {
+		"defaultMessage": "Import"
+	},
+	"npmos.policy.import.apply": {
+		"defaultMessage": "Import"
+	},
+	"npmos.policy.import.check": {
+		"defaultMessage": "Check"
+	},
+	"npmos.policy.import.content": {
+		"defaultMessage": "YAML"
+	},
+	"npmos.policy.import.create": {
+		"defaultMessage": "New objects: {count}"
+	},
+	"npmos.policy.import.file": {
+		"defaultMessage": "File local_policy.yaml"
+	},
+	"npmos.policy.import.hint": {
+		"defaultMessage": "A local_policy.yaml of open-appsec (v1beta1 or v1beta2) or an export of NPMOS. Objects and the default policy are imported; objects with the same name are updated, built-in ones are kept."
+	},
+	"npmos.policy.import.policy": {
+		"defaultMessage": "The default policy will be replaced."
+	},
+	"npmos.policy.import.rules": {
+		"defaultMessage": "Rules of hosts in the file ({count}) are not imported: hosts choose their objects in their WAF settings."
+	},
+	"npmos.policy.import.skipped": {
+		"defaultMessage": "Built-in, skipped: {count}"
+	},
+	"npmos.policy.import.update": {
+		"defaultMessage": "Updated objects: {count}"
+	},
+	"npmos.policy.imported": {
+		"defaultMessage": "Policy imported"
+	},
+	"npmos.policy.key.countryCode": {
+		"defaultMessage": "Country code"
+	},
+	"npmos.policy.key.countryName": {
+		"defaultMessage": "Country"
+	},
+	"npmos.policy.key.hostName": {
+		"defaultMessage": "Host name"
+	},
+	"npmos.policy.key.paramName": {
+		"defaultMessage": "Parameter name"
+	},
+	"npmos.policy.key.paramValue": {
+		"defaultMessage": "Parameter value"
+	},
+	"npmos.policy.key.protectionName": {
+		"defaultMessage": "Protection"
+	},
+	"npmos.policy.key.sourceIdentifier": {
+		"defaultMessage": "Source identifier"
+	},
+	"npmos.policy.key.sourceIp": {
+		"defaultMessage": "Source IP or network"
+	},
+	"npmos.policy.key.url": {
+		"defaultMessage": "URL"
+	},
+	"npmos.policy.kind.access_control": {
+		"defaultMessage": "Access control practice"
+	},
+	"npmos.policy.kind.access_control.hint": {
+		"defaultMessage": "Rate limits by URI and source. Using them switches local_policy.yaml to v1beta2."
+	},
+	"npmos.policy.kind.custom_response": {
+		"defaultMessage": "Response"
+	},
+	"npmos.policy.kind.custom_response.hint": {
+		"defaultMessage": "What a blocked client gets: a code, a block page or a redirect (v1beta2)."
+	},
+	"npmos.policy.kind.exception": {
+		"defaultMessage": "Exception"
+	},
+	"npmos.policy.kind.exception.hint": {
+		"defaultMessage": "Requests the WAF lets through, drops or does not log, by source, URL, parameter, protection or country."
+	},
+	"npmos.policy.kind.log_trigger": {
+		"defaultMessage": "Log trigger"
+	},
+	"npmos.policy.kind.log_trigger.hint": {
+		"defaultMessage": "Which events the agent logs and with which details (NPMOS reads them for WAF → Events)."
+	},
+	"npmos.policy.kind.source_identifiers": {
+		"defaultMessage": "Source identifiers"
+	},
+	"npmos.policy.kind.source_identifiers.hint": {
+		"defaultMessage": "How the agent tells clients apart: IP, X-Forwarded-For, a header, a cookie or a JWT key."
+	},
+	"npmos.policy.kind.threat_prevention": {
+		"defaultMessage": "Threat prevention practice"
+	},
+	"npmos.policy.kind.threat_prevention.hint": {
+		"defaultMessage": "What the WAF inspects and how strictly: web attacks (ML), Snort signatures; IPS, file security, schema validation and anti-bot need the Premium edition of the agent."
+	},
+	"npmos.policy.kind.trusted_sources": {
+		"defaultMessage": "Trusted sources"
+	},
+	"npmos.policy.kind.trusted_sources.hint": {
+		"defaultMessage": "Sources whose traffic teaches the ML model faster (learning)."
+	},
+	"npmos.policy.kinds.access_control": {
+		"defaultMessage": "Rate limits"
+	},
+	"npmos.policy.kinds.custom_response": {
+		"defaultMessage": "Responses"
+	},
+	"npmos.policy.kinds.exception": {
+		"defaultMessage": "Exceptions"
+	},
+	"npmos.policy.kinds.log_trigger": {
+		"defaultMessage": "Logging"
+	},
+	"npmos.policy.kinds.source_identifiers": {
+		"defaultMessage": "Identifiers"
+	},
+	"npmos.policy.kinds.threat_prevention": {
+		"defaultMessage": "Practices"
+	},
+	"npmos.policy.kinds.trusted_sources": {
+		"defaultMessage": "Trusted sources"
+	},
+	"npmos.policy.mode.detect": {
+		"defaultMessage": "Detect"
+	},
+	"npmos.policy.mode.detect-learn": {
+		"defaultMessage": "Detect and learn"
+	},
+	"npmos.policy.mode.inactive": {
+		"defaultMessage": "Inactive"
+	},
+	"npmos.policy.mode.inherited": {
+		"defaultMessage": "As the rule"
+	},
+	"npmos.policy.mode.prevent": {
+		"defaultMessage": "Prevent"
+	},
+	"npmos.policy.mode.prevent-learn": {
+		"defaultMessage": "Prevent and learn"
+	},
+	"npmos.policy.name": {
+		"defaultMessage": "Name"
+	},
+	"npmos.policy.name.hint": {
+		"defaultMessage": "Lowercase letters, digits, dots, dashes; used in local_policy.yaml."
+	},
+	"npmos.policy.name.invalid": {
+		"defaultMessage": "The name may contain lowercase letters, digits, \".\", \"_\" and \"-\" and must start and end with a letter or digit."
+	},
+	"npmos.policy.no-diff": {
+		"defaultMessage": "local_policy.yaml does not change."
+	},
+	"npmos.policy.no-objects": {
+		"defaultMessage": "No objects yet."
+	},
+	"npmos.policy.none": {
+		"defaultMessage": "None"
+	},
+	"npmos.policy.premium": {
+		"defaultMessage": "Premium"
+	},
+	"npmos.policy.previewing": {
+		"defaultMessage": "Building the policy…"
+	},
+	"npmos.policy.rate.action": {
+		"defaultMessage": "Action"
+	},
+	"npmos.policy.rate.add": {
+		"defaultMessage": "Add rule"
+	},
+	"npmos.policy.rate.limit": {
+		"defaultMessage": "Limit"
+	},
+	"npmos.policy.rate.minute": {
+		"defaultMessage": "per minute"
+	},
+	"npmos.policy.rate.second": {
+		"defaultMessage": "per second"
+	},
+	"npmos.policy.rate.unit": {
+		"defaultMessage": "Period"
+	},
+	"npmos.policy.rate.uri": {
+		"defaultMessage": "URI"
+	},
+	"npmos.policy.reason.file-security": {
+		"defaultMessage": "file security of practice {name} (Premium)"
+	},
+	"npmos.policy.reason.ips": {
+		"defaultMessage": "IPS of practice {name} (Premium)"
+	},
+	"npmos.policy.reason.rate-limit": {
+		"defaultMessage": "rate limits of {name}"
+	},
+	"npmos.policy.reason.redirect": {
+		"defaultMessage": "redirect of response {name}"
+	},
+	"npmos.policy.remove": {
+		"defaultMessage": "Remove"
+	},
+	"npmos.policy.reset": {
+		"defaultMessage": "Reset"
+	},
+	"npmos.policy.response.block-page": {
+		"defaultMessage": "Block page"
+	},
+	"npmos.policy.response.redirect": {
+		"defaultMessage": "Redirect"
+	},
+	"npmos.policy.response.response-code-only": {
+		"defaultMessage": "HTTP code only"
+	},
+	"npmos.policy.review": {
+		"defaultMessage": "Review changes"
+	},
+	"npmos.policy.rollback-confirm": {
+		"defaultMessage": "Restore objects, the default policy and the objects of hosts as of version {id}? It is saved as a new version."
+	},
+	"npmos.policy.rule.accessControlPractices": {
+		"defaultMessage": "Rate limits"
+	},
+	"npmos.policy.rule.customResponse": {
+		"defaultMessage": "Response"
+	},
+	"npmos.policy.rule.exceptions": {
+		"defaultMessage": "Exceptions"
+	},
+	"npmos.policy.rule.mode": {
+		"defaultMessage": "Mode"
+	},
+	"npmos.policy.rule.sourceIdentifiers": {
+		"defaultMessage": "Source identifiers"
+	},
+	"npmos.policy.rule.threatPreventionPractices": {
+		"defaultMessage": "Practices"
+	},
+	"npmos.policy.rule.triggers": {
+		"defaultMessage": "Logging"
+	},
+	"npmos.policy.rule.trustedSources": {
+		"defaultMessage": "Trusted sources"
+	},
+	"npmos.policy.saved": {
+		"defaultMessage": "Policy applied"
+	},
+	"npmos.policy.subtitle": {
+		"defaultMessage": "The open-appsec policy made of objects: practices, rate limits, log triggers, responses, exceptions. Hosts use the default policy, a template or their own objects."
+	},
+	"npmos.policy.tab.default": {
+		"defaultMessage": "Default policy"
+	},
+	"npmos.policy.tab.versions": {
+		"defaultMessage": "Versions"
+	},
+	"npmos.policy.template.api": {
+		"defaultMessage": "API"
+	},
+	"npmos.policy.template.monitor": {
+		"defaultMessage": "Monitoring only"
+	},
+	"npmos.policy.template.recommended": {
+		"defaultMessage": "Recommended"
+	},
+	"npmos.policy.template.strict": {
+		"defaultMessage": "Strict"
+	},
+	"npmos.policy.v2-hint": {
+		"defaultMessage": "Needs local_policy.yaml v1beta2"
+	},
+	"npmos.policy.version.created": {
+		"defaultMessage": "Created: {kind} {name}"
+	},
+	"npmos.policy.version.default-policy": {
+		"defaultMessage": "Default policy"
+	},
+	"npmos.policy.version.deleted": {
+		"defaultMessage": "Deleted: {kind} {name}"
+	},
+	"npmos.policy.version.import": {
+		"defaultMessage": "Import"
+	},
+	"npmos.policy.version.initial": {
+		"defaultMessage": "State before the first change"
+	},
+	"npmos.policy.version.updated": {
+		"defaultMessage": "Changed: {kind} {name}"
+	},
+	"npmos.policy.versions": {
+		"defaultMessage": "Versions"
+	},
+	"npmos.policy.versions.none": {
+		"defaultMessage": "No changes yet."
+	},
+	"npmos.policy.view": {
+		"defaultMessage": "View"
+	},
+	"npmos.policy.warning.exceptions": {
+		"defaultMessage": "Rule {rule} has several exceptions: in v1beta2 the agent applies only the first one. Join them into one exception."
+	},
+	"npmos.policy.warning.missing": {
+		"defaultMessage": "Rule {rule} refers to {name}, which does not exist (expert fragment?): the agent ignores it."
 	},
 	"npmos.rbac.action.apply": {
 		"defaultMessage": "Apply"
@@ -2629,6 +3196,21 @@
 	},
 	"npmos.waf.host-enabled": {
 		"defaultMessage": "Protect with open-appsec"
+	},
+	"npmos.waf.host-policy": {
+		"defaultMessage": "Policy objects"
+	},
+	"npmos.waf.host-policy.custom": {
+		"defaultMessage": "Own objects"
+	},
+	"npmos.waf.host-policy.default": {
+		"defaultMessage": "As the default policy"
+	},
+	"npmos.waf.host-policy.hint": {
+		"defaultMessage": "Practices, rate limits, response and exceptions of this host (WAF → Policy). Exceptions of the default policy apply too."
+	},
+	"npmos.waf.host-policy.template": {
+		"defaultMessage": "Template: {name}"
 	},
 	"npmos.waf.last-policy-update": {
 		"defaultMessage": "Policy applied"

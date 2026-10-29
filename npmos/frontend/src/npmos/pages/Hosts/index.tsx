@@ -39,14 +39,14 @@ import { showError, showSuccess } from "src/notifications";
 import { setWafHost, WAF_DEFAULTS } from "../../api";
 import { useHostAttacks, useHostChanges, useUpstreamChecks, useWafHosts, useWafStatus } from "../../hooks";
 import { showConfirmModal } from "../../modals/ConfirmModal";
-import { useCan } from "../../rbac/hooks";
 import { showHostHistoryModal } from "../../modals/HostHistoryModal";
+import { useCan } from "../../rbac/hooks";
 import { createHost, deleteHost, OBJECT, QUERY_KEY, toggleHost, updateHost } from "./api";
 import {
 	AccessCell,
 	ActionsCell,
-	type CellContext,
 	AttacksCell,
+	type CellContext,
 	ChangedCell,
 	MtlsCell,
 	NameCell,
@@ -349,6 +349,20 @@ function HostsPage() {
 				t(enabled ? "npmos.hosts.done.enabled" : "npmos.hosts.done.disabled"),
 			),
 		setWaf: (row, state) => run([row], (r) => changeWaf(r, state), t("npmos.hosts.done.waf")),
+		wafTemplate: (row) => waf.data?.[row.id]?.template ?? null,
+		setWafTemplate: (row, template) =>
+			run(
+				[row],
+				(r) =>
+					setWafHost(r.id, {
+						enabled: true,
+						// "monitor" only detects, the others block
+						mode: template === "monitor" ? "detect-learn" : "prevent-learn",
+						minimumConfidence: (waf.data?.[r.id] ?? WAF_DEFAULTS).minimumConfidence,
+						objects: { template },
+					}),
+				t("npmos.hosts.done.waf"),
+			),
 		setMtls: (row, caId, mode: MtlsState) =>
 			run(
 				[row],

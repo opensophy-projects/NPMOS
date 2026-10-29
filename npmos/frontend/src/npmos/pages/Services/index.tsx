@@ -7,11 +7,11 @@ import { Button, HasPermission, LoadingPage } from "src/components";
 import { intl, T } from "src/locale";
 import { VIEW } from "src/modules/Permissions";
 import { showSuccess } from "src/notifications";
-import { useCan } from "../../rbac/hooks";
 import { downloadDiagnostics, regenerateNginx, restartService, type Service } from "../../api";
 import { useServices } from "../../hooks";
 import { showConfirmModal } from "../../modals/ConfirmModal";
 import { showServiceLogsModal } from "../../modals/ServiceLogsModal";
+import { useCan } from "../../rbac/hooks";
 
 const STATE_COLORS: Record<string, string> = {
 	running: "green",

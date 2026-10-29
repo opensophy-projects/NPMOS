@@ -32,6 +32,9 @@ export interface CellContext {
 	remove: (row: HostRow) => void;
 	toggle: (row: HostRow, enabled: boolean) => void;
 	setWaf: (row: HostRow, waf: WafState) => void;
+	/** template of the policy objects of the host (WAF → Policy), null: its own or the default */
+	wafTemplate: (row: HostRow) => string | null;
+	setWafTemplate: (row: HostRow, template: string) => void;
 	setMtls: (row: HostRow, caId: number, mode: MtlsState) => void;
 	setAccess: (row: HostRow, listId: number | null) => void;
 	setCertificate: (row: HostRow, certificateId: number | "new") => void;
@@ -152,6 +155,8 @@ const WAF_LABEL: Record<WafState, string> = {
 	prevent: "npmos.hosts.waf.prevent",
 };
 const WAF_TONE: Record<WafState, string | undefined> = { off: undefined, detect: "warning", prevent: "accent" };
+/** templates of the policy (npmos/backend/npmos/waf/objects/model.js) */
+export const WAF_TEMPLATES = ["recommended", "strict", "api", "monitor"];
 
 export function WafCell({ row, ctx }: { row: HostRow; ctx: CellContext }) {
 	if (row.waf === null) return <span className={styles.none}>—</span>;
@@ -165,19 +170,35 @@ export function WafCell({ row, ctx }: { row: HostRow; ctx: CellContext }) {
 			ariaLabel="WAF"
 			triggerClassName={styles.trigger}
 			trigger={<Trigger tone={WAF_TONE[waf]}>{chip}</Trigger>}
-			items={(["off", "detect", "prevent"] as WafState[]).map((value) => ({
-				key: value,
-				label: (
-					<span className={styles.option}>
-						<T id={WAF_LABEL[value]} />
-						<span className={styles.optionHint}>
-							<T id={`${WAF_LABEL[value]}.hint`} />
+			items={[
+				...(["off", "detect", "prevent"] as WafState[]).map((value) => ({
+					key: value as string,
+					label: (
+						<span className={styles.option}>
+							<T id={WAF_LABEL[value]} />
+							<span className={styles.optionHint}>
+								<T id={`${WAF_LABEL[value]}.hint`} />
+							</span>
 						</span>
-					</span>
-				),
-				active: value === waf,
-				onSelect: () => ctx.setWaf(row, value),
-			}))}
+					),
+					active: value === waf,
+					onSelect: () => ctx.setWaf(row, value),
+				})),
+				...WAF_TEMPLATES.map((name, i) => ({
+					key: `template-${name}`,
+					divider: i === 0,
+					label: (
+						<span className={styles.option}>
+							<T id={`npmos.policy.template.${name}`} />
+							<span className={styles.optionHint}>
+								<T id={`npmos.hosts.waf.template.${name}.hint`} />
+							</span>
+						</span>
+					),
+					active: ctx.wafTemplate(row) === name,
+					onSelect: () => ctx.setWafTemplate(row, name),
+				})),
+			]}
 		/>
 	);
 }
