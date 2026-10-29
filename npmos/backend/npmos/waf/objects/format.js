@@ -413,7 +413,85 @@ export const v2ExceptionLimits = (doc) =>
 		.filter((r) => r && list(r.exceptions).length > 1)
 		.map((r) => r.name || r.host || "default");
 
-/** a v1beta2 document ready to write: apiVersion first */
-export const asV2 = (doc) => ({ apiVersion: "v1beta2", ...doc });
+/** fields of a rule → the section its names are in */
+const RULE_REFS = {
+	threatPreventionPractices: "threatPreventionPractices",
+	accessControlPractices: "accessControlPractices",
+	triggers: "logTriggers",
+	customResponse: "customResponses",
+	sourceIdentifiers: "sourcesIdentifiers",
+	trustedSources: "trustedSources",
+	exceptions: "exceptions",
+};
+
+/**
+ * Names a rule (or trusted sources) refers to that are not in the document: "<rule>:<name>".
+ * The agent skips them without telling, so the GUI does.
+ */
+export const danglingRefs = (doc) => {
+	const names = Object.fromEntries(SECTIONS_V2.map((s) => [s, new Set(list(doc[s]).map((o) => o.name))]));
+	const out = [];
+	for (const rule of [doc.policies?.default, ...list(doc.policies?.specificRules)]) {
+		if (!rule) continue;
+		for (const [field, section] of Object.entries(RULE_REFS)) {
+			const refs = Array.isArray(rule[field]) ? rule[field] : rule[field] ? [rule[field]] : [];
+			for (const name of refs) {
+				if (!names[section].has(name)) out.push(`${rule.name || "default"}:${name}`);
+			}
+		}
+	}
+	for (const ts of list(doc.trustedSources)) {
+		for (const name of list(ts.sourcesIdentifiers)) {
+			if (!names.sourcesIdentifiers.has(name)) out.push(`${ts.name}:${name}`);
+		}
+	}
+	return [...new Set(out)];
+};
+
+/**
+ * A v1beta2 document ready to write: apiVersion first; every rule names its practices (the agent
+ * requires both keys, new_appsec_policy_crd_parser.cc; an empty list takes those of the default rule).
+ * The agent keeps the rate limit of an access control practice once, for the last rule that uses it
+ * (policy_maker_utils.cc, keyed by the name): every further rule gets a copy "<practice>.<n>".
+ */
+export const asV2 = (doc) => {
+	if (!isObject(doc.policies)) return { apiVersion: "v1beta2", ...doc };
+	const practices = new Map(list(doc.accessControlPractices).map((p) => [p.name, p]));
+	const limits = (name) => list(practices.get(name)?.rateLimit?.rules).length > 0;
+	const defaults = doc.policies.default || {};
+	const used = new Map();
+	const copies = [];
+	const mandatory = (rule, isDefault) => {
+		let access = rule.accessControlPractices ?? [];
+		// inherited rate limits made explicit, so that the copies below apply to them too
+		if (!isDefault && !access.length && list(defaults.accessControlPractices).some(limits)) {
+			access = defaults.accessControlPractices;
+		}
+		access = access.map((name) => {
+			if (!limits(name)) return name;
+			const n = used.get(name) ?? 0;
+			used.set(name, n + 1);
+			if (n === 0) return name;
+			const copy = { ...structuredClone(practices.get(name)), name: `${name}.${n}` };
+			copies.push(copy);
+			return copy.name;
+		});
+		return {
+			...rule,
+			threatPreventionPractices: rule.threatPreventionPractices ?? [],
+			accessControlPractices: access,
+		};
+	};
+	return {
+		apiVersion: "v1beta2",
+		...doc,
+		policies: {
+			...doc.policies,
+			default: mandatory(defaults, true),
+			specificRules: list(doc.policies.specificRules).map((rule) => mandatory(rule, false)),
+		},
+		accessControlPractices: [...list(doc.accessControlPractices), ...copies],
+	};
+};
 
 export { SECTIONS_V2 };

@@ -1,0 +1,16 @@
+--- a/components/security_apps/rate_limit/rate_limit.cc
++++ b/components/security_apps/rate_limit/rate_limit.cc
+@@ -51,9 +51,11 @@
+     extractUri(const string &address)
+     {
+         size_t protocol_pos = address.find("://");
+-        if (protocol_pos == string::npos) return genError("Invalid URI format: " + address);
++        // NPMOS: hosts of the local policy have no scheme ("example.com/path", any port), the
++        // application URL is then the host and its path
++        size_t host_pos = protocol_pos == string::npos ? 0 : protocol_pos + 3;
+ 
+-        size_t domain_pos = address.find('/', protocol_pos + 3);
++        size_t domain_pos = address.find('/', host_pos);
+         if (domain_pos == string::npos) return string("");
+ 
+         return address.substr(domain_pos);

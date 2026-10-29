@@ -1,7 +1,8 @@
 // WAF -> Policy (expert): edit, check (diff against the file in force), save and roll back the
 // YAML fragments merged over the generated policy (see custom.js). Every save is a new version.
-import internalAuditLog from "../../internal/audit-log.js";
+
 import db from "../../db.js";
+import internalAuditLog from "../../internal/audit-log.js";
 import errs from "../../lib/error.js";
 import { parseCustom } from "./custom.js";
 import { buildPolicy, getPolicyState, readPolicyFile, regenerateNow, render } from "./policy.js";
@@ -13,7 +14,7 @@ const DIFF_MAX_LINES = 2000;
  * Line diff: common head and tail, then the longest common subsequence of the changed middle.
  * @returns {Array<{op: " "|"+"|"-", line: string}>}
  */
-const diffLines = (before, after) => {
+export const diffLines = (before, after) => {
 	const a = before.split("\n");
 	const b = after.split("\n");
 	let head = 0;

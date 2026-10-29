@@ -77,13 +77,16 @@ const parseJson = (value) => (typeof value === "string" ? JSON.parse(value) : va
  * confidence (a copy "<practice>.<confidence>" when it differs from the practice); other objects
  * are the host's own or, if it has none, those of the default policy (the agent takes them).
  * Exceptions of a host come on top of those of the default policy.
+ * A candidate (preview of a change) replaces what is stored: the objects, the default policy, the
+ * objects of hosts ({<proxy host id>: objects}).
+ * @param   {{objects?: object[], policy?: object, hostObjects?: Record<number, object|null>}} [candidate]
  * @returns {Promise<{doc: object, hosts: number}>}
  */
-export const buildDoc = async () => {
+export const buildDoc = async (candidate = {}) => {
 	const knex = db();
-	const objects = await listObjects();
+	const objects = candidate.objects ?? (await listObjects());
 	const byId = new Map(objects.map((o) => [o.id, o]));
-	const policy = await getDefaultPolicy(objects);
+	const policy = candidate.policy ?? (await getDefaultPolicy(objects));
 	const defaults = resolveRule(policy, byId);
 	const doc = {
 		policies: { default: { mode: policy.mode, ...defaults }, specificRules: [] },
@@ -146,7 +149,11 @@ export const buildDoc = async () => {
 		const domains = parseJson(proxyHost.domain_names);
 		const locations = parseJson(proxyHost.locations);
 		const host = hostRows.get(proxyHost.id);
-		const own = resolveRule(parse(host?.objects) || {}, byId);
+		const refs =
+			candidate.hostObjects && proxyHost.id in candidate.hostObjects
+				? candidate.hostObjects[proxyHost.id]
+				: parse(host?.objects);
+		const own = resolveRule(refs || {}, byId);
 		// names as open-appsec-npm, so that its installations are imported as they are
 		if (host?.enabled) {
 			addRules(

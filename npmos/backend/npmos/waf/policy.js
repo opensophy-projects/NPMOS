@@ -17,7 +17,7 @@ import YAML from "yaml";
 import db from "../../db.js";
 import { debug, global as logger } from "../../logger.js";
 import { getCurrentCustom, mergeCustom, parseCustom } from "./custom.js";
-import { asV2, needsV2, toV1, v2ExceptionLimits } from "./objects/format.js";
+import { asV2, danglingRefs, needsV2, toV1, v2ExceptionLimits } from "./objects/format.js";
 import { buildDoc, seedBuiltins } from "./objects/store.js";
 
 const POLICY_FILE = process.env.NPMOS_APPSEC_POLICY_FILE || "/ext/appsec/local_policy.yaml";
@@ -37,12 +37,13 @@ const CONFIDENCES = ["medium", "high", "critical"];
 /**
  * The policy to write: built from the objects (objects/store.js), the expert fragment merged over it,
  * in v1beta1 unless it uses what only v1beta2 has (objects/format.js).
- * @param   {{custom?: object}} [options]  parsed expert fragment instead of the one in force
+ * @param   {{custom?: object, candidate?: object}} [options]  parsed expert fragment instead of the one
+ *   in force; objects, default policy or objects of hosts instead of the stored ones (store.buildDoc)
  * @returns {Promise<{policy: object, doc: object, hosts: number, customId: number|null,
  *   format: "v1beta1"|"v1beta2", reasons: string[], warnings: string[]}>}
  */
-const buildPolicy = async ({ custom } = {}) => {
-	const { doc, hosts } = await buildDoc();
+const buildPolicy = async ({ custom, candidate } = {}) => {
+	const { doc, hosts } = await buildDoc(candidate);
 	let merged = doc;
 	let customId = null;
 	if (custom) {
@@ -71,8 +72,12 @@ const buildPolicy = async ({ custom } = {}) => {
 		customId,
 		format,
 		reasons,
-		// v1beta2: the agent applies only the first exception of a rule
-		warnings: format === "v1beta2" ? v2ExceptionLimits(merged).map((rule) => `exceptions:${rule}`) : [],
+		warnings: [
+			// v1beta2: the agent applies only the first exception of a rule
+			...(format === "v1beta2" ? v2ExceptionLimits(merged).map((rule) => `exceptions:${rule}`) : []),
+			// names the agent will not find (an expert fragment refers to a renamed or deleted object)
+			...danglingRefs(merged).map((ref) => `missing:${ref}`),
+		],
 	};
 };
 
@@ -81,7 +86,7 @@ const parseJson = (value) => (typeof value === "string" ? JSON.parse(value) : va
 const CUSTOM_HEADER = "# + expert fragments (WAF -> Policy), merged over the generated rules.\n";
 
 const render = (policy, withCustom = false) =>
-	`${HEADER}${withCustom ? CUSTOM_HEADER : ""}${YAML.stringify(policy, { lineWidth: 0 })}`;
+	`${HEADER}${withCustom ? CUSTOM_HEADER : ""}${YAML.stringify(policy, { lineWidth: 0, aliasDuplicateObjects: false })}`;
 
 const readPolicyFile = async () => {
 	try {

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { fromV1, isV1, needsV2, toV1, v2ExceptionLimits } from "./format.js";
+import { asV2, danglingRefs, fromV1, isV1, needsV2, toV1, v2ExceptionLimits } from "./format.js";
 import { BUILTIN, builtinSpec, KINDS, normalize, TEMPLATES } from "./model.js";
 
 test("built-in objects are complete and valid", () => {
@@ -105,7 +105,19 @@ test("fragments in either syntax, v1beta2 only when needed", () => {
 	};
 	limited.customResponses[0] = { name: "r", mode: "redirect", redirectUrl: "https://x" };
 	assert.deepEqual(needsV2(limited), ["rate-limit:ac", "redirect:r"]);
+	const v2 = asV2(limited);
+	assert.equal(v2.apiVersion, "v1beta2");
+	// the rate limit of the default rule, made explicit and copied for the second rule using it
+	assert.deepEqual(v2.policies.default.accessControlPractices, ["ac"]);
+	assert.deepEqual(v2.policies.specificRules[0].accessControlPractices, ["ac.1"]);
+	assert.equal(v2.accessControlPractices[1].rateLimit.rules[0].uri, "/login");
+	assert.deepEqual(asV2(example).policies.specificRules[0].accessControlPractices, []);
 	assert.deepEqual(v2ExceptionLimits(example), ["default"]);
+	assert.deepEqual(danglingRefs(example), []);
+	const dangling = structuredClone(example);
+	dangling.policies.specificRules[0].exceptions = ["gone"];
+	dangling.trustedSources[0].sourcesIdentifiers = ["si", "nope"];
+	assert.deepEqual(danglingRefs(dangling), ["one:gone", "ts:nope"]);
 	assert.equal(Object.keys(KINDS).length, 7);
 });
 

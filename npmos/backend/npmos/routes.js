@@ -16,6 +16,7 @@ import internalWafAgent from "./waf/agent-settings.js";
 import internalWafExpert from "./waf/expert.js";
 import internalWafHosts from "./waf/hosts.js";
 import internalWaf from "./waf/index.js";
+import internalWafObjects from "./waf/objects/api.js";
 
 const router = express.Router({
 	caseSensitive: true,
@@ -46,6 +47,14 @@ router.param("host_id", (req, res, next, id) => {
 		return res.status(400).send({ error: { code: 400, message: "Invalid host id" } });
 	}
 	req.params.host_id = Number.parseInt(id, 10);
+	next();
+});
+
+router.param("object_id", (req, res, next, id) => {
+	if (!/^[1-9][0-9]{0,9}$/.test(id)) {
+		return res.status(400).send({ error: { code: 400, message: "Invalid object id" } });
+	}
+	req.params.object_id = Number.parseInt(id, 10);
 	next();
 });
 
@@ -304,8 +313,43 @@ const wafSettings = {
 	},
 };
 
+const ids = { type: "array", maxItems: 100, items: { type: "integer", minimum: 1 } };
+const id = { type: ["integer", "null"], minimum: 1 };
+/** references of a rule to objects of the policy (WAF → Policy) */
+const ruleRefs = {
+	threatPreventionPractices: ids,
+	accessControlPractices: ids,
+	triggers: ids,
+	exceptions: ids,
+	customResponse: id,
+	sourceIdentifiers: id,
+	trustedSources: id,
+};
+const wafHostObjects = {
+	type: ["object", "null"],
+	additionalProperties: false,
+	properties: { template: { type: "string", maxLength: 50 }, ...ruleRefs },
+};
+const wafDefaultPolicy = {
+	type: "object",
+	additionalProperties: false,
+	required: ["mode"],
+	properties: { mode: { type: "string" }, ...ruleRefs },
+};
+const wafObject = {
+	type: "object",
+	additionalProperties: false,
+	required: ["kind", "name", "spec"],
+	properties: {
+		kind: { type: "string", maxLength: 32 },
+		name: { type: "string", maxLength: 100 },
+		description: { type: "string", maxLength: 500 },
+		spec: { type: "object" },
+	},
+};
+
 /**
- * GET /api/npmos/waf/hosts — {<proxy host id>: {enabled, mode, minimum_confidence}}
+ * GET /api/npmos/waf/hosts — {<proxy host id>: {enabled, mode, minimum_confidence, template}}
  */
 router
 	.route("/waf/hosts")
@@ -331,6 +375,7 @@ router
 					required: wafSettings.required,
 					properties: {
 						...wafSettings.properties,
+						objects: wafHostObjects,
 						locations: {
 							type: "array",
 							items: {
@@ -758,6 +803,140 @@ router
 	.options((_, res) => res.sendStatus(204))
 	.all(jwtdecode())
 	.get(handle((req, res) => internalEvents.get(res.locals.access, req.params.event_id, req.query.time)));
+
+/**
+ * WAF → Policy (ADR-0008)
+ * GET  /api/npmos/waf/policy/objects — objects, default policy, templates, state of the file
+ * POST /api/npmos/waf/policy/objects — {kind, name, description?, spec}
+ */
+router
+	.route("/waf/policy/objects")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalWafObjects.get(res.locals.access)))
+	.post(
+		handle(
+			async (req, res) => internalWafObjects.create(res.locals.access, await validator(wafObject, req.body)),
+			201,
+		),
+	);
+
+/**
+ * PUT    /api/npmos/waf/policy/objects/:object_id — {kind, name, description?, spec}
+ * DELETE /api/npmos/waf/policy/objects/:object_id
+ */
+router
+	.route("/waf/policy/objects/:object_id")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.put(
+		handle(async (req, res) =>
+			internalWafObjects.update(res.locals.access, req.params.object_id, await validator(wafObject, req.body)),
+		),
+	)
+	.delete(handle((req, res) => internalWafObjects.delete(res.locals.access, req.params.object_id)));
+
+/**
+ * PUT /api/npmos/waf/policy/default — {mode, threatPreventionPractices?: [id], ..., customResponse?: id}
+ */
+router
+	.route("/waf/policy/default")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.put(
+		handle(async (req, res) =>
+			internalWafObjects.setPolicy(res.locals.access, await validator(wafDefaultPolicy, req.body)),
+		),
+	);
+
+/**
+ * POST /api/npmos/waf/policy/preview — one change, nothing saved: validation, diff of local_policy.yaml,
+ * format and warnings. {object, id?} | {delete: id} | {policy} | {host: {id, objects}}
+ */
+router
+	.route("/waf/policy/preview")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) => {
+			const change = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					minProperties: 1,
+					properties: {
+						object: wafObject,
+						id: { type: "integer", minimum: 1 },
+						delete: { type: "integer", minimum: 1 },
+						policy: wafDefaultPolicy,
+						host: {
+							type: "object",
+							additionalProperties: false,
+							required: ["id", "objects"],
+							properties: { id: { type: "integer", minimum: 1 }, objects: wafHostObjects },
+						},
+					},
+				},
+				req.body,
+			);
+			return internalWafObjects.preview(res.locals.access, change);
+		}),
+	);
+
+/**
+ * GET  /api/npmos/waf/policy/versions
+ * POST /api/npmos/waf/policy/versions/:version_id/rollback
+ */
+router
+	.route("/waf/policy/versions")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalWafObjects.versions(res.locals.access)));
+
+router
+	.route("/waf/policy/versions/:version_id/rollback")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(handle((req, res) => internalWafObjects.rollback(res.locals.access, req.params.version_id)));
+
+/**
+ * GET  /api/npmos/waf/policy/export?format=v1beta2|v1beta1 — YAML of the objects and the default policy
+ * POST /api/npmos/waf/policy/import?dry_run=true — {content}: objects and default policy of a local_policy.yaml
+ */
+router
+	.route("/waf/policy/export")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(async (req, res, next) => {
+		try {
+			const format = req.query.format === "v1beta1" ? "v1beta1" : "v1beta2";
+			const content = await internalWafObjects.export(res.locals.access, format);
+			res.attachment(`npmos-waf-policy-${format}.yaml`);
+			res.type("application/yaml").send(content);
+		} catch (err) {
+			debug(logger, `${req.method.toUpperCase()} ${req.originalUrl}: ${err}`);
+			next(err);
+		}
+	});
+
+router
+	.route("/waf/policy/import")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["content"],
+					properties: { content: { type: "string", maxLength: 1048576 } },
+				},
+				req.body,
+			);
+			return internalWafObjects.import(res.locals.access, data.content, req.query.dry_run === "true");
+		}),
+	);
 
 /**
  * GET /api/npmos/waf/policy/custom — expert YAML fragment in force, its versions
