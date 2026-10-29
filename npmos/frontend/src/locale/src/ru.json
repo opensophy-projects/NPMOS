@@ -551,6 +551,9 @@
 	"login.title": {
 		"defaultMessage": "Авторизация"
 	},
+	"mtls": {
+		"defaultMessage": "mTLS"
+	},
 	"mtls-certificate": {
 		"defaultMessage": "Сертификат mTLS"
 	},
@@ -1175,8 +1178,20 @@
 	"npmos.hosts.mtls.ca": {
 		"defaultMessage": "CA: {name}"
 	},
+	"npmos.hosts.mtls.cas": {
+		"defaultMessage": "Доверяет: {names}"
+	},
+	"npmos.hosts.mtls.configure": {
+		"defaultMessage": "Настройки mTLS…"
+	},
+	"npmos.hosts.mtls.issue": {
+		"defaultMessage": "Выпустить клиентский сертификат"
+	},
 	"npmos.hosts.mtls.needs-tls": {
 		"defaultMessage": "Для mTLS нужен TLS-сертификат на хосте"
+	},
+	"npmos.hosts.mtls.new-domain": {
+		"defaultMessage": "Создать домен доверия для хоста"
 	},
 	"npmos.hosts.mtls.no-ca": {
 		"defaultMessage": "CA пока нет: загрузите его в «Сертификатах»"
@@ -1385,6 +1400,126 @@
 	"npmos.hosts.waf.template.strict.hint": {
 		"defaultMessage": "Шаблон: средняя уверенность, CSRF, раскрытие ошибок, редиректы, страница блокировки"
 	},
+	"npmos.mtls.advanced": {
+		"defaultMessage": "Дополнительно"
+	},
+	"npmos.mtls.advanced.hide": {
+		"defaultMessage": "Скрыть настройки"
+	},
+	"npmos.mtls.cas": {
+		"defaultMessage": "Доверенные CA"
+	},
+	"npmos.mtls.cas.hint": {
+		"defaultMessage": "Корень пускает все свои домены доверия, домен доверия — только свои сертификаты."
+	},
+	"npmos.mtls.cas.stream-hint": {
+		"defaultMessage": "Стримы не умеют проверять издателя: домен доверия пускает сертификаты всех доменов доверия своего корня."
+	},
+	"npmos.mtls.depth": {
+		"defaultMessage": "Глубина цепочки"
+	},
+	"npmos.mtls.enabled": {
+		"defaultMessage": "Требовать клиентские сертификаты"
+	},
+	"npmos.mtls.field.commonName": {
+		"defaultMessage": "Имя (CN)"
+	},
+	"npmos.mtls.field.email": {
+		"defaultMessage": "Email"
+	},
+	"npmos.mtls.field.organization": {
+		"defaultMessage": "Организация (O)"
+	},
+	"npmos.mtls.field.organizationalUnit": {
+		"defaultMessage": "Подразделение (OU)"
+	},
+	"npmos.mtls.field.serial": {
+		"defaultMessage": "Серийный номер"
+	},
+	"npmos.mtls.headers": {
+		"defaultMessage": "Передавать сертификат апстриму"
+	},
+	"npmos.mtls.headers.hint": {
+		"defaultMessage": "Заголовки X-Client-Verify, X-Client-S-DN, X-Client-I-DN, X-Client-Serial, X-Client-Fingerprint; такие же заголовки от клиентов заменяются."
+	},
+	"npmos.mtls.mode": {
+		"defaultMessage": "Где требовать"
+	},
+	"npmos.mtls.mode.on": {
+		"defaultMessage": "Везде"
+	},
+	"npmos.mtls.mode.on.hint": {
+		"defaultMessage": "Без подходящего сертификата хост отвечает 403 со страницей, где объяснено, что делать."
+	},
+	"npmos.mtls.mode.optional": {
+		"defaultMessage": "На выбранных локациях"
+	},
+	"npmos.mtls.mode.optional.hint": {
+		"defaultMessage": "Браузер спросит сертификат, но обязателен он только на выбранных локациях (например, /admin)."
+	},
+	"npmos.mtls.new-domain": {
+		"defaultMessage": "Домен доверия для этого хоста"
+	},
+	"npmos.mtls.nginx-error": {
+		"defaultMessage": "nginx не принял конфигурацию: {error}"
+	},
+	"npmos.mtls.no-cas": {
+		"defaultMessage": "CA пока нет: создайте домен доверия для этого хоста."
+	},
+	"npmos.mtls.op.one_of": {
+		"defaultMessage": "одно из"
+	},
+	"npmos.mtls.op.regex": {
+		"defaultMessage": "совпадает с"
+	},
+	"npmos.mtls.replaces-upstream": {
+		"defaultMessage": "У хоста выбран mTLS CA из NPMplus; пока эти настройки включены, они его заменяют."
+	},
+	"npmos.mtls.required-paths": {
+		"defaultMessage": "Требовать сертификат на"
+	},
+	"npmos.mtls.rule.add": {
+		"defaultMessage": "Добавить правило"
+	},
+	"npmos.mtls.rule.field": {
+		"defaultMessage": "Поле"
+	},
+	"npmos.mtls.rule.list": {
+		"defaultMessage": "IT, Security"
+	},
+	"npmos.mtls.rule.op": {
+		"defaultMessage": "Условие"
+	},
+	"npmos.mtls.rule.regex": {
+		"defaultMessage": "^admin-[0-9]+$"
+	},
+	"npmos.mtls.rule.remove": {
+		"defaultMessage": "Удалить правило"
+	},
+	"npmos.mtls.rule.values": {
+		"defaultMessage": "Значения"
+	},
+	"npmos.mtls.rules": {
+		"defaultMessage": "Правила по полям сертификата"
+	},
+	"npmos.mtls.rules.hint": {
+		"defaultMessage": "Должны выполняться все правила. Значения — латиницей; «одно из» — через запятую."
+	},
+	"npmos.mtls.rules.none": {
+		"defaultMessage": "Правил нет: пускается любой сертификат доверенных CA."
+	},
+	"npmos.mtls.saved": {
+		"defaultMessage": "mTLS сохранён, nginx перезагружен"
+	},
+	"npmos.mtls.send-ca-names": {
+		"defaultMessage": "Сообщать клиентам имена CA"
+	},
+	"npmos.mtls.send-ca-names.hint": {
+		"defaultMessage": "Тогда браузер предлагает только подходящие сертификаты. Выключено — имена ваших CA не раскрываются."
+	},
+	"npmos.mtls.title": {
+		"defaultMessage": "mTLS"
+	},
 	"npmos.nav.administration": {
 		"defaultMessage": "Администрирование"
 	},
@@ -1426,6 +1561,9 @@
 	},
 	"npmos.nav.theme-light": {
 		"defaultMessage": "Светлая тема"
+	},
+	"npmos.nav.tls": {
+		"defaultMessage": "TLS"
 	},
 	"npmos.nav.user-menu": {
 		"defaultMessage": "Меню пользователя"
@@ -1834,6 +1972,543 @@
 	},
 	"npmos.overview.waf.state": {
 		"defaultMessage": "Защита"
+	},
+	"npmos.pki": {
+		"defaultMessage": "PKI и mTLS"
+	},
+	"npmos.pki.actions": {
+		"defaultMessage": "Действия"
+	},
+	"npmos.pki.all-cas": {
+		"defaultMessage": "Все домены доверия"
+	},
+	"npmos.pki.ca.add": {
+		"defaultMessage": "Добавить CA"
+	},
+	"npmos.pki.ca.ascii": {
+		"defaultMessage": "Имена CA — латиницей: nginx сравнивает их в своих правилах."
+	},
+	"npmos.pki.ca.bundle": {
+		"defaultMessage": "Сертификаты CA (PEM, один или несколько)"
+	},
+	"npmos.pki.ca.bundle.hint": {
+		"defaultMessage": "Корень и, если клиенты их не присылают, промежуточные CA."
+	},
+	"npmos.pki.ca.cert-pem": {
+		"defaultMessage": "Сертификат CA (PEM)"
+	},
+	"npmos.pki.ca.certificates": {
+		"defaultMessage": "Сертификаты"
+	},
+	"npmos.pki.ca.counts": {
+		"defaultMessage": "{active} действ., {revoked} отозв."
+	},
+	"npmos.pki.ca.create": {
+		"defaultMessage": "Создать"
+	},
+	"npmos.pki.ca.create-root": {
+		"defaultMessage": "Создать корневой CA"
+	},
+	"npmos.pki.ca.crl": {
+		"defaultMessage": "Список отзыва (CRL)"
+	},
+	"npmos.pki.ca.crl.hint": {
+		"defaultMessage": "Необязательно. Без CRL каждого внешнего CA хост не проверяет отзыв."
+	},
+	"npmos.pki.ca.crl.none": {
+		"defaultMessage": "нет"
+	},
+	"npmos.pki.ca.crl.number": {
+		"defaultMessage": "Номер CRL {number}"
+	},
+	"npmos.pki.ca.crl.until": {
+		"defaultMessage": "до {time}"
+	},
+	"npmos.pki.ca.delete": {
+		"defaultMessage": "Удалить CA"
+	},
+	"npmos.pki.ca.delete.text": {
+		"defaultMessage": "Удалить {name}? Удалить можно только CA без сертификатов, доменов доверия и хостов."
+	},
+	"npmos.pki.ca.edit": {
+		"defaultMessage": "Изменить CA"
+	},
+	"npmos.pki.ca.export.cert": {
+		"defaultMessage": "Сертификат (PEM)"
+	},
+	"npmos.pki.ca.export.chain": {
+		"defaultMessage": "Цепочка до корня (PEM)"
+	},
+	"npmos.pki.ca.export.crl": {
+		"defaultMessage": "CRL (PEM)"
+	},
+	"npmos.pki.ca.export.key": {
+		"defaultMessage": "Закрытый ключ…"
+	},
+	"npmos.pki.ca.from-npmplus": {
+		"defaultMessage": "NPMplus"
+	},
+	"npmos.pki.ca.key-password": {
+		"defaultMessage": "Пароль ключа (если зашифрован)"
+	},
+	"npmos.pki.ca.key-pem": {
+		"defaultMessage": "Закрытый ключ (PEM)"
+	},
+	"npmos.pki.ca.kind.external": {
+		"defaultMessage": "внешний"
+	},
+	"npmos.pki.ca.kind.intermediate": {
+		"defaultMessage": "домен доверия"
+	},
+	"npmos.pki.ca.kind.root": {
+		"defaultMessage": "корневой"
+	},
+	"npmos.pki.ca.mode.external": {
+		"defaultMessage": "Внешний CA"
+	},
+	"npmos.pki.ca.mode.external.hint": {
+		"defaultMessage": "Сертификаты другого PKI без ключа: хосты принимают его клиентов, NPMOS им не выпускает."
+	},
+	"npmos.pki.ca.mode.import": {
+		"defaultMessage": "Импорт корня"
+	},
+	"npmos.pki.ca.mode.import.hint": {
+		"defaultMessage": "Ваш существующий корневой CA с закрытым ключом: NPMOS будет создавать под ним домены доверия."
+	},
+	"npmos.pki.ca.mode.intermediate": {
+		"defaultMessage": "Домен доверия"
+	},
+	"npmos.pki.ca.mode.intermediate.hint": {
+		"defaultMessage": "Промежуточный CA для группы клиентов (офис, партнёры, устройства): выпускает их сертификаты, а хост доверяет только нужным доменам."
+	},
+	"npmos.pki.ca.mode.root": {
+		"defaultMessage": "Корневой CA"
+	},
+	"npmos.pki.ca.mode.root.hint": {
+		"defaultMessage": "Вершина PKI: 10 лет, подписывает только домены доверия. Экспортируйте его ключ и храните офлайн."
+	},
+	"npmos.pki.ca.name": {
+		"defaultMessage": "Название"
+	},
+	"npmos.pki.ca.new-domain": {
+		"defaultMessage": "Новый домен доверия"
+	},
+	"npmos.pki.ca.no-root": {
+		"defaultMessage": "Сначала создайте корневой CA."
+	},
+	"npmos.pki.ca.none": {
+		"defaultMessage": "Центров сертификации пока нет."
+	},
+	"npmos.pki.ca.parent": {
+		"defaultMessage": "Корневой CA"
+	},
+	"npmos.pki.copied": {
+		"defaultMessage": "Скопировано"
+	},
+	"npmos.pki.copy": {
+		"defaultMessage": "Скопировать"
+	},
+	"npmos.pki.csr": {
+		"defaultMessage": "Запрос на подпись (PEM)"
+	},
+	"npmos.pki.days": {
+		"defaultMessage": "Срок действия, дней"
+	},
+	"npmos.pki.days-left": {
+		"defaultMessage": "{days, plural, one {остался # день} few {осталось # дня} other {осталось # дней}}"
+	},
+	"npmos.pki.days-value": {
+		"defaultMessage": "{days} дн."
+	},
+	"npmos.pki.delivery": {
+		"defaultMessage": "Как выдать"
+	},
+	"npmos.pki.done": {
+		"defaultMessage": "Готово"
+	},
+	"npmos.pki.download": {
+		"defaultMessage": "Скачать"
+	},
+	"npmos.pki.download.cert": {
+		"defaultMessage": "Сертификат (PEM)"
+	},
+	"npmos.pki.download.chain": {
+		"defaultMessage": "Цепочка CA (PEM)"
+	},
+	"npmos.pki.download.fullchain": {
+		"defaultMessage": "Сертификат с цепочкой (PEM)"
+	},
+	"npmos.pki.download.key": {
+		"defaultMessage": "Закрытый ключ (PEM)"
+	},
+	"npmos.pki.download.p12": {
+		"defaultMessage": "Скачать .p12"
+	},
+	"npmos.pki.expired-ago": {
+		"defaultMessage": "{days, plural, one {истёк # день назад} few {истёк # дня назад} other {истёк # дней назад}}"
+	},
+	"npmos.pki.expires": {
+		"defaultMessage": "Действует до"
+	},
+	"npmos.pki.include-key": {
+		"defaultMessage": "Выдать ключ и в PEM (для серверов и скриптов)"
+	},
+	"npmos.pki.install": {
+		"defaultMessage": "Установить как сертификат NPMplus (TLS хостов)"
+	},
+	"npmos.pki.installed": {
+		"defaultMessage": "Сертификат добавлен в «Сертификаты → TLS»; хосты с ним перезагружены."
+	},
+	"npmos.pki.issue": {
+		"defaultMessage": "Выпустить сертификат"
+	},
+	"npmos.pki.issue.do": {
+		"defaultMessage": "Выпустить"
+	},
+	"npmos.pki.issue.summary": {
+		"defaultMessage": "Выпускает {ca}; хосты проверяют его список отзыва (CRL)."
+	},
+	"npmos.pki.issued": {
+		"defaultMessage": "Выпущен: {name}, серийный номер {serial}, действует до {until}."
+	},
+	"npmos.pki.issuer": {
+		"defaultMessage": "Домен доверия (CA)"
+	},
+	"npmos.pki.key-not-kept": {
+		"defaultMessage": "NPMOS не хранит этот ключ: скачайте .p12 сейчас, позже это будет невозможно."
+	},
+	"npmos.pki.key-source": {
+		"defaultMessage": "Ключ"
+	},
+	"npmos.pki.key-source.csr": {
+		"defaultMessage": "Из запроса (CSR)"
+	},
+	"npmos.pki.key-source.csr.hint": {
+		"defaultMessage": "Ключ остаётся на устройстве; субъект берётся из запроса."
+	},
+	"npmos.pki.key-source.generate": {
+		"defaultMessage": "Сгенерировать здесь"
+	},
+	"npmos.pki.key-source.generate.hint": {
+		"defaultMessage": "NPMOS создаст ключ и один раз выдаст его в файле .p12 с паролем."
+	},
+	"npmos.pki.key-type": {
+		"defaultMessage": "Тип ключа"
+	},
+	"npmos.pki.key-type.ec-p256": {
+		"defaultMessage": "ECDSA P-256 (рекомендуется)"
+	},
+	"npmos.pki.key-type.ec-p384": {
+		"defaultMessage": "ECDSA P-384"
+	},
+	"npmos.pki.key-type.rsa-2048": {
+		"defaultMessage": "RSA 2048 (старые системы)"
+	},
+	"npmos.pki.key-type.rsa-3072": {
+		"defaultMessage": "RSA 3072"
+	},
+	"npmos.pki.key-type.rsa-4096": {
+		"defaultMessage": "RSA 4096"
+	},
+	"npmos.pki.link": {
+		"defaultMessage": "Одноразовая ссылка на .p12"
+	},
+	"npmos.pki.link.create": {
+		"defaultMessage": "Одноразовая ссылка"
+	},
+	"npmos.pki.link.create-do": {
+		"defaultMessage": "Создать ссылку"
+	},
+	"npmos.pki.link.expires": {
+		"defaultMessage": "Откроется один раз, до {time}."
+	},
+	"npmos.pki.link.hours": {
+		"defaultMessage": "{hours, plural, one {на # час} few {на # часа} other {на # часов}}"
+	},
+	"npmos.pki.link.lifetime": {
+		"defaultMessage": "Ссылка действует"
+	},
+	"npmos.pki.link.local": {
+		"defaultMessage": "Ссылка ведёт на адрес этого интерфейса; если клиенты его не видят, задайте публичный адрес PKI в настройках."
+	},
+	"npmos.pki.link.none": {
+		"defaultMessage": "Без ссылки"
+	},
+	"npmos.pki.name": {
+		"defaultMessage": "Имя"
+	},
+	"npmos.pki.no-issuer": {
+		"defaultMessage": "Пока нет домена доверия с ключом. Создайте корневой CA и домен доверия на вкладке «Центры сертификации»."
+	},
+	"npmos.pki.none": {
+		"defaultMessage": "Сертификатов пока нет."
+	},
+	"npmos.pki.none-found": {
+		"defaultMessage": "Нет сертификатов под эти фильтры."
+	},
+	"npmos.pki.notes": {
+		"defaultMessage": "Заметка"
+	},
+	"npmos.pki.p12.compatible": {
+		"defaultMessage": ".p12 для любых систем (3DES)"
+	},
+	"npmos.pki.p12.compatible.hint": {
+		"defaultMessage": "Старые macOS, iOS, Android и Windows не импортируют контейнеры AES-256. Выключайте, только если все клиенты новые."
+	},
+	"npmos.pki.p12.password": {
+		"defaultMessage": "Пароль .p12"
+	},
+	"npmos.pki.p12.password.generate": {
+		"defaultMessage": "Пусто — сгенерировать"
+	},
+	"npmos.pki.p12.password.hint": {
+		"defaultMessage": "Передайте пароль отдельно от файла (лично, по телефону, в другом мессенджере). NPMOS его не хранит."
+	},
+	"npmos.pki.profile": {
+		"defaultMessage": "Назначение"
+	},
+	"npmos.pki.profile.all": {
+		"defaultMessage": "Клиентские и серверные"
+	},
+	"npmos.pki.profile.client": {
+		"defaultMessage": "Клиентский"
+	},
+	"npmos.pki.profile.server": {
+		"defaultMessage": "Серверный"
+	},
+	"npmos.pki.reason.CACompromise": {
+		"defaultMessage": "CA скомпрометирован"
+	},
+	"npmos.pki.reason.affiliationChanged": {
+		"defaultMessage": "Ушёл из организации или сменил роль"
+	},
+	"npmos.pki.reason.certificateHold": {
+		"defaultMessage": "Приостановлен"
+	},
+	"npmos.pki.reason.cessationOfOperation": {
+		"defaultMessage": "Больше не используется"
+	},
+	"npmos.pki.reason.keyCompromise": {
+		"defaultMessage": "Ключ скомпрометирован"
+	},
+	"npmos.pki.reason.superseded": {
+		"defaultMessage": "Заменён новым сертификатом"
+	},
+	"npmos.pki.reason.unspecified": {
+		"defaultMessage": "Не указана"
+	},
+	"npmos.pki.renew": {
+		"defaultMessage": "Перевыпустить"
+	},
+	"npmos.pki.renew.do": {
+		"defaultMessage": "Перевыпустить"
+	},
+	"npmos.pki.revoke": {
+		"defaultMessage": "Отозвать"
+	},
+	"npmos.pki.revoke-old": {
+		"defaultMessage": "Сразу отозвать старый сертификат (иначе он работает до конца срока)"
+	},
+	"npmos.pki.revoke.do": {
+		"defaultMessage": "Отозвать"
+	},
+	"npmos.pki.revoke.reason": {
+		"defaultMessage": "Причина"
+	},
+	"npmos.pki.revoke.selected": {
+		"defaultMessage": "Отозвать ({count})"
+	},
+	"npmos.pki.revoke.text": {
+		"defaultMessage": "{count, plural, one {Сертификат перестанет открывать хосты в течение минуты. Отменить отзыв нельзя.} few {# сертификата перестанут открывать хосты в течение минуты. Отменить отзыв нельзя.} other {# сертификатов перестанут открывать хосты в течение минуты. Отменить отзыв нельзя.}}"
+	},
+	"npmos.pki.revoked-count": {
+		"defaultMessage": "{count, plural, one {Отозван # сертификат} few {Отозвано # сертификата} other {Отозвано # сертификатов}}"
+	},
+	"npmos.pki.sans.dns": {
+		"defaultMessage": "DNS-имена (по одному в строке, можно *.example.com)"
+	},
+	"npmos.pki.sans.email": {
+		"defaultMessage": "Email в сертификате"
+	},
+	"npmos.pki.sans.email.hint": {
+		"defaultMessage": "Через запятую; их используют почтовые клиенты и некоторые VPN."
+	},
+	"npmos.pki.sans.ip": {
+		"defaultMessage": "IP-адреса (по одному в строке)"
+	},
+	"npmos.pki.search": {
+		"defaultMessage": "Имя, серийный номер, DNS, email, хост"
+	},
+	"npmos.pki.secret.ca-key": {
+		"defaultMessage": "Экспорт ключа CA"
+	},
+	"npmos.pki.secret.ca-key.hint": {
+		"defaultMessage": "Ключ шифруется этим паролем (PKCS#8, AES-256). Храните его офлайн: владелец ключа может выпускать сертификаты, которым доверяют ваши хосты."
+	},
+	"npmos.pki.secret.link": {
+		"defaultMessage": "Одноразовая ссылка"
+	},
+	"npmos.pki.secret.link.hint": {
+		"defaultMessage": "Ссылка открывается один раз, затем файл удаляется. Пароль отправьте отдельно."
+	},
+	"npmos.pki.secret.min": {
+		"defaultMessage": "Не короче {count} символов"
+	},
+	"npmos.pki.secret.p12": {
+		"defaultMessage": "Скачать .p12"
+	},
+	"npmos.pki.secret.p12.hint": {
+		"defaultMessage": "Файл .p12 собирается из ключа, который хранит NPMOS, и защищается этим паролем."
+	},
+	"npmos.pki.secret.password": {
+		"defaultMessage": "Пароль"
+	},
+	"npmos.pki.select-all": {
+		"defaultMessage": "Выбрать все"
+	},
+	"npmos.pki.settings.clientDays": {
+		"defaultMessage": "Клиентские сертификаты, дней"
+	},
+	"npmos.pki.settings.crlDays": {
+		"defaultMessage": "Срок действия CRL, дней"
+	},
+	"npmos.pki.settings.public-url": {
+		"defaultMessage": "Публичный адрес PKI"
+	},
+	"npmos.pki.settings.public-url.hint": {
+		"defaultMessage": "По этому адресу клиенты и серверы получают CRL (он записывается в сертификаты) и одноразовые ссылки — например, через прокси-хост на интерфейс. Пусто: адреса CRL в сертификатах нет, ссылки ведут на адрес этого интерфейса."
+	},
+	"npmos.pki.settings.public-url.placeholder": {
+		"defaultMessage": "https://pki.example.com"
+	},
+	"npmos.pki.settings.saved": {
+		"defaultMessage": "Настройки PKI сохранены"
+	},
+	"npmos.pki.settings.serverDays": {
+		"defaultMessage": "Серверные сертификаты, дней"
+	},
+	"npmos.pki.start": {
+		"defaultMessage": "Начните с корневого CA, затем создайте домен доверия (промежуточный CA) для каждой группы клиентов: офис, партнёры, устройства. Сертификаты выпускают домены доверия."
+	},
+	"npmos.pki.start.domain": {
+		"defaultMessage": "Создайте домен доверия (промежуточный CA) под корнем: сертификаты выпускают домены доверия, а хост доверяет только нужным доменам."
+	},
+	"npmos.pki.status": {
+		"defaultMessage": "Статус"
+	},
+	"npmos.pki.status.active": {
+		"defaultMessage": "Действует"
+	},
+	"npmos.pki.status.all": {
+		"defaultMessage": "Любой статус"
+	},
+	"npmos.pki.status.expired": {
+		"defaultMessage": "Истёк"
+	},
+	"npmos.pki.status.expiring": {
+		"defaultMessage": "Истекает"
+	},
+	"npmos.pki.status.replaced": {
+		"defaultMessage": "Перевыпущен"
+	},
+	"npmos.pki.status.revoked": {
+		"defaultMessage": "Отозван"
+	},
+	"npmos.pki.store-key": {
+		"defaultMessage": "Хранить ключ в NPMOS (зашифрованным)"
+	},
+	"npmos.pki.store-key.hint": {
+		"defaultMessage": "Чтобы потом скачать .p12 ещё раз. Без этого ключ выдаётся только сейчас."
+	},
+	"npmos.pki.subject.commonName": {
+		"defaultMessage": "Имя (CN)"
+	},
+	"npmos.pki.subject.country": {
+		"defaultMessage": "Страна (C, две буквы)"
+	},
+	"npmos.pki.subject.email": {
+		"defaultMessage": "Email"
+	},
+	"npmos.pki.subject.less": {
+		"defaultMessage": "Скрыть поля"
+	},
+	"npmos.pki.subject.locality": {
+		"defaultMessage": "Город (L)"
+	},
+	"npmos.pki.subject.more": {
+		"defaultMessage": "Ещё поля"
+	},
+	"npmos.pki.subject.organization": {
+		"defaultMessage": "Организация (O)"
+	},
+	"npmos.pki.subject.organizationalUnit": {
+		"defaultMessage": "Подразделение (OU)"
+	},
+	"npmos.pki.subject.state": {
+		"defaultMessage": "Регион (ST)"
+	},
+	"npmos.pki.subtitle": {
+		"defaultMessage": "Свои центры сертификации, клиентские и серверные сертификаты, отзыв и mTLS хостов — без интернета"
+	},
+	"npmos.pki.summary.active": {
+		"defaultMessage": "Действуют"
+	},
+	"npmos.pki.summary.cas": {
+		"defaultMessage": "Центры сертификации"
+	},
+	"npmos.pki.summary.expired": {
+		"defaultMessage": "Истекли"
+	},
+	"npmos.pki.summary.expiring": {
+		"defaultMessage": "Истекают за 30 дней"
+	},
+	"npmos.pki.summary.hosts": {
+		"defaultMessage": "Хостов с mTLS"
+	},
+	"npmos.pki.summary.revoked": {
+		"defaultMessage": "Отозваны"
+	},
+	"npmos.pki.tab.cas": {
+		"defaultMessage": "Центры сертификации"
+	},
+	"npmos.pki.tab.certificates": {
+		"defaultMessage": "Сертификаты"
+	},
+	"npmos.pki.tab.settings": {
+		"defaultMessage": "Настройки"
+	},
+	"npmos.pki.tab.templates": {
+		"defaultMessage": "Шаблоны"
+	},
+	"npmos.pki.template": {
+		"defaultMessage": "Шаблон"
+	},
+	"npmos.pki.template.add": {
+		"defaultMessage": "Добавить шаблон"
+	},
+	"npmos.pki.template.any-ca": {
+		"defaultMessage": "Любой домен доверия"
+	},
+	"npmos.pki.template.delete": {
+		"defaultMessage": "Удалить шаблон"
+	},
+	"npmos.pki.template.edit": {
+		"defaultMessage": "Изменить шаблон"
+	},
+	"npmos.pki.template.name": {
+		"defaultMessage": "Название"
+	},
+	"npmos.pki.template.none": {
+		"defaultMessage": "Без шаблона"
+	},
+	"npmos.pki.templates.hint": {
+		"defaultMessage": "Шаблон задаёт домен доверия, назначение, срок, ключ и организационную часть субъекта — остаётся ввести имя."
+	},
+	"npmos.pki.templates.none": {
+		"defaultMessage": "Шаблонов нет."
+	},
+	"npmos.pki.used": {
+		"defaultMessage": "Где используется"
 	},
 	"npmos.policy": {
 		"defaultMessage": "Политика"
@@ -3356,6 +4031,9 @@
 	"object.event.restarted": {
 		"defaultMessage": "{object} перезапущен"
 	},
+	"object.event.revoked": {
+		"defaultMessage": "{object}: отзыв"
+	},
 	"object.event.updated": {
 		"defaultMessage": "{object} обновлен"
 	},
@@ -3400,6 +4078,9 @@
 	},
 	"permissions.visibility.user": {
 		"defaultMessage": "Созданные элементы"
+	},
+	"pki": {
+		"defaultMessage": "PKI"
 	},
 	"proxy-host": {
 		"defaultMessage": "Прокси-хост"

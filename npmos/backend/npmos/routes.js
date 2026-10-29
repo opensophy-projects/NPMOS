@@ -10,7 +10,7 @@ import internalEvents from "./events/index.js";
 import internalHosts, { HOST_OBJECTS } from "./hosts.js";
 import internalNotifications from "./notifications/index.js";
 import internalPki from "./pki/index.js";
-import internalMtls, { usedBy as mtlsUsedBy } from "./pki/mtls.js";
+import internalMtls, { usage as mtlsUsage, usedBy as mtlsUsedBy } from "./pki/mtls.js";
 import internalRbac from "./rbac/index.js";
 import internalServices from "./services.js";
 import internalSystem from "./system/index.js";
@@ -1072,13 +1072,23 @@ const p12Properties = {
 };
 
 /**
- * GET /api/npmos/pki — CAs, certificates, settings
+ * GET /api/npmos/pki — CAs, certificates, settings; hosts of CAs (mTLS) and of server certificates
  */
 router
 	.route("/pki")
 	.options((_, res) => res.sendStatus(204))
 	.all(jwtdecode())
-	.get(handle((_, res) => internalPki.overview(res.locals.access)));
+	.get(
+		handle(async (_, res) => {
+			const overview = await internalPki.overview(res.locals.access);
+			const used = await mtlsUsage();
+			for (const ca of overview.cas) ca.hosts = used.cas[ca.id] || [];
+			for (const cert of overview.certificates) {
+				cert.hosts = cert.certificate_id ? used.certificates[cert.certificate_id] || [] : [];
+			}
+			return overview;
+		}),
+	);
 
 /**
  * PUT /api/npmos/pki/settings — {public_url, crl_days, client_days, server_days, key_type, p12_compatible, templates}

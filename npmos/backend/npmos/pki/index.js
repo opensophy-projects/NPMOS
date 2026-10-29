@@ -6,6 +6,7 @@
 // pki:export_key. The key of an issued certificate is handed out once and not kept, unless the
 // administrator asks to keep it (encrypted) for later downloads.
 import { createHash, randomBytes } from "node:crypto";
+import { readFile } from "node:fs/promises";
 import db from "../../db.js";
 import internalAuditLog from "../../internal/audit-log.js";
 import internalCertificate from "../../internal/certificate.js";
@@ -134,7 +135,11 @@ export const syncUpstream = async () => {
 	const rows = await db()("npmos_pki_ca").whereNotNull("upstream_certificate_id");
 	const now = new Date();
 	for (const cert of upstream) {
-		const pem = parse(cert.meta)?.certificate || "";
+		// NPMplus keeps the PEM in /data/tls/mtls, not in the database
+		const pem =
+			(await readFile(`/data/tls/mtls/npm-${cert.id}.pem`, "utf8").catch(() => "")) ||
+			parse(cert.meta)?.certificate ||
+			"";
 		const blocks = splitPem(pem);
 		if (!blocks.length) continue;
 		let info;
@@ -428,7 +433,7 @@ const internalPki = {
 				public_url: (data.public_url || "").replace(/\/$/, ""),
 				templates,
 			});
-			await audit(access, "updated", "pki", 0, { name: "settings" });
+			await audit(access, "updated", "pki", 0, { name: "pki" });
 			// a shorter lifetime of CRLs or a new address: generate them again
 			if (before.crl_days !== value.crl_days) {
 				const ids = (await db()("npmos_pki_ca").whereNot("kind", "external").whereNotNull("key_enc")).map(

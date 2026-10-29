@@ -1,5 +1,5 @@
-// Sidebar navigation (docs/ROADMAP.md, phase 2). Only pages that exist are listed; WAF
-// analytics, CrowdSec, PKI, notifications and updates join their groups in later phases.
+// Sidebar navigation (docs/ROADMAP.md, phase 2). Only pages that exist are listed; CrowdSec,
+// learning and updates join their groups in later phases.
 // Items of NPMOS sections are shown by the roles of the user (`rbac`: resource whose "view" opens it).
 import {
 	ACCESS_LISTS,
@@ -56,7 +56,14 @@ export const navigation: NavItem[] = [
 			{ id: "access", label: "access-lists", to: "/access", section: ACCESS_LISTS },
 		],
 	},
-	{ id: "certificates", label: "certificates", to: "/certificates", section: CERTIFICATES },
+	{
+		id: "certificates-group",
+		label: "certificates",
+		items: [
+			{ id: "certificates", label: "npmos.nav.tls", to: "/certificates", section: CERTIFICATES },
+			{ id: "pki", label: "npmos.pki", to: "/pki", rbac: "pki" },
+		],
+	},
 	{
 		id: "administration",
 		label: "npmos.nav.administration",

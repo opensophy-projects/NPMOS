@@ -3,6 +3,7 @@
 // recommendations and export; the page and the cells live next to it.
 import type { Certificate, DeadHost, ProxyHost, RedirectionHost, Stream } from "src/api/backend";
 import type { HostLastChange, HostObjectType, UpstreamCheck, WafSettings } from "../../api";
+import type { MtlsBinding, MtlsList } from "../../pki/api";
 
 export const HOST_TYPES = ["proxy", "redirect", "stream", "dead"] as const;
 export type HostType = (typeof HOST_TYPES)[number];
@@ -45,7 +46,11 @@ export interface HostRow {
 	/** WAF exists only on proxy hosts */
 	waf: WafState | null;
 	mtls: MtlsState;
+	/** the mTLS CA of NPMplus (certificate with provider mtls) */
 	mtlsCaId: number;
+	/** mTLS of PKI and mTLS (proxy hosts and streams): it replaces the one of NPMplus when on */
+	mtlsPki: boolean;
+	mtlsCaIds: number[];
 	/** proxy hosts: "public" or the names of the access lists */
 	accessPublic: boolean | null;
 	accessListIds: number[];
@@ -83,6 +88,16 @@ const mtlsOf = (meta: Record<string, any> | undefined): { mtls: MtlsState; mtlsC
 	return { mtls: meta?.npmplusMtlsVerifyClientOptional === true ? "optional" : "required", mtlsCaId: id };
 };
 
+/** mTLS of PKI and mTLS when it is on */
+const pkiMtls = (binding: MtlsBinding | undefined) =>
+	binding?.enabled
+		? {
+				mtls: (binding.mode === "optional" ? "optional" : "required") as MtlsState,
+				mtlsPki: true,
+				mtlsCaIds: binding.caIds,
+			}
+		: {};
+
 const groupOf = (meta: Record<string, any> | undefined) =>
 	typeof meta?.directory === "string" ? meta.directory.trim() : "";
 
@@ -97,6 +112,7 @@ export interface Sources {
 	stream?: Stream[];
 	dead?: DeadHost[];
 	waf?: Record<string, WafSettings>;
+	mtls?: MtlsList;
 	upstreams?: UpstreamCheck[];
 	changes?: HostLastChange[];
 }
@@ -116,6 +132,8 @@ const common = (
 	tls: tlsKind(host.certificate),
 	expiresInDays: expiresIn(host.certificate, now),
 	...mtlsOf(host.meta),
+	mtlsPki: false,
+	mtlsCaIds: [] as number[],
 	group: groupOf(host.meta),
 	modifiedOn: host.modifiedOn,
 });
@@ -140,6 +158,7 @@ export function toRows(sources: Sources, now = Date.now()): HostRow[] {
 		rows.push({
 			...common("proxy", host, now),
 			...extras("proxy", host.id),
+			...pkiMtls(sources.mtls?.proxyHost?.[host.id]),
 			names: host.domainNames,
 			target: `${host.forwardScheme}://${host.forwardHost}:${host.forwardPort}`,
 			protocols: [],
@@ -168,6 +187,7 @@ export function toRows(sources: Sources, now = Date.now()): HostRow[] {
 		rows.push({
 			...common("stream", host, now),
 			...extras("stream", host.id),
+			...pkiMtls(sources.mtls?.stream?.[host.id]),
 			names: [`:${host.incomingPort}`],
 			target: `${host.forwardingHost}:${host.forwardingPort}`,
 			protocols,

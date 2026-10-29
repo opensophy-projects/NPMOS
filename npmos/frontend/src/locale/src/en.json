@@ -551,6 +551,9 @@
 	"login.title": {
 		"defaultMessage": "Login to your account"
 	},
+	"mtls": {
+		"defaultMessage": "mTLS"
+	},
 	"mtls-certificate": {
 		"defaultMessage": "mTLS Certificate"
 	},
@@ -1175,8 +1178,20 @@
 	"npmos.hosts.mtls.ca": {
 		"defaultMessage": "CA: {name}"
 	},
+	"npmos.hosts.mtls.cas": {
+		"defaultMessage": "Trusted: {names}"
+	},
+	"npmos.hosts.mtls.configure": {
+		"defaultMessage": "mTLS settings…"
+	},
+	"npmos.hosts.mtls.issue": {
+		"defaultMessage": "Issue a client certificate"
+	},
 	"npmos.hosts.mtls.needs-tls": {
 		"defaultMessage": "mTLS needs a TLS certificate on the host"
+	},
+	"npmos.hosts.mtls.new-domain": {
+		"defaultMessage": "Create a trust domain for the host"
 	},
 	"npmos.hosts.mtls.no-ca": {
 		"defaultMessage": "No CA yet: upload one in Certificates"
@@ -1385,6 +1400,126 @@
 	"npmos.hosts.waf.template.strict.hint": {
 		"defaultMessage": "Template: medium confidence, CSRF, error disclosure, open redirect, block page"
 	},
+	"npmos.mtls.advanced": {
+		"defaultMessage": "More settings"
+	},
+	"npmos.mtls.advanced.hide": {
+		"defaultMessage": "Hide settings"
+	},
+	"npmos.mtls.cas": {
+		"defaultMessage": "Trusted CAs"
+	},
+	"npmos.mtls.cas.hint": {
+		"defaultMessage": "A root admits all its trust domains, a trust domain only its own certificates."
+	},
+	"npmos.mtls.cas.stream-hint": {
+		"defaultMessage": "Streams cannot check the issuer: a trust domain admits certificates of every trust domain of its root."
+	},
+	"npmos.mtls.depth": {
+		"defaultMessage": "Chain depth"
+	},
+	"npmos.mtls.enabled": {
+		"defaultMessage": "Require client certificates"
+	},
+	"npmos.mtls.field.commonName": {
+		"defaultMessage": "Name (CN)"
+	},
+	"npmos.mtls.field.email": {
+		"defaultMessage": "Email"
+	},
+	"npmos.mtls.field.organization": {
+		"defaultMessage": "Organization (O)"
+	},
+	"npmos.mtls.field.organizationalUnit": {
+		"defaultMessage": "Unit (OU)"
+	},
+	"npmos.mtls.field.serial": {
+		"defaultMessage": "Serial number"
+	},
+	"npmos.mtls.headers": {
+		"defaultMessage": "Pass the certificate to the upstream"
+	},
+	"npmos.mtls.headers.hint": {
+		"defaultMessage": "Headers X-Client-Verify, X-Client-S-DN, X-Client-I-DN, X-Client-Serial, X-Client-Fingerprint; the same headers from clients are replaced."
+	},
+	"npmos.mtls.mode": {
+		"defaultMessage": "Where"
+	},
+	"npmos.mtls.mode.on": {
+		"defaultMessage": "Everywhere"
+	},
+	"npmos.mtls.mode.on.hint": {
+		"defaultMessage": "Without a valid certificate the host answers 403 with a page that explains what to do."
+	},
+	"npmos.mtls.mode.optional": {
+		"defaultMessage": "On chosen locations"
+	},
+	"npmos.mtls.mode.optional.hint": {
+		"defaultMessage": "The browser is asked for a certificate, but only the chosen locations require it (e.g. /admin)."
+	},
+	"npmos.mtls.new-domain": {
+		"defaultMessage": "Trust domain for this host"
+	},
+	"npmos.mtls.nginx-error": {
+		"defaultMessage": "nginx did not accept the configuration: {error}"
+	},
+	"npmos.mtls.no-cas": {
+		"defaultMessage": "No CAs yet: create a trust domain for this host."
+	},
+	"npmos.mtls.op.one_of": {
+		"defaultMessage": "one of"
+	},
+	"npmos.mtls.op.regex": {
+		"defaultMessage": "matches"
+	},
+	"npmos.mtls.replaces-upstream": {
+		"defaultMessage": "The host has an mTLS CA of NPMplus; these settings replace it while they are on."
+	},
+	"npmos.mtls.required-paths": {
+		"defaultMessage": "Require a certificate on"
+	},
+	"npmos.mtls.rule.add": {
+		"defaultMessage": "Add rule"
+	},
+	"npmos.mtls.rule.field": {
+		"defaultMessage": "Field"
+	},
+	"npmos.mtls.rule.list": {
+		"defaultMessage": "IT, Security"
+	},
+	"npmos.mtls.rule.op": {
+		"defaultMessage": "Condition"
+	},
+	"npmos.mtls.rule.regex": {
+		"defaultMessage": "^admin-[0-9]+$"
+	},
+	"npmos.mtls.rule.remove": {
+		"defaultMessage": "Remove rule"
+	},
+	"npmos.mtls.rule.values": {
+		"defaultMessage": "Values"
+	},
+	"npmos.mtls.rules": {
+		"defaultMessage": "Rules on the certificate"
+	},
+	"npmos.mtls.rules.hint": {
+		"defaultMessage": "All rules must match. Values in Latin letters; one of: comma-separated."
+	},
+	"npmos.mtls.rules.none": {
+		"defaultMessage": "No rules: every certificate of the trusted CAs is admitted."
+	},
+	"npmos.mtls.saved": {
+		"defaultMessage": "mTLS saved, nginx reloaded"
+	},
+	"npmos.mtls.send-ca-names": {
+		"defaultMessage": "Send the names of the CAs to clients"
+	},
+	"npmos.mtls.send-ca-names.hint": {
+		"defaultMessage": "Browsers then offer only suitable certificates. Off: the names of your CAs are not disclosed."
+	},
+	"npmos.mtls.title": {
+		"defaultMessage": "mTLS"
+	},
 	"npmos.nav.administration": {
 		"defaultMessage": "Administration"
 	},
@@ -1426,6 +1561,9 @@
 	},
 	"npmos.nav.theme-light": {
 		"defaultMessage": "Light theme"
+	},
+	"npmos.nav.tls": {
+		"defaultMessage": "TLS"
 	},
 	"npmos.nav.user-menu": {
 		"defaultMessage": "User menu"
@@ -1834,6 +1972,543 @@
 	},
 	"npmos.overview.waf.state": {
 		"defaultMessage": "Protection"
+	},
+	"npmos.pki": {
+		"defaultMessage": "PKI and mTLS"
+	},
+	"npmos.pki.actions": {
+		"defaultMessage": "Actions"
+	},
+	"npmos.pki.all-cas": {
+		"defaultMessage": "All trust domains"
+	},
+	"npmos.pki.ca.add": {
+		"defaultMessage": "Add CA"
+	},
+	"npmos.pki.ca.ascii": {
+		"defaultMessage": "Names of CAs are in Latin letters: nginx compares them in its rules."
+	},
+	"npmos.pki.ca.bundle": {
+		"defaultMessage": "Certificates of the CA (PEM, one or more)"
+	},
+	"npmos.pki.ca.bundle.hint": {
+		"defaultMessage": "The root and, if clients do not send them, the intermediate CAs."
+	},
+	"npmos.pki.ca.cert-pem": {
+		"defaultMessage": "Certificate of the CA (PEM)"
+	},
+	"npmos.pki.ca.certificates": {
+		"defaultMessage": "Certificates"
+	},
+	"npmos.pki.ca.counts": {
+		"defaultMessage": "{active} active, {revoked} revoked"
+	},
+	"npmos.pki.ca.create": {
+		"defaultMessage": "Create"
+	},
+	"npmos.pki.ca.create-root": {
+		"defaultMessage": "Create a root CA"
+	},
+	"npmos.pki.ca.crl": {
+		"defaultMessage": "Revocation list (CRL)"
+	},
+	"npmos.pki.ca.crl.hint": {
+		"defaultMessage": "Optional. Without a CRL of every external CA a host does not check revocation."
+	},
+	"npmos.pki.ca.crl.none": {
+		"defaultMessage": "none"
+	},
+	"npmos.pki.ca.crl.number": {
+		"defaultMessage": "CRL number {number}"
+	},
+	"npmos.pki.ca.crl.until": {
+		"defaultMessage": "until {time}"
+	},
+	"npmos.pki.ca.delete": {
+		"defaultMessage": "Delete CA"
+	},
+	"npmos.pki.ca.delete.text": {
+		"defaultMessage": "Delete {name}? Only a CA without certificates, trust domains and hosts can be deleted."
+	},
+	"npmos.pki.ca.edit": {
+		"defaultMessage": "Edit CA"
+	},
+	"npmos.pki.ca.export.cert": {
+		"defaultMessage": "Certificate (PEM)"
+	},
+	"npmos.pki.ca.export.chain": {
+		"defaultMessage": "Chain to the root (PEM)"
+	},
+	"npmos.pki.ca.export.crl": {
+		"defaultMessage": "CRL (PEM)"
+	},
+	"npmos.pki.ca.export.key": {
+		"defaultMessage": "Private key…"
+	},
+	"npmos.pki.ca.from-npmplus": {
+		"defaultMessage": "NPMplus"
+	},
+	"npmos.pki.ca.key-password": {
+		"defaultMessage": "Password of the key (if encrypted)"
+	},
+	"npmos.pki.ca.key-pem": {
+		"defaultMessage": "Private key (PEM)"
+	},
+	"npmos.pki.ca.kind.external": {
+		"defaultMessage": "external"
+	},
+	"npmos.pki.ca.kind.intermediate": {
+		"defaultMessage": "trust domain"
+	},
+	"npmos.pki.ca.kind.root": {
+		"defaultMessage": "root"
+	},
+	"npmos.pki.ca.mode.external": {
+		"defaultMessage": "External CA"
+	},
+	"npmos.pki.ca.mode.external.hint": {
+		"defaultMessage": "Certificates of another PKI, without a key: hosts accept its clients, NPMOS does not issue with it."
+	},
+	"npmos.pki.ca.mode.import": {
+		"defaultMessage": "Import a root"
+	},
+	"npmos.pki.ca.mode.import.hint": {
+		"defaultMessage": "A root CA you already have, with its private key: NPMOS issues trust domains under it."
+	},
+	"npmos.pki.ca.mode.intermediate": {
+		"defaultMessage": "Trust domain"
+	},
+	"npmos.pki.ca.mode.intermediate.hint": {
+		"defaultMessage": "An intermediate CA for a group of clients (office, partners, devices): it issues their certificates, and a host trusts only the domains it needs."
+	},
+	"npmos.pki.ca.mode.root": {
+		"defaultMessage": "Root CA"
+	},
+	"npmos.pki.ca.mode.root.hint": {
+		"defaultMessage": "The top of the PKI: 10 years, signs only trust domains. Export its key and keep it offline."
+	},
+	"npmos.pki.ca.name": {
+		"defaultMessage": "Name"
+	},
+	"npmos.pki.ca.new-domain": {
+		"defaultMessage": "New trust domain"
+	},
+	"npmos.pki.ca.no-root": {
+		"defaultMessage": "Create a root CA first."
+	},
+	"npmos.pki.ca.none": {
+		"defaultMessage": "No certificate authorities yet."
+	},
+	"npmos.pki.ca.parent": {
+		"defaultMessage": "Root CA"
+	},
+	"npmos.pki.copied": {
+		"defaultMessage": "Copied"
+	},
+	"npmos.pki.copy": {
+		"defaultMessage": "Copy"
+	},
+	"npmos.pki.csr": {
+		"defaultMessage": "Certificate signing request (PEM)"
+	},
+	"npmos.pki.days": {
+		"defaultMessage": "Validity, days"
+	},
+	"npmos.pki.days-left": {
+		"defaultMessage": "{days, plural, one {# day left} other {# days left}}"
+	},
+	"npmos.pki.days-value": {
+		"defaultMessage": "{days} days"
+	},
+	"npmos.pki.delivery": {
+		"defaultMessage": "How to hand it out"
+	},
+	"npmos.pki.done": {
+		"defaultMessage": "Done"
+	},
+	"npmos.pki.download": {
+		"defaultMessage": "Download"
+	},
+	"npmos.pki.download.cert": {
+		"defaultMessage": "Certificate (PEM)"
+	},
+	"npmos.pki.download.chain": {
+		"defaultMessage": "CA chain (PEM)"
+	},
+	"npmos.pki.download.fullchain": {
+		"defaultMessage": "Certificate with chain (PEM)"
+	},
+	"npmos.pki.download.key": {
+		"defaultMessage": "Private key (PEM)"
+	},
+	"npmos.pki.download.p12": {
+		"defaultMessage": "Download .p12"
+	},
+	"npmos.pki.expired-ago": {
+		"defaultMessage": "{days, plural, one {expired # day ago} other {expired # days ago}}"
+	},
+	"npmos.pki.expires": {
+		"defaultMessage": "Valid until"
+	},
+	"npmos.pki.include-key": {
+		"defaultMessage": "Also give the key as PEM (for servers and scripts)"
+	},
+	"npmos.pki.install": {
+		"defaultMessage": "Install as a certificate of NPMplus (TLS of hosts)"
+	},
+	"npmos.pki.installed": {
+		"defaultMessage": "The certificate is in Certificates → TLS; hosts with it were reloaded."
+	},
+	"npmos.pki.issue": {
+		"defaultMessage": "Issue certificate"
+	},
+	"npmos.pki.issue.do": {
+		"defaultMessage": "Issue"
+	},
+	"npmos.pki.issue.summary": {
+		"defaultMessage": "Issued by {ca}; the CRL of the trust domain is checked by hosts."
+	},
+	"npmos.pki.issued": {
+		"defaultMessage": "Issued: {name}, serial {serial}, valid until {until}."
+	},
+	"npmos.pki.issuer": {
+		"defaultMessage": "Trust domain (CA)"
+	},
+	"npmos.pki.key-not-kept": {
+		"defaultMessage": "NPMOS does not keep this key: download the .p12 now, it cannot be downloaded later."
+	},
+	"npmos.pki.key-source": {
+		"defaultMessage": "Key"
+	},
+	"npmos.pki.key-source.csr": {
+		"defaultMessage": "From a request (CSR)"
+	},
+	"npmos.pki.key-source.csr.hint": {
+		"defaultMessage": "The key stays on the device; the subject is taken from the request."
+	},
+	"npmos.pki.key-source.generate": {
+		"defaultMessage": "Generate here"
+	},
+	"npmos.pki.key-source.generate.hint": {
+		"defaultMessage": "NPMOS makes the key and hands it out once in a .p12 with a password."
+	},
+	"npmos.pki.key-type": {
+		"defaultMessage": "Key type"
+	},
+	"npmos.pki.key-type.ec-p256": {
+		"defaultMessage": "ECDSA P-256 (recommended)"
+	},
+	"npmos.pki.key-type.ec-p384": {
+		"defaultMessage": "ECDSA P-384"
+	},
+	"npmos.pki.key-type.rsa-2048": {
+		"defaultMessage": "RSA 2048 (old systems)"
+	},
+	"npmos.pki.key-type.rsa-3072": {
+		"defaultMessage": "RSA 3072"
+	},
+	"npmos.pki.key-type.rsa-4096": {
+		"defaultMessage": "RSA 4096"
+	},
+	"npmos.pki.link": {
+		"defaultMessage": "One-time link to the .p12"
+	},
+	"npmos.pki.link.create": {
+		"defaultMessage": "One-time link"
+	},
+	"npmos.pki.link.create-do": {
+		"defaultMessage": "Create link"
+	},
+	"npmos.pki.link.expires": {
+		"defaultMessage": "Opens once, until {time}."
+	},
+	"npmos.pki.link.hours": {
+		"defaultMessage": "{hours, plural, one {for # hour} other {for # hours}}"
+	},
+	"npmos.pki.link.lifetime": {
+		"defaultMessage": "The link works"
+	},
+	"npmos.pki.link.local": {
+		"defaultMessage": "The link uses the address of this GUI; set a public address of the PKI in Settings if clients cannot reach it."
+	},
+	"npmos.pki.link.none": {
+		"defaultMessage": "No link"
+	},
+	"npmos.pki.name": {
+		"defaultMessage": "Name"
+	},
+	"npmos.pki.no-issuer": {
+		"defaultMessage": "There is no trust domain with a key yet. Create a root CA and a trust domain on the Certificate authorities tab."
+	},
+	"npmos.pki.none": {
+		"defaultMessage": "No certificates yet."
+	},
+	"npmos.pki.none-found": {
+		"defaultMessage": "No certificates match the filters."
+	},
+	"npmos.pki.notes": {
+		"defaultMessage": "Note"
+	},
+	"npmos.pki.p12.compatible": {
+		"defaultMessage": ".p12 for any system (3DES)"
+	},
+	"npmos.pki.p12.compatible.hint": {
+		"defaultMessage": "Older macOS, iOS, Android and Windows do not import AES-256 containers. Turn off only when all clients are new."
+	},
+	"npmos.pki.p12.password": {
+		"defaultMessage": "Password of the .p12"
+	},
+	"npmos.pki.p12.password.generate": {
+		"defaultMessage": "Empty: generate"
+	},
+	"npmos.pki.p12.password.hint": {
+		"defaultMessage": "Give the password separately from the file (in person, by phone, by another messenger). NPMOS does not keep it."
+	},
+	"npmos.pki.profile": {
+		"defaultMessage": "Purpose"
+	},
+	"npmos.pki.profile.all": {
+		"defaultMessage": "Client and server"
+	},
+	"npmos.pki.profile.client": {
+		"defaultMessage": "Client"
+	},
+	"npmos.pki.profile.server": {
+		"defaultMessage": "Server"
+	},
+	"npmos.pki.reason.CACompromise": {
+		"defaultMessage": "CA compromised"
+	},
+	"npmos.pki.reason.affiliationChanged": {
+		"defaultMessage": "Left the organization or changed role"
+	},
+	"npmos.pki.reason.certificateHold": {
+		"defaultMessage": "Suspended"
+	},
+	"npmos.pki.reason.cessationOfOperation": {
+		"defaultMessage": "No longer used"
+	},
+	"npmos.pki.reason.keyCompromise": {
+		"defaultMessage": "Key compromised"
+	},
+	"npmos.pki.reason.superseded": {
+		"defaultMessage": "Replaced by a new certificate"
+	},
+	"npmos.pki.reason.unspecified": {
+		"defaultMessage": "Not specified"
+	},
+	"npmos.pki.renew": {
+		"defaultMessage": "Renew"
+	},
+	"npmos.pki.renew.do": {
+		"defaultMessage": "Renew"
+	},
+	"npmos.pki.revoke": {
+		"defaultMessage": "Revoke"
+	},
+	"npmos.pki.revoke-old": {
+		"defaultMessage": "Revoke the old certificate now (otherwise it works until it expires)"
+	},
+	"npmos.pki.revoke.do": {
+		"defaultMessage": "Revoke"
+	},
+	"npmos.pki.revoke.reason": {
+		"defaultMessage": "Reason"
+	},
+	"npmos.pki.revoke.selected": {
+		"defaultMessage": "Revoke ({count})"
+	},
+	"npmos.pki.revoke.text": {
+		"defaultMessage": "{count, plural, one {The certificate stops opening hosts within a minute. This cannot be undone.} other {# certificates stop opening hosts within a minute. This cannot be undone.}}"
+	},
+	"npmos.pki.revoked-count": {
+		"defaultMessage": "{count, plural, one {# certificate revoked} other {# certificates revoked}}"
+	},
+	"npmos.pki.sans.dns": {
+		"defaultMessage": "DNS names (one per line, *.example.com allowed)"
+	},
+	"npmos.pki.sans.email": {
+		"defaultMessage": "Emails in the certificate"
+	},
+	"npmos.pki.sans.email.hint": {
+		"defaultMessage": "Comma-separated; used by mail clients and some VPNs."
+	},
+	"npmos.pki.sans.ip": {
+		"defaultMessage": "IP addresses (one per line)"
+	},
+	"npmos.pki.search": {
+		"defaultMessage": "Name, serial, DNS, email, host"
+	},
+	"npmos.pki.secret.ca-key": {
+		"defaultMessage": "Export the key of the CA"
+	},
+	"npmos.pki.secret.ca-key.hint": {
+		"defaultMessage": "The key is encrypted with this password (PKCS#8, AES-256). Keep it offline: whoever has it can issue certificates your hosts trust."
+	},
+	"npmos.pki.secret.link": {
+		"defaultMessage": "One-time link"
+	},
+	"npmos.pki.secret.link.hint": {
+		"defaultMessage": "The link opens once; then the file is removed. Send the password separately."
+	},
+	"npmos.pki.secret.min": {
+		"defaultMessage": "{count} characters or more"
+	},
+	"npmos.pki.secret.p12": {
+		"defaultMessage": "Download .p12"
+	},
+	"npmos.pki.secret.p12.hint": {
+		"defaultMessage": "The .p12 is made from the key NPMOS keeps and protected with this password."
+	},
+	"npmos.pki.secret.password": {
+		"defaultMessage": "Password"
+	},
+	"npmos.pki.select-all": {
+		"defaultMessage": "Select all"
+	},
+	"npmos.pki.settings.clientDays": {
+		"defaultMessage": "Client certificates, days"
+	},
+	"npmos.pki.settings.crlDays": {
+		"defaultMessage": "CRL validity, days"
+	},
+	"npmos.pki.settings.public-url": {
+		"defaultMessage": "Public address of the PKI"
+	},
+	"npmos.pki.settings.public-url.hint": {
+		"defaultMessage": "Where clients and servers reach NPMOS for CRLs (written into certificates) and one-time links, e.g. a proxy host to the GUI. Empty: no CRL address in certificates, links on the address of this GUI."
+	},
+	"npmos.pki.settings.public-url.placeholder": {
+		"defaultMessage": "https://pki.example.com"
+	},
+	"npmos.pki.settings.saved": {
+		"defaultMessage": "PKI settings saved"
+	},
+	"npmos.pki.settings.serverDays": {
+		"defaultMessage": "Server certificates, days"
+	},
+	"npmos.pki.start": {
+		"defaultMessage": "Start with a root CA, then create a trust domain (intermediate CA) for each group of clients: office, partners, devices. Certificates are issued by trust domains."
+	},
+	"npmos.pki.start.domain": {
+		"defaultMessage": "Create a trust domain (intermediate CA) under the root: certificates are issued by trust domains, and a host trusts the domains it needs."
+	},
+	"npmos.pki.status": {
+		"defaultMessage": "Status"
+	},
+	"npmos.pki.status.active": {
+		"defaultMessage": "Active"
+	},
+	"npmos.pki.status.all": {
+		"defaultMessage": "Any status"
+	},
+	"npmos.pki.status.expired": {
+		"defaultMessage": "Expired"
+	},
+	"npmos.pki.status.expiring": {
+		"defaultMessage": "Expiring"
+	},
+	"npmos.pki.status.replaced": {
+		"defaultMessage": "Renewed"
+	},
+	"npmos.pki.status.revoked": {
+		"defaultMessage": "Revoked"
+	},
+	"npmos.pki.store-key": {
+		"defaultMessage": "Keep the key in NPMOS (encrypted)"
+	},
+	"npmos.pki.store-key.hint": {
+		"defaultMessage": "To download the .p12 again later. Without it the key is handed out only now."
+	},
+	"npmos.pki.subject.commonName": {
+		"defaultMessage": "Name (CN)"
+	},
+	"npmos.pki.subject.country": {
+		"defaultMessage": "Country (C, two letters)"
+	},
+	"npmos.pki.subject.email": {
+		"defaultMessage": "Email"
+	},
+	"npmos.pki.subject.less": {
+		"defaultMessage": "Fewer fields"
+	},
+	"npmos.pki.subject.locality": {
+		"defaultMessage": "City (L)"
+	},
+	"npmos.pki.subject.more": {
+		"defaultMessage": "More fields"
+	},
+	"npmos.pki.subject.organization": {
+		"defaultMessage": "Organization (O)"
+	},
+	"npmos.pki.subject.organizationalUnit": {
+		"defaultMessage": "Unit (OU)"
+	},
+	"npmos.pki.subject.state": {
+		"defaultMessage": "Region (ST)"
+	},
+	"npmos.pki.subtitle": {
+		"defaultMessage": "Own certificate authorities, client and server certificates, revocation and mTLS of hosts — without the Internet"
+	},
+	"npmos.pki.summary.active": {
+		"defaultMessage": "Active"
+	},
+	"npmos.pki.summary.cas": {
+		"defaultMessage": "Certificate authorities"
+	},
+	"npmos.pki.summary.expired": {
+		"defaultMessage": "Expired"
+	},
+	"npmos.pki.summary.expiring": {
+		"defaultMessage": "Expire within 30 days"
+	},
+	"npmos.pki.summary.hosts": {
+		"defaultMessage": "Hosts with mTLS"
+	},
+	"npmos.pki.summary.revoked": {
+		"defaultMessage": "Revoked"
+	},
+	"npmos.pki.tab.cas": {
+		"defaultMessage": "Certificate authorities"
+	},
+	"npmos.pki.tab.certificates": {
+		"defaultMessage": "Certificates"
+	},
+	"npmos.pki.tab.settings": {
+		"defaultMessage": "Settings"
+	},
+	"npmos.pki.tab.templates": {
+		"defaultMessage": "Templates"
+	},
+	"npmos.pki.template": {
+		"defaultMessage": "Template"
+	},
+	"npmos.pki.template.add": {
+		"defaultMessage": "Add template"
+	},
+	"npmos.pki.template.any-ca": {
+		"defaultMessage": "Any trust domain"
+	},
+	"npmos.pki.template.delete": {
+		"defaultMessage": "Delete template"
+	},
+	"npmos.pki.template.edit": {
+		"defaultMessage": "Edit template"
+	},
+	"npmos.pki.template.name": {
+		"defaultMessage": "Name"
+	},
+	"npmos.pki.template.none": {
+		"defaultMessage": "Without a template"
+	},
+	"npmos.pki.templates.hint": {
+		"defaultMessage": "A template fixes the trust domain, purpose, validity, key and the organization part of the subject; only the name is entered."
+	},
+	"npmos.pki.templates.none": {
+		"defaultMessage": "No templates."
+	},
+	"npmos.pki.used": {
+		"defaultMessage": "Where used"
 	},
 	"npmos.policy": {
 		"defaultMessage": "Policy"
@@ -3356,6 +4031,9 @@
 	"object.event.restarted": {
 		"defaultMessage": "Restarted {object}"
 	},
+	"object.event.revoked": {
+		"defaultMessage": "Revoked {object}"
+	},
 	"object.event.updated": {
 		"defaultMessage": "Updated {object}"
 	},
@@ -3400,6 +4078,9 @@
 	},
 	"permissions.visibility.user": {
 		"defaultMessage": "Created Items Only"
+	},
+	"pki": {
+		"defaultMessage": "PKI"
 	},
 	"proxy-host": {
 		"defaultMessage": "Proxy Host"

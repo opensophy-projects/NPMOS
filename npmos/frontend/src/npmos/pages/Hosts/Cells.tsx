@@ -14,6 +14,7 @@ import type { AccessList, Certificate } from "src/api/backend";
 import { intl, T } from "src/locale";
 import { showReachabilityModal } from "src/modals";
 import type { HostAttacks } from "../../api";
+import type { PkiCa } from "../../pki/api";
 import { Dropdown, type DropdownItem } from "../../ui/Dropdown";
 import { dateTime, timeAgo } from "../../ui/time";
 import styles from "./Hosts.module.css";
@@ -36,6 +37,18 @@ export interface CellContext {
 	wafTemplate: (row: HostRow) => string | null;
 	setWafTemplate: (row: HostRow, template: string) => void;
 	setMtls: (row: HostRow, caId: number, mode: MtlsState) => void;
+	/** PKI and mTLS (proxy hosts and streams); absent without pki:view */
+	pki?: {
+		cas: PkiCa[];
+		canManage: (row: HostRow) => boolean;
+		canIssue: boolean;
+		canCreateCa: boolean;
+		/** null: off */
+		set: (row: HostRow, caIds: number[] | null, mode: MtlsState) => void;
+		configure: (row: HostRow) => void;
+		newDomain: (row: HostRow) => void;
+		issue: (row: HostRow) => void;
+	};
 	setAccess: (row: HostRow, listId: number | null) => void;
 	setCertificate: (row: HostRow, certificateId: number | "new") => void;
 	openCertificates: () => void;
@@ -203,7 +216,86 @@ export function WafCell({ row, ctx }: { row: HostRow; ctx: CellContext }) {
 	);
 }
 
+/** mTLS of PKI and mTLS: trusted CAs, mode, settings, a trust domain and certificates for the host */
+function PkiMtlsCell({ row, pki }: { row: HostRow; pki: NonNullable<CellContext["pki"]> }) {
+	const on = row.mtlsPki;
+	const names = row.mtlsCaIds.map((id) => pki.cas.find((ca) => ca.id === id)?.name ?? `#${id}`);
+	// the mTLS of NPMplus still in force on the host
+	const upstream = !on && row.mtls !== "off";
+	const chip = !on && !upstream ? <T id="npmos.hosts.mtls.off" /> : <T id={`npmos.hosts.mtls.${row.mtls}`} />;
+	const tone = on || upstream ? "accent" : undefined;
+	const title = on ? t("npmos.hosts.mtls.cas", { names: names.join(", ") }) : undefined;
+	if (!pki.canManage(row)) {
+		return (
+			<span className={cn(styles.chip, tone && styles[tone])} title={title}>
+				{chip}
+			</span>
+		);
+	}
+	const mode: MtlsState = on ? row.mtls : "required";
+	const issuer = row.mtlsCaIds.some((id) =>
+		pki.cas.find((ca) => ca.id === id && ca.kind === "intermediate" && ca.hasKey),
+	);
+	const items: DropdownItem[] = [
+		{
+			key: "off",
+			label: <T id="npmos.hosts.mtls.off" />,
+			active: !on && !upstream,
+			onSelect: () => pki.set(row, null, "off"),
+		},
+		...pki.cas.map((ca, i) => ({
+			key: `pki${ca.id}`,
+			divider: i === 0,
+			label: <span className={styles.ellipsis}>{t("npmos.hosts.mtls.ca", { name: ca.name })}</span>,
+			active: on && row.mtlsCaIds.length === 1 && row.mtlsCaIds[0] === ca.id,
+			onSelect: () => pki.set(row, [ca.id], mode),
+		})),
+		...(row.type === "proxy" && on
+			? (["required", "optional"] as MtlsState[]).map((value, i) => ({
+					key: value,
+					divider: i === 0,
+					label: (
+						<span className={styles.option}>
+							<T id={`npmos.hosts.mtls.${value}`} />
+							<span className={styles.optionHint}>
+								<T id={`npmos.hosts.mtls.${value}.hint`} />
+							</span>
+						</span>
+					),
+					active: row.mtls === value,
+					onSelect: () => pki.set(row, row.mtlsCaIds, value),
+				}))
+			: []),
+		{
+			key: "configure",
+			divider: true,
+			label: <T id="npmos.hosts.mtls.configure" />,
+			onSelect: () => pki.configure(row),
+		},
+		...(pki.canCreateCa
+			? [{ key: "domain", label: <T id="npmos.hosts.mtls.new-domain" />, onSelect: () => pki.newDomain(row) }]
+			: []),
+		...(pki.canIssue && on && issuer
+			? [{ key: "issue", label: <T id="npmos.hosts.mtls.issue" />, onSelect: () => pki.issue(row) }]
+			: []),
+	];
+	return (
+		<Dropdown
+			floating
+			inline
+			ariaLabel="mTLS"
+			title={title}
+			triggerClassName={styles.trigger}
+			trigger={<Trigger tone={tone}>{chip}</Trigger>}
+			items={items}
+		/>
+	);
+}
+
 export function MtlsCell({ row, ctx }: { row: HostRow; ctx: CellContext }) {
+	if (row.tls !== "none" && ctx.pki && (row.type === "proxy" || row.type === "stream")) {
+		return <PkiMtlsCell row={row} pki={ctx.pki} />;
+	}
 	if (row.tls === "none") {
 		return (
 			<span className={styles.none} title={t("npmos.hosts.mtls.needs-tls")}>

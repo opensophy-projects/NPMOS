@@ -128,7 +128,7 @@ const getHost = async (hostType, id) => {
 };
 
 const hostName = (hostType, host) =>
-	hostType === "proxy_host" ? (parse(host.domain_names) || []).join(", ") : `${host.incoming_port}`;
+	hostType === "proxy_host" ? (parse(host.domain_names) || []).join(", ") : `:${host.incoming_port}`;
 
 /** regenerates the nginx configuration of a host; {nginx_online, nginx_err} */
 const reconfigure = async (hostType, id) => {
@@ -180,6 +180,33 @@ export const usedBy = async (caId) => {
 		if (host) names.push(hostName(row.host_type, host));
 	}
 	return names;
+};
+
+/**
+ * Where the PKI is used: hosts that trust each CA (with mTLS on), hosts that serve each custom
+ * certificate of NPMplus (server certificates of the PKI).
+ * @returns {Promise<{cas: Record<number, string[]>, certificates: Record<number, string[]>}>}
+ */
+export const usage = async () => {
+	const cas = await db()("npmos_pki_ca");
+	const result = { cas: {}, certificates: {} };
+	const names = new Map();
+	for (const hostType of HOST_TYPES) {
+		for (const host of await db()(hostType).where({ is_deleted: 0 })) {
+			names.set(`${hostType}-${host.id}`, hostName(hostType, host));
+			if (host.certificate_id > 0) {
+				(result.certificates[host.certificate_id] ||= []).push(hostName(hostType, host));
+			}
+		}
+	}
+	for (const row of await db()("npmos_mtls_host").where({ enabled: true })) {
+		const name = names.get(`${row.host_type}-${row.host_id}`);
+		if (!name) continue;
+		for (const id of trustSet(parse(row.ca_ids) || [], cas).ids) {
+			(result.cas[id] ||= []).push(name);
+		}
+	}
+	return result;
 };
 
 const validate = (data, hostType, host, cas) => {
