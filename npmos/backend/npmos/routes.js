@@ -5,6 +5,7 @@ import errs from "../lib/error.js";
 import jwtdecode from "../lib/express/jwt-decode.js";
 import validator from "../lib/validator/api.js";
 import { debug, express as logger } from "../logger.js";
+import internalCrowdsec from "./crowdsec/index.js";
 import internalAnalytics from "./events/analytics.js";
 import internalEvents from "./events/index.js";
 import internalHosts, { HOST_OBJECTS } from "./hosts.js";
@@ -68,7 +69,7 @@ router.param("version_id", (req, res, next, id) => {
 	next();
 });
 
-for (const name of ["role_id", "user_id", "channel_id", "rule_id", "ca_id", "cert_id", "link_id"]) {
+for (const name of ["role_id", "user_id", "channel_id", "rule_id", "ca_id", "cert_id", "link_id", "blocklist_id"]) {
 	router.param(name, (req, res, next, id) => {
 		if (!/^[1-9][0-9]{0,9}$/.test(id)) {
 			return res.status(400).send({ error: { code: 400, message: `Invalid ${name}` } });
@@ -1493,6 +1494,387 @@ router
 				req.body,
 			);
 			return internalMtls.set(res.locals.access, req.params.host_type, req.params.host_id, data);
+		}),
+	);
+
+/**
+ * CrowdSec (docs/adr/0010-crowdsec.md)
+ * GET /api/npmos/crowdsec — overview: LAPI, metrics, machines, bouncers, decisions, hub
+ */
+router
+	.route("/crowdsec")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalCrowdsec.overview(res.locals.access)));
+
+/**
+ * GET /api/npmos/crowdsec/settings
+ * PUT /api/npmos/crowdsec/settings — {bouncer, sources, appsec, profiles, allowlist, openappsec_ban, log_level,
+ *     online_hub, apply?}: written to CrowdSec and nginx, CrowdSec restarts; a failed start is rolled back
+ */
+router
+	.route("/crowdsec/settings")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalCrowdsec.getSettings(res.locals.access)))
+	.put(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					required: [
+						"bouncer",
+						"sources",
+						"appsec",
+						"profiles",
+						"allowlist",
+						"openappsec_ban",
+						"log_level",
+						"online_hub",
+					],
+					properties: {
+						bouncer: { type: "object" },
+						sources: { type: "object" },
+						appsec: { type: "object" },
+						profiles: { type: "array" },
+						allowlist: { type: "object" },
+						openappsec_ban: { type: "object" },
+						log_level: { type: "string" },
+						online_hub: { type: "boolean" },
+						apply: { type: "boolean" },
+					},
+				},
+				req.body,
+			);
+			const { apply, pending: _p, per_host: _h, share_enabled: _s, ...settings } = data;
+			return internalCrowdsec.setSettings(res.locals.access, settings, apply !== false);
+		}),
+	);
+
+/**
+ * POST /api/npmos/crowdsec/apply — writes the files again and restarts CrowdSec
+ */
+router
+	.route("/crowdsec/apply")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(handle((_, res) => internalCrowdsec.apply(res.locals.access)));
+
+/**
+ * GET /api/npmos/crowdsec/alerts?ip=&scenario=&since=&limit=&active=&all=
+ */
+router
+	.route("/crowdsec/alerts")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(
+		handle((req, res) =>
+			internalCrowdsec.alerts(res.locals.access, {
+				ip: typeof req.query.ip === "string" ? req.query.ip : undefined,
+				scenario: typeof req.query.scenario === "string" ? req.query.scenario : undefined,
+				since:
+					typeof req.query.since === "string" && /^\d{1,6}[smhd]$/.test(req.query.since)
+						? req.query.since
+						: undefined,
+				limit: req.query.limit,
+				active: req.query.active === "true",
+				all: req.query.all === "true",
+			}),
+		),
+	);
+
+router
+	.route("/crowdsec/alerts/:alert_id")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(
+		handle((req, res) => {
+			if (!/^[1-9][0-9]{0,12}$/.test(req.params.alert_id)) throw new errs.ValidationError("Invalid alert id");
+			return internalCrowdsec.alert(res.locals.access, req.params.alert_id);
+		}),
+	);
+
+/**
+ * GET  /api/npmos/crowdsec/decisions?q=&type=&origin=&offset=&limit=
+ * POST /api/npmos/crowdsec/decisions — ban: {values, type?, duration?, reason?}
+ */
+router
+	.route("/crowdsec/decisions")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(
+		handle((req, res) =>
+			internalCrowdsec.decisions(res.locals.access, {
+				q: typeof req.query.q === "string" ? req.query.q : "",
+				type: typeof req.query.type === "string" ? req.query.type : "",
+				origin: typeof req.query.origin === "string" ? req.query.origin : "",
+				offset: req.query.offset,
+				limit: req.query.limit,
+			}),
+		),
+	)
+	.post(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["values"],
+					properties: {
+						values: {
+							type: "array",
+							minItems: 1,
+							maxItems: 10000,
+							items: { type: "string", maxLength: 64 },
+						},
+						type: { type: "string", enum: ["ban", "captcha"] },
+						duration: { type: "string", pattern: "^[1-9][0-9]{0,5}[mhd]$" },
+						reason: { type: "string", maxLength: 200 },
+					},
+				},
+				req.body,
+			);
+			return internalCrowdsec.ban(res.locals.access, data);
+		}, 201),
+	);
+
+/**
+ * POST /api/npmos/crowdsec/decisions/delete — unban: {ids?, values?}
+ */
+router
+	.route("/crowdsec/decisions/delete")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					properties: {
+						ids: { type: "array", maxItems: 10000, items: { type: "integer", minimum: 1 } },
+						values: { type: "array", maxItems: 10000, items: { type: "string", maxLength: 64 } },
+					},
+				},
+				req.body,
+			);
+			return internalCrowdsec.unban(res.locals.access, data);
+		}),
+	);
+
+/**
+ * GET /api/npmos/crowdsec/registry — machines and bouncers
+ * GET /api/npmos/crowdsec/metrics
+ */
+router
+	.route("/crowdsec/registry")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalCrowdsec.registry(res.locals.access)));
+
+router
+	.route("/crowdsec/metrics")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalCrowdsec.metrics(res.locals.access)));
+
+/**
+ * GET  /api/npmos/crowdsec/hub?type=&q=&installed=
+ * POST /api/npmos/crowdsec/hub — {type, name, action: install|remove}
+ */
+router
+	.route("/crowdsec/hub")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(
+		handle((req, res) =>
+			internalCrowdsec.hub(res.locals.access, {
+				type: typeof req.query.type === "string" ? req.query.type : "",
+				q: typeof req.query.q === "string" ? req.query.q : "",
+				installed: req.query.installed,
+			}),
+		),
+	)
+	.post(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["type", "name", "action"],
+					properties: {
+						type: { type: "string" },
+						name: { type: "string", pattern: "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$" },
+						action: { type: "string", enum: ["install", "remove"] },
+					},
+				},
+				req.body,
+			);
+			return internalCrowdsec.hubItem(res.locals.access, data);
+		}),
+	);
+
+/**
+ * POST /api/npmos/crowdsec/hub/upgrade — installed items to the version of the index
+ * POST /api/npmos/crowdsec/hub/online — index from the CrowdSec CDN (only if allowed in the settings)
+ * POST /api/npmos/crowdsec/hub/snapshot — body: .index.json or .tar.gz (.index.json + data/)
+ */
+router
+	.route("/crowdsec/hub/upgrade")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(handle((_, res) => internalCrowdsec.hubUpgrade(res.locals.access)));
+
+router
+	.route("/crowdsec/hub/online")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(handle((_, res) => internalCrowdsec.hubOnline(res.locals.access)));
+
+router
+	.route("/crowdsec/hub/snapshot")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		express.raw({ type: () => true, limit: "200mb" }),
+		handle((req, res) =>
+			internalCrowdsec.hubUpload(res.locals.access, Buffer.isBuffer(req.body) ? req.body : null),
+		),
+	);
+
+const blocklistProperties = {
+	name: { type: "string", maxLength: 64 },
+	enabled: { type: "boolean" },
+	source: { type: "string", enum: ["file", "url"] },
+	url: { type: "string", maxLength: 1000 },
+	token: { type: "string", maxLength: 500 },
+	insecure: { type: "boolean" },
+	content: { type: "string" },
+	decision: { type: "string", enum: ["ban", "captcha"] },
+	duration: { type: "string", pattern: "^[1-9][0-9]{0,5}[mhd]$" },
+	refresh_minutes: { type: "integer", minimum: 0, maximum: 43200 },
+};
+
+/** a file list as text/plain (up to 20 MB), its other fields in the query string */
+const blocklistBody = async (req) => {
+	if (typeof req.body === "string") {
+		const q = req.query;
+		return validator(
+			{ type: "object", additionalProperties: false, properties: blocklistProperties },
+			{
+				...(q.name !== undefined ? { name: String(q.name) } : {}),
+				...(q.enabled !== undefined ? { enabled: q.enabled === "true" } : {}),
+				source: "file",
+				content: req.body,
+				...(q.decision !== undefined ? { decision: String(q.decision) } : {}),
+				...(q.duration !== undefined ? { duration: String(q.duration) } : {}),
+			},
+		);
+	}
+	return validator({ type: "object", additionalProperties: false, properties: blocklistProperties }, req.body);
+};
+
+/**
+ * GET  /api/npmos/crowdsec/blocklists
+ * POST /api/npmos/crowdsec/blocklists — JSON, or text/plain (the list) with ?name=&decision=&duration=
+ */
+router
+	.route("/crowdsec/blocklists")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalCrowdsec.blocklists(res.locals.access)))
+	.post(
+		express.text({ type: "text/plain", limit: "20mb" }),
+		handle(async (req, res) => internalCrowdsec.createBlocklist(res.locals.access, await blocklistBody(req)), 201),
+	);
+
+/**
+ * PUT    /api/npmos/crowdsec/blocklists/:blocklist_id — JSON, or text/plain (the new list)
+ * DELETE /api/npmos/crowdsec/blocklists/:blocklist_id — also removes its decisions
+ */
+router
+	.route("/crowdsec/blocklists/:blocklist_id")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.put(
+		express.text({ type: "text/plain", limit: "20mb" }),
+		handle(async (req, res) =>
+			internalCrowdsec.updateBlocklist(res.locals.access, req.params.blocklist_id, await blocklistBody(req)),
+		),
+	)
+	.delete(handle((req, res) => internalCrowdsec.deleteBlocklist(res.locals.access, req.params.blocklist_id)));
+
+router
+	.route("/crowdsec/blocklists/:blocklist_id/sync")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(handle((req, res) => internalCrowdsec.syncBlocklist(res.locals.access, req.params.blocklist_id)));
+
+/**
+ * PUT /api/npmos/crowdsec/share — {enabled}: export of this node's decisions for other nodes;
+ *     answers the new token once
+ */
+router
+	.route("/crowdsec/share")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.put(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["enabled"],
+					properties: { enabled: { type: "boolean" } },
+				},
+				req.body,
+			);
+			return internalCrowdsec.setShare(res.locals.access, data.enabled);
+		}),
+	);
+
+/**
+ * GET /api/npmos/crowdsec/public/decisions — Authorization: Bearer <token of /crowdsec/share>, no
+ *     login: active decisions of this node, one IP or CIDR per line (a blocklist of another node)
+ */
+router.get("/crowdsec/public/decisions", async (req, res, next) => {
+	try {
+		const token = /^Bearer (\S+)$/.exec(req.headers.authorization || "")?.[1];
+		const text = await internalCrowdsec.exportDecisions(token);
+		res.set("Content-Type", "text/plain; charset=utf-8");
+		res.set("Cache-Control", "no-store");
+		res.send(text);
+	} catch (err) {
+		next(err);
+	}
+});
+
+/**
+ * GET /api/npmos/crowdsec/hosts — hosts left out by the bouncer, bans per host (24 h)
+ * PUT /api/npmos/crowdsec/hosts/:type/:host_id — {bouncer}; type: proxy_host, redirection_host, dead_host
+ */
+router
+	.route("/crowdsec/hosts")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalCrowdsec.hosts(res.locals.access)));
+
+router
+	.route("/crowdsec/hosts/:type/:host_id")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.put(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["bouncer"],
+					properties: { bouncer: { type: "boolean" } },
+				},
+				req.body,
+			);
+			return internalCrowdsec.setHost(res.locals.access, req.params.type, req.params.host_id, data.bouncer);
 		}),
 	);
 

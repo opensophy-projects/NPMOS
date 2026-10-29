@@ -9,6 +9,8 @@ import { debug, nginx as logger } from "../logger.js";
 import { scheduleRegenerate as scheduleWafPolicy } from "../npmos/waf/policy.js";
 // NPMOS: mTLS of hosts and streams from PKI and mTLS (CAs, CRLs, rules, locations)
 import { prepareHost as prepareMtls } from "../npmos/pki/mtls.js";
+// NPMOS: hosts left out by the CrowdSec bouncer of NPMOS (CrowdSec → hosts)
+import { prepareHost as prepareCrowdsec } from "../npmos/crowdsec/bouncer.js";
 import internalProxyHostAccessList from "./proxy-host-access-list.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -277,6 +279,8 @@ const internalNginx = {
 		host.env = process.env;
 		// NPMOS: npmos_mtls of the templates (before the locations are rendered)
 		await prepareMtls(host_type, host);
+		// NPMOS: npmos_crowdsec_off of the templates
+		await prepareCrowdsec(host_type, host);
 
 		if (
 			host.forward_host &&

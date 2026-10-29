@@ -19,7 +19,8 @@ export const RESOURCES = {
 	waf_events: ["view"],
 	waf_learning: ["view", "label"],
 	analytics: ["view"],
-	crowdsec: ["view", "manage"],
+	// decide: ban and unban by hand, sync blocklists; manage: settings, hub, blocklists
+	crowdsec: ["view", "decide", "manage"],
 	notifications: ["view", "manage"],
 	services: ["view", "manage"],
 	users: ["view", "manage"],

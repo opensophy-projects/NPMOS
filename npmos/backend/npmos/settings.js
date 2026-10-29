@@ -7,6 +7,7 @@
 import { mkdir, rename, writeFile } from "node:fs/promises";
 import db from "../db.js";
 import errs from "../lib/error.js";
+import { defaults as crowdsecDefaults, normalize as normalizeCrowdsec } from "./crowdsec/config.js";
 import { envLines, normalize as normalizeEnv } from "./system/env.js";
 
 const RUNTIME_ENV_FILE = "/data/npmos/runtime.env";
@@ -100,6 +101,23 @@ const DEFINITIONS = {
 			typeof v.p12_compatible === "boolean" &&
 			Array.isArray(v.templates) &&
 			v.templates.length <= 100,
+	},
+	// CrowdSec (CrowdSec → Settings), see crowdsec/config.js: generated into the config volume of
+	// CrowdSec and the bouncer of NPMOS
+	crowdsec: {
+		default: crowdsecDefaults,
+		validate: (v) => {
+			try {
+				return JSON.stringify(normalizeCrowdsec(v)) === JSON.stringify(v);
+			} catch {
+				return false;
+			}
+		},
+	},
+	// export of this node's decisions for other NPMOS nodes: sha256 of the bearer token, "" = off
+	"crowdsec.share": {
+		default: () => ({ token_hash: "" }),
+		validate: (v) => typeof v?.token_hash === "string" && /^([0-9a-f]{64})?$/.test(v.token_hash),
 	},
 	// OIDC groups → roles (Administration → Roles), see rbac/index.js
 	"rbac.oidc": {

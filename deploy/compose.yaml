@@ -86,6 +86,11 @@ services:
       - appsec-localconfig:/ext/appsec
       - appsec-logs:/ext/appsec-logs:ro
       - appsec-model:/ext/appsec-model
+      # CrowdSec: configuration generated from the GUI (acquisition, profiles, allowlists, hub items)
+      # and its database (machines, bouncers), at the paths of the crowdsec container so that hub
+      # symlinks resolve in both (npmos/backend/npmos/crowdsec)
+      - crowdsec-conf:/etc/crowdsec
+      - crowdsec-data:/var/lib/crowdsec/data
     networks:
       - edge
       - internal
