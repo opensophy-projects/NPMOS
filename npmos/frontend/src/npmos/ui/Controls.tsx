@@ -5,9 +5,9 @@ import { useAuthState, useLocaleState } from "src/context";
 import { useTheme, useUser } from "src/hooks";
 import { changeLocale, intl, localeOptions, T } from "src/locale";
 import { showChangePasswordModal, showTwoFactorModal, showUserModal } from "src/modals";
-import { Dropdown } from "./Dropdown";
 import { useRbacMe } from "../rbac/hooks";
 import { roleName } from "../rbac/labels";
+import { Dropdown } from "./Dropdown";
 import styles from "./Shell.module.css";
 
 /** logo and name as on opensophy.com: the sidebar, the login and setup pages */

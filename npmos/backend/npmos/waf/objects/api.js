@@ -48,8 +48,12 @@ const checkPolicy = (policy, objects) => {
 };
 
 /** the objects a host uses: a template (built-in objects) or references; null: as the default policy */
-export const hostObjects = (input, objects) => {
-	if (input === null || input === undefined) return null;
+export const hostObjects = (raw, objects) => {
+	if (raw === null || raw === undefined) return null;
+	// the API client of the GUI sends snake_case keys (threat_prevention_practices)
+	const input = Object.fromEntries(
+		Object.entries(raw).map(([key, value]) => [key.replace(/_([a-z])/g, (_, c) => c.toUpperCase()), value]),
+	);
 	if (input.template !== undefined) {
 		const template = TEMPLATES[input.template];
 		if (!template) {

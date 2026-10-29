@@ -328,7 +328,17 @@ const ruleRefs = {
 const wafHostObjects = {
 	type: ["object", "null"],
 	additionalProperties: false,
-	properties: { template: { type: "string", maxLength: 50 }, ...ruleRefs },
+	// also snake_case: the API client of the GUI converts the keys of the WAF settings of hosts
+	properties: {
+		template: { type: "string", maxLength: 50 },
+		...ruleRefs,
+		...Object.fromEntries(
+			Object.entries(ruleRefs).map(([key, schema]) => [
+				key.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`),
+				schema,
+			]),
+		),
+	},
 };
 const wafDefaultPolicy = {
 	type: "object",

@@ -148,9 +148,26 @@ const notifyAgent = async () => {
 	}
 	if (!state.applied.ok) {
 		logger.warn(`WAF policy written, the agent was not notified (${state.applied.error})`);
+		retryNotify();
 	}
 	return state.applied;
 };
+
+// the agent starts after npmos (it joins its network namespace): ask again for a while, so that the
+// state in the GUI is not "not applied" until the next change
+const NOTIFY_RETRIES = 8;
+const NOTIFY_RETRY_MS = 15000;
+let retries = 0;
+let retryTimer = null;
+function retryNotify() {
+	if (retryTimer || retries >= NOTIFY_RETRIES) return;
+	retries++;
+	retryTimer = setTimeout(async () => {
+		retryTimer = null;
+		if ((await notifyAgent()).ok) retries = 0;
+	}, NOTIFY_RETRY_MS);
+	retryTimer.unref?.();
+}
 
 /**
  * Generates local_policy.yaml from the database; writes it (with a backup of the previous
@@ -176,6 +193,7 @@ const regenerate = async ({ force = false } = {}) => {
 	state.reasons = reasons;
 	state.warnings = warnings;
 	if (changed || force) {
+		retries = 0;
 		await notifyAgent();
 	}
 	return { changed, hosts };

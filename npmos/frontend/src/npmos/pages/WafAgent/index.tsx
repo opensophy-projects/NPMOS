@@ -9,9 +9,9 @@ import { MANAGE, VIEW } from "src/modules/Permissions";
 import { showSuccess } from "src/notifications";
 import { type AgentStatus, applyWafPolicy, setWafEnabled, type WafPolicyState, type WafStatus } from "../../api";
 import { useWafStatus } from "../../hooks";
-import { useCan } from "../../rbac/hooks";
 import { showConfirmModal } from "../../modals/ConfirmModal";
 import { showWafPolicyModal } from "../../modals/WafPolicyModal";
+import { useCan } from "../../rbac/hooks";
 import { AgentSettingsCard } from "./AgentSettings";
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {

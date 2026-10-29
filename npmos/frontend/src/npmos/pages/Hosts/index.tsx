@@ -39,14 +39,14 @@ import { showError, showSuccess } from "src/notifications";
 import { setWafHost, WAF_DEFAULTS } from "../../api";
 import { useHostAttacks, useHostChanges, useUpstreamChecks, useWafHosts, useWafStatus } from "../../hooks";
 import { showConfirmModal } from "../../modals/ConfirmModal";
-import { useCan } from "../../rbac/hooks";
 import { showHostHistoryModal } from "../../modals/HostHistoryModal";
+import { useCan } from "../../rbac/hooks";
 import { createHost, deleteHost, OBJECT, QUERY_KEY, toggleHost, updateHost } from "./api";
 import {
 	AccessCell,
 	ActionsCell,
-	type CellContext,
 	AttacksCell,
+	type CellContext,
 	ChangedCell,
 	MtlsCell,
 	NameCell,
