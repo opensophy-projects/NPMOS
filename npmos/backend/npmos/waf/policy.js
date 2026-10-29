@@ -1,9 +1,10 @@
-// open-appsec declarative policy (local_policy.yaml, syntax v1beta1 as in open-appsec-npm).
+// open-appsec declarative policy (local_policy.yaml).
 //
-// The source of truth is the database (npmos_waf_host / npmos_waf_location); the file is
-// generated from it on every change of a proxy host or of its WAF settings and is never edited
-// by hand. Names of the generated objects are the same as in open-appsec-npm
-// (npm-managed-*-proxyhost-<id>), so an installation of open-appsec-npm is imported as is.
+// The source of truth is the database: objects of the policy (npmos_waf_object, the default policy),
+// WAF settings of proxy hosts and locations (npmos_waf_host / npmos_waf_location). The file is
+// generated on every change and is never edited by hand; it is v1beta1 (as open-appsec-npm) unless
+// the policy needs v1beta2 (objects/format.js). Rules keep the names of open-appsec-npm
+// (npm-managed-specific-rule-proxyhost-<id>), so an installation of open-appsec-npm is imported as is.
 //
 // The agent sees the file through the shared volume (/ext/appsec in both containers, symlinked by
 // the agent to /etc/cp/conf/local_policy.yaml). After a write NPMOS asks the agent to apply it
@@ -16,6 +17,8 @@ import YAML from "yaml";
 import db from "../../db.js";
 import { debug, global as logger } from "../../logger.js";
 import { getCurrentCustom, mergeCustom, parseCustom } from "./custom.js";
+import { asV2, needsV2, toV1, v2ExceptionLimits } from "./objects/format.js";
+import { buildDoc, seedBuiltins } from "./objects/store.js";
 
 const POLICY_FILE = process.env.NPMOS_APPSEC_POLICY_FILE || "/ext/appsec/local_policy.yaml";
 const BACKUP_DIR = "/data/npmos/waf/policy-backups";
@@ -31,153 +34,49 @@ const HEADER =
 const MODES = ["detect-learn", "prevent-learn"];
 const CONFIDENCES = ["medium", "high", "critical"];
 
-const DEFAULT_TRIGGER = "appsec-default-log-trigger";
-const DEFAULT_PRACTICE = "webapp-default-practice";
-const DEFAULT_RESPONSE = "appsec-default-web-user-response";
-
-const names = (hostId, locationIndex) => {
-	const suffix = locationIndex === undefined ? `${hostId}` : `${hostId}-${locationIndex}`;
-	return {
-		rule: `npm-managed-specific-rule-proxyhost-${suffix}`,
-		practice: `npm-managed-practice-proxyhost-${suffix}`,
-		trigger: `npm-managed-log-trigger-proxyhost-${suffix}`,
-	};
-};
-
-// The default policy of open-appsec-npm (deployment/local_policy.yaml): everything not covered by
-// a specific rule is inactive. Logs go to the agent's stdout/log files only, never to the cloud.
-const basePolicy = () => ({
-	policies: {
-		default: {
-			triggers: [DEFAULT_TRIGGER],
-			mode: "inactive",
-			practices: [DEFAULT_PRACTICE],
-			"custom-response": DEFAULT_RESPONSE,
-		},
-		"specific-rules": [],
-	},
-	practices: [practice(DEFAULT_PRACTICE, "inactive", "high")],
-	"log-triggers": [logTrigger(DEFAULT_TRIGGER)],
-	"custom-responses": [{ name: DEFAULT_RESPONSE, mode: "response-code-only", "http-response-code": 403 }],
-});
-
-function practice(name, mode, minimumConfidence) {
-	return {
-		name,
-		"web-attacks": {
-			"max-body-size-kb": 1000000,
-			"max-header-size-bytes": 102400,
-			"max-object-depth": 40,
-			"max-url-size-bytes": 32768,
-			"minimum-confidence": minimumConfidence,
-			"override-mode": mode,
-			protections: {
-				"csrf-protection": "inactive",
-				"error-disclosure": "inactive",
-				"non-valid-http-methods": false,
-				"open-redirect": "inactive",
-			},
-		},
-		"anti-bot": { "injected-URIs": [], "validated-URIs": [], "override-mode": "inactive" },
-		"snort-signatures": { configmap: [], "override-mode": "inactive" },
-		"openapi-schema-validation": { configmap: [], "override-mode": "inactive" },
-	};
-}
-
-function logTrigger(name) {
-	return {
-		name,
-		"access-control-logging": { "allow-events": false, "drop-events": true },
-		"additional-suspicious-events-logging": {
-			enabled: true,
-			"minimum-severity": "high",
-			"response-body": false,
-			"response-code": true,
-		},
-		"appsec-logging": { "all-web-requests": false, "detect-events": true, "prevent-events": true },
-		"extended-logging": { "http-headers": false, "request-body": false, "url-path": true, "url-query": true },
-		"log-destination": { cloud: false, stdout: { format: "json" } },
-	};
-}
-
 /**
- * Adds a specific rule per domain name (v1beta1 takes one host per rule), with its own practice
- * and log trigger.
+ * The policy to write: built from the objects (objects/store.js), the expert fragment merged over it,
+ * in v1beta1 unless it uses what only v1beta2 has (objects/format.js).
+ * @param   {{custom?: object}} [options]  parsed expert fragment instead of the one in force
+ * @returns {Promise<{policy: object, doc: object, hosts: number, customId: number|null,
+ *   format: "v1beta1"|"v1beta2", reasons: string[], warnings: string[]}>}
  */
-const addRules = (policy, n, hosts, mode, minimumConfidence) => {
-	hosts.forEach((host, index) => {
-		policy.policies["specific-rules"].push({
-			host,
-			name: index > 0 ? `${n.rule}.${index}` : n.rule,
-			triggers: [n.trigger],
-			mode,
-			practices: [n.practice],
-			"custom-response": DEFAULT_RESPONSE,
-		});
-	});
-	policy.practices.push(practice(n.practice, mode, minimumConfidence));
-	policy["log-triggers"].push(logTrigger(n.trigger));
+const buildPolicy = async ({ custom } = {}) => {
+	const { doc, hosts } = await buildDoc();
+	let merged = doc;
+	let customId = null;
+	if (custom) {
+		merged = mergeCustom(doc, custom);
+	} else {
+		const current = await getCurrentCustom();
+		if (current) {
+			try {
+				const parsed = parseCustom(current.content);
+				if (Object.keys(parsed).length) {
+					merged = mergeCustom(doc, parsed);
+					customId = current.id;
+				}
+			} catch (err) {
+				// validated when saved; only a hand-edited database gets here
+				logger.error(`WAF: expert policy version ${current.id} is not applied: ${err.message}`);
+			}
+		}
+	}
+	const reasons = needsV2(merged);
+	const format = reasons.length ? "v1beta2" : "v1beta1";
+	return {
+		policy: format === "v1beta2" ? asV2(merged) : toV1(merged),
+		doc: merged,
+		hosts,
+		customId,
+		format,
+		reasons,
+		// v1beta2: the agent applies only the first exception of a rule
+		warnings: format === "v1beta2" ? v2ExceptionLimits(merged).map((rule) => `exceptions:${rule}`) : [],
+	};
 };
 
 const parseJson = (value) => (typeof value === "string" ? JSON.parse(value) : value) || [];
-
-/**
- * @param   {{custom?: object}} [options]  parsed expert fragment instead of the one in force
- * @returns {Promise<{policy: object, hosts: number, customId: number|null}>}
- */
-const buildPolicy = async ({ custom } = {}) => {
-	const knex = db();
-	const proxyHosts = await knex("proxy_host")
-		.select("id", "domain_names", "locations")
-		.where({ is_deleted: 0, enabled: 1 })
-		.orderBy("id");
-	const hostRows = _.keyBy(await knex("npmos_waf_host").select(), "proxy_host_id");
-	const locationRows = _.groupBy(await knex("npmos_waf_location").select(), "proxy_host_id");
-
-	const policy = basePolicy();
-	let hosts = 0;
-	for (const proxyHost of proxyHosts) {
-		const domains = parseJson(proxyHost.domain_names);
-		const locations = parseJson(proxyHost.locations);
-		const host = hostRows[proxyHost.id];
-		if (host?.enabled) {
-			addRules(policy, names(proxyHost.id), domains, host.mode, host.minimum_confidence);
-			hosts++;
-		}
-		// locations are numbered by their position in the host, as in open-appsec-npm
-		for (const location of locationRows[proxyHost.id] || []) {
-			const index = locations.findIndex((l) => l.path === location.path);
-			if (index === -1) {
-				continue;
-			}
-			addRules(
-				policy,
-				names(proxyHost.id, index),
-				domains.map((domain) => `${domain}${location.path}`),
-				location.enabled ? location.mode : "inactive",
-				location.minimum_confidence,
-			);
-		}
-	}
-	if (custom) {
-		return { policy: mergeCustom(policy, custom), hosts, customId: null };
-	}
-	const current = await getCurrentCustom();
-	if (!current) {
-		return { policy, hosts, customId: null };
-	}
-	try {
-		const parsed = parseCustom(current.content);
-		if (!Object.keys(parsed).length) {
-			return { policy, hosts, customId: null };
-		}
-		return { policy: mergeCustom(policy, parsed), hosts, customId: current.id };
-	} catch (err) {
-		// validated when saved; only a hand-edited database gets here
-		logger.error(`WAF: expert policy version ${current.id} is not applied: ${err.message}`);
-		return { policy, hosts, customId: null };
-	}
-};
 
 const CUSTOM_HEADER = "# + expert fragments (WAF -> Policy), merged over the generated rules.\n";
 
@@ -216,6 +115,9 @@ const writeAtomic = async (content) => {
 const state = {
 	generatedAt: null,
 	hosts: 0,
+	format: null,
+	reasons: [],
+	warnings: [],
 	applied: null,
 };
 
@@ -252,7 +154,7 @@ const notifyAgent = async () => {
  * @returns {Promise<{changed: boolean, hosts: number}>}
  */
 const regenerate = async ({ force = false } = {}) => {
-	const { policy, hosts, customId } = await buildPolicy();
+	const { policy, hosts, customId, format, reasons, warnings } = await buildPolicy();
 	const content = render(policy, customId !== null);
 	const current = await readPolicyFile();
 	const changed = current !== content;
@@ -265,6 +167,9 @@ const regenerate = async ({ force = false } = {}) => {
 	}
 	state.generatedAt = new Date().toISOString();
 	state.hosts = hosts;
+	state.format = format;
+	state.reasons = reasons;
+	state.warnings = warnings;
 	if (changed || force) {
 		await notifyAgent();
 	}
@@ -374,6 +279,7 @@ const bootstrap = async () => {
 				}
 			}
 		}
+		await seedBuiltins();
 		await regenerateNow({ force: true });
 	} catch (err) {
 		logger.error(`WAF policy bootstrap failed: ${err.message}`);

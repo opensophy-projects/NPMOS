@@ -60,6 +60,24 @@ const DEFINITIONS = {
 			Object.entries(v).every(([env, value]) => normalizeEnv(env, value) === value),
 		envMap: true,
 	},
+	// default policy of open-appsec (WAF → Policy), see waf/objects: {mode, threatPreventionPractices:
+	// [id], ...}; null: the built-in defaults
+	"waf.policy": {
+		default: () => null,
+		validate: (v) => {
+			if (v === null) return true;
+			if (typeof v !== "object" || Array.isArray(v)) return false;
+			const ids = (x) => Array.isArray(x) && x.every((id) => Number.isInteger(id) && id > 0);
+			const id = (x) => x === null || (Number.isInteger(x) && x > 0);
+			return (
+				["prevent-learn", "detect-learn", "prevent", "detect", "inactive"].includes(v.mode) &&
+				["threatPreventionPractices", "accessControlPractices", "triggers", "exceptions"].every(
+					(k) => v[k] === undefined || ids(v[k]),
+				) &&
+				["customResponse", "sourceIdentifiers", "trustedSources"].every((k) => v[k] === undefined || id(v[k]))
+			);
+		},
+	},
 	// OIDC groups → roles (Administration → Roles), see rbac/index.js
 	"rbac.oidc": {
 		default: () => ({ claim: "groups", requestScope: false }),

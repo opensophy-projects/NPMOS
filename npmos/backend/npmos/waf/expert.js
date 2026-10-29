@@ -114,7 +114,7 @@ const internalWafExpert = {
 			}
 			throw err;
 		}
-		const { policy } = await buildPolicy({ custom });
+		const { policy, format, reasons, warnings } = await buildPolicy({ custom });
 		const next = render(policy, Object.keys(custom).length > 0);
 		const current = (await readPolicyFile()) ?? "";
 		const diff = diffLines(current, next);
@@ -122,6 +122,9 @@ const internalWafExpert = {
 			valid: true,
 			changed: diff.some((d) => d.op !== " "),
 			diff,
+			format,
+			reasons,
+			warnings,
 		};
 	},
 

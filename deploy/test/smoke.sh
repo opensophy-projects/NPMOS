@@ -107,7 +107,7 @@ step "WAF: protecting a proxy host generates its rule in local_policy.yaml"
 $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf/hosts/1" \
   -d '{"enabled": true, "mode": "prevent-learn", "minimum_confidence": "high"}' > /dev/null
 for i in $(seq 1 10); do
-  $CURL "$ADMIN/api/npmos/waf/policy" | grep -q 'host: test.local\\n *name: npm-managed-specific-rule-proxyhost-1\\n' && break
+  $CURL "$ADMIN/api/npmos/waf/policy" | grep -q 'name: npm-managed-specific-rule-proxyhost-1\\n *host: test.local\\n' && break
   [ "$i" = 10 ] && fail "no rule for test.local in the policy: $($CURL "$ADMIN/api/npmos/waf/policy")"
   sleep 1
 done
