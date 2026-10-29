@@ -151,7 +151,20 @@ const roleSchema = {
 	properties: {
 		name: { type: "string", minLength: 1, maxLength: 100 },
 		description: { type: "string", maxLength: 500 },
-		scope: { enum: ["all", "own"] },
+		scope: { enum: ["all", "own", "hosts"] },
+		hosts: {
+			type: "array",
+			maxItems: 1000,
+			items: {
+				type: "object",
+				additionalProperties: false,
+				required: ["host_type", "host_id"],
+				properties: {
+					host_type: { enum: ["proxy_host", "redirection_host", "dead_host", "stream"] },
+					host_id: { type: "integer", minimum: 1 },
+				},
+			},
+		},
 		oidc_groups: { type: "array", maxItems: 50, items: { type: "string", maxLength: 200 } },
 		permissions: { type: "array", maxItems: 200, items: { type: "string", pattern: "^[a-z_]+:[a-z_]+$" } },
 	},

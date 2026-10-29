@@ -8,6 +8,7 @@ import errs from "../../lib/error.js";
 import { hostObjects } from "./objects/api.js";
 import { listObjects } from "./objects/store.js";
 import { CONFIDENCES, MODES, scheduleRegenerate } from "./policy.js";
+import { scopeHosts } from "../rbac/scope.js";
 
 const DEFAULTS = { enabled: false, mode: "detect-learn", minimum_confidence: "high" };
 
@@ -56,9 +57,7 @@ const internalWafHosts = {
 			.join("proxy_host", "proxy_host.id", "npmos_waf_host.proxy_host_id")
 			.where("proxy_host.is_deleted", 0)
 			.select("npmos_waf_host.*");
-		if (accessData.permission_visibility !== "all") {
-			query.where("proxy_host.owner_user_id", access.token.getUserId(1));
-		}
+		scopeHosts(query, accessData, "proxy_host", access.token.getUserId(1));
 		const result = {};
 		for (const row of await query) {
 			result[row.proxy_host_id] = { ...toSettings(row), template: parseObjects(row.objects)?.template ?? null };

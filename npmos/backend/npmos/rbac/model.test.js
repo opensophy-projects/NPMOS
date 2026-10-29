@@ -81,3 +81,39 @@ describe("rbac model", () => {
 		}
 	});
 });
+
+it("scope hosts: own hosts plus the hosts of the roles; only who sees all gives it", async () => {
+	const { effective: eff, missing: miss } = await import("./model.js");
+	const e = eff(false, [
+		{ scope: "hosts", permissions: ["proxy_hosts:view"], hosts: [{ host_type: "proxy_host", host_id: 3 }] },
+		{ scope: "own", permissions: [], hosts: [] },
+		{
+			scope: "hosts",
+			permissions: [],
+			hosts: [
+				{ host_type: "proxy_host", host_id: 3 },
+				{ host_type: "stream", host_id: 1 },
+			],
+		},
+	]);
+	assert.equal(e.scope, "own");
+	assert.deepEqual(e.hosts, { proxy_host: [3], stream: [1] });
+	assert.deepEqual(eff(false, [{ scope: "all", permissions: [], hosts: [] }]).hosts, {});
+	assert.deepEqual(miss(e, [], "hosts"), ["scope:all"]);
+	assert.deepEqual(miss({ admin: false, scope: "all", permissions: new Set() }, [], "hosts"), []);
+});
+
+it("scopeHosts: owner or given ids, nothing for scope all", async () => {
+	const { scopeHosts } = await import("./scope.js");
+	const knex = (await import("knex")).default({ client: "pg" });
+	const sql = (access) => scopeHosts(knex("proxy_host").select("id"), access, "proxy_host", 7).toString();
+	assert.equal(sql({ permission_visibility: "all" }), 'select "id" from "proxy_host"');
+	assert.equal(
+		sql({ permission_visibility: "user", npmos_hosts: { proxy_host: [3, 4] } }),
+		'select "id" from "proxy_host" where ("proxy_host"."owner_user_id" = 7 or "proxy_host"."id" in (3, 4))',
+	);
+	assert.equal(
+		sql({ permission_visibility: "user" }),
+		'select "id" from "proxy_host" where ("proxy_host"."owner_user_id" = 7)',
+	);
+});

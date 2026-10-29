@@ -4112,6 +4112,12 @@
 	"npmos.rbac.hint.waf_policy.manage": {
 		"defaultMessage": "Менять политики, режимы WAF хостов и настройки агента"
 	},
+	"npmos.rbac.hosts": {
+		"defaultMessage": "Хосты роли ({count})"
+	},
+	"npmos.rbac.hosts.filter": {
+		"defaultMessage": "Найти хост"
+	},
 	"npmos.rbac.name": {
 		"defaultMessage": "Название"
 	},
@@ -4282,6 +4288,12 @@
 	},
 	"npmos.rbac.scope.all.hint": {
 		"defaultMessage": "Права на хосты, списки доступа и сертификаты действуют для всех."
+	},
+	"npmos.rbac.scope.hosts": {
+		"defaultMessage": "Свои и выбранные хосты"
+	},
+	"npmos.rbac.scope.hosts.hint": {
+		"defaultMessage": "Участники видят хосты, созданные ими, и выбранные ниже — в пределах прав роли. Дать такую область может только тот, кто видит все хосты."
 	},
 	"npmos.rbac.scope.own": {
 		"defaultMessage": "Только свои"

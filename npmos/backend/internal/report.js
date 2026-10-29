@@ -15,10 +15,15 @@ const internalReport = {
 				const userId = access.token.getUserId(1);
 
 				const promises = [
-					internalProxyHost.getCount(userId, access_data.permission_visibility),
-					internalRedirectionHost.getCount(userId, access_data.permission_visibility),
-					internalStream.getCount(userId, access_data.permission_visibility),
-					internalDeadHost.getCount(userId, access_data.permission_visibility),
+					// NPMOS: npmos_hosts, the hosts of the roles
+					internalProxyHost.getCount(userId, access_data.permission_visibility, access_data.npmos_hosts),
+					internalRedirectionHost.getCount(
+						userId,
+						access_data.permission_visibility,
+						access_data.npmos_hosts,
+					),
+					internalStream.getCount(userId, access_data.permission_visibility, access_data.npmos_hosts),
+					internalDeadHost.getCount(userId, access_data.permission_visibility, access_data.npmos_hosts),
 				];
 
 				return Promise.all(promises);

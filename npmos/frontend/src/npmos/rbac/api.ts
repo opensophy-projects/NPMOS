@@ -1,7 +1,13 @@
 // RBAC API (/api/npmos/rbac/*, npmos/backend/npmos/rbac): roles, their permissions, who has them.
 import * as api from "src/api/backend/base";
 
-export type Scope = "all" | "own";
+export type Scope = "all" | "own" | "hosts";
+export type RoleHostType = "proxy_host" | "redirection_host" | "dead_host" | "stream";
+/** host_type is a value (a table), host_id a number: the client leaves them as they are */
+export interface RoleHost {
+	hostType: RoleHostType;
+	hostId: number;
+}
 export type BuiltinRole = "administrator" | "operator" | "security_analyst" | "viewer";
 
 export interface RbacModel {
@@ -26,12 +32,14 @@ export interface Role {
 	scope: Scope;
 	oidcGroups: string[];
 	permissions: string[];
+	/** scope "hosts": the hosts of the role */
+	hosts: RoleHost[];
 	users: { id: number; name: string; email: string }[];
 	createdOn: string;
 	modifiedOn: string;
 }
 
-export type RoleInput = Pick<Role, "name" | "description" | "scope" | "oidcGroups" | "permissions">;
+export type RoleInput = Pick<Role, "name" | "description" | "scope" | "oidcGroups" | "permissions" | "hosts">;
 
 export interface OidcMapping {
 	claim: string;

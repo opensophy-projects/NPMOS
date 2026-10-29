@@ -7,6 +7,8 @@ import internalAuditLog from "./audit-log.js";
 import internalCertificate from "./certificate.js";
 import internalHost from "./host.js";
 import internalNginx from "./nginx.js";
+// NPMOS: host scope of the roles
+import { scopeHosts } from "../npmos/rbac/scope.js";
 
 const omissions = () => {
 	return ["is_deleted"];
@@ -190,9 +192,8 @@ const internalDeadHost = {
 			.allowGraph(deadHostModel.defaultAllowGraph)
 			.first();
 
-		if (accessData.permission_visibility !== "all") {
-			query.andWhere("owner_user_id", access.token.getUserId(1));
-		}
+		// NPMOS: own hosts and the hosts of the roles (npmos/rbac/scope.js)
+		scopeHosts(query, accessData, "dead_host", access.token.getUserId(1));
 
 		if (typeof data.expand !== "undefined" && data.expand !== null) {
 			query.withGraphFetched(`[${data.expand.join(", ")}]`);
@@ -348,9 +349,8 @@ const internalDeadHost = {
 			.allowGraph(deadHostModel.defaultAllowGraph)
 			.orderBy(castJsonIfNeed("domain_names"), "ASC");
 
-		if (accessData.permission_visibility !== "all") {
-			query.andWhere("owner_user_id", access.token.getUserId(1));
-		}
+		// NPMOS: own hosts and the hosts of the roles (npmos/rbac/scope.js)
+		scopeHosts(query, accessData, "dead_host", access.token.getUserId(1));
 
 		// Query is used for searching
 		if (typeof searchQuery === "string" && searchQuery.length > 0) {
@@ -377,12 +377,11 @@ const internalDeadHost = {
 	 * @param   {String}  visibility
 	 * @returns {Promise}
 	 */
-	getCount: async (user_id, visibility) => {
+	getCount: async (user_id, visibility, hosts) => {
 		const query = deadHostModel.query().count("id as count").where("is_deleted", 0);
 
-		if (visibility !== "all") {
-			query.andWhere("owner_user_id", user_id);
-		}
+		// NPMOS: own hosts and the hosts of the roles
+		scopeHosts(query, { permission_visibility: visibility, npmos_hosts: hosts }, "dead_host", user_id);
 
 		const row = await query.first();
 		return Number.parseInt(row.count, 10);

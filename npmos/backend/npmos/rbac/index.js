@@ -8,11 +8,19 @@ import userModel from "../../models/user.js";
 import userPermissionModel from "../../models/user_permission.js";
 import { getSetting, setSetting } from "../settings.js";
 import * as model from "./model.js";
+import { HOST_TABLES } from "./scope.js";
 
 const parse = (value) => (typeof value === "string" ? JSON.parse(value) : value);
 const roleTable = () => db()("npmos_role");
 
 const isAdminRoles = (roles) => (parse(roles) ?? []).includes("admin");
+
+/** hosts of roles (scope "hosts"); none before the migration */
+const hostsOf = (roleIds) =>
+	db()("npmos_role_host")
+		.whereIn("role_id", roleIds)
+		.select("role_id", "host_type", "host_id")
+		.catch(() => []);
 
 /** roles of a user with their permissions (without the admin flag) */
 async function rolesOf(userId) {
@@ -24,9 +32,11 @@ async function rolesOf(userId) {
 	const permissionRows = custom.length
 		? await db()("npmos_role_permission").whereIn("role_id", custom).select("role_id", "resource", "action")
 		: [];
+	const hostRows = custom.length ? await hostsOf(custom) : [];
 	return rows.map((row) => ({
 		id: row.id,
 		scope: row.builtin ? model.BUILTIN[row.builtin]?.scope : row.scope,
+		hosts: hostRows.filter((h) => h.role_id === row.id),
 		permissions: row.builtin
 			? (model.BUILTIN[row.builtin]?.permissions ?? [])
 			: permissionRows.filter((p) => p.role_id === row.id).map((p) => `${p.resource}:${p.action}`),
@@ -81,7 +91,9 @@ export async function check(permissions, label, data) {
 				: await userIsAdmin(Number(typeof data === "object" ? data?.id : data));
 	}
 	const decision = model.decide(label, eff, { targetIsAdmin });
-	if (decision === "grant") return { permission_visibility: eff.scope === "all" ? "all" : "user" };
+	if (decision === "grant") {
+		return { permission_visibility: eff.scope === "all" ? "all" : "user", npmos_hosts: eff.hosts ?? {} };
+	}
 	if (decision === "deny") return false;
 	return undefined;
 }
@@ -107,6 +119,7 @@ const roleRows = async (where) => {
 		.select();
 	const ids = roles.map((r) => r.id);
 	const permissions = ids.length ? await db()("npmos_role_permission").whereIn("role_id", ids) : [];
+	const hosts = ids.length ? await hostsOf(ids) : [];
 	const members = ids.length
 		? await db()("npmos_user_role")
 				.join("user", "user.id", "npmos_user_role.user_id")
@@ -126,6 +139,9 @@ const roleRows = async (where) => {
 				builtin: role.builtin || null,
 				scope: builtin ? builtin.scope : role.scope,
 				oidc_groups: parse(role.oidc_groups) ?? [],
+				hosts: hosts
+					.filter((h) => h.role_id === role.id)
+					.map(({ host_type, host_id }) => ({ host_type, host_id })),
 				permissions: builtin
 					? model.normalize(builtin.permissions)
 					: model.normalize(
@@ -161,7 +177,9 @@ const cleanGroups = (groups) => [...new Set((groups ?? []).map((g) => String(g).
 const validateRole = async (data, id) => {
 	const name = String(data.name ?? "").trim();
 	if (!name || name.length > 100) throw new errs.ValidationError("A role needs a name (up to 100 characters)");
-	if (!model.SCOPES.includes(data.scope)) throw new errs.ValidationError("scope must be all or own");
+	if (!model.SCOPES.includes(data.scope)) throw new errs.ValidationError("scope must be all, own or hosts");
+	const hosts = data.scope === "hosts" ? await validHosts(data.hosts ?? []) : [];
+	if (data.scope === "hosts" && !hosts.length) throw new errs.ValidationError("Choose the hosts of the role");
 	const same = await roleTable()
 		.whereRaw("lower(name) = ?", [name.toLowerCase()])
 		.whereNot("id", id ?? 0)
@@ -173,7 +191,27 @@ const validateRole = async (data, id) => {
 		scope: data.scope,
 		oidc_groups: cleanGroups(data.oidc_groups),
 		permissions: model.normalize(data.permissions ?? []),
+		hosts,
 	};
+};
+
+/** existing hosts only, each once */
+const validHosts = async (list) => {
+	const result = [];
+	for (const table of HOST_TABLES) {
+		const wanted = [...new Set(list.filter((h) => h.host_type === table).map((h) => Number(h.host_id)))];
+		if (!wanted.length) continue;
+		const found = await db()(table).whereIn("id", wanted).where("is_deleted", 0).select("id");
+		if (found.length !== wanted.length) throw new errs.ValidationError(`Unknown ${table} in the role`);
+		for (const { id } of found) result.push({ host_type: table, host_id: id });
+	}
+	if (list.some((h) => !HOST_TABLES.includes(h.host_type))) throw new errs.ValidationError("Unknown host type");
+	return result;
+};
+
+const writeHosts = async (trx, roleId, hosts) => {
+	await trx("npmos_role_host").where("role_id", roleId).delete();
+	if (hosts.length) await trx("npmos_role_host").insert(hosts.map((h) => ({ role_id: roleId, ...h })));
 };
 
 const writePermissions = async (trx, roleId, permissions) => {
@@ -237,7 +275,7 @@ const internalRbac = {
 			const admin = await roleTable().where("builtin", "administrator").select("id", "name", "builtin").first();
 			if (admin) roles.unshift(admin);
 		}
-		return { admin: eff.admin, scope: eff.scope, permissions: [...eff.permissions], roles };
+		return { admin: eff.admin, scope: eff.scope, hosts: eff.hosts, permissions: [...eff.permissions], roles };
 	},
 
 	list: async (access) => {
@@ -268,6 +306,7 @@ const internalRbac = {
 				.returning("id");
 			const roleId = typeof inserted === "object" ? inserted.id : inserted;
 			await writePermissions(trx, roleId, role.permissions);
+			await writeHosts(trx, roleId, role.hosts);
 			return roleId;
 		});
 		await audit(access, "created", "role", id, { name: role.name, permissions: role.permissions });
@@ -307,6 +346,7 @@ const internalRbac = {
 					modified_on: new Date(),
 				});
 			await writePermissions(trx, id, role.permissions);
+			await writeHosts(trx, id, role.hosts);
 		});
 		await resyncMembers(id);
 		await audit(access, "updated", "role", id, { name: role.name, permissions: role.permissions });
@@ -322,6 +362,7 @@ const internalRbac = {
 		await db().transaction(async (trx) => {
 			await trx("npmos_user_role").where("role_id", id).delete();
 			await trx("npmos_role_permission").where("role_id", id).delete();
+			await trx("npmos_role_host").where("role_id", id).delete();
 			await trx("npmos_role").where({ id }).delete();
 		});
 		await resyncUsers(members);

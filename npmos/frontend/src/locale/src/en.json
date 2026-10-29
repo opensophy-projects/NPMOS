@@ -4112,6 +4112,12 @@
 	"npmos.rbac.hint.waf_policy.manage": {
 		"defaultMessage": "Change policies, WAF modes of hosts and agent settings"
 	},
+	"npmos.rbac.hosts": {
+		"defaultMessage": "Hosts of the role ({count})"
+	},
+	"npmos.rbac.hosts.filter": {
+		"defaultMessage": "Find a host"
+	},
 	"npmos.rbac.name": {
 		"defaultMessage": "Name"
 	},
@@ -4282,6 +4288,12 @@
 	},
 	"npmos.rbac.scope.all.hint": {
 		"defaultMessage": "The permissions on hosts, access lists and certificates apply to all of them."
+	},
+	"npmos.rbac.scope.hosts": {
+		"defaultMessage": "Own and chosen hosts"
+	},
+	"npmos.rbac.scope.hosts.hint": {
+		"defaultMessage": "Members see the hosts they created and the hosts chosen below, with what the permissions allow. Only who sees all hosts can give this scope."
 	},
 	"npmos.rbac.scope.own": {
 		"defaultMessage": "Own hosts"

@@ -387,6 +387,23 @@ code=$(curl -sS -k -b $JAR -o /dev/null -w '%{http_code}' -X PUT -H 'Content-Typ
   "$ADMIN/api/npmos/rbac/users/1" -d '{"roles": []}')
 expect "$code" 400 "removing the last administrator"
 
+step "RBAC: a role of chosen hosts sees test.local, not another host of the administrator"
+other_id=$($CURL -H 'Content-Type: application/json' "$ADMIN/api/nginx/proxy-hosts" -d '{
+  "domain_names": ["other.local"], "forward_scheme": "http", "forward_host": "test-upstream", "forward_port": "80"
+}' | tr -d ' \n' | grep -o '"id":[0-9]*' | head -1 | grep -o '[0-9]*')
+scoped_role=$($CURL -H 'Content-Type: application/json' "$ADMIN/api/npmos/rbac/roles" -d '{"name": "test.local team",
+  "scope": "hosts", "hosts": [{"host_type": "proxy_host", "host_id": 1}], "permissions": ["proxy_hosts:view"]}' \
+  | tr -d ' \n' | grep -o '"id":[0-9]*' | head -1 | grep -o '[0-9]*')
+$CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/rbac/users/$analyst_id" \
+  -d "{\"roles\": [$scoped_role]}" > /dev/null
+seen=$(curl -sS -k -b $AJAR "$ADMIN/api/nginx/proxy-hosts" | tr -d ' \n')
+echo "$seen" | grep -q '"domain_names":\["test.local"\]' || fail "the role does not see its host: $seen"
+echo "$seen" | grep -q 'other.local' && fail "the role sees a host it was not given: $seen"
+expect "$(as_analyst "$ADMIN/api/nginx/proxy-hosts/$other_id")" 404 "the role opens a host it was not given"
+$CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/rbac/users/$analyst_id" \
+  -d "{\"roles\": [$analyst_role]}" > /dev/null
+$CURL -X DELETE "$ADMIN/api/nginx/proxy-hosts/$other_id" > /dev/null
+
 # --- phase 4 ---
 
 step "events: stored events are filtered and exported"

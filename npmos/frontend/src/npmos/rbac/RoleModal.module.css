@@ -154,3 +154,18 @@
 		grid-template-columns: 1fr;
 	}
 }
+
+.hostList {
+	max-height: 14rem;
+	overflow-y: auto;
+	border: 1px solid var(--tblr-border-color);
+	border-radius: var(--tblr-border-radius);
+	padding: 0.5rem 0.75rem;
+}
+
+.hostGroup {
+	font-size: 0.75rem;
+	text-transform: uppercase;
+	color: var(--tblr-secondary);
+	margin: 0.25rem 0;
+}

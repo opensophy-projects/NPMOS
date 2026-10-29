@@ -20,6 +20,7 @@ import streamModel from "../../models/stream.js";
 import { onCrlChange } from "./index.js";
 import { escapeRe, RULE_FIELDS, RULE_OPS, ruleRegex, trustSet } from "./trust.js";
 import { ASCII_VALUE } from "./x509.js";
+import { scopeHosts } from "../rbac/scope.js";
 
 const DIR = process.env.NPMOS_MTLS_DIR || "/data/npmos/pki/nginx";
 
@@ -300,9 +301,7 @@ const internalMtls = {
 				.where("npmos_mtls_host.host_type", hostType)
 				.where(`${hostType}.is_deleted`, 0)
 				.select("npmos_mtls_host.*");
-			if (accessData.permission_visibility !== "all") {
-				query.where(`${hostType}.owner_user_id`, access.token.getUserId(1));
-			}
+			scopeHosts(query, accessData, hostType, access.token.getUserId(1));
 			for (const row of await query) {
 				result[hostType][row.host_id] = toBinding(row);
 			}

@@ -7,6 +7,8 @@ import internalAuditLog from "./audit-log.js";
 import internalCertificate from "./certificate.js";
 import internalHost from "./host.js";
 import internalNginx from "./nginx.js";
+// NPMOS: host scope of the roles
+import { scopeHosts } from "../npmos/rbac/scope.js";
 
 const omissions = () => {
 	return ["is_deleted", "owner.is_deleted", "certificate.is_deleted"];
@@ -191,9 +193,8 @@ const internalStream = {
 					.allowGraph(streamModel.defaultAllowGraph)
 					.first();
 
-				if (access_data.permission_visibility !== "all") {
-					query.andWhere("owner_user_id", access.token.getUserId(1));
-				}
+				// NPMOS: own hosts and the hosts of the roles (npmos/rbac/scope.js)
+				scopeHosts(query, access_data, "stream", access.token.getUserId(1));
 
 				if (typeof thisData.expand !== "undefined" && thisData.expand !== null) {
 					query.withGraphFetched(`[${thisData.expand.join(", ")}]`);
@@ -380,9 +381,8 @@ const internalStream = {
 					.allowGraph(streamModel.defaultAllowGraph)
 					.orderBy("incoming_port", "ASC");
 
-				if (access_data.permission_visibility !== "all") {
-					query.andWhere("owner_user_id", access.token.getUserId(1));
-				}
+				// NPMOS: own hosts and the hosts of the roles (npmos/rbac/scope.js)
+				scopeHosts(query, access_data, "stream", access.token.getUserId(1));
 
 				// Query is used for searching
 				if (typeof search_query === "string" && search_query.length > 0) {
@@ -416,12 +416,11 @@ const internalStream = {
 	 * @param   {String}  visibility
 	 * @returns {Promise}
 	 */
-	getCount: (user_id, visibility) => {
+	getCount: (user_id, visibility, hosts) => {
 		const query = streamModel.query().count("id AS count").where("is_deleted", 0);
 
-		if (visibility !== "all") {
-			query.andWhere("owner_user_id", user_id);
-		}
+		// NPMOS: own hosts and the hosts of the roles
+		scopeHosts(query, { permission_visibility: visibility, npmos_hosts: hosts }, "stream", user_id);
 
 		return query.first().then((row) => {
 			return Number.parseInt(row.count, 10);
