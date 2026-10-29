@@ -590,6 +590,10 @@ api_json "$ADMIN/api/npmos/crowdsec/decisions/delete" -d "{\"values\": [\"$clien
 
 if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
   step "CrowdSec: three requests blocked by open-appsec ban the address"
+  # the WAF steps above leave test.local in detect-learn: the scenario counts blocked requests only
+  $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf/hosts/1" \
+    -d '{"enabled": true, "mode": "prevent-learn", "minimum_confidence": "high"}' > /dev/null
+  wait_status "$SQLI" 403 "SQLi is not blocked in prevent-learn again"
   for i in $(seq 1 30); do
     page "$SQLI" > /dev/null
     $CURL "$ADMIN/api/npmos/crowdsec/decisions?q=$client_ip" | grep -q 'npmos/openappsec-prevent' && break
