@@ -432,4 +432,86 @@ expect "$code" 400 "a bad time zone"
 expect "$(as_analyst -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/system/settings" \
   -d '{"values": [{"env": "DISABLE_HTTP", "value": true}]}')" 403 "analyst changes system settings"
 
+# --- phase 6 ---
+
+# the first number "id" of a JSON answer
+json_id() { tr -d ' \n' | grep -o '"id":[0-9]*' | head -1 | grep -o '[0-9]*$'; }
+# a PEM field of a JSON answer as a file
+json_pem() { tr -d '\n' | sed -n "s/.*\"$1\": *\"\([^\"]*\)\".*/\1/p" | awk '{ gsub(/\\n/, "\n"); printf "%s", $0 }' > "$2"; }
+api_json() { $CURL -H 'Content-Type: application/json' "$@"; }
+HTTPS_MTLS="https://mtls.local"
+TLS_TO="--connect-to mtls.local:443:npmos:443"
+
+step "PKI: a root CA and a trust domain"
+root_id=$(api_json "$ADMIN/api/npmos/pki/cas" \
+  -d '{"kind": "root", "name": "Smoke Root", "subject": {"common_name": "Smoke Root", "organization": "NPMOS"}}' | json_id)
+[ -n "$root_id" ] || fail "root CA was not created"
+domain_id=$(api_json "$ADMIN/api/npmos/pki/cas" -d "{\"kind\": \"intermediate\", \"name\": \"Smoke Office\",
+  \"parent_id\": $root_id, \"subject\": {\"common_name\": \"Smoke Office\", \"organization\": \"NPMOS\"}}" | json_id)
+[ -n "$domain_id" ] || fail "trust domain was not created"
+other_id=$(api_json "$ADMIN/api/npmos/pki/cas" -d "{\"kind\": \"intermediate\", \"name\": \"Smoke Partners\",
+  \"parent_id\": $root_id, \"subject\": {\"common_name\": \"Smoke Partners\", \"organization\": \"NPMOS\"}}" | json_id)
+expect "$(as_analyst -X POST -H 'Content-Type: application/json' "$ADMIN/api/npmos/pki/cas" \
+  -d '{"kind": "root", "name": "x", "subject": {"common_name": "x"}}')" 403 "analyst creates a CA"
+
+step "PKI: a server certificate of the trust domain becomes a certificate of NPMplus"
+server=$(api_json "$ADMIN/api/npmos/pki/certs" -d "{\"ca_id\": $domain_id, \"profile\": \"server\",
+  \"subject\": {\"common_name\": \"mtls.local\"}, \"sans\": {\"dns\": [\"mtls.local\"]}, \"install\": true}")
+tls_id=$(echo "$server" | tr -d ' \n' | grep -o '"certificate_id":[0-9]*' | grep -o '[0-9]*$')
+[ -n "$tls_id" ] || fail "server certificate was not installed: $server"
+host_id=$(api_json "$ADMIN/api/nginx/proxy-hosts" -d "{\"domain_names\": [\"mtls.local\"], \"forward_scheme\": \"http\",
+  \"forward_host\": \"test-upstream\", \"forward_port\": \"80\", \"certificate_id\": $tls_id}" | json_id)
+[ -n "$host_id" ] || fail "proxy host mtls.local was not created"
+
+step "mTLS: the host requires a certificate of the trust domain with OU=IT"
+api_json -X PUT "$ADMIN/api/npmos/mtls/proxy_host/$host_id" -d "{\"enabled\": true, \"ca_ids\": [$domain_id],
+  \"rules\": [{\"field\": \"organizational_unit\", \"op\": \"one_of\", \"values\": [\"IT\"]}]}" \
+  | tr -d ' \n' | grep -q '"nginx_online":true' || fail "nginx did not take the mTLS of the host"
+
+# a client certificate as PEM files (the tester has no openssl to open a .p12)
+client() { # name, OU, CA id → /tmp/<name>.crt, /tmp/<name>.key
+  answer=$(api_json "$ADMIN/api/npmos/pki/certs" -d "{\"ca_id\": $3, \"profile\": \"client\",
+    \"subject\": {\"common_name\": \"$1\", \"organizational_unit\": \"$2\"}, \"include_key_pem\": true, \"link_hours\": 1}")
+  echo "$answer" | json_pem cert_pem "/tmp/$1.crt"
+  echo "$answer" | json_pem key_pem "/tmp/$1.key"
+  grep -q 'BEGIN CERTIFICATE' "/tmp/$1.crt" || fail "no certificate for $1: $answer"
+  echo "$answer"
+}
+alice=$(client alice IT "$domain_id")
+client bob Sales "$domain_id" > /dev/null
+client carol IT "$other_id" > /dev/null
+mtls() { curl -sS -k --max-time 10 $TLS_TO -o /dev/null -w '%{http_code}' "$@" "$HTTPS_MTLS/"; }
+
+for i in $(seq 1 15); do
+  [ "$(mtls --cert /tmp/alice.crt --key /tmp/alice.key)" = 200 ] && break
+  [ "$i" = 15 ] && fail "the host does not let alice in"
+  sleep 2
+done
+body=$(curl -sS -k --max-time 10 $TLS_TO --cert /tmp/alice.crt --key /tmp/alice.key -H 'X-Client-Verify: FAKE' "$HTTPS_MTLS/")
+echo "$body" | grep -q '^X-Client-Verify: SUCCESS' || fail "the upstream did not get X-Client-Verify: $body"
+echo "$body" | grep -q '^X-Client-S-Dn: CN=alice,OU=IT' || fail "the upstream did not get the subject: $body"
+echo "$body" | grep -q 'FAKE' && fail "a spoofed X-Client-Verify reached the upstream"
+expect "$(mtls)" 403 "no client certificate"
+curl -sS -k --max-time 10 $TLS_TO "$HTTPS_MTLS/" | grep -q 'client certificate is required' \
+  || fail "no explanation page without a certificate"
+expect "$(mtls --cert /tmp/bob.crt --key /tmp/bob.key)" 403 "a certificate with OU=Sales"
+expect "$(mtls --cert /tmp/carol.crt --key /tmp/carol.key)" 403 "a certificate of another trust domain"
+
+step "PKI: the one-time link opens once, the CRL is published"
+link=$(echo "$alice" | tr -d ' \n' | grep -o '"path":"[^"]*"' | cut -d'"' -f4)
+[ -n "$link" ] || fail "no one-time link"
+expect "$(curl -sS -k -o /dev/null -w '%{http_code}' "$ADMIN$link")" 200 "the one-time link"
+expect "$(curl -sS -k -o /dev/null -w '%{http_code}' "$ADMIN$link")" 410 "the one-time link again"
+expect "$(curl -sS -k -o /dev/null -w '%{http_code}' "$ADMIN/api/npmos/pki/public/crl/$domain_id.crl")" 200 "the CRL"
+
+step "PKI: a revoked certificate is refused within a minute"
+alice_id=$(echo "$alice" | tr -d ' \n' | grep -o '"certificate":{"id":[0-9]*' | grep -o '[0-9]*$')
+api_json "$ADMIN/api/npmos/pki/certs/revoke" -d "{\"ids\": [$alice_id], \"reason\": \"keyCompromise\"}" \
+  | grep -q '"revoked": *1' || fail "alice was not revoked"
+for i in $(seq 1 30); do
+  [ "$(mtls --cert /tmp/alice.crt --key /tmp/alice.key)" = 403 ] && break
+  [ "$i" = 30 ] && fail "the revoked certificate still opens the host after a minute"
+  sleep 2
+done
+
 echo "OK: closed-network smoke passed"

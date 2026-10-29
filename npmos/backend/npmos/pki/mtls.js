@@ -195,7 +195,10 @@ export const usage = async () => {
 		for (const host of await db()(hostType).where({ is_deleted: 0 })) {
 			names.set(`${hostType}-${host.id}`, hostName(hostType, host));
 			if (host.certificate_id > 0) {
-				(result.certificates[host.certificate_id] ||= []).push(hostName(hostType, host));
+				result.certificates[host.certificate_id] = [
+					...(result.certificates[host.certificate_id] || []),
+					hostName(hostType, host),
+				];
 			}
 		}
 	}
@@ -203,7 +206,7 @@ export const usage = async () => {
 		const name = names.get(`${row.host_type}-${row.host_id}`);
 		if (!name) continue;
 		for (const id of trustSet(parse(row.ca_ids) || [], cas).ids) {
-			(result.cas[id] ||= []).push(name);
+			result.cas[id] = [...(result.cas[id] || []), name];
 		}
 	}
 	return result;
