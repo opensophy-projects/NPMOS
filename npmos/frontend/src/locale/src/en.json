@@ -1760,6 +1760,36 @@
 	"npmos.events.total-capped": {
 		"defaultMessage": "More than {total} events"
 	},
+	"npmos.geoip.built": {
+		"defaultMessage": "Built"
+	},
+	"npmos.geoip.hint": {
+		"defaultMessage": "Countries of attack sources come from a MaxMind DB file (.mmdb), without internet. The GeoLite2-City database of CrowdSec is used by default; upload a newer one (GeoLite2 or DB-IP, Country or City) downloaded on a machine with internet. Events stored before keep their country."
+	},
+	"npmos.geoip.none": {
+		"defaultMessage": "No GeoIP database: events have no countries."
+	},
+	"npmos.geoip.remove": {
+		"defaultMessage": "Use the database of CrowdSec"
+	},
+	"npmos.geoip.saved": {
+		"defaultMessage": "GeoIP database updated"
+	},
+	"npmos.geoip.source": {
+		"defaultMessage": "Database"
+	},
+	"npmos.geoip.source.crowdsec": {
+		"defaultMessage": "Of CrowdSec (comes with its image)"
+	},
+	"npmos.geoip.source.uploaded": {
+		"defaultMessage": "Uploaded"
+	},
+	"npmos.geoip.type": {
+		"defaultMessage": "Type"
+	},
+	"npmos.geoip.upload": {
+		"defaultMessage": "Upload .mmdb"
+	},
 	"npmos.glossary": {
 		"defaultMessage": "Glossary"
 	},
@@ -4531,6 +4561,9 @@
 	},
 	"npmos.system.group.general.hint": {
 		"defaultMessage": "Time zone and the certificate for unknown names."
+	},
+	"npmos.system.group.geoip": {
+		"defaultMessage": "GeoIP"
 	},
 	"npmos.system.group.logs": {
 		"defaultMessage": "Logs"

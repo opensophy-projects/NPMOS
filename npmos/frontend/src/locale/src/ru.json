@@ -1760,6 +1760,36 @@
 	"npmos.events.total-capped": {
 		"defaultMessage": "Больше {total} событий"
 	},
+	"npmos.geoip.built": {
+		"defaultMessage": "Собрана"
+	},
+	"npmos.geoip.hint": {
+		"defaultMessage": "Страны источников атак берутся из файла MaxMind DB (.mmdb), без интернета. По умолчанию используется база GeoLite2-City из CrowdSec; можно загрузить более новую (GeoLite2 или DB-IP, Country или City), скачанную на машине с интернетом. У уже сохранённых событий страна не меняется."
+	},
+	"npmos.geoip.none": {
+		"defaultMessage": "Базы GeoIP нет: у событий не будет стран."
+	},
+	"npmos.geoip.remove": {
+		"defaultMessage": "Вернуть базу CrowdSec"
+	},
+	"npmos.geoip.saved": {
+		"defaultMessage": "База GeoIP обновлена"
+	},
+	"npmos.geoip.source": {
+		"defaultMessage": "База"
+	},
+	"npmos.geoip.source.crowdsec": {
+		"defaultMessage": "Из CrowdSec (входит в его образ)"
+	},
+	"npmos.geoip.source.uploaded": {
+		"defaultMessage": "Загруженная"
+	},
+	"npmos.geoip.type": {
+		"defaultMessage": "Тип"
+	},
+	"npmos.geoip.upload": {
+		"defaultMessage": "Загрузить .mmdb"
+	},
 	"npmos.glossary": {
 		"defaultMessage": "Глоссарий"
 	},
@@ -4531,6 +4561,9 @@
 	},
 	"npmos.system.group.general.hint": {
 		"defaultMessage": "Часовой пояс и сертификат для неизвестных имён."
+	},
+	"npmos.system.group.geoip": {
+		"defaultMessage": "GeoIP"
 	},
 	"npmos.system.group.logs": {
 		"defaultMessage": "Журналы"

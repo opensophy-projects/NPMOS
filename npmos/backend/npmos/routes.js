@@ -15,6 +15,7 @@ import internalMtls, { usage as mtlsUsage, usedBy as mtlsUsedBy } from "./pki/mt
 import internalRbac from "./rbac/index.js";
 import internalServices from "./services.js";
 import internalSystem from "./system/index.js";
+import internalGeoip from "./geoip/index.js";
 import internalWafAgent from "./waf/agent-settings.js";
 import internalWafExpert from "./waf/expert.js";
 import internalWafHosts from "./waf/hosts.js";
@@ -686,6 +687,22 @@ router
 			),
 		),
 	);
+
+/**
+ * GET    /api/npmos/system/geoip — the GeoIP database in use
+ * POST   /api/npmos/system/geoip — body: an .mmdb file, used instead of the one of CrowdSec
+ * DELETE /api/npmos/system/geoip — back to the database of CrowdSec
+ */
+router
+	.route("/system/geoip")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalGeoip.status(res.locals.access)))
+	.post(
+		express.raw({ type: () => true, limit: "200mb" }),
+		handle((req, res) => internalGeoip.upload(res.locals.access, Buffer.isBuffer(req.body) ? req.body : null)),
+	)
+	.delete(handle((_, res) => internalGeoip.remove(res.locals.access)));
 
 router
 	.route("/system/settings/apply")

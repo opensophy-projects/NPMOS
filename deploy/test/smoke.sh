@@ -644,4 +644,10 @@ done
 code=$(curl -sk -o /dev/null -w '%{http_code}' -b "$JAR" -X DELETE "$ADMIN/api/npmos/crowdsec/registry/machines/nope")
 [ "$code" = 404 ] || fail "deleting an unknown machine: HTTP $code"
 
+step "GeoIP: the database of CrowdSec gives countries offline, a file that is no database is refused"
+$CURL "$ADMIN/api/npmos/system/geoip" | grep -q '"type": *"GeoLite2' || fail "no GeoIP database: $($CURL "$ADMIN/api/npmos/system/geoip")"
+code=$(curl -sk -o /dev/null -w '%{http_code}' -b "$JAR" -X POST -H 'Content-Type: application/octet-stream' \
+  --data-binary 'not a database' "$ADMIN/api/npmos/system/geoip")
+[ "$code" = 400 ] || fail "a broken GeoIP database was accepted: HTTP $code"
+
 echo "OK: closed-network smoke passed"
