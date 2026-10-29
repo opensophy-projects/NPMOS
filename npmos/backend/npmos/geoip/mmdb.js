@@ -16,8 +16,9 @@ class Decoder {
 	}
 
 	/** @returns {[value, next offset]} */
-	decode(offset) {
+	decode(start) {
 		const buf = this.buf;
+		let offset = start;
 		const ctrl = buf[this.base + offset++];
 		let type = ctrl >> 5;
 		if (type === 1) {
@@ -115,7 +116,7 @@ const addressBytes = (ip) => {
 	const zeros = tail === null ? [] : Array(8 - groups.length - tailGroups.length).fill("0");
 	const all = [...groups, ...zeros, ...tailGroups];
 	const out = Buffer.alloc(16);
-	all.forEach((g, i) => out.writeUInt16BE(Number.parseInt(g, 16), i * 2));
+	for (const [i, g] of all.entries()) out.writeUInt16BE(Number.parseInt(g, 16), i * 2);
 	return out;
 };
 

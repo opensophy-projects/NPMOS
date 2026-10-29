@@ -56,12 +56,12 @@ const build = (networks, ipVersion = 4) => {
 	const count = nodes.length;
 	for (const [node, bit, n] of pending) nodes[node][bit] = { data: offsets[n] };
 	const tree = Buffer.alloc(count * 6);
-	nodes.forEach((pair, i) =>
-		pair.forEach((r, bit) => {
+	for (const [i, pair] of nodes.entries()) {
+		for (const [bit, r] of pair.entries()) {
 			const value = r === null ? count : typeof r === "number" ? r : count + 16 + r.data;
 			tree.writeUIntBE(value, i * 6 + bit * 3, 3);
-		}),
-	);
+		}
+	}
 	const meta = encode({
 		binary_format_major_version: 2,
 		binary_format_minor_version: 0,
