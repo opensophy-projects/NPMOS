@@ -19,6 +19,8 @@ services:
     volumes:
       # relative paths resolve from deploy/, the directory of the first compose file
       - ./test/smoke.sh:/smoke.sh:ro
+      # phase 5: an example of open-appsec imported through WAF -> Policy
+      - ../reference/openappsec/config/linux/v1beta2/example/local_policy.yaml:/reference/v1beta2-example.yaml:ro
       - test-state:/state
     networks:
       - edge

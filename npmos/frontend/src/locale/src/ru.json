@@ -1373,6 +1373,18 @@
 	"npmos.hosts.waf.prevent.hint": {
 		"defaultMessage": "Атаки блокируются (ответ 403)"
 	},
+	"npmos.hosts.waf.template.api.hint": {
+		"defaultMessage": "Шаблон: для API, нестандартные HTTP-методы блокируются"
+	},
+	"npmos.hosts.waf.template.monitor.hint": {
+		"defaultMessage": "Шаблон: только обнаруживает и обучается"
+	},
+	"npmos.hosts.waf.template.recommended.hint": {
+		"defaultMessage": "Шаблон: блокирует атаки высокой уверенности"
+	},
+	"npmos.hosts.waf.template.strict.hint": {
+		"defaultMessage": "Шаблон: средняя уверенность, CSRF, раскрытие ошибок, редиректы, страница блокировки"
+	},
 	"npmos.nav.administration": {
 		"defaultMessage": "Администрирование"
 	},

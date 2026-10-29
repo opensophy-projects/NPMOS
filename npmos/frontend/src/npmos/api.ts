@@ -71,6 +71,8 @@ export interface WafSettings {
 	enabled: boolean;
 	mode: WafMode;
 	minimumConfidence: WafConfidence;
+	/** template of the policy objects of the host (list of hosts only) */
+	template?: string | null;
 }
 
 export interface WafLocationSettings extends WafSettings {

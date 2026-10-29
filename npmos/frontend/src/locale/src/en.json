@@ -1373,6 +1373,18 @@
 	"npmos.hosts.waf.prevent.hint": {
 		"defaultMessage": "Attacks are blocked with 403"
 	},
+	"npmos.hosts.waf.template.api.hint": {
+		"defaultMessage": "Template: for APIs, non-standard HTTP methods are blocked"
+	},
+	"npmos.hosts.waf.template.monitor.hint": {
+		"defaultMessage": "Template: only detects and learns"
+	},
+	"npmos.hosts.waf.template.recommended.hint": {
+		"defaultMessage": "Template: blocks attacks of high confidence"
+	},
+	"npmos.hosts.waf.template.strict.hint": {
+		"defaultMessage": "Template: medium confidence, CSRF, error disclosure, open redirect, block page"
+	},
 	"npmos.nav.administration": {
 		"defaultMessage": "Administration"
 	},

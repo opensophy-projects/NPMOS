@@ -349,6 +349,20 @@ function HostsPage() {
 				t(enabled ? "npmos.hosts.done.enabled" : "npmos.hosts.done.disabled"),
 			),
 		setWaf: (row, state) => run([row], (r) => changeWaf(r, state), t("npmos.hosts.done.waf")),
+		wafTemplate: (row) => waf.data?.[row.id]?.template ?? null,
+		setWafTemplate: (row, template) =>
+			run(
+				[row],
+				(r) =>
+					setWafHost(r.id, {
+						enabled: true,
+						// "monitor" only detects, the others block
+						mode: template === "monitor" ? "detect-learn" : "prevent-learn",
+						minimumConfidence: (waf.data?.[r.id] ?? WAF_DEFAULTS).minimumConfidence,
+						objects: { template },
+					}),
+				t("npmos.hosts.done.waf"),
+			),
 		setMtls: (row, caId, mode: MtlsState) =>
 			run(
 				[row],
