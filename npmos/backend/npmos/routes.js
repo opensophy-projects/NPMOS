@@ -1457,6 +1457,34 @@ router.get("/pki/public/crl/:file", async (req, res, next) => {
 });
 
 /**
+ * POST /api/npmos/pki/public/ocsp/:ca_id — OCSP request (DER) → response, without login
+ * GET  /api/npmos/pki/public/ocsp/:ca_id/:request — the request in base64 (RFC 6960, appendix A)
+ */
+const ocspAnswer = async (res, caId, der) => {
+	const id = /^[1-9][0-9]{0,9}$/.test(caId) ? Number.parseInt(caId, 10) : 0;
+	const answer = id && der ? await internalPki.ocsp(id, der) : null;
+	if (!answer) return res.status(404).send({ error: { code: 404, message: "No such OCSP responder" } });
+	res.set("Content-Type", "application/ocsp-response");
+	res.set("Cache-Control", "max-age=60");
+	res.send(answer);
+};
+router.post("/pki/public/ocsp/:ca", express.raw({ type: () => true, limit: "16kb" }), async (req, res, next) => {
+	try {
+		await ocspAnswer(res, req.params.ca, Buffer.isBuffer(req.body) ? req.body : null);
+	} catch (err) {
+		next(err);
+	}
+});
+router.get("/pki/public/ocsp/:ca/:request", async (req, res, next) => {
+	try {
+		const b64 = decodeURIComponent(req.params.request).replace(/-/g, "+").replace(/_/g, "/");
+		await ocspAnswer(res, req.params.ca, /^[A-Za-z0-9+/=]{1,22000}$/.test(b64) ? Buffer.from(b64, "base64") : null);
+	} catch (err) {
+		next(err);
+	}
+});
+
+/**
  * GET /api/npmos/pki/public/download/:token — one-time link, without login
  */
 router.get("/pki/public/download/:token", async (req, res, next) => {

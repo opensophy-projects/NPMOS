@@ -1,8 +1,9 @@
 // X.509 operations of the PKI with openssl: self-signed roots, signing of requests, CRLs, PKCS#12.
 // No database: the callers pass PEM texts (keys decrypted in memory) and store the results.
 import { createPrivateKey, createPublicKey } from "node:crypto";
+import { readFile } from "node:fs/promises";
 import { openssl, withTmp } from "./openssl.js";
-import { crlConfig, extConfig, indexTxt, PkiError, parseCert, subjectArg } from "./x509.js";
+import { crlConfig, extConfig, indexTxt, ocspIndex, PkiError, parseCert, subjectArg } from "./x509.js";
 
 const isRsa = (keyPem) => createPrivateKey(keyPem).asymmetricKeyType === "rsa";
 
@@ -130,12 +131,12 @@ export const readCsr = async (csrPem) =>
  * @param {{csrPem: string, caCertPem: string, caKeyPem: string, profile: "intermediate"|"client"|"server",
  *   sans?: object, days: number, serial: string, crlUrl?: string, rsa?: boolean}} p
  */
-export const sign = async ({ csrPem, caCertPem, caKeyPem, profile, sans, days, serial, crlUrl, rsa }) =>
+export const sign = async ({ csrPem, caCertPem, caKeyPem, profile, sans, days, serial, crlUrl, ocspUrl, rsa }) =>
 	withTmp(async (tmp) => {
 		const csr = await tmp.write("req.csr", csrPem);
 		const caCert = await tmp.write("ca.pem", caCertPem);
 		const caKey = await tmp.write("ca.key", caKeyPem);
-		const cfg = await tmp.write("ext.cnf", extConfig(profile, { sans, crlUrl, rsa }));
+		const cfg = await tmp.write("ext.cnf", extConfig(profile, { sans, crlUrl, ocspUrl, rsa }));
 		const pem = (
 			await openssl([
 				"x509",
@@ -187,6 +188,39 @@ export const makeCrl = async ({ caCertPem, caKeyPem, revoked, crlNumber, days })
 				String(days),
 			])
 		).toString();
+	});
+
+/**
+ * OCSP response (DER) to a request (DER), signed by the CA itself; valid for `hours`.
+ * @param {{caCertPem: string, caKeyPem: string, certs: Array, requestDer: Buffer, hours?: number}} p
+ */
+export const ocspRespond = async ({ caCertPem, caKeyPem, certs, requestDer, hours = 1 }) =>
+	withTmp(async (tmp) => {
+		const index = await tmp.write("index.txt", ocspIndex(certs));
+		// subjects in the index are placeholders: they repeat
+		await tmp.write("index.txt.attr", "unique_subject = no\n");
+		const caCert = await tmp.write("ca.pem", caCertPem);
+		const caKey = await tmp.write("ca.key", caKeyPem);
+		const req = await tmp.write("req.der", requestDer);
+		const out = tmp.path("resp.der");
+		await openssl([
+			"ocsp",
+			"-index",
+			index,
+			"-CA",
+			caCert,
+			"-rsigner",
+			caCert,
+			"-rkey",
+			caKey,
+			"-reqin",
+			req,
+			"-respout",
+			out,
+			"-nmin",
+			String(hours * 60),
+		]);
+		return readFile(out);
 	});
 
 /** CRL in DER (for publication) */

@@ -68,6 +68,13 @@ const settings = () => getSetting("pki");
 const crlUrl = (s, caId) =>
 	s.public_url ? `${s.public_url.replace(/\/$/, "")}/api/npmos/pki/public/crl/${caId}.crl` : undefined;
 
+const ocspUrl = (s, caId) =>
+	s.public_url ? `${s.public_url.replace(/\/$/, "")}/api/npmos/pki/public/ocsp/${caId}` : undefined;
+
+/** OCSP answers by request, for a minute: clients and nginx ask again and again */
+const ocspCache = new Map();
+const OCSP_CACHE_MS = 60 * 1000;
+
 const daysUntil = (date, from = new Date()) => Math.floor((new Date(date).getTime() - from.getTime()) / 86400000);
 
 const clampDays = (days, fallback, max) => {
@@ -486,6 +493,7 @@ const internalPki = {
 					days,
 					serial: randomSerial(),
 					crlUrl: crlUrl(s, parent.id),
+					ocspUrl: ocspUrl(s, parent.id),
 				});
 			} else {
 				throw new PkiError("kind: root or intermediate");
@@ -703,6 +711,7 @@ const internalPki = {
 				days,
 				serial: randomSerial(),
 				crlUrl: crlUrl(s, ca.id),
+				ocspUrl: ocspUrl(s, ca.id),
 				rsa,
 			});
 			const info = parseCert(certPem);
@@ -817,6 +826,8 @@ const internalPki = {
 			)
 			.delete();
 		const caIds = [...new Set(rows.map((r) => r.ca_id))];
+		// OCSP answers "revoked" at once
+		ocspCache.clear();
 		for (const caId of caIds) await regenerateCrl(caId);
 		await notifyCrl(caIds);
 		for (const row of rows) {
@@ -903,6 +914,35 @@ const internalPki = {
 		const ca = await db()("npmos_pki_ca").where({ id: caId }).first();
 		if (!ca?.crl_pem) return null;
 		return ops.crlToDer(ca.crl_pem);
+	},
+
+	/**
+	 * Without login: OCSP responder of an own CA (RFC 6960). Status from the database: good,
+	 * revoked, or unknown for serials it never issued. null: no such CA or it has no key.
+	 * @param {number} caId
+	 * @param {Buffer} requestDer
+	 */
+	ocsp: async (caId, requestDer) => {
+		if (!requestDer?.length || requestDer.length > 16 * 1024) return null;
+		const key = `${caId}:${createHash("sha256").update(requestDer).digest("hex")}`;
+		const cached = ocspCache.get(key);
+		if (cached && cached.until > Date.now()) return cached.der;
+		const ca = await db()("npmos_pki_ca").where({ id: caId }).first();
+		if (!ca || ca.kind === "external" || !ca.key_enc) return null;
+		// what it signed: certificates and trust domains below it
+		const certs = await db()("npmos_pki_cert")
+			.where({ ca_id: caId })
+			.select("serial", "not_after", "revoked_on", "revoke_reason");
+		const children = await db()("npmos_pki_ca").where({ parent_id: caId }).select("serial", "not_after");
+		const der = await ops.ocspRespond({
+			caCertPem: ca.cert_pem,
+			caKeyPem: decrypt(ca.key_enc),
+			certs: [...certs, ...children].filter((c) => c.serial),
+			requestDer,
+		});
+		if (ocspCache.size > 1000) ocspCache.clear();
+		ocspCache.set(key, { der, until: Date.now() + OCSP_CACHE_MS });
+		return der;
 	},
 
 	/** links of a certificate (not their tokens) */

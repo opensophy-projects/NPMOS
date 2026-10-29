@@ -249,3 +249,83 @@ test("the mTLS templates render the nginx directives", async () => {
 	assert.doesNotMatch(optional, /return 49/);
 	assert.doesNotMatch(optional, /ssl_crl|ssl_client_i_dn|more_set_input_headers|scheme/);
 });
+
+test("OCSP: good, revoked and unknown, signed by the CA", async () => {
+	const rootKey = generateKey("ec-p256");
+	const root = await ops.selfSign({
+		keyPem: rootKey,
+		subject: { common_name: "OCSP Root" },
+		days: 30,
+		serial: randomSerial(),
+	});
+	const clientKey = generateKey("ec-p256");
+	const client = await ops.sign({
+		csrPem: await ops.makeCsr({ keyPem: clientKey, subject: { common_name: "alice" } }),
+		caCertPem: root,
+		caKeyPem: rootKey,
+		profile: "client",
+		days: 10,
+		serial: randomSerial(),
+		ocspUrl: "http://pki.local/api/npmos/pki/public/ocsp/1",
+	});
+	const info = parseCert(client);
+	const dir = mkdtempSync(path.join(os.tmpdir(), "npmos-ocsp-test-"));
+	try {
+		writeFileSync(path.join(dir, "root.pem"), root);
+		writeFileSync(path.join(dir, "client.pem"), client);
+		assert.match(
+			execFileSync("openssl", ["x509", "-in", path.join(dir, "client.pem"), "-noout", "-ocsp_uri"]).toString(),
+			/pki\.local\/api\/npmos\/pki\/public\/ocsp\/1/,
+		);
+		const req = path.join(dir, "req.der");
+		execFileSync("openssl", [
+			"ocsp",
+			"-issuer",
+			path.join(dir, "root.pem"),
+			"-cert",
+			path.join(dir, "client.pem"),
+			"-reqout",
+			req,
+		]);
+		const status = async (certs) => {
+			const der = await ops.ocspRespond({
+				caCertPem: root,
+				caKeyPem: rootKey,
+				certs,
+				requestDer: readFileSync(req),
+			});
+			writeFileSync(path.join(dir, "resp.der"), der);
+			return execFileSync(
+				"openssl",
+				[
+					"ocsp",
+					"-respin",
+					path.join(dir, "resp.der"),
+					"-issuer",
+					path.join(dir, "root.pem"),
+					"-cert",
+					path.join(dir, "client.pem"),
+					"-CAfile",
+					path.join(dir, "root.pem"),
+					"-no_nonce",
+				],
+				{ stdio: ["ignore", "pipe", "pipe"] },
+			).toString();
+		};
+		const cert = { serial: info.serial, not_after: info.notAfter };
+		const others = [
+			{ serial: "0A", not_after: info.notAfter },
+			{ serial: "0B", not_after: info.notAfter },
+			{ serial: "0C", not_after: info.notAfter, revoked_on: new Date(), revoke_reason: "superseded" },
+			{ serial: "0D", not_after: info.notAfter, revoked_on: new Date() },
+		];
+		assert.match(await status([cert, ...others]), /client\.pem: good/);
+		assert.match(
+			await status([...others, { ...cert, revoked_on: new Date(), revoke_reason: "keyCompromise" }]),
+			/client\.pem: revoked/,
+		);
+		assert.match(await status([]), /client\.pem: unknown/);
+	} finally {
+		rmSync(dir, { recursive: true, force: true });
+	}
+});

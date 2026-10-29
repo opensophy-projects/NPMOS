@@ -135,9 +135,9 @@ export const generateKey = (keyType) => {
 /**
  * openssl configuration with the extensions of a certificate, section [ext].
  * @param {"root"|"intermediate"|"client"|"server"} profile
- * @param {{sans?: {dns: string[], ip: string[], email: string[]}, crlUrl?: string, rsa?: boolean}} [options]
+ * @param {{sans?: {dns: string[], ip: string[], email: string[]}, crlUrl?: string, ocspUrl?: string, rsa?: boolean}} [options]
  */
-export const extConfig = (profile, { sans, crlUrl, rsa = false } = {}) => {
+export const extConfig = (profile, { sans, crlUrl, ocspUrl, rsa = false } = {}) => {
 	const lines = ["[req]", "distinguished_name = dn", "[dn]", "[ext]"];
 	if (profile === "root") {
 		lines.push("basicConstraints = critical, CA:TRUE", "keyUsage = critical, keyCertSign, cRLSign");
@@ -154,6 +154,10 @@ export const extConfig = (profile, { sans, crlUrl, rsa = false } = {}) => {
 	if (crlUrl) {
 		if (!/^https?:\/\/[A-Za-z0-9.:[\]_/-]+$/.test(crlUrl)) throw new PkiError(`Invalid CRL URL: ${crlUrl}`);
 		lines.push(`crlDistributionPoints = URI:${crlUrl}`);
+	}
+	if (ocspUrl) {
+		if (!/^https?:\/\/[A-Za-z0-9.:[\]_/-]+$/.test(ocspUrl)) throw new PkiError(`Invalid OCSP URL: ${ocspUrl}`);
+		lines.push(`authorityInfoAccess = OCSP;URI:${ocspUrl}`);
 	}
 	const names = [
 		...(sans?.dns || []).map((v, i) => `DNS.${i + 1} = ${v}`),
@@ -189,6 +193,21 @@ export const indexTxt = (revoked) =>
 				"/CN=revoked",
 			].join("\t");
 		})
+		.map((line) => `${line}\n`)
+		.join("");
+
+/**
+ * index.txt for `openssl ocsp`: every certificate of a CA, valid (V) or revoked (R). A serial that
+ * is not in it is answered "unknown".
+ * @param {Array<{serial: string, not_after: Date|string, revoked_on?: Date|string|null, revoke_reason?: string}>} certs
+ */
+export const ocspIndex = (certs) =>
+	certs
+		.map((c) =>
+			c.revoked_on
+				? indexTxt([c]).trimEnd()
+				: ["V", utcTime(c.not_after), "", c.serial, "unknown", "/CN=valid"].join("\t"),
+		)
 		.map((line) => `${line}\n`)
 		.join("");
 

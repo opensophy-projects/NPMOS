@@ -3300,7 +3300,7 @@
 		"defaultMessage": "Public address of the PKI"
 	},
 	"npmos.pki.settings.public-url.hint": {
-		"defaultMessage": "Where clients and servers reach NPMOS for CRLs (written into certificates) and one-time links, e.g. a proxy host to the GUI. Empty: no CRL address in certificates, links on the address of this GUI."
+		"defaultMessage": "At this address clients and servers get the CRL and ask the OCSP responder (both are written into certificates), and one-time links open — for example through a proxy host to the interface. Empty: certificates carry no CRL or OCSP address, links lead to the address of this interface."
 	},
 	"npmos.pki.settings.public-url.placeholder": {
 		"defaultMessage": "https://pki.example.com"
