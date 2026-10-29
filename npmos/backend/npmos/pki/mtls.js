@@ -106,6 +106,8 @@ export const prepareHost = async (hostType, host) => {
 			rules: binding.rules.map(ruleRegex),
 			headers: binding.headers,
 			root_required: binding.mode === "optional" && binding.required_paths.includes("/"),
+			// the log of the location replaces the access log of nginx: refused requests keep both
+			access_log: process.env.LOGROTATE === "true",
 		};
 		if (binding.mode === "optional" && Array.isArray(host.locations)) {
 			for (const location of host.locations) {

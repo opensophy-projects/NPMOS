@@ -15,6 +15,7 @@ import errs from "../../lib/error.js";
 import { global as logger } from "../../logger.js";
 import { decrypt, encrypt } from "../secrets.js";
 import { getSetting, setSetting } from "../settings.js";
+import { startDenials } from "./denials.js";
 import * as ops from "./ops.js";
 import {
 	generateKey,
@@ -969,6 +970,7 @@ export const bootstrap = async () => {
 		6 * 3600 * 1000,
 	);
 	timer.unref();
+	startDenials();
 };
 
 export default internalPki;

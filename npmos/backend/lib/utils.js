@@ -1,5 +1,5 @@
-import { execFile as nodeExecFile } from "node:child_process";
-import { promisify } from "node:util";
+// NPMOS: spawn instead of execFile (see spawnFile)
+import { spawn } from "node:child_process";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Liquid } from "liquidjs";
@@ -11,8 +11,6 @@ import errs from "./error.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
-const nodeExecFilePromises = promisify(nodeExecFile);
 
 const writeHash = async () => {
 	const referencedEnvVars = new Set();
@@ -42,11 +40,30 @@ const writeHash = async () => {
  * @param   {Array}  args
  * @returns {Promise}
  */
+// NPMOS: execFile with stdin from /dev/null; rejects like execFile (err.stdout, err.stderr, err.code)
+const spawnFile = (cmd, args = []) =>
+	new Promise((resolve, reject) => {
+		const child = spawn(cmd, args, { stdio: ["ignore", "pipe", "pipe"] });
+		const out = [];
+		const err = [];
+		child.stdout.on("data", (d) => out.push(d));
+		child.stderr.on("data", (d) => err.push(d));
+		child.on("error", reject);
+		child.on("close", (code, signal) => {
+			const result = { stdout: Buffer.concat(out).toString(), stderr: Buffer.concat(err).toString() };
+			if (code === 0) return resolve(result);
+			reject(Object.assign(new Error(`Command failed: ${cmd} ${args.join(" ")}`), result, { code, signal }));
+		});
+	});
+
 const execFile = async (cmd, args) => {
 	debug(logger, `CMD: ${cmd} ${args ? args.join(" ") : ""}`);
 
 	try {
-		const { stdout, stderr } = await nodeExecFilePromises(cmd, args);
+		// NPMOS: stdin is /dev/null, not a pipe: the open-appsec attachment writes its debug lines to
+		// fd 0 while nginx reads its configuration; into a pipe nobody reads, `nginx -t` blocks for good
+		// once the pipe is full (many hosts)
+		const { stdout, stderr } = await spawnFile(cmd, args);
 		return `${stdout || ""}${stderr || ""}`.trim();
 	} catch (err) {
 		if (err && typeof err === "object") {

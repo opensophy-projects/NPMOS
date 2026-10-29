@@ -1676,6 +1676,9 @@
 	"npmos.events.kind.crowdsec": {
 		"defaultMessage": "CrowdSec"
 	},
+	"npmos.events.kind.mtls": {
+		"defaultMessage": "mTLS"
+	},
 	"npmos.events.kind.security": {
 		"defaultMessage": "Attacks"
 	},

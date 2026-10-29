@@ -497,6 +497,13 @@ echo "$body" | grep -q '^X-Client-Verify: SUCCESS' || fail "the upstream did not
 echo "$body" | grep -q '^X-Client-S-Dn: CN=alice,OU=IT' || fail "the upstream did not get the subject: $body"
 echo "$body" | grep -q 'FAKE' && fail "a spoofed X-Client-Verify reached the upstream"
 expect "$(mtls)" 403 "no client certificate"
+
+step "mTLS: the refused request is a security event"
+for i in $(seq 1 15); do
+  $CURL "$ADMIN/api/npmos/events?kind=mtls&limit=5" | grep -q '"name": *"mTLS: no client certificate"' && break
+  [ "$i" = 15 ] && fail "no mTLS event: $($CURL "$ADMIN/api/npmos/events?kind=mtls&limit=5")"
+  sleep 2
+done
 curl -sS -k --max-time 10 $TLS_TO "$HTTPS_MTLS/" | grep -q 'client certificate is required' \
   || fail "no explanation page without a certificate"
 expect "$(mtls --cert /tmp/bob.crt --key /tmp/bob.key)" 403 "a certificate with OU=Sales"

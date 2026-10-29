@@ -68,8 +68,8 @@ export const ingestOnce = async ({ dir = LOG_DIR, now = new Date() } = {}) => {
 		state.stored += events.length;
 	}
 	if (available) {
-		// other sources keep their position here too (crowdsec:alerts)
-		await dropCursors([...cursors.keys()].filter((key) => !keys.includes(key) && !key.startsWith("crowdsec:")));
+		// other sources keep their position here too (crowdsec:alerts, mtls:denied)
+		await dropCursors([...cursors.keys()].filter((key) => !keys.includes(key) && !/^(crowdsec|mtls):/.test(key)));
 	}
 	return { events, telemetry: telemetry.length };
 };
