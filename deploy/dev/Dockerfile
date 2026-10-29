@@ -2,7 +2,7 @@
 # the offline CrowdSec seed. Builds in seconds. The production image is built from npmos/Dockerfile (CI).
 # Keep NPMPLUS_BASE equal to the tag npmos/ was last synced to (see CLAUDE.md).
 ARG NPMPLUS_BASE=docker.io/zoeyvid/npmplus:2026-10-22-r1
-ARG CROWDSEC_VERSION=v1.8.1
+ARG CROWDSEC_VERSION=v1.8.2
 
 FROM docker.io/crowdsecurity/crowdsec:${CROWDSEC_VERSION} AS crowdsec-seed
 ARG HUB_BRANCH=master
