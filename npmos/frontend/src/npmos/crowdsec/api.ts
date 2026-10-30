@@ -114,8 +114,6 @@ export interface CrowdsecOverview {
 		appsec: boolean;
 		openappsecBan: { enabled: boolean; events: number; minutes: number };
 	};
-	/** IP reputation in the WAF agent (WAF → Agent) */
-	agent: { enabled: boolean; mode: "prevent" | "detect" };
 	lapi: { healthy: boolean; error: string };
 	metrics: CrowdsecMetrics | null;
 	machines: Machine[];

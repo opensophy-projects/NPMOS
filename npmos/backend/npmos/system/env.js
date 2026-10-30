@@ -32,7 +32,6 @@ export const SYSTEM_ENV = [
 	bool("NGINX_TRUST_SECPR1", "tls", true),
 	bool("NGINX_TRUST_RSA_PKCS1", "tls", false),
 	int("LOGROTATIONS", "logs", 3, 1, 365),
-	bool("DISABLE_GRAVATAR", "external", true, { internet: true }),
 	bool("NPMOS_CHECK_VERSION", "external", false, { internet: true }),
 ];
 

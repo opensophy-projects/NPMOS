@@ -48,7 +48,7 @@ if [ -s /data/npmos/runtime.env ]; then
                 LISTEN_PROXY_PROTOCOL_HTTPS | ENABLE_MPTCP | NGINX_QUIC_BPF | TRUST_CLOUDFLARE | NGINX_LOG_NOT_FOUND | \
                 NGINX_LOAD_NJS_MODULE | NGINX_LOAD_GEOIP2_MODULE | NGINX_LOAD_LDAP_MODULE | NGINX_LOAD_NTLM_MODULE | \
                 NGINX_LOAD_VHOST_TRAFFIC_STATUS_MODULE | NGINX_DISABLE_TLS12 | NGINX_FORCE_X25519MLKEM768 | \
-                NGINX_TRUST_SECPR1 | NGINX_TRUST_RSA_PKCS1 | DISABLE_GRAVATAR | NPMOS_CHECK_VERSION)
+                NGINX_TRUST_SECPR1 | NGINX_TRUST_RSA_PKCS1 | NPMOS_CHECK_VERSION)
                 case "$value" in true | false) export "$key=$value" ;; esac
                 ;;
             DEFAULT_CERT_ID | NGINX_WORKER_CONNECTIONS | LOGROTATIONS)
@@ -159,7 +159,8 @@ export PHP84="${PHP84:-false}"
 export PHP85="${PHP85:-false}"
 export INITIAL_DEFAULT_PAGE="${INITIAL_DEFAULT_PAGE:-congratulations}"
 # NPMOS: local-first — no outbound requests unless the admin opts in
-export DISABLE_GRAVATAR="${DISABLE_GRAVATAR:-true}"
+# NPMOS: no Gravatar (avatars are never fetched from gravatar.com, local-first)
+export DISABLE_GRAVATAR=true
 export NPMOS_CHECK_VERSION="${NPMOS_CHECK_VERSION:-false}"
 export NGINX_LOAD_OPENAPPSEC_ATTACHMENT_MODULE="${NGINX_LOAD_OPENAPPSEC_ATTACHMENT_MODULE:-false}"
 export NGINX_LOAD_NJS_MODULE="${NGINX_LOAD_NJS_MODULE:-false}"

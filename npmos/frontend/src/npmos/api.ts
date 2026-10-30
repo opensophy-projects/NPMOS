@@ -244,7 +244,6 @@ export interface WafAgentModel {
 }
 
 export interface WafAgentSettings {
-	crowdsec: { enabled: boolean; mode: "prevent" | "detect" };
 	failOpen: { enabled: boolean; timeoutMs: number };
 }
 

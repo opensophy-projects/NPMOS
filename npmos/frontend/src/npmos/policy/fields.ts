@@ -22,8 +22,6 @@ export type Field = {
 	path: string;
 	/** shown only for these values of the specification */
 	showIf?: (spec: Record<string, any>) => boolean;
-	/** a feature of the Premium edition of the agent: a note next to the field */
-	premium?: boolean;
 	/** needs local_policy.yaml v1beta2 (see the warning of the format) */
 	v2?: boolean;
 } & (
@@ -60,18 +58,6 @@ export const FIELDS: Record<Kind, Field[]> = {
 		{ path: "snortSignatures", type: "heading" },
 		{ path: "snortSignatures.overrideMode", type: "select", options: MODES, modes: true },
 		{ path: "snortSignatures.files", type: "strings" },
-		{ path: "premium", type: "heading" },
-		{
-			path: "intrusionPrevention.overrideMode",
-			type: "select",
-			options: MODES,
-			modes: true,
-			premium: true,
-			v2: true,
-		},
-		{ path: "fileSecurity.overrideMode", type: "select", options: MODES, modes: true, premium: true, v2: true },
-		{ path: "schemaValidation.overrideMode", type: "select", options: MODES, modes: true, premium: true },
-		{ path: "antiBot.overrideMode", type: "select", options: MODES, modes: true, premium: true },
 	],
 	access_control: [
 		{ path: "rateLimit.overrideMode", type: "select", options: ACTIONS, modes: true, v2: true },

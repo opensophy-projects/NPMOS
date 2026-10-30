@@ -132,17 +132,6 @@ function OverviewTab({ data, go }: { data: CrowdsecOverview; go: (tab: Tab) => v
 								</span>
 							</li>
 							<Status on={s.appsec} label="npmos.crowdsec.protection.appsec" />
-							<li className={styles.item}>
-								<span className={cn("badge", data.agent.enabled ? "bg-green-lt" : "bg-secondary-lt")}>
-									<T id={data.agent.enabled ? "enabled" : "disabled"} />
-								</span>
-								<span>
-									<T id="npmos.crowdsec.protection.agent" />{" "}
-									<Link to="/waf/agent">
-										<T id="npmos.crowdsec.agent.open" />
-									</Link>
-								</span>
-							</li>
 						</ul>
 						<button
 							type="button"
@@ -318,9 +307,7 @@ function CrowdsecPage() {
 			{tab === "alerts" && <AlertsTab initialQuery={params.get("q") ?? ""} refresh={refresh} />}
 			{tab === "blocklists" && <BlocklistsTab shareEnabled={!!settings.data?.shareEnabled} refresh={refresh} />}
 			{tab === "hub" && <HubTab onlineHub={!!settings.data?.onlineHub} refresh={refresh} />}
-			{tab === "settings" && settings.data && (
-				<SettingsTab data={settings.data} agent={data.agent} refresh={refresh} />
-			)}
+			{tab === "settings" && settings.data && <SettingsTab data={settings.data} refresh={refresh} />}
 			{tab === "registry" && <RegistryTab />}
 		</div>
 	);

@@ -199,10 +199,22 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
     fail "attacks after the agent's restart are not in WAF -> Events: $($CURL "$ADMIN/api/npmos/events?kind=all&limit=3")"
   }
 
-  agent_settings '{"crowdsec": {"enabled": false, "mode": "prevent"}, "fail_open": {"enabled": true, "timeout_ms": 100}}' \
+  agent_settings '{"fail_open": {"enabled": true, "timeout_ms": 100}}' \
     "fail-open timeout from the GUI is applied at the agent's restart, attacks are still blocked and logged"
-  agent_settings '{"crowdsec": {"enabled": true, "mode": "prevent"}, "fail_open": {"enabled": true, "timeout_ms": 100}}' \
-    "IP reputation from the local CrowdSec on, attacks are still blocked and logged"
+  agent_settings '{"fail_open": {"enabled": true, "timeout_ms": 50}}' \
+    "a second change is applied the same way"
+
+  # applying agent settings restarts npmos with the agent: restarted alone, the agent left the nginx
+  # attachment without its IPC and every request waited for it (about 1-2 s)
+  step "WAF -> Agent: after the agent's restart requests are not held up"
+  slow=0
+  for i in $(seq 1 10); do
+    t=$(curl -s -o /dev/null -w '%{time_total}' --max-time 10 -H 'Host: test.local' "$HTTP/")
+    awk -v t="$t" 'BEGIN {exit !(t > 0.5)}' && slow=$((slow + 1))
+  done
+  [ "$slow" -le 1 ] || fail "$slow of 10 requests took more than 0.5 s after the agent's restart"
+  t=$($CURL -o /dev/null -w '%{time_total}' "$ADMIN/api/")
+  awk -v t="$t" 'BEGIN {exit !(t > 0.5)}' && fail "the interface took $t s: it must not wait for the agent"
 
   step "WAF -> Policy (expert): an exception for the tester's IP lets the attack through"
   $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf/policy/custom" -d "{

@@ -25,14 +25,12 @@ const DEFINITIONS = {
 		validate: (v) => typeof v === "boolean",
 	},
 	// open-appsec agent (WAF -> Agent), applied by the agent's entrypoint, see waf/agent-settings.js
+	// (no CrowdSec IP reputation: the agent waited ~1 s for it on every request, see agent-settings.js)
 	"waf.agent": {
 		default: () => ({
-			crowdsec: { enabled: false, mode: "prevent" },
 			failOpen: { enabled: true, timeoutMs: 50 },
 		}),
 		validate: (v) =>
-			typeof v?.crowdsec?.enabled === "boolean" &&
-			["prevent", "detect"].includes(v.crowdsec.mode) &&
 			typeof v?.failOpen?.enabled === "boolean" &&
 			Number.isInteger(v.failOpen.timeoutMs) &&
 			v.failOpen.timeoutMs >= 10 &&

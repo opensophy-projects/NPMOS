@@ -213,7 +213,6 @@ const internalCrowdsec = {
 				appsec: s.appsec.enabled,
 				openappsec_ban: s.openappsec_ban,
 			},
-			agent: (await getSetting("waf.agent")).crowdsec,
 			lapi: { healthy: false, error: "" },
 			metrics: null,
 			machines: [],

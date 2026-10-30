@@ -5,7 +5,6 @@ import { IconArrowDown, IconArrowUp, IconPencil, IconPlus, IconTrash } from "@ta
 import cn from "classnames";
 import { useEffect, useState } from "react";
 import Alert from "react-bootstrap/Alert";
-import { Link } from "react-router-dom";
 import { T } from "src/locale";
 import { showSuccess } from "src/notifications";
 import {
@@ -80,15 +79,7 @@ function Check({
 	);
 }
 
-export function SettingsTab({
-	data,
-	agent,
-	refresh,
-}: {
-	data: CrowdsecSettingsState;
-	agent: { enabled: boolean; mode: string } | undefined;
-	refresh: () => void;
-}) {
+export function SettingsTab({ data, refresh }: { data: CrowdsecSettingsState; refresh: () => void }) {
 	const can = useCan();
 	const manage = can("crowdsec", "manage");
 	const [s, setS] = useState<CrowdsecSettings>(data);
@@ -367,17 +358,6 @@ export function SettingsTab({
 				<div className="text-secondary small">
 					<T id="npmos.crowdsec.openappsec-ban.profile" />
 				</div>
-				{agent && (
-					<div className="small mt-2">
-						<T
-							id={agent.enabled ? "npmos.crowdsec.agent.on" : "npmos.crowdsec.agent.off"}
-							data={{ mode: t(`npmos.waf.agent-settings.crowdsec.${agent.mode}`) }}
-						/>{" "}
-						<Link to="/waf/agent">
-							<T id="npmos.crowdsec.agent.open" />
-						</Link>
-					</div>
-				)}
 			</Section>
 
 			<Section heading="npmos.crowdsec.appsec.title" hint="npmos.crowdsec.appsec.hint">

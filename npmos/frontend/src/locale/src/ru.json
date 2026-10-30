@@ -785,15 +785,6 @@
 	"npmos.crowdsec.activity": {
 		"defaultMessage": "Активность"
 	},
-	"npmos.crowdsec.agent.off": {
-		"defaultMessage": "Агент WAF не использует эти решения; включается в разделе"
-	},
-	"npmos.crowdsec.agent.on": {
-		"defaultMessage": "Агент WAF тоже проверяет IP клиентов по этим решениям (режим: {mode})."
-	},
-	"npmos.crowdsec.agent.open": {
-		"defaultMessage": "WAF → Агент"
-	},
 	"npmos.crowdsec.alerts.active": {
 		"defaultMessage": "Только с активным решением"
 	},
@@ -1044,7 +1035,7 @@
 		"defaultMessage": "Удалить баунсер {name}? Его ключ сразу перестанет работать."
 	},
 	"npmos.crowdsec.bouncers.hint": {
-		"defaultMessage": "Компоненты, которые применяют решения. npmos — nginx NPMOS, appsec — агент WAF (репутация IP); их ключи создаёт npmos-init."
+		"defaultMessage": "Компоненты, которые применяют решения. npmos — nginx NPMOS (баунсер для всех хостов); ключи создаёт npmos-init."
 	},
 	"npmos.crowdsec.capi": {
 		"defaultMessage": "Центральный API CrowdSec (обмен сигналами, community blocklist) не используется: его заменяют локальные блок-листы и решения других узлов NPMOS."
@@ -1444,9 +1435,6 @@
 	},
 	"npmos.crowdsec.protection": {
 		"defaultMessage": "Защита"
-	},
-	"npmos.crowdsec.protection.agent": {
-		"defaultMessage": "Репутация IP в агенте WAF"
 	},
 	"npmos.crowdsec.protection.appsec": {
 		"defaultMessage": "CrowdSec AppSec: виртуальные патчи известных уязвимостей"
@@ -3710,9 +3698,6 @@
 	"npmos.policy.f.additionalSuspiciousEventsLogging.responseCode": {
 		"defaultMessage": "Код ответа"
 	},
-	"npmos.policy.f.antiBot.overrideMode": {
-		"defaultMessage": "Антибот"
-	},
 	"npmos.policy.f.appsecLogging.allWebRequests": {
 		"defaultMessage": "Все запросы (много данных)"
 	},
@@ -3737,14 +3722,8 @@
 	"npmos.policy.f.extendedLogging.urlQuery": {
 		"defaultMessage": "Параметры URL"
 	},
-	"npmos.policy.f.fileSecurity.overrideMode": {
-		"defaultMessage": "Проверка файлов"
-	},
 	"npmos.policy.f.httpResponseCode": {
 		"defaultMessage": "HTTP-код"
-	},
-	"npmos.policy.f.intrusionPrevention.overrideMode": {
-		"defaultMessage": "Предотвращение вторжений (IPS)"
 	},
 	"npmos.policy.f.messageBody": {
 		"defaultMessage": "Текст страницы"
@@ -3769,9 +3748,6 @@
 	},
 	"npmos.policy.f.redirectUrl": {
 		"defaultMessage": "Перенаправлять на"
-	},
-	"npmos.policy.f.schemaValidation.overrideMode": {
-		"defaultMessage": "Проверка по схеме API"
 	},
 	"npmos.policy.f.snortSignatures.files": {
 		"defaultMessage": "Файлы сигнатур в агенте, по одному в строке"
@@ -3829,9 +3805,6 @@
 	},
 	"npmos.policy.h.extendedLogging": {
 		"defaultMessage": "Подробности"
-	},
-	"npmos.policy.h.premium": {
-		"defaultMessage": "Premium-версия агента"
 	},
 	"npmos.policy.h.snortSignatures": {
 		"defaultMessage": "Сигнатуры Snort"
@@ -3948,7 +3921,7 @@
 		"defaultMessage": "Практика защиты"
 	},
 	"npmos.policy.kind.threat_prevention.hint": {
-		"defaultMessage": "Что и насколько строго проверяет WAF: веб-атаки (ML), сигнатуры Snort; IPS, файлы, схема API и антибот требуют Premium-версии агента."
+		"defaultMessage": "Что и насколько строго проверяет WAF: веб-атаки (ML) и сигнатуры Snort."
 	},
 	"npmos.policy.kind.trusted_sources": {
 		"defaultMessage": "Доверенные источники"
@@ -4013,9 +3986,6 @@
 	"npmos.policy.none": {
 		"defaultMessage": "Нет"
 	},
-	"npmos.policy.premium": {
-		"defaultMessage": "Premium"
-	},
 	"npmos.policy.previewing": {
 		"defaultMessage": "Собираем политику…"
 	},
@@ -4041,10 +4011,10 @@
 		"defaultMessage": "URI"
 	},
 	"npmos.policy.reason.file-security": {
-		"defaultMessage": "проверка файлов в практике {name} (Premium)"
+		"defaultMessage": "проверка файлов в практике {name}"
 	},
 	"npmos.policy.reason.ips": {
-		"defaultMessage": "IPS в практике {name} (Premium)"
+		"defaultMessage": "IPS в практике {name}"
 	},
 	"npmos.policy.reason.rate-limit": {
 		"defaultMessage": "ограничения частоты {name}"
@@ -4595,12 +4565,6 @@
 	"npmos.system.env.DEFAULT_CERT_ID.none": {
 		"defaultMessage": "Самоподписанный"
 	},
-	"npmos.system.env.DISABLE_GRAVATAR": {
-		"defaultMessage": "Без Gravatar"
-	},
-	"npmos.system.env.DISABLE_GRAVATAR.hint": {
-		"defaultMessage": "Аватары пользователей не загружаются с gravatar.com."
-	},
 	"npmos.system.env.DISABLE_H3_QUIC": {
 		"defaultMessage": "Отключить HTTP/3 (QUIC)"
 	},
@@ -4813,21 +4777,6 @@
 	},
 	"npmos.waf.agent-settings": {
 		"defaultMessage": "Настройки агента"
-	},
-	"npmos.waf.agent-settings.crowdsec": {
-		"defaultMessage": "Репутация IP из CrowdSec"
-	},
-	"npmos.waf.agent-settings.crowdsec-mode": {
-		"defaultMessage": "Режим CrowdSec"
-	},
-	"npmos.waf.agent-settings.crowdsec.detect": {
-		"defaultMessage": "Detect: только записывать в журнал"
-	},
-	"npmos.waf.agent-settings.crowdsec.hint": {
-		"defaultMessage": "Агент проверяет IP клиентов по решениям (банам) локального CrowdSec. Без облака: только решения этого стека."
-	},
-	"npmos.waf.agent-settings.crowdsec.prevent": {
-		"defaultMessage": "Prevent: блокировать забаненные IP"
 	},
 	"npmos.waf.agent-settings.fail-open": {
 		"defaultMessage": "Fail-open"

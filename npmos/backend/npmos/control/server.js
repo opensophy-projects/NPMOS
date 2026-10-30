@@ -150,6 +150,14 @@ const restart = async (service) => {
 	if (NOT_RESTARTABLE.includes(container.service)) {
 		throw new HttpError(400, `${service} cannot be restarted from NPMOS`);
 	}
+	// a container in another one's namespaces (the open-appsec agent in npmos's): restarted alone, the
+	// nginx attachment in npmos loses its IPC with the agent and every request waits ~2 s for it; the
+	// owner is restarted instead, and the restart below takes this one along
+	const owner = /^container:(.+)$/.exec(container.networkMode || "")?.[1];
+	if (owner) {
+		const parent = (await listManaged()).find((c) => c.id === owner || c.id.startsWith(owner));
+		if (parent) return parent;
+	}
 	return container;
 };
 

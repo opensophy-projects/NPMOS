@@ -34,7 +34,7 @@
 | `NGINX_LOAD_OPENAPPSEC_ATTACHMENT_MODULE` | `false` | `false` | GUI (WAF → Агент: «Включить WAF»), значение из БД пишется в `/data/npmos/runtime.env` | 1 ✅ |
 | `NGINX_LOAD_NJS_MODULE`, `NGINX_LOAD_GEOIP2_MODULE`, `NGINX_LOAD_LDAP_MODULE`, `NGINX_LOAD_NTLM_MODULE`, `NGINX_LOAD_VHOST_TRAFFIC_STATUS_MODULE` | `false` | `false` | GUI (Система → Настройки → Nginx) | 4 ✅ |
 | `TRUST_CLOUDFLARE` | `false` | `false` (загрузка IP-диапазонов Cloudflare — только при явном включении) | GUI (Система → Настройки → Сеть, помечено «интернет») | 4 ✅ |
-| `DISABLE_GRAVATAR` | `false` | **`true`** ✅ | GUI (Система → Настройки → Внешние сервисы) | 4 ✅ |
+| `DISABLE_GRAVATAR` | `false` | **`true`** ✅ | NPMOS фиксирует: Gravatar убран, аватары с gravatar.com не загружаются | — |
 | `NPMOS_CHECK_VERSION` | — (проверка всегда включена) | **`false`** ✅ | GUI (Система → Настройки → Внешние сервисы) | 4 ✅ |
 | `LOGROTATE`, `LOGROTATIONS` | `false`, 3 | **`true`** (логи нужны CrowdSec и аналитике), 3 | NPMOS фиксирует `LOGROTATE`; `LOGROTATIONS` — GUI (Система → Настройки → Журналы) | 4 ✅ |
 | `GOA`, `GOACLA` | `false` | `false` | Заменяется аналитикой NPMOS (WAF → Аналитика) | 4 ✅ |

@@ -17,17 +17,53 @@ interface Props extends InnerModalProps {
 	name: string;
 }
 
-const UserRolesModal = EasyModal.create(({ userId, name, visible, remove }: Props) => {
+/** checkboxes of the roles; a role with permissions the current user lacks can't be given or taken */
+export function RolePicker({ selected, onChange }: { selected: Set<number>; onChange: (next: Set<number>) => void }) {
 	const { data: roles } = useRoles();
-	const { data: assignments } = useRoleAssignments();
 	const { data: me } = useRbacMe();
+	const mine = (permissions: string[]) => !!me && (me.admin || permissions.every((p) => me.permissions.includes(p)));
+	if (!roles) return <Loading noLogo />;
+	return (
+		<div className={styles.list}>
+			{roles.map((role) => {
+				const allowed = role.builtin === "administrator" ? !!me?.admin : mine(role.permissions);
+				return (
+					<label key={role.id} className={cn(styles.item, !allowed && styles.locked)}>
+						<input
+							type="checkbox"
+							className="form-check-input m-0"
+							checked={selected.has(role.id)}
+							disabled={!allowed}
+							onChange={(e) => {
+								const next = new Set(selected);
+								if (e.target.checked) next.add(role.id);
+								else next.delete(role.id);
+								onChange(next);
+							}}
+						/>
+						<span className={styles.text}>
+							<span className={styles.name}>{roleName(role)}</span>
+							<span className={styles.desc}>
+								{roleDescription(role) || (
+									<T id="npmos.rbac.permissions.count" data={{ count: role.permissions.length }} />
+								)}
+							</span>
+						</span>
+					</label>
+				);
+			})}
+		</div>
+	);
+}
+
+const UserRolesModal = EasyModal.create(({ userId, name, visible, remove }: Props) => {
+	const { data: assignments } = useRoleAssignments();
 	const refresh = useRbacRefresh();
 	const [chosen, setChosen] = useState<Set<number> | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [saving, setSaving] = useState(false);
 	const current = new Set((assignments?.[userId] ?? []).map((r) => r.id));
 	const selected = chosen ?? current;
-	const mine = (permissions: string[]) => !!me && (me.admin || permissions.every((p) => me.permissions.includes(p)));
 
 	const save = async () => {
 		setSaving(true);
@@ -53,42 +89,7 @@ const UserRolesModal = EasyModal.create(({ userId, name, visible, remove }: Prop
 			</Modal.Header>
 			<Modal.Body>
 				{error && <Alert variant="danger">{error}</Alert>}
-				{!roles || !assignments ? (
-					<Loading noLogo />
-				) : (
-					<div className={styles.list}>
-						{roles.map((role) => {
-							const allowed = role.builtin === "administrator" ? !!me?.admin : mine(role.permissions);
-							return (
-								<label key={role.id} className={cn(styles.item, !allowed && styles.locked)}>
-									<input
-										type="checkbox"
-										className="form-check-input m-0"
-										checked={selected.has(role.id)}
-										disabled={!allowed}
-										onChange={(e) => {
-											const next = new Set(selected);
-											if (e.target.checked) next.add(role.id);
-											else next.delete(role.id);
-											setChosen(next);
-										}}
-									/>
-									<span className={styles.text}>
-										<span className={styles.name}>{roleName(role)}</span>
-										<span className={styles.desc}>
-											{roleDescription(role) || (
-												<T
-													id="npmos.rbac.permissions.count"
-													data={{ count: role.permissions.length }}
-												/>
-											)}
-										</span>
-									</span>
-								</label>
-							);
-						})}
-					</div>
-				)}
+				{!assignments ? <Loading noLogo /> : <RolePicker selected={selected} onChange={setChosen} />}
 				<p className={styles.note}>
 					<T id="npmos.rbac.user-roles.note" />
 				</p>

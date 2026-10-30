@@ -1,4 +1,4 @@
-// WAF → Agent: settings of the open-appsec agent (CrowdSec, fail-open) and the advanced ML model.
+// WAF → Agent: settings of the open-appsec agent (fail-open) and the advanced ML model.
 // Applied by restarting the agent (its entrypoint reads them), traffic is not interrupted with fail-open.
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
@@ -13,7 +13,7 @@ import { useWafAgent } from "../../hooks";
 import { showConfirmModal } from "../../modals/ConfirmModal";
 
 const sameSettings = (a: WafAgentSettings, b: WafAgentSettings) =>
-	JSON.stringify([a.crowdsec, a.failOpen]) === JSON.stringify([b.crowdsec, b.failOpen]);
+	JSON.stringify(a.failOpen) === JSON.stringify(b.failOpen);
 
 function SettingsCard() {
 	const queryClient = useQueryClient();
@@ -22,7 +22,7 @@ function SettingsCard() {
 	const [saving, setSaving] = useState(false);
 
 	useEffect(() => {
-		if (data && !form) setForm({ crowdsec: data.crowdsec, failOpen: data.failOpen });
+		if (data && !form) setForm({ failOpen: data.failOpen });
 	}, [data, form]);
 
 	if (isLoading || !form) return error ? <Alert variant="danger">{error.message}</Alert> : <Loading noLogo />;
@@ -60,43 +60,6 @@ function SettingsCard() {
 				</Alert>
 			)}
 			<div className="row">
-				<div className="col-md-6 mb-3">
-					<label className="form-check form-switch">
-						<input
-							className="form-check-input"
-							type="checkbox"
-							checked={form.crowdsec.enabled}
-							onChange={(e) =>
-								setForm({ ...form, crowdsec: { ...form.crowdsec, enabled: e.target.checked } })
-							}
-						/>
-						<span className="form-check-label">
-							<T id="npmos.waf.agent-settings.crowdsec" />
-						</span>
-					</label>
-					<div className="form-hint mb-2">
-						<T id="npmos.waf.agent-settings.crowdsec.hint" />
-					</div>
-					<select
-						className="form-select"
-						aria-label={intl.formatMessage({ id: "npmos.waf.agent-settings.crowdsec-mode" })}
-						value={form.crowdsec.mode}
-						disabled={!form.crowdsec.enabled}
-						onChange={(e) =>
-							setForm({
-								...form,
-								crowdsec: { ...form.crowdsec, mode: e.target.value as "prevent" | "detect" },
-							})
-						}
-					>
-						<option value="prevent">
-							{intl.formatMessage({ id: "npmos.waf.agent-settings.crowdsec.prevent" })}
-						</option>
-						<option value="detect">
-							{intl.formatMessage({ id: "npmos.waf.agent-settings.crowdsec.detect" })}
-						</option>
-					</select>
-				</div>
 				<div className="col-md-6 mb-3">
 					<label className="form-check form-switch">
 						<input

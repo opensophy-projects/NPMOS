@@ -445,7 +445,7 @@ router
 
 /**
  * GET /api/npmos/waf/agent — agent settings, restartRequired, advanced model
- * PUT /api/npmos/waf/agent — {crowdsec: {enabled, mode}, fail_open: {enabled, timeout_ms}, apply?: boolean}
+ * PUT /api/npmos/waf/agent — {fail_open: {enabled, timeout_ms}, apply?: boolean}
  */
 router
 	.route("/waf/agent")
@@ -458,14 +458,8 @@ router
 				{
 					type: "object",
 					additionalProperties: false,
-					required: ["crowdsec", "fail_open"],
+					required: ["fail_open"],
 					properties: {
-						crowdsec: {
-							type: "object",
-							additionalProperties: false,
-							required: ["enabled", "mode"],
-							properties: { enabled: { type: "boolean" }, mode: { enum: ["prevent", "detect"] } },
-						},
 						fail_open: {
 							type: "object",
 							additionalProperties: false,

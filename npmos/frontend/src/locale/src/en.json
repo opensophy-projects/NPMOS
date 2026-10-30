@@ -785,15 +785,6 @@
 	"npmos.crowdsec.activity": {
 		"defaultMessage": "Activity"
 	},
-	"npmos.crowdsec.agent.off": {
-		"defaultMessage": "The WAF agent does not use these decisions; switch it on in"
-	},
-	"npmos.crowdsec.agent.on": {
-		"defaultMessage": "The WAF agent also checks client IPs against these decisions (mode: {mode})."
-	},
-	"npmos.crowdsec.agent.open": {
-		"defaultMessage": "WAF → Agent"
-	},
 	"npmos.crowdsec.alerts.active": {
 		"defaultMessage": "Only with an active decision"
 	},
@@ -1044,7 +1035,7 @@
 		"defaultMessage": "Delete the bouncer {name}? Its key stops working at once."
 	},
 	"npmos.crowdsec.bouncers.hint": {
-		"defaultMessage": "Components that enforce decisions. npmos is nginx of NPMOS, appsec the WAF agent (IP reputation); their keys come from npmos-init."
+		"defaultMessage": "Components that enforce decisions. npmos is nginx of NPMOS (the bouncer for all hosts); keys come from npmos-init."
 	},
 	"npmos.crowdsec.capi": {
 		"defaultMessage": "The Central API of CrowdSec (signal sharing, community blocklist) is not used: local blocklists and the decisions of other NPMOS nodes replace it."
@@ -1444,9 +1435,6 @@
 	},
 	"npmos.crowdsec.protection": {
 		"defaultMessage": "Protection"
-	},
-	"npmos.crowdsec.protection.agent": {
-		"defaultMessage": "IP reputation in the WAF agent"
 	},
 	"npmos.crowdsec.protection.appsec": {
 		"defaultMessage": "CrowdSec AppSec: virtual patching of known vulnerabilities"
@@ -3710,9 +3698,6 @@
 	"npmos.policy.f.additionalSuspiciousEventsLogging.responseCode": {
 		"defaultMessage": "Response code"
 	},
-	"npmos.policy.f.antiBot.overrideMode": {
-		"defaultMessage": "Anti-bot"
-	},
 	"npmos.policy.f.appsecLogging.allWebRequests": {
 		"defaultMessage": "All requests (a lot of data)"
 	},
@@ -3737,14 +3722,8 @@
 	"npmos.policy.f.extendedLogging.urlQuery": {
 		"defaultMessage": "URL query"
 	},
-	"npmos.policy.f.fileSecurity.overrideMode": {
-		"defaultMessage": "File security"
-	},
 	"npmos.policy.f.httpResponseCode": {
 		"defaultMessage": "HTTP code"
-	},
-	"npmos.policy.f.intrusionPrevention.overrideMode": {
-		"defaultMessage": "Intrusion prevention (IPS)"
 	},
 	"npmos.policy.f.messageBody": {
 		"defaultMessage": "Text of the page"
@@ -3769,9 +3748,6 @@
 	},
 	"npmos.policy.f.redirectUrl": {
 		"defaultMessage": "Redirect to"
-	},
-	"npmos.policy.f.schemaValidation.overrideMode": {
-		"defaultMessage": "API schema validation"
 	},
 	"npmos.policy.f.snortSignatures.files": {
 		"defaultMessage": "Files of signatures in the agent, one per line"
@@ -3829,9 +3805,6 @@
 	},
 	"npmos.policy.h.extendedLogging": {
 		"defaultMessage": "Details"
-	},
-	"npmos.policy.h.premium": {
-		"defaultMessage": "Premium edition of the agent"
 	},
 	"npmos.policy.h.snortSignatures": {
 		"defaultMessage": "Snort signatures"
@@ -3948,7 +3921,7 @@
 		"defaultMessage": "Threat prevention practice"
 	},
 	"npmos.policy.kind.threat_prevention.hint": {
-		"defaultMessage": "What the WAF inspects and how strictly: web attacks (ML), Snort signatures; IPS, file security, schema validation and anti-bot need the Premium edition of the agent."
+		"defaultMessage": "What the WAF inspects and how strictly: web attacks (ML) and Snort signatures."
 	},
 	"npmos.policy.kind.trusted_sources": {
 		"defaultMessage": "Trusted sources"
@@ -4013,9 +3986,6 @@
 	"npmos.policy.none": {
 		"defaultMessage": "None"
 	},
-	"npmos.policy.premium": {
-		"defaultMessage": "Premium"
-	},
 	"npmos.policy.previewing": {
 		"defaultMessage": "Building the policy…"
 	},
@@ -4041,10 +4011,10 @@
 		"defaultMessage": "URI"
 	},
 	"npmos.policy.reason.file-security": {
-		"defaultMessage": "file security of practice {name} (Premium)"
+		"defaultMessage": "file security of practice {name}"
 	},
 	"npmos.policy.reason.ips": {
-		"defaultMessage": "IPS of practice {name} (Premium)"
+		"defaultMessage": "IPS of practice {name}"
 	},
 	"npmos.policy.reason.rate-limit": {
 		"defaultMessage": "rate limits of {name}"
@@ -4595,12 +4565,6 @@
 	"npmos.system.env.DEFAULT_CERT_ID.none": {
 		"defaultMessage": "Self-signed"
 	},
-	"npmos.system.env.DISABLE_GRAVATAR": {
-		"defaultMessage": "No Gravatar"
-	},
-	"npmos.system.env.DISABLE_GRAVATAR.hint": {
-		"defaultMessage": "Avatars of users are not loaded from gravatar.com."
-	},
 	"npmos.system.env.DISABLE_H3_QUIC": {
 		"defaultMessage": "Turn off HTTP/3 (QUIC)"
 	},
@@ -4813,21 +4777,6 @@
 	},
 	"npmos.waf.agent-settings": {
 		"defaultMessage": "Agent settings"
-	},
-	"npmos.waf.agent-settings.crowdsec": {
-		"defaultMessage": "IP reputation from CrowdSec"
-	},
-	"npmos.waf.agent-settings.crowdsec-mode": {
-		"defaultMessage": "CrowdSec mode"
-	},
-	"npmos.waf.agent-settings.crowdsec.detect": {
-		"defaultMessage": "Detect: only log banned IPs"
-	},
-	"npmos.waf.agent-settings.crowdsec.hint": {
-		"defaultMessage": "The agent checks client IPs against the decisions (bans) of the local CrowdSec. No cloud: only decisions of this stack."
-	},
-	"npmos.waf.agent-settings.crowdsec.prevent": {
-		"defaultMessage": "Prevent: block banned IPs"
 	},
 	"npmos.waf.agent-settings.fail-open": {
 		"defaultMessage": "Fail-open"
