@@ -1,6 +1,6 @@
 # NPMOS CI. Upstream workflows under npmos/.github are not run (GitHub reads only the root .github).
 #
-# Images built by NPMOS: npmos (multi-arch) and npmos-appsec-{agent,smartsync,shared-storage,tuning}
+# Images built by NPMOS: npmos (multi-arch) and npmos-appsec-{agent,shared-storage,tuning}
 # (amd64; arm64 is experimental, upstream open-appsec ships amd64 only).
 # Publishing to Docker Hub (vars.DOCKERHUB_NAMESPACE, secrets.DOCKERHUB_USERNAME/DOCKERHUB_TOKEN):
 #   push to work  -> :develop and :<sha>
@@ -123,17 +123,8 @@ jobs:
           cache-from: type=gha,scope=appsec-agent-amd64
           cache-to: type=gha,mode=max,scope=appsec-agent-amd64
           build-args: OPENAPPSEC_REF=${{ env.OPENAPPSEC_REF }}
-      - name: build npmos-appsec-smartsync
-        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
-        with:
-          context: deploy/openappsec/go-service
-          load: true
-          tags: docker.io/${{ env.NAMESPACE }}/npmos-appsec-smartsync:${{ env.VERSION }}
-          cache-from: type=gha,scope=appsec-smartsync
-          cache-to: type=gha,mode=max,scope=appsec-smartsync
-          build-args: |
-            REPO=https://github.com/openappsec/smartsync.git
-            REF=${{ env.SMARTSYNC_REF }}
+      # smartsync (central learning) is not built: it needs a Fog token the agent lacks in local-only
+      # mode and stayed idle. NPMOS learns locally; see docs/adr/0011-learning.md.
       - name: build npmos-appsec-shared-storage
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
@@ -174,7 +165,7 @@ jobs:
             refs/tags/v*) tags="${GITHUB_REF#refs/tags/v} latest" ;;
             *) tags="develop" ;;
           esac
-          for img in npmos npmos-appsec-agent npmos-appsec-smartsync npmos-appsec-shared-storage npmos-appsec-tuning; do
+          for img in npmos npmos-appsec-agent npmos-appsec-shared-storage npmos-appsec-tuning; do
             src="docker.io/$NAMESPACE/$img:$VERSION"
             # npmos gets a multi-arch manifest in the manifest job; push its amd64 build under an arch tag
             if [ "$img" = npmos ]; then

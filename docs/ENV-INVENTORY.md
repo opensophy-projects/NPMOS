@@ -56,7 +56,7 @@
 | `user_email` | не задаётся | NPMOS фиксирует | 0 ✅ |
 | `autoPolicyLoad` | `true` (агент сам применяет `local_policy.yaml`, который генерирует NPMOS) | NPMOS фиксирует | 0 ✅ |
 | `nginxproxymanager` | не задаётся (только помечает отчёт агента в облако) | NPMOS фиксирует | 1 ✅ |
-| `SHARED_STORAGE_HOST`, `LEARNING_HOST`, `TUNING_HOST` | имена сервисов compose | Bootstrap | 0 ✅ |
+| `SHARED_STORAGE_HOST`, `TUNING_HOST` | имена сервисов compose | Bootstrap | 0 ✅ |
 | `https_proxy` | не задаётся | GUI (Система → Внешние сервисы), только если администратор включит онлайн-функции | 4 |
 | `CROWDSEC_ENABLED`, `CROWDSEC_MODE`, `CROWDSEC_API_URL`, `CROWDSEC_AUTH_METHOD`, `CROWDSEC_AUTH_DATA` (встроенная интеграция агента) | выключено; LAPI `crowdsec:8080`, ключ bouncer `appsec` от `npmos-init` | GUI (Агенты → Агент open-appsec → «Репутация IP из CrowdSec»); `npmos-entry.sh` образа агента выставляет их из `npmos-agent.env` | 1 ✅ |
 | Advanced ML-модель | файл `/advanced-model/open-appsec-advanced-model.tgz` (том `appsec-model`) | Загрузка файла в GUI (Агенты → Агент open-appsec) | 1 ✅ |
@@ -71,7 +71,9 @@
 |---|---|---|---|
 | `appsec-tuning-svc` | `QUERY_DB_HOST`, `QUERY_DB_USER` | `postgres`, роль `appsec` (CREATEDB) | Bootstrap |
 | `appsec-tuning-svc` | `QUERY_DB_PASSWORD` | `QUERY_DB_PASSWORD_FILE` (entrypoint образа NPMOS), секрет от `npmos-init` | Bootstrap (секрет) ✅ |
-| `appsec-smartsync`, `appsec-tuning-svc` | `SHARED_STORAGE_HOST` | `appsec-shared-storage` | Bootstrap |
+| `appsec-tuning-svc` | `SHARED_STORAGE_HOST` | `appsec-shared-storage` | Bootstrap |
+
+`appsec-smartsync` (централизованное обучение нескольких агентов) убран из стека: в локальном режиме без регистрации у агента нет Fog-токена, поэтому выгрузка `CentralizedData` в него падала с «Access token is missing», и сервис простаивал. Агент учится локально; разметку NPMOS он читает из `tuning/decisions.data` shared-storage напрямую. Подробно — `docs/adr/0011-learning.md`.
 
 ## CrowdSec (`crowdsec`, официальный образ `crowdsecurity/crowdsec`)
 
