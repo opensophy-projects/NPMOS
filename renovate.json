@@ -4,7 +4,6 @@
     "config:recommended"
   ],
   "ignorePaths": [
-    "npmos/**",
     "reference/**"
   ],
   "customManagers": [
@@ -71,9 +70,28 @@
   ],
   "packageRules": [
     {
-      "description": "CROWDSEC_VERSION is also pinned in npmos/Dockerfile and deploy/dev/Dockerfile (CI checks they match)",
+      "description": "npmos/ is the NPMplus subtree: its dependencies come with git subtree pull, not from Renovate",
+      "matchFileNames": [
+        "npmos/**"
+      ],
+      "enabled": false
+    },
+    {
+      "description": "except CrowdSec of the offline hub seed in npmos/Dockerfile: it must move together with deploy/.env (checked in CI)",
+      "matchFileNames": [
+        "npmos/Dockerfile"
+      ],
       "matchDepNames": [
+        "docker.io/crowdsecurity/crowdsec",
         "crowdsecurity/crowdsec"
+      ],
+      "enabled": true
+    },
+    {
+      "description": "CrowdSec is pinned in deploy/.env, npmos/Dockerfile and deploy/dev/Dockerfile (CI checks they match): one PR for all three",
+      "matchDepNames": [
+        "crowdsecurity/crowdsec",
+        "docker.io/crowdsecurity/crowdsec"
       ],
       "groupName": "crowdsec"
     },
