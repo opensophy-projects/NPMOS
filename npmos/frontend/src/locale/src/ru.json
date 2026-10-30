@@ -620,6 +620,27 @@
 	"npmos.2fa.error-start": {
 		"defaultMessage": "Не удалось начать настройку 2FA"
 	},
+	"npmos.access.description": {
+		"defaultMessage": "Список доступа пускает к хосту не всех: только тех, кто знает логин и пароль, кто приходит с разрешённых адресов, или и то и другое. Остальные получают 403 (или запрос пароля) ещё до того, как запрос дойдёт до сервиса."
+	},
+	"npmos.access.point.apply": {
+		"defaultMessage": "Где действует"
+	},
+	"npmos.access.point.apply.text": {
+		"defaultMessage": "Сам по себе список ничего не делает: выберите его в хосте (Хосты → хост → Сведения → Список доступа). Один список может защищать несколько хостов; их число — в колонке справа."
+	},
+	"npmos.access.point.ip": {
+		"defaultMessage": "Адреса и сети"
+	},
+	"npmos.access.point.ip.text": {
+		"defaultMessage": "Правила «разрешить» и «запретить» для IP-адресов и сетей (192.168.1.0/24), проверяются по порядку. «Любое условие»: достаточно пароля или адреса; «все условия»: нужно и то и другое."
+	},
+	"npmos.access.point.password": {
+		"defaultMessage": "Логин и пароль"
+	},
+	"npmos.access.point.password.text": {
+		"defaultMessage": "Пользователи списка (HTTP Basic Auth): браузер один раз спросит их. Подходит для админки или тестового сайта."
+	},
 	"npmos.access.search": {
 		"defaultMessage": "Поиск по названию"
 	},
@@ -3431,6 +3452,15 @@
 	"npmos.overview.analytics.prevented": {
 		"defaultMessage": "Из них заблокировано"
 	},
+	"npmos.overview.certs.total": {
+		"defaultMessage": "Всего сертификатов"
+	},
+	"npmos.overview.crowdsec.alerts": {
+		"defaultMessage": "Алертов за 24 ч"
+	},
+	"npmos.overview.crowdsec.decisions": {
+		"defaultMessage": "Действующие баны и капчи"
+	},
 	"npmos.overview.fix": {
 		"defaultMessage": "Перейти"
 	},
@@ -3524,6 +3554,24 @@
 	"npmos.overview.system.services": {
 		"defaultMessage": "Сервисы"
 	},
+	"npmos.overview.traffic": {
+		"defaultMessage": "Трафик за 24 часа"
+	},
+	"npmos.overview.traffic.5xx": {
+		"defaultMessage": "ошибок сервера"
+	},
+	"npmos.overview.traffic.attacks": {
+		"defaultMessage": "атак"
+	},
+	"npmos.overview.traffic.blocked": {
+		"defaultMessage": "отклонено"
+	},
+	"npmos.overview.traffic.requests": {
+		"defaultMessage": "запросов"
+	},
+	"npmos.overview.unknown": {
+		"defaultMessage": "неизвестно"
+	},
 	"npmos.overview.waf.agent-down": {
 		"defaultMessage": "недоступен"
 	},
@@ -3532,6 +3580,12 @@
 	},
 	"npmos.overview.waf.hosts": {
 		"defaultMessage": "Прокси-хосты: {mode}"
+	},
+	"npmos.overview.waf.modes": {
+		"defaultMessage": "Хосты: блокировка · обнаружение · выкл"
+	},
+	"npmos.overview.waf.modes.value": {
+		"defaultMessage": "{prevent} · {detect} · {off}"
 	},
 	"npmos.overview.waf.state": {
 		"defaultMessage": "Защита"

@@ -620,6 +620,27 @@
 	"npmos.2fa.error-start": {
 		"defaultMessage": "Failed to start 2FA setup"
 	},
+	"npmos.access.description": {
+		"defaultMessage": "An access list lets only some visitors reach a host: those who know a login and password, those who come from allowed addresses, or both. Everyone else gets 403 (or a password prompt) before the request reaches the service."
+	},
+	"npmos.access.point.apply": {
+		"defaultMessage": "Where it works"
+	},
+	"npmos.access.point.apply.text": {
+		"defaultMessage": "A list does nothing on its own: choose it in a host (Hosts → the host → Details → Access list). One list can protect several hosts; the column on the right counts them."
+	},
+	"npmos.access.point.ip": {
+		"defaultMessage": "Addresses and networks"
+	},
+	"npmos.access.point.ip.text": {
+		"defaultMessage": "Allow or deny rules for IP addresses and networks (192.168.1.0/24), checked in order. \"Satisfy any\": one of password or address is enough; \"all\": both are needed."
+	},
+	"npmos.access.point.password": {
+		"defaultMessage": "Login and password"
+	},
+	"npmos.access.point.password.text": {
+		"defaultMessage": "Users of the list (HTTP Basic Auth): the browser asks for them once. Good for an admin panel or a staging site."
+	},
 	"npmos.access.search": {
 		"defaultMessage": "Search by name"
 	},
@@ -3431,6 +3452,15 @@
 	"npmos.overview.analytics.prevented": {
 		"defaultMessage": "Of them blocked"
 	},
+	"npmos.overview.certs.total": {
+		"defaultMessage": "All certificates"
+	},
+	"npmos.overview.crowdsec.alerts": {
+		"defaultMessage": "Alerts in 24 h"
+	},
+	"npmos.overview.crowdsec.decisions": {
+		"defaultMessage": "Active bans and captchas"
+	},
 	"npmos.overview.fix": {
 		"defaultMessage": "Go"
 	},
@@ -3524,6 +3554,24 @@
 	"npmos.overview.system.services": {
 		"defaultMessage": "Services"
 	},
+	"npmos.overview.traffic": {
+		"defaultMessage": "Traffic of the last 24 hours"
+	},
+	"npmos.overview.traffic.5xx": {
+		"defaultMessage": "server errors"
+	},
+	"npmos.overview.traffic.attacks": {
+		"defaultMessage": "attacks"
+	},
+	"npmos.overview.traffic.blocked": {
+		"defaultMessage": "refused"
+	},
+	"npmos.overview.traffic.requests": {
+		"defaultMessage": "requests"
+	},
+	"npmos.overview.unknown": {
+		"defaultMessage": "unknown"
+	},
 	"npmos.overview.waf.agent-down": {
 		"defaultMessage": "unavailable"
 	},
@@ -3532,6 +3580,12 @@
 	},
 	"npmos.overview.waf.hosts": {
 		"defaultMessage": "Proxy hosts: {mode}"
+	},
+	"npmos.overview.waf.modes": {
+		"defaultMessage": "Hosts: block · detect · off"
+	},
+	"npmos.overview.waf.modes.value": {
+		"defaultMessage": "{prevent} · {detect} · {off}"
 	},
 	"npmos.overview.waf.state": {
 		"defaultMessage": "Protection"

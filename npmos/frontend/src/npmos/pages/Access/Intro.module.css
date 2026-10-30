@@ -1,0 +1,33 @@
+/* Hosts → Access lists: the explanation above the table */
+.intro {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+.points {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+	gap: 0.75rem;
+}
+.point {
+	display: flex;
+	gap: 0.75rem;
+	padding: 0.875rem 1rem;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-lg);
+	background: var(--background);
+}
+.icon {
+	flex: none;
+	margin-top: 0.125rem;
+	color: var(--accent);
+}
+.pointTitle {
+	font-weight: 500;
+}
+.pointText {
+	margin-top: 0.25rem;
+	color: var(--foreground-muted);
+	font-size: 0.875rem;
+	line-height: 1.45;
+}
