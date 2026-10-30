@@ -2324,6 +2324,177 @@
 	"npmos.hosts.waf.template.strict.hint": {
 		"defaultMessage": "Template: medium confidence, CSRF, error disclosure, open redirect, block page"
 	},
+	"npmos.migration.after": {
+		"defaultMessage": "Check the hosts: point DNS or the ports to NPMOS, then stop the old container. WAF and CrowdSec are configured per host in NPMOS."
+	},
+	"npmos.migration.apply": {
+		"defaultMessage": "Import"
+	},
+	"npmos.migration.archive": {
+		"defaultMessage": "Archive of the old installation"
+	},
+	"npmos.migration.archive.hint": {
+		"defaultMessage": "Stop the old container (so that the database is complete), then pack its /data directory and, for NPM, /etc/letsencrypt. Logs and generated nginx configs are skipped on reading. A database.sqlite file alone can be uploaded too, but then Let's Encrypt certificates have no files."
+	},
+	"npmos.migration.archive.npm": {
+		"defaultMessage": "Nginx Proxy Manager, open-appsec-npm (add the folder with local_policy.yaml to keep WAF rules):"
+	},
+	"npmos.migration.archive.npmplus": {
+		"defaultMessage": "NPMplus:"
+	},
+	"npmos.migration.blocking": {
+		"defaultMessage": "NPMOS already has records in: {list}. The migration goes into a new NPMOS only, so that numbers of hosts and certificates stay the same."
+	},
+	"npmos.migration.connect": {
+		"defaultMessage": "Connect and check"
+	},
+	"npmos.migration.custom-nginx": {
+		"defaultMessage": "Custom nginx snippets"
+	},
+	"npmos.migration.database": {
+		"defaultMessage": "Database over the network"
+	},
+	"npmos.migration.database.engine": {
+		"defaultMessage": "Engine"
+	},
+	"npmos.migration.database.hint": {
+		"defaultMessage": "For NPM with MySQL/MariaDB or PostgreSQL: NPMOS reads the database once and does not change it. The database must be reachable from the npmos container. Certificate files of Let's Encrypt come from an archive, uploaded on the next step."
+	},
+	"npmos.migration.database.host": {
+		"defaultMessage": "Host"
+	},
+	"npmos.migration.database.name": {
+		"defaultMessage": "Database"
+	},
+	"npmos.migration.database.password": {
+		"defaultMessage": "Password"
+	},
+	"npmos.migration.database.port": {
+		"defaultMessage": "Port"
+	},
+	"npmos.migration.database.user": {
+		"defaultMessage": "User"
+	},
+	"npmos.migration.discard": {
+		"defaultMessage": "Cancel"
+	},
+	"npmos.migration.done": {
+		"defaultMessage": "Imported: {hosts} hosts, {certificates} certificates, {users} users. Users log in with their old passwords."
+	},
+	"npmos.migration.failed": {
+		"defaultMessage": "The import failed, nothing was saved to the database: {message}"
+	},
+	"npmos.migration.failed-after": {
+		"defaultMessage": "The data is imported, but a later step failed: {message}. Check the hosts and regenerate the nginx configs (System → Services)."
+	},
+	"npmos.migration.files-hint": {
+		"defaultMessage": "The database is read. Upload an archive of /data and /etc/letsencrypt too, to move the certificate files and custom snippets."
+	},
+	"npmos.migration.finish": {
+		"defaultMessage": "Finish (remove work files)"
+	},
+	"npmos.migration.forbidden": {
+		"defaultMessage": "The migration needs the permissions to manage settings, users and roles."
+	},
+	"npmos.migration.found": {
+		"defaultMessage": "Found: {kind}, {applied} database migrations; {upgraded} more are applied to a copy to reach the schema of NPMOS."
+	},
+	"npmos.migration.hashed": {
+		"defaultMessage": "{count, plural, one {# access list password was} other {# access list passwords were}} hashed."
+	},
+	"npmos.migration.hint": {
+		"defaultMessage": "Moves an installation of Nginx Proxy Manager, NPMplus or open-appsec-npm into NPMOS: hosts, certificates (Let's Encrypt with their keys), access lists, users with their passwords and 2FA, permissions as roles, the default site, custom nginx snippets and the WAF rules of open-appsec-npm. The old installation is not changed. Import into a new NPMOS: hosts, certificates and access lists keep their numbers, so NPMOS must not have any yet."
+	},
+	"npmos.migration.importing": {
+		"defaultMessage": "Importing and generating nginx configs…"
+	},
+	"npmos.migration.kind.npm": {
+		"defaultMessage": "Nginx Proxy Manager"
+	},
+	"npmos.migration.kind.npmplus": {
+		"defaultMessage": "NPMplus"
+	},
+	"npmos.migration.kind.open-appsec-npm": {
+		"defaultMessage": "open-appsec-npm"
+	},
+	"npmos.migration.matched": {
+		"defaultMessage": "Already in NPMOS, kept as they are (password and roles of NPMOS): {list}"
+	},
+	"npmos.migration.option.custom-nginx": {
+		"defaultMessage": "Move custom nginx snippets (put back if nginx refuses them)"
+	},
+	"npmos.migration.option.history": {
+		"defaultMessage": "Move the audit log"
+	},
+	"npmos.migration.reading": {
+		"defaultMessage": "Reading the archive and checking the database…"
+	},
+	"npmos.migration.restart": {
+		"defaultMessage": "Some certificates use a DNS challenge: restart NPMOS (System → Services) so that certbot gets its DNS plugins and credentials before the next renewal."
+	},
+	"npmos.migration.table.access_list": {
+		"defaultMessage": "Access lists"
+	},
+	"npmos.migration.table.certificate": {
+		"defaultMessage": "Certificates"
+	},
+	"npmos.migration.table.dead_host": {
+		"defaultMessage": "404 hosts"
+	},
+	"npmos.migration.table.proxy_host": {
+		"defaultMessage": "Proxy hosts"
+	},
+	"npmos.migration.table.redirection_host": {
+		"defaultMessage": "Redirection hosts"
+	},
+	"npmos.migration.table.stream": {
+		"defaultMessage": "Streams"
+	},
+	"npmos.migration.upload": {
+		"defaultMessage": "Upload archive"
+	},
+	"npmos.migration.upload-files": {
+		"defaultMessage": "Upload files"
+	},
+	"npmos.migration.user.admin": {
+		"defaultMessage": "administrator"
+	},
+	"npmos.migration.user.exists": {
+		"defaultMessage": "already in NPMOS, kept"
+	},
+	"npmos.migration.user.new": {
+		"defaultMessage": "added"
+	},
+	"npmos.migration.users": {
+		"defaultMessage": "Users"
+	},
+	"npmos.migration.waf-rules": {
+		"defaultMessage": "WAF rules of open-appsec-npm"
+	},
+	"npmos.migration.warning.certbot_missing": {
+		"defaultMessage": "No certbot files for Let's Encrypt certificates {list}: add /etc/letsencrypt (NPM) or tls/certbot (NPMplus) to the archive, or renew them after the import."
+	},
+	"npmos.migration.warning.custom_cert": {
+		"defaultMessage": "Custom certificate {list} could not be written: {message}"
+	},
+	"npmos.migration.warning.custom_nginx_refused": {
+		"defaultMessage": "nginx did not accept the custom snippets {list}; the previous ones were put back. Error: {message}"
+	},
+	"npmos.migration.warning.hosts_offline": {
+		"defaultMessage": "Some hosts did not pass the nginx check and are offline:"
+	},
+	"npmos.migration.warning.newer_source": {
+		"defaultMessage": "The old installation is newer than NPMOS and ran database migrations NPMOS does not know: {list}. Their data is not moved."
+	},
+	"npmos.migration.warning.plain_passwords": {
+		"defaultMessage": "Access list passwords stored in plain text (NPM): {count}. They are hashed on import."
+	},
+	"npmos.migration.warning.waf_policy": {
+		"defaultMessage": "The WAF policy could not be generated: {message}"
+	},
+	"npmos.migration.what": {
+		"defaultMessage": "What is moved"
+	},
 	"npmos.mtls.advanced": {
 		"defaultMessage": "More settings"
 	},
@@ -4586,6 +4757,9 @@
 	"npmos.system.group.logs.hint": {
 		"defaultMessage": "How long nginx logs and security events are kept."
 	},
+	"npmos.system.group.migration": {
+		"defaultMessage": "Migration"
+	},
 	"npmos.system.group.network": {
 		"defaultMessage": "Network"
 	},
@@ -4981,6 +5155,9 @@
 	},
 	"object.event.exported": {
 		"defaultMessage": "Exported {object}"
+	},
+	"object.event.imported": {
+		"defaultMessage": "Imported {object}"
 	},
 	"object.event.installed": {
 		"defaultMessage": "Installed {object}"

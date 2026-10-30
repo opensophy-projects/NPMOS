@@ -674,4 +674,15 @@ code=$(curl -sk -o /dev/null -w '%{http_code}' -b "$JAR" -X POST -H 'Content-Typ
   --data-binary 'not a database' "$ADMIN/api/npmos/system/geoip")
 [ "$code" = 400 ] || fail "a broken GeoIP database was accepted: HTTP $code"
 
+step "Migration: a backup of NPM is read and analyzed; the import waits for a new NPMOS"
+mig=$(curl -sS --max-time 120 -k -b $JAR -X POST -H 'Content-Type: application/octet-stream' \
+  --data-binary @/fixtures/npm-backup.tgz "$ADMIN/api/npmos/system/migration/upload")
+echo "$mig" | grep -q '"kind": *"open-appsec-npm"' || fail "the backup was not recognised: $mig"
+echo "$mig" | grep -q '"code": *"plain_passwords"' || fail "plain access list passwords not found: $mig"
+echo "$mig" | grep -q '"table": *"proxy_host"' || fail "the import is not blocked by existing hosts: $mig"
+code=$(curl -sk -o /dev/null -w '%{http_code}' -b "$JAR" -X POST -H 'Content-Type: application/json' -d '{}' \
+  "$ADMIN/api/npmos/system/migration/apply")
+[ "$code" = 400 ] || fail "the import into an NPMOS with hosts was not refused: HTTP $code"
+$CURL -X DELETE "$ADMIN/api/npmos/system/migration" | grep -q '"stage": *"idle"' || fail "the migration was not discarded"
+
 echo "OK: closed-network smoke passed"

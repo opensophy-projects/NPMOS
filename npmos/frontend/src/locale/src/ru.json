@@ -2324,6 +2324,177 @@
 	"npmos.hosts.waf.template.strict.hint": {
 		"defaultMessage": "Шаблон: средняя уверенность, CSRF, раскрытие ошибок, редиректы, страница блокировки"
 	},
+	"npmos.migration.after": {
+		"defaultMessage": "Проверьте хосты, направьте DNS или порты на NPMOS и после этого остановите старый контейнер. WAF и CrowdSec настраиваются для хостов уже в NPMOS."
+	},
+	"npmos.migration.apply": {
+		"defaultMessage": "Перенести"
+	},
+	"npmos.migration.archive": {
+		"defaultMessage": "Архив старой установки"
+	},
+	"npmos.migration.archive.hint": {
+		"defaultMessage": "Остановите старый контейнер, чтобы база была записана полностью, и упакуйте его каталог /data, а для NPM ещё и /etc/letsencrypt. Логи и сгенерированные конфиги nginx при чтении пропускаются. Можно загрузить и один файл database.sqlite, но тогда у сертификатов Let's Encrypt не будет файлов."
+	},
+	"npmos.migration.archive.npm": {
+		"defaultMessage": "Nginx Proxy Manager, open-appsec-npm (чтобы перенести WAF-правила, добавьте каталог с local_policy.yaml):"
+	},
+	"npmos.migration.archive.npmplus": {
+		"defaultMessage": "NPMplus:"
+	},
+	"npmos.migration.blocking": {
+		"defaultMessage": "В NPMOS уже есть записи: {list}. Перенос делается только в новый NPMOS, чтобы номера хостов и сертификатов не изменились."
+	},
+	"npmos.migration.connect": {
+		"defaultMessage": "Подключиться и проверить"
+	},
+	"npmos.migration.custom-nginx": {
+		"defaultMessage": "Свои сниппеты nginx"
+	},
+	"npmos.migration.database": {
+		"defaultMessage": "База данных по сети"
+	},
+	"npmos.migration.database.engine": {
+		"defaultMessage": "СУБД"
+	},
+	"npmos.migration.database.hint": {
+		"defaultMessage": "Для NPM с MySQL/MariaDB или PostgreSQL: NPMOS один раз читает базу и не меняет её. База должна быть доступна из контейнера npmos. Файлы сертификатов Let's Encrypt берутся из архива, его можно загрузить на следующем шаге."
+	},
+	"npmos.migration.database.host": {
+		"defaultMessage": "Адрес"
+	},
+	"npmos.migration.database.name": {
+		"defaultMessage": "База"
+	},
+	"npmos.migration.database.password": {
+		"defaultMessage": "Пароль"
+	},
+	"npmos.migration.database.port": {
+		"defaultMessage": "Порт"
+	},
+	"npmos.migration.database.user": {
+		"defaultMessage": "Пользователь"
+	},
+	"npmos.migration.discard": {
+		"defaultMessage": "Отмена"
+	},
+	"npmos.migration.done": {
+		"defaultMessage": "Перенесено: хостов — {hosts}, сертификатов — {certificates}, пользователей — {users}. Пользователи входят со старыми паролями."
+	},
+	"npmos.migration.failed": {
+		"defaultMessage": "Перенос не удался, в базу ничего не записано: {message}"
+	},
+	"npmos.migration.failed-after": {
+		"defaultMessage": "Данные перенесены, но следующий шаг не удался: {message}. Проверьте хосты и пересоздайте конфиги nginx (Система → Сервисы)."
+	},
+	"npmos.migration.files-hint": {
+		"defaultMessage": "База прочитана. Загрузите ещё архив /data и /etc/letsencrypt, чтобы перенести файлы сертификатов и сниппеты."
+	},
+	"npmos.migration.finish": {
+		"defaultMessage": "Завершить (удалить рабочие файлы)"
+	},
+	"npmos.migration.forbidden": {
+		"defaultMessage": "Для переноса нужны права на управление настройками, пользователями и ролями."
+	},
+	"npmos.migration.found": {
+		"defaultMessage": "Найдено: {kind}, миграций базы — {applied}; ещё {upgraded} будет применено к копии, чтобы привести её к схеме NPMOS."
+	},
+	"npmos.migration.hashed": {
+		"defaultMessage": "Захешировано паролей списков доступа: {count}."
+	},
+	"npmos.migration.hint": {
+		"defaultMessage": "Переносит в NPMOS установку Nginx Proxy Manager, NPMplus или open-appsec-npm: хосты, сертификаты (Let's Encrypt вместе с ключами), списки доступа, пользователей с их паролями и 2FA, права в виде ролей, сайт по умолчанию, свои сниппеты nginx и WAF-правила open-appsec-npm. Старая установка не меняется. Переносить нужно в новый NPMOS: у хостов, сертификатов и списков доступа сохраняются номера, поэтому в NPMOS их ещё не должно быть."
+	},
+	"npmos.migration.importing": {
+		"defaultMessage": "Переношу данные и генерирую конфиги nginx…"
+	},
+	"npmos.migration.kind.npm": {
+		"defaultMessage": "Nginx Proxy Manager"
+	},
+	"npmos.migration.kind.npmplus": {
+		"defaultMessage": "NPMplus"
+	},
+	"npmos.migration.kind.open-appsec-npm": {
+		"defaultMessage": "open-appsec-npm"
+	},
+	"npmos.migration.matched": {
+		"defaultMessage": "Уже были в NPMOS и оставлены как есть (пароль и роли NPMOS): {list}"
+	},
+	"npmos.migration.option.custom-nginx": {
+		"defaultMessage": "Перенести свои сниппеты nginx (вернуть прежние, если nginx их не примет)"
+	},
+	"npmos.migration.option.history": {
+		"defaultMessage": "Перенести журнал аудита"
+	},
+	"npmos.migration.reading": {
+		"defaultMessage": "Читаю архив и проверяю базу…"
+	},
+	"npmos.migration.restart": {
+		"defaultMessage": "Часть сертификатов использует DNS-проверку: перезапустите NPMOS (Система → Сервисы), чтобы certbot получил DNS-плагины и учётные данные до следующего продления."
+	},
+	"npmos.migration.table.access_list": {
+		"defaultMessage": "Списки доступа"
+	},
+	"npmos.migration.table.certificate": {
+		"defaultMessage": "Сертификаты"
+	},
+	"npmos.migration.table.dead_host": {
+		"defaultMessage": "Хосты 404"
+	},
+	"npmos.migration.table.proxy_host": {
+		"defaultMessage": "Прокси-хосты"
+	},
+	"npmos.migration.table.redirection_host": {
+		"defaultMessage": "Перенаправления"
+	},
+	"npmos.migration.table.stream": {
+		"defaultMessage": "Потоки"
+	},
+	"npmos.migration.upload": {
+		"defaultMessage": "Загрузить архив"
+	},
+	"npmos.migration.upload-files": {
+		"defaultMessage": "Загрузить файлы"
+	},
+	"npmos.migration.user.admin": {
+		"defaultMessage": "администратор"
+	},
+	"npmos.migration.user.exists": {
+		"defaultMessage": "уже есть в NPMOS, остаётся как есть"
+	},
+	"npmos.migration.user.new": {
+		"defaultMessage": "будет добавлен"
+	},
+	"npmos.migration.users": {
+		"defaultMessage": "Пользователи"
+	},
+	"npmos.migration.waf-rules": {
+		"defaultMessage": "WAF-правила open-appsec-npm"
+	},
+	"npmos.migration.warning.certbot_missing": {
+		"defaultMessage": "Нет файлов certbot для сертификатов Let's Encrypt {list}: добавьте в архив /etc/letsencrypt (NPM) или tls/certbot (NPMplus) либо перевыпустите их после переноса."
+	},
+	"npmos.migration.warning.custom_cert": {
+		"defaultMessage": "Не удалось записать свой сертификат {list}: {message}"
+	},
+	"npmos.migration.warning.custom_nginx_refused": {
+		"defaultMessage": "nginx не принял сниппеты {list}, возвращены прежние. Ошибка: {message}"
+	},
+	"npmos.migration.warning.hosts_offline": {
+		"defaultMessage": "Некоторые хосты не прошли проверку nginx и выключены:"
+	},
+	"npmos.migration.warning.newer_source": {
+		"defaultMessage": "Старая установка новее NPMOS и выполнила неизвестные NPMOS миграции базы: {list}. Их данные не переносятся."
+	},
+	"npmos.migration.warning.plain_passwords": {
+		"defaultMessage": "Паролей списков доступа открытым текстом (NPM): {count}. При переносе они будут захешированы."
+	},
+	"npmos.migration.warning.waf_policy": {
+		"defaultMessage": "Не удалось сгенерировать политику WAF: {message}"
+	},
+	"npmos.migration.what": {
+		"defaultMessage": "Что будет перенесено"
+	},
 	"npmos.mtls.advanced": {
 		"defaultMessage": "Дополнительно"
 	},
@@ -4586,6 +4757,9 @@
 	"npmos.system.group.logs.hint": {
 		"defaultMessage": "Сколько хранятся журналы nginx и события безопасности."
 	},
+	"npmos.system.group.migration": {
+		"defaultMessage": "Перенос"
+	},
 	"npmos.system.group.network": {
 		"defaultMessage": "Сеть"
 	},
@@ -4981,6 +5155,9 @@
 	},
 	"object.event.exported": {
 		"defaultMessage": "{object}: выгрузка"
+	},
+	"object.event.imported": {
+		"defaultMessage": "{object}: перенос"
 	},
 	"object.event.installed": {
 		"defaultMessage": "{object}: установка"

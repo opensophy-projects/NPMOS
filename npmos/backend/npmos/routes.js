@@ -16,6 +16,7 @@ import internalRbac from "./rbac/index.js";
 import internalServices from "./services.js";
 import internalSystem from "./system/index.js";
 import internalGeoip from "./geoip/index.js";
+import internalMigration from "./migration/index.js";
 import internalWafAgent from "./waf/agent-settings.js";
 import internalWafExpert from "./waf/expert.js";
 import internalWafHosts from "./waf/hosts.js";
@@ -718,6 +719,76 @@ router
 		handle((req, res) => internalGeoip.upload(res.locals.access, Buffer.isBuffer(req.body) ? req.body : null)),
 	)
 	.delete(handle((_, res) => internalGeoip.remove(res.locals.access)));
+
+/**
+ * Migration from NPM / NPMplus / open-appsec-npm (npmos/migration)
+ * GET    /api/npmos/system/migration         — state and analysis
+ * POST   /api/npmos/system/migration/upload  — body: .tar.gz / .tar of the old /data, or database.sqlite
+ * POST   /api/npmos/system/migration/connect — the MySQL/MariaDB/Postgres database of the old installation
+ * POST   /api/npmos/system/migration/apply   — starts the import
+ * DELETE /api/npmos/system/migration         — removes the work files
+ */
+router
+	.route("/system/migration")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalMigration.status(res.locals.access)))
+	.delete(handle((_, res) => internalMigration.discard(res.locals.access)));
+
+router
+	.route("/system/migration/upload")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	// streamed to disk, no body parser
+	.post(handle((req, res) => internalMigration.upload(res.locals.access, req)));
+
+router
+	.route("/system/migration/connect")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) =>
+			internalMigration.connect(
+				res.locals.access,
+				await validator(
+					{
+						type: "object",
+						additionalProperties: false,
+						required: ["engine", "host", "user", "database"],
+						properties: {
+							engine: { type: "string", enum: ["mysql", "mariadb", "postgres"] },
+							host: { type: "string", minLength: 1, maxLength: 255 },
+							port: { type: "integer", minimum: 1, maximum: 65535 },
+							user: { type: "string", minLength: 1, maxLength: 255 },
+							password: { type: "string", maxLength: 1024 },
+							database: { type: "string", minLength: 1, maxLength: 255 },
+						},
+					},
+					req.body,
+				),
+			),
+		),
+	);
+
+router
+	.route("/system/migration/apply")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) =>
+			internalMigration.apply(
+				res.locals.access,
+				await validator(
+					{
+						type: "object",
+						additionalProperties: false,
+						properties: { history: { type: "boolean" }, custom_nginx: { type: "boolean" } },
+					},
+					req.body ?? {},
+				),
+			),
+		),
+	);
 
 router
 	.route("/system/settings/apply")
