@@ -1721,7 +1721,7 @@ router
 
 /**
  * GET  /api/npmos/crowdsec/decisions?q=&type=&origin=&offset=&limit=
- * POST /api/npmos/crowdsec/decisions — ban: {values, type?, duration?, reason?}
+ * POST /api/npmos/crowdsec/decisions — ban: {values, type?, duration?, reason?, replace?}
  */
 router
 	.route("/crowdsec/decisions")
@@ -1755,6 +1755,7 @@ router
 						type: { type: "string", enum: ["ban", "captcha"] },
 						duration: { type: "string", pattern: "^[1-9][0-9]{0,5}[mhd]$" },
 						reason: { type: "string", maxLength: 200 },
+						replace: { type: "boolean" },
 					},
 				},
 				req.body,

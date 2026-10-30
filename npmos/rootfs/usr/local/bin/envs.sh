@@ -57,6 +57,15 @@ if [ -s /data/npmos/runtime.env ]; then
             NGINX_WORKER_PROCESSES)
                 echo "$value" | grep -q "^auto$\|^[0-9]\{1,4\}$" && export "$key=$value"
                 ;;
+            ACME_SERVER)
+                echo "$value" | grep -q "^https\?://[A-Za-z0-9._~:/?&%+@-]\{1,500\}$" && export "$key=$value"
+                ;;
+            ACME_EMAIL)
+                echo "$value" | grep -q "^$\|^[A-Za-z0-9._%+-]\{1,64\}@[A-Za-z0-9.-]\{1,190\}$" && export "$key=$value"
+                ;;
+            ACME_EAB_KID | ACME_EAB_HMAC_KEY)
+                echo "$value" | grep -q "^[A-Za-z0-9_-]\{0,512\}$" && export "$key=$value"
+                ;;
             TZ)
                 echo "$value" | grep -q "^[A-Za-z0-9_+/-]\{1,64\}$" && [ -s "/usr/share/zoneinfo/$value" ] && export "$key=$value"
                 ;;

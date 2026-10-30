@@ -15,6 +15,48 @@ import styles from "../Pki/Pki.module.css";
 
 const PAGE = 100;
 
+/** "3h59m55.1s" → seconds */
+const seconds = (d: string) => {
+	const m = /^(?:(\d+)h)?(?:(\d+)m)?(?:([\d.]+)s)?$/.exec(d || "");
+	return m ? Number(m[1] || 0) * 3600 + Number(m[2] || 0) * 60 + Number(m[3] || 0) : 0;
+};
+
+interface DecisionRow {
+	key: string;
+	ids: number[];
+	value: string;
+	type: string;
+	scenarios: string[];
+	origins: string[];
+	/** the longest time left */
+	duration: string;
+}
+
+const groupDecisions = (list: Decision[]): DecisionRow[] => {
+	const rows = new Map<string, DecisionRow>();
+	for (const d of list) {
+		const key = `${d.value}|${d.type}`;
+		const row = rows.get(key);
+		if (!row) {
+			rows.set(key, {
+				key,
+				ids: [d.id],
+				value: d.value,
+				type: d.type,
+				scenarios: [d.scenario],
+				origins: [d.origin],
+				duration: d.duration,
+			});
+			continue;
+		}
+		row.ids.push(d.id);
+		if (!row.scenarios.includes(d.scenario)) row.scenarios.push(d.scenario);
+		if (!row.origins.includes(d.origin)) row.origins.push(d.origin);
+		if (seconds(d.duration) > seconds(row.duration)) row.duration = d.duration;
+	}
+	return [...rows.values()];
+};
+
 const TYPE_TONE: Record<string, string> = { ban: "bg-red-lt", captcha: "bg-yellow-lt" };
 
 export function DecisionsTab({ refresh }: { refresh: () => void }) {
@@ -25,7 +67,9 @@ export function DecisionsTab({ refresh }: { refresh: () => void }) {
 	const [offset, setOffset] = useState(0);
 	const [selected, setSelected] = useState<number[]>([]);
 	const decisions = useDecisions({ q, type, origin, offset, limit: PAGE }, { refetchInterval: 15000 });
-	const items = decisions.data?.items ?? [];
+	// one row per address and decision type: a scenario ban and a ban by hand of the same address
+	// are one line with both scenarios, the longest time left and every id (unban removes all)
+	const items = useMemo(() => groupDecisions(decisions.data?.items ?? []), [decisions.data]);
 	const total = decisions.data?.total ?? 0;
 	const decide = can("crowdsec", "decide");
 
@@ -126,9 +170,9 @@ export function DecisionsTab({ refresh }: { refresh: () => void }) {
 											type="checkbox"
 											className="form-check-input"
 											aria-label={t("npmos.crowdsec.select-all")}
-											checked={items.every((d) => selected.includes(d.id))}
+											checked={items.every((d) => d.ids.every((id) => selected.includes(id)))}
 											onChange={(e) =>
-												setSelected(e.target.checked ? items.map((d) => d.id) : [])
+												setSelected(e.target.checked ? items.flatMap((d) => d.ids) : [])
 											}
 										/>
 									</th>
@@ -152,20 +196,20 @@ export function DecisionsTab({ refresh }: { refresh: () => void }) {
 							</tr>
 						</thead>
 						<tbody>
-							{items.map((d: Decision) => (
-								<tr key={d.id}>
+							{items.map((d) => (
+								<tr key={d.key}>
 									{decide && (
 										<td>
 											<input
 												type="checkbox"
 												className="form-check-input"
 												aria-label={d.value}
-												checked={selected.includes(d.id)}
+												checked={d.ids.every((id) => selected.includes(id))}
 												onChange={(e) =>
 													setSelected(
 														e.target.checked
-															? [...selected, d.id]
-															: selected.filter((x) => x !== d.id),
+															? [...selected, ...d.ids]
+															: selected.filter((x) => !d.ids.includes(x)),
 													)
 												}
 											/>
@@ -179,15 +223,15 @@ export function DecisionsTab({ refresh }: { refresh: () => void }) {
 												: d.type}
 										</span>
 									</td>
-									<td className={styles.sub}>{d.scenario}</td>
-									<td>{originLabel(d.origin)}</td>
+									<td className={styles.sub}>{d.scenarios.join(", ")}</td>
+									<td>{d.origins.map(originLabel).join(", ")}</td>
 									<td className="text-nowrap">{remaining(d.duration)}</td>
 									{decide && (
 										<td>
 											<button
 												type="button"
 												className="btn btn-sm btn-ghost-danger"
-												onClick={() => remove({ ids: [d.id] })}
+												onClick={() => remove({ ids: d.ids })}
 											>
 												<T id="npmos.crowdsec.unban" />
 											</button>

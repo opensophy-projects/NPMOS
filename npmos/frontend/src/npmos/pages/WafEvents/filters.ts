@@ -6,7 +6,8 @@ export const PERIODS = ["1h", "24h", "7d", "30d", "custom"] as const;
 export type Period = (typeof PERIODS)[number];
 export const KINDS = ["security", "crowdsec", "mtls", "system", "all"] as const;
 export type Kind = (typeof KINDS)[number];
-export const ACTIONS = ["Prevent", "Detect", "Accept"] as const;
+// open-appsec (Prevent, Detect, Accept), CrowdSec (decision type, an alert without one, a simulated one), mTLS
+export const ACTIONS = ["Prevent", "Detect", "Accept", "ban", "captcha", "alert", "simulated", "denied"] as const;
 export const SEVERITIES = ["Critical", "High", "Medium", "Low", "Info"] as const;
 /** list filters: comma-separated in the URL and the API */
 export const LIST_FIELDS = ["host", "ip", "action", "severity", "type"] as const;

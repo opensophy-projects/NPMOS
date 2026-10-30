@@ -18,7 +18,9 @@ export const HUB_TYPES = [
 ] as const;
 export type HubType = (typeof HUB_TYPES)[number];
 /** durations the GUI offers; the API takes any number of m, h or d */
-export const DURATIONS = ["15m", "1h", "4h", "12h", "24h", "7d", "30d"] as const;
+// 3650d is "forever": CrowdSec decisions always have a duration
+export const DURATIONS = ["15m", "1h", "4h", "12h", "24h", "7d", "30d", "3650d"] as const;
+export const FOREVER = "3650d";
 
 export interface CrowdsecProfile {
 	name: string;
@@ -254,7 +256,7 @@ export const useDecisions = (params: Parameters<typeof getDecisions>[0], options
 		...options,
 	});
 
-export const ban = (data: { values: string[]; type?: string; duration?: string; reason?: string }) =>
+export const ban = (data: { values: string[]; type?: string; duration?: string; reason?: string; replace?: boolean }) =>
 	api.post({ url: "/npmos/crowdsec/decisions", data }) as Promise<{ count: number }>;
 export const unban = (data: { ids?: number[]; values?: string[] }) =>
 	api.post({ url: "/npmos/crowdsec/decisions/delete", data }) as Promise<{ deleted: number }>;

@@ -525,13 +525,13 @@
 		"defaultMessage": "Только HTTP"
 	},
 	"lets-encrypt": {
-		"defaultMessage": "Certbot"
+		"defaultMessage": "Let's Encrypt / ACME"
 	},
 	"lets-encrypt-via-dns": {
-		"defaultMessage": "Certbot через DNS"
+		"defaultMessage": "Let's Encrypt / ACME (проверка по DNS)"
 	},
 	"lets-encrypt-via-http": {
-		"defaultMessage": "Certbot через HTTP"
+		"defaultMessage": "Let's Encrypt / ACME (проверка по HTTP)"
 	},
 	"loading": {
 		"defaultMessage": "Загрузка…"
@@ -854,8 +854,14 @@
 	"npmos.crowdsec.ban.done": {
 		"defaultMessage": "Забанено: {count}"
 	},
+	"npmos.crowdsec.ban.extend": {
+		"defaultMessage": "Продлить бан"
+	},
 	"npmos.crowdsec.ban.reason": {
 		"defaultMessage": "Причина (для журнала аудита)"
+	},
+	"npmos.crowdsec.ban.replace.hint": {
+		"defaultMessage": "Если адрес уже забанен, это решение заменит текущие, а не добавится вторым."
 	},
 	"npmos.crowdsec.ban.title": {
 		"defaultMessage": "Забанить адреса"
@@ -1100,6 +1106,9 @@
 	"npmos.crowdsec.duration.30d": {
 		"defaultMessage": "30 дней"
 	},
+	"npmos.crowdsec.duration.3650d": {
+		"defaultMessage": "Навсегда"
+	},
 	"npmos.crowdsec.duration.4h": {
 		"defaultMessage": "4 часа"
 	},
@@ -1228,6 +1237,9 @@
 	},
 	"npmos.crowdsec.left.days": {
 		"defaultMessage": "{days} дн."
+	},
+	"npmos.crowdsec.left.forever": {
+		"defaultMessage": "навсегда"
 	},
 	"npmos.crowdsec.left.hours": {
 		"defaultMessage": "{hours} ч {minutes} мин"
@@ -1628,11 +1640,20 @@
 	"npmos.events.create-exception": {
 		"defaultMessage": "Создать исключение"
 	},
+	"npmos.events.cs-banned": {
+		"defaultMessage": "CrowdSec: адрес забанен ({decision}), осталось {left}."
+	},
+	"npmos.events.cs-not-banned": {
+		"defaultMessage": "CrowdSec: активных решений по адресу нет."
+	},
 	"npmos.events.empty": {
 		"defaultMessage": "Событий с такими фильтрами нет. Здесь появляются атаки на хосты под защитой WAF."
 	},
 	"npmos.events.export": {
 		"defaultMessage": "Экспорт"
+	},
+	"npmos.events.extend-ban": {
+		"defaultMessage": "Продлить бан в CrowdSec"
 	},
 	"npmos.events.filter-by": {
 		"defaultMessage": "Показать только эти события"
@@ -4553,8 +4574,35 @@
 	"npmos.settings.events-retention": {
 		"defaultMessage": "Срок хранения событий безопасности"
 	},
+	"npmos.system.acme.custom": {
+		"defaultMessage": "Другой (URL)"
+	},
 	"npmos.system.after-restart": {
 		"defaultMessage": "после перезапуска"
+	},
+	"npmos.system.env.ACME_EAB_HMAC_KEY": {
+		"defaultMessage": "EAB: HMAC-ключ"
+	},
+	"npmos.system.env.ACME_EAB_HMAC_KEY.hint": {
+		"defaultMessage": "HMAC-ключ к этому ID. После сохранения не показывается."
+	},
+	"npmos.system.env.ACME_EAB_KID": {
+		"defaultMessage": "EAB: ID ключа"
+	},
+	"npmos.system.env.ACME_EAB_KID.hint": {
+		"defaultMessage": "Привязка внешнего аккаунта (EAB): ID ключа со страницы аккаунта центра сертификации. Для Let's Encrypt не нужен."
+	},
+	"npmos.system.env.ACME_EMAIL": {
+		"defaultMessage": "Email аккаунта ACME"
+	},
+	"npmos.system.env.ACME_EMAIL.hint": {
+		"defaultMessage": "Сюда центр сертификации присылает напоминания об истечении. Нужен для ZeroSSL и EAB."
+	},
+	"npmos.system.env.ACME_SERVER": {
+		"defaultMessage": "ACME-сервер"
+	},
+	"npmos.system.env.ACME_SERVER.hint": {
+		"defaultMessage": "Центр сертификации, который выпускает сертификаты. «Другой» — адрес directory любого ACME-сервера, в том числе в вашей сети."
 	},
 	"npmos.system.env.DEFAULT_CERT_ID": {
 		"defaultMessage": "Сертификат по умолчанию"
@@ -4700,6 +4748,12 @@
 	"npmos.system.env.auto": {
 		"defaultMessage": "Авто"
 	},
+	"npmos.system.group.acme": {
+		"defaultMessage": "ACME (Let's Encrypt и другие)"
+	},
+	"npmos.system.group.acme.hint": {
+		"defaultMessage": "Откуда берутся сертификаты «Let's Encrypt / ACME». Для Let's Encrypt больше ничего не нужно; ZeroSSL нужен email, Google Trust Services и SSL.com — ключи EAB со страницы аккаунта. Аккаунт регистрируется при первом запросе сертификата."
+	},
 	"npmos.system.group.external": {
 		"defaultMessage": "Внешние сервисы"
 	},
@@ -4762,6 +4816,9 @@
 	},
 	"npmos.system.saved": {
 		"defaultMessage": "Сохранено: применится при следующем перезапуске NPMOS"
+	},
+	"npmos.system.secret.set": {
+		"defaultMessage": "задан — введите новый, чтобы заменить"
 	},
 	"npmos.waf": {
 		"defaultMessage": "WAF"
@@ -4852,6 +4909,9 @@
 	},
 	"npmos.waf.events.matched": {
 		"defaultMessage": "Что обнаружил WAF"
+	},
+	"npmos.waf.events.matched-crowdsec": {
+		"defaultMessage": "Что обнаружил CrowdSec"
 	},
 	"npmos.waf.events.matched-location": {
 		"defaultMessage": "Где"

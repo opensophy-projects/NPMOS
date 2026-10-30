@@ -30,6 +30,67 @@ const TIME_ZONES: string[] = (() => {
 	}
 })();
 
+/** ACME servers to choose from; any other URL is entered by hand */
+const ACME_SERVERS = [
+	{ name: "Let's Encrypt", url: "https://acme-v02.api.letsencrypt.org/directory" },
+	{ name: "Let's Encrypt (staging)", url: "https://acme-staging-v02.api.letsencrypt.org/directory" },
+	{ name: "ZeroSSL", url: "https://acme.zerossl.com/v2/DV90" },
+	{ name: "Google Trust Services", url: "https://dv.acme-v02.api.pki.goog/directory" },
+	{ name: "SSL.com", url: "https://acme.ssl.com/sslcom-dv-ecc" },
+];
+// shown by the backend instead of a secret that is set
+const SECRET_SET = "********";
+const URL_FORM = /^https?:\/\/[A-Za-z0-9._~:/?&%+@-]+$/;
+const EMAIL_FORM = /^[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]{1,190}$/;
+const TOKEN_FORM = /^[A-Za-z0-9_-]{0,512}$/;
+
+function AcmeServer({
+	value,
+	disabled,
+	label,
+	onChange,
+}: {
+	value: string;
+	disabled: boolean;
+	label: string;
+	onChange: (value: string) => void;
+}) {
+	const known = ACME_SERVERS.some((s) => s.url === value);
+	const [custom, setCustom] = useState(!known);
+	return (
+		<div className={styles.acme}>
+			<select
+				className="form-select form-select-sm"
+				value={custom ? "" : value}
+				disabled={disabled}
+				aria-label={label}
+				onChange={(e) => {
+					setCustom(!e.target.value);
+					if (e.target.value) onChange(e.target.value);
+				}}
+			>
+				{ACME_SERVERS.map((s) => (
+					<option key={s.url} value={s.url}>
+						{s.name}
+					</option>
+				))}
+				<option value="">{t("npmos.system.acme.custom")}</option>
+			</select>
+			{custom && (
+				<input
+					type="url"
+					className="form-control form-control-sm"
+					placeholder="https://"
+					value={value}
+					disabled={disabled}
+					aria-label={label}
+					onChange={(e) => onChange(e.target.value.trim())}
+				/>
+			)}
+		</div>
+	);
+}
+
 export const useSystemSettings = () =>
 	useQuery({ queryKey: ["npmos-system-settings"], queryFn: getSystemSettings, refetchInterval: 15000 });
 
@@ -76,6 +137,36 @@ function Control({
 					</option>
 				))}
 			</select>
+		);
+	}
+	if (item.type === "url") {
+		return <AcmeServer value={String(value)} disabled={disabled} label={label} onChange={onChange} />;
+	}
+	if (item.type === "email" || item.type === "token") {
+		return (
+			<input
+				type={item.type === "email" ? "email" : "text"}
+				className="form-control form-control-sm"
+				autoComplete="off"
+				value={String(value)}
+				disabled={disabled}
+				aria-label={label}
+				onChange={(e) => onChange(e.target.value.trim())}
+			/>
+		);
+	}
+	if (item.type === "secret") {
+		return (
+			<input
+				type="password"
+				className="form-control form-control-sm"
+				autoComplete="new-password"
+				placeholder={value === SECRET_SET ? t("npmos.system.secret.set") : ""}
+				value={value === SECRET_SET ? "" : String(value)}
+				disabled={disabled}
+				aria-label={label}
+				onChange={(e) => onChange(e.target.value.trim() || (item.value === SECRET_SET ? SECRET_SET : ""))}
+			/>
 		);
 	}
 	if (item.type === "tz") {
@@ -147,6 +238,10 @@ const valid = (item: EnvSetting, value: EnvValue) => {
 	if (item.type === "tz")
 		return typeof value === "string" && (!TIME_ZONES.length || TIME_ZONES.includes(value) || value === "UTC");
 	if (item.type === "workers" && value === "auto") return true;
+	if (item.type === "url") return typeof value === "string" && value.length <= 512 && URL_FORM.test(value);
+	if (item.type === "email") return value === "" || (typeof value === "string" && EMAIL_FORM.test(value));
+	if (item.type === "token") return typeof value === "string" && TOKEN_FORM.test(value);
+	if (item.type === "secret") return value === SECRET_SET || (typeof value === "string" && TOKEN_FORM.test(value));
 	return (
 		Number.isInteger(value) &&
 		Number(value) >= (item.min ?? 0) &&

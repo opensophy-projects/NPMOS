@@ -7,7 +7,9 @@ import { Button } from "src/components";
 import { intl, T } from "src/locale";
 import { showError } from "src/notifications";
 import type { SecurityEvent } from "../api";
+import { useDecisions } from "../crowdsec/api";
 import { showBanModal } from "../crowdsec/BanModal";
+import { remaining } from "../crowdsec/labels";
 import { useEvent } from "../hooks";
 import { ActionBadge, EventTime, SeverityBadge } from "../pages/WafEvents/badges";
 import { getPolicyObjects } from "../policy/api";
@@ -15,6 +17,12 @@ import { showObjectModal } from "../policy/ObjectModal";
 import { useCan } from "../rbac/hooks";
 
 type FilterField = "ip" | "host";
+
+/** "3h59m55.1s" → seconds */
+const remainingSeconds = (d: string) => {
+	const m = /^(?:(\d+)h)?(?:(\d+)m)?(?:([\d.]+)s)?$/.exec(d || "");
+	return m ? Number(m[1] || 0) * 3600 + Number(m[2] || 0) * 60 + Number(m[3] || 0) : 0;
+};
 
 interface Props extends InnerModalProps {
 	event: SecurityEvent;
@@ -70,6 +78,14 @@ const WafEventModal = EasyModal.create(({ visible, remove, event: summary, onFil
 	// lists may hold only a part of the fields: the whole event once it is loaded
 	const event: SecurityEvent = { ...summary, ...full.data };
 	const matched = event.sample || event.parameter || event.location;
+	// whether CrowdSec bans the source now: "ban" again would only add a second decision
+	const csView = !!event.sourceIp && can("crowdsec", "view");
+	const decisions = useDecisions({ q: event.sourceIp || "", limit: 50 }, { enabled: csView });
+	const active = (decisions.data?.items ?? []).filter((d) => d.value === event.sourceIp);
+	const longest = active.reduce<(typeof active)[number] | null>(
+		(a, d) => (!a || remainingSeconds(d.duration) > remainingSeconds(a.duration) ? d : a),
+		null,
+	);
 	const request = [event.method, event.uri + (event.query ? `?${event.query}` : "")].filter(Boolean).join(" ");
 	const filter = (field: FilterField, value: string, label: React.ReactNode) =>
 		onFilter ? (
@@ -125,7 +141,13 @@ const WafEventModal = EasyModal.create(({ visible, remove, event: summary, onFil
 						<div className="card-status-start bg-red" />
 						<div className="card-body">
 							<h4 className="text-red">
-								<T id="npmos.waf.events.matched" />
+								<T
+									id={
+										event.kind === "crowdsec"
+											? "npmos.waf.events.matched-crowdsec"
+											: "npmos.waf.events.matched"
+									}
+								/>
 							</h4>
 							<div className="datagrid">
 								<Field label="npmos.waf.events.matched-location" value={event.location} />
@@ -151,15 +173,36 @@ const WafEventModal = EasyModal.create(({ visible, remove, event: summary, onFil
 				</pre>
 			</Modal.Body>
 			<Modal.Footer>
+				{csView && decisions.data && (
+					<span className="me-auto small text-secondary">
+						{longest ? (
+							<T
+								id="npmos.events.cs-banned"
+								data={{
+									decision: ["ban", "captcha"].includes(longest.type)
+										? intl.formatMessage({ id: `npmos.crowdsec.decision.${longest.type}` })
+										: longest.type,
+									left: remaining(longest.duration),
+								}}
+							/>
+						) : (
+							<T id="npmos.events.cs-not-banned" />
+						)}
+					</span>
+				)}
 				{event.sourceIp && can("crowdsec", "decide") && (
 					<Button
 						className="btn-outline-danger"
 						onClick={() => {
 							remove();
-							showBanModal({ values: [event.sourceIp], reason: event.incidentType || event.name });
+							showBanModal({
+								values: [event.sourceIp],
+								reason: event.incidentType || event.name,
+								extend: !!longest,
+							});
 						}}
 					>
-						<T id="npmos.events.ban-ip" />
+						<T id={longest ? "npmos.events.extend-ban" : "npmos.events.ban-ip"} />
 					</Button>
 				)}
 				{event.kind === "security" && can("waf_policy", "manage") && (

@@ -25,7 +25,11 @@ export function ActionBadge({ action }: { action: string }) {
 			className={cn(
 				"badge",
 				"text-white",
-				a === "prevent" ? "bg-red" : a === "detect" ? "bg-orange" : "bg-secondary",
+				a === "prevent" || a === "ban" || a === "denied"
+					? "bg-red"
+					: a === "detect" || a === "captcha"
+						? "bg-orange"
+						: "bg-secondary",
 			)}
 		>
 			{action}

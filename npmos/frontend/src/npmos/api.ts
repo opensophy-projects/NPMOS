@@ -117,7 +117,7 @@ export interface SecurityEvent {
 	id: string;
 	time: string;
 	/** security: an attack the WAF decided on; system: a notice of the agent */
-	kind: "security" | "system";
+	kind: "security" | "crowdsec" | "mtls" | "system";
 	name: string;
 	severity: string;
 	priority: string;

@@ -525,13 +525,13 @@
 		"defaultMessage": "HTTP Only"
 	},
 	"lets-encrypt": {
-		"defaultMessage": "Certbot"
+		"defaultMessage": "Let's Encrypt / ACME"
 	},
 	"lets-encrypt-via-dns": {
-		"defaultMessage": "Certbot via DNS"
+		"defaultMessage": "Let's Encrypt / ACME (DNS challenge)"
 	},
 	"lets-encrypt-via-http": {
-		"defaultMessage": "Certbot via HTTP"
+		"defaultMessage": "Let's Encrypt / ACME (HTTP challenge)"
 	},
 	"loading": {
 		"defaultMessage": "Loading…"
@@ -854,8 +854,14 @@
 	"npmos.crowdsec.ban.done": {
 		"defaultMessage": "Banned: {count}"
 	},
+	"npmos.crowdsec.ban.extend": {
+		"defaultMessage": "Extend the ban"
+	},
 	"npmos.crowdsec.ban.reason": {
 		"defaultMessage": "Reason (for the audit log)"
+	},
+	"npmos.crowdsec.ban.replace.hint": {
+		"defaultMessage": "An address that is banned already gets this decision instead of its current ones, not a second one."
 	},
 	"npmos.crowdsec.ban.title": {
 		"defaultMessage": "Ban addresses"
@@ -1100,6 +1106,9 @@
 	"npmos.crowdsec.duration.30d": {
 		"defaultMessage": "30 days"
 	},
+	"npmos.crowdsec.duration.3650d": {
+		"defaultMessage": "Forever"
+	},
 	"npmos.crowdsec.duration.4h": {
 		"defaultMessage": "4 hours"
 	},
@@ -1228,6 +1237,9 @@
 	},
 	"npmos.crowdsec.left.days": {
 		"defaultMessage": "{days} d"
+	},
+	"npmos.crowdsec.left.forever": {
+		"defaultMessage": "forever"
 	},
 	"npmos.crowdsec.left.hours": {
 		"defaultMessage": "{hours} h {minutes} min"
@@ -1628,11 +1640,20 @@
 	"npmos.events.create-exception": {
 		"defaultMessage": "Create exception"
 	},
+	"npmos.events.cs-banned": {
+		"defaultMessage": "CrowdSec: the address is banned ({decision}), {left} left."
+	},
+	"npmos.events.cs-not-banned": {
+		"defaultMessage": "CrowdSec: the address has no active decision."
+	},
 	"npmos.events.empty": {
 		"defaultMessage": "No events for these filters. Attacks on hosts protected by the WAF appear here."
 	},
 	"npmos.events.export": {
 		"defaultMessage": "Export"
+	},
+	"npmos.events.extend-ban": {
+		"defaultMessage": "Extend the ban in CrowdSec"
 	},
 	"npmos.events.filter-by": {
 		"defaultMessage": "Show only these events"
@@ -4553,8 +4574,35 @@
 	"npmos.settings.events-retention": {
 		"defaultMessage": "Retention of security events"
 	},
+	"npmos.system.acme.custom": {
+		"defaultMessage": "Other (URL)"
+	},
 	"npmos.system.after-restart": {
 		"defaultMessage": "after restart"
+	},
+	"npmos.system.env.ACME_EAB_HMAC_KEY": {
+		"defaultMessage": "EAB HMAC key"
+	},
+	"npmos.system.env.ACME_EAB_HMAC_KEY.hint": {
+		"defaultMessage": "The HMAC key that goes with the key ID. Not shown after saving."
+	},
+	"npmos.system.env.ACME_EAB_KID": {
+		"defaultMessage": "EAB key ID"
+	},
+	"npmos.system.env.ACME_EAB_KID.hint": {
+		"defaultMessage": "External account binding: the key ID from the account page of the authority. Empty for Let's Encrypt."
+	},
+	"npmos.system.env.ACME_EMAIL": {
+		"defaultMessage": "Email of the ACME account"
+	},
+	"npmos.system.env.ACME_EMAIL.hint": {
+		"defaultMessage": "Expiry notices of the authority go here. Needed for ZeroSSL and EAB."
+	},
+	"npmos.system.env.ACME_SERVER": {
+		"defaultMessage": "ACME server"
+	},
+	"npmos.system.env.ACME_SERVER.hint": {
+		"defaultMessage": "The certificate authority that issues certificates. \"Other\" takes the directory URL of any ACME server, also one in your own network."
 	},
 	"npmos.system.env.DEFAULT_CERT_ID": {
 		"defaultMessage": "Default certificate"
@@ -4700,6 +4748,12 @@
 	"npmos.system.env.auto": {
 		"defaultMessage": "Auto"
 	},
+	"npmos.system.group.acme": {
+		"defaultMessage": "ACME (Let's Encrypt and others)"
+	},
+	"npmos.system.group.acme.hint": {
+		"defaultMessage": "Where certificates of \"Let's Encrypt / ACME\" come from. Let's Encrypt needs nothing else; ZeroSSL needs an email, Google Trust Services and SSL.com need EAB keys from their account page. The account is registered at the first certificate request."
+	},
 	"npmos.system.group.external": {
 		"defaultMessage": "External services"
 	},
@@ -4762,6 +4816,9 @@
 	},
 	"npmos.system.saved": {
 		"defaultMessage": "Saved: applied at the next restart of NPMOS"
+	},
+	"npmos.system.secret.set": {
+		"defaultMessage": "set — enter a new one to replace it"
 	},
 	"npmos.waf": {
 		"defaultMessage": "WAF"
@@ -4852,6 +4909,9 @@
 	},
 	"npmos.waf.events.matched": {
 		"defaultMessage": "What the WAF matched"
+	},
+	"npmos.waf.events.matched-crowdsec": {
+		"defaultMessage": "What CrowdSec detected"
 	},
 	"npmos.waf.events.matched-location": {
 		"defaultMessage": "Location"

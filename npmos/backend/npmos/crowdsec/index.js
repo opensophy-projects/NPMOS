@@ -396,9 +396,10 @@ const internalCrowdsec = {
 	},
 
 	/**
-	 * Ban (or captcha) by hand, one or many addresses.
+	 * Ban (or captcha) by hand, one or many addresses. replace: the decisions the addresses already
+	 * have go first, so that an address has one decision (a longer ban, not a second one).
 	 * @param {Access} access
-	 * @param {{values: string[], type?: string, duration?: string, reason?: string}} data
+	 * @param {{values: string[], type?: string, duration?: string, reason?: string, replace?: boolean}} data
 	 */
 	ban: async (access, data) => {
 		await access.can("crowdsec:decide");
@@ -410,6 +411,12 @@ const internalCrowdsec = {
 			durationMinutes(duration);
 			const reason = String(data.reason || "").slice(0, 200);
 			const user = access.token.getUserId(0);
+			if (data.replace) {
+				if (list.length > 100) throw new errs.ValidationError("Replace works for up to 100 addresses");
+				for (const value of list) {
+					await lapi.deleteDecisions(value.includes("/") ? { range: value } : { ip: value });
+				}
+			}
 			for (let i = 0; i < list.length; i += 1000) {
 				await lapi.pushDecisions({
 					scenario: "npmos/manual",

@@ -14,6 +14,8 @@ export const remaining = (d: string) => {
 	if (!m) return d;
 	const h = Number(m[1] || 0);
 	const min = Number(m[2] || 0);
+	// a ban "forever" (3650d) has years left
+	if (h >= 24 * 365 * 5) return t("npmos.crowdsec.left.forever");
 	if (h >= 48) return t("npmos.crowdsec.left.days", { days: Math.floor(h / 24) });
 	if (h > 0) return t("npmos.crowdsec.left.hours", { hours: h, minutes: min });
 	if (min > 0) return t("npmos.crowdsec.left.minutes", { minutes: min });
