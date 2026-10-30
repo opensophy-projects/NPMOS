@@ -21,6 +21,13 @@
 	margin: 0;
 	padding: 1rem 1.125rem;
 }
+/* a table spans the surface of the card edge to edge: its header band and row lines are not cut by the padding */
+.card > :global(.table-responsive) {
+	margin-inline: calc(var(--os-frame) + 1px - 1.125rem);
+}
+.card > :global(.table-responsive:last-child) {
+	margin-bottom: calc(var(--os-frame) + 1px - 1rem);
+}
 .cardHead {
 	display: flex;
 	align-items: center;

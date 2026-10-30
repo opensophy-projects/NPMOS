@@ -1,4 +1,5 @@
 // NPMOS API client (/api/npmos/*), see npmos/backend/npmos/routes.js
+import type { AuditLog } from "src/api/backend";
 import * as api from "src/api/backend/base";
 import type { HostObjects } from "./policy/api";
 
@@ -177,6 +178,23 @@ export const downloadEvents = (params: EventQuery, format: "csv" | "json") =>
 	api.download(
 		{ url: "/npmos/events/export", params: { ...params, format } },
 		`npmos-events-${new Date().toISOString().slice(0, 19).replaceAll(":", "-")}.${format}`,
+	);
+
+/** a page of the audit log (/npmos/audit), with the values the filters offer */
+export interface AuditPage {
+	items: AuditLog[];
+	total: number;
+	limit: number;
+	offset: number;
+	facets: { actions: string[]; objects: string[]; users: { id: number; name: string }[] };
+}
+
+export const getAudit = (params: EventQuery) => api.get({ url: "/npmos/audit", params }) as Promise<AuditPage>;
+
+export const downloadAudit = (params: EventQuery, format: "csv" | "json") =>
+	api.download(
+		{ url: "/npmos/audit/export", params: { ...params, format } },
+		`npmos-audit-${new Date().toISOString().slice(0, 19).replaceAll(":", "-")}.${format}`,
 	);
 
 export type AnalyticsPeriod = "1h" | "24h" | "7d" | "30d";

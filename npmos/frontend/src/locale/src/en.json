@@ -701,6 +701,72 @@
 	"npmos.analytics.top-uris": {
 		"defaultMessage": "Most attacked URIs"
 	},
+	"npmos.audit.action.applied": {
+		"defaultMessage": "Applied"
+	},
+	"npmos.audit.action.banned": {
+		"defaultMessage": "Banned"
+	},
+	"npmos.audit.action.captcha": {
+		"defaultMessage": "Captcha"
+	},
+	"npmos.audit.action.created": {
+		"defaultMessage": "Created"
+	},
+	"npmos.audit.action.deleted": {
+		"defaultMessage": "Deleted"
+	},
+	"npmos.audit.action.disabled": {
+		"defaultMessage": "Disabled"
+	},
+	"npmos.audit.action.enabled": {
+		"defaultMessage": "Enabled"
+	},
+	"npmos.audit.action.exported": {
+		"defaultMessage": "Exported"
+	},
+	"npmos.audit.action.imported": {
+		"defaultMessage": "Imported"
+	},
+	"npmos.audit.action.installed": {
+		"defaultMessage": "Installed"
+	},
+	"npmos.audit.action.regenerated": {
+		"defaultMessage": "Regenerated"
+	},
+	"npmos.audit.action.removed": {
+		"defaultMessage": "Removed"
+	},
+	"npmos.audit.action.renewed": {
+		"defaultMessage": "Renewed"
+	},
+	"npmos.audit.action.restarted": {
+		"defaultMessage": "Restarted"
+	},
+	"npmos.audit.action.revoked": {
+		"defaultMessage": "Revoked"
+	},
+	"npmos.audit.action.unbanned": {
+		"defaultMessage": "Unbanned"
+	},
+	"npmos.audit.action.updated": {
+		"defaultMessage": "Updated"
+	},
+	"npmos.audit.description": {
+		"defaultMessage": "Who changed what and when. Every page is loaded from the server; search covers the whole log."
+	},
+	"npmos.audit.empty": {
+		"defaultMessage": "No entries match the filters"
+	},
+	"npmos.audit.filter.action": {
+		"defaultMessage": "Action"
+	},
+	"npmos.audit.filter.object": {
+		"defaultMessage": "Object"
+	},
+	"npmos.audit.filter.user": {
+		"defaultMessage": "User"
+	},
 	"npmos.audit.name.agent": {
 		"defaultMessage": "WAF agent settings"
 	},
@@ -718,6 +784,30 @@
 	},
 	"npmos.audit.name.waf": {
 		"defaultMessage": "WAF (open-appsec)"
+	},
+	"npmos.audit.page": {
+		"defaultMessage": "Page {page} of {pages}"
+	},
+	"npmos.audit.period.24h": {
+		"defaultMessage": "24 h"
+	},
+	"npmos.audit.period.30d": {
+		"defaultMessage": "30 days"
+	},
+	"npmos.audit.period.7d": {
+		"defaultMessage": "7 days"
+	},
+	"npmos.audit.period.90d": {
+		"defaultMessage": "90 days"
+	},
+	"npmos.audit.period.all": {
+		"defaultMessage": "All time"
+	},
+	"npmos.audit.search": {
+		"defaultMessage": "Search by object, details or user"
+	},
+	"npmos.audit.total": {
+		"defaultMessage": "{total, plural, one {# entry} other {# entries}}"
 	},
 	"npmos.certificates.mtls": {
 		"defaultMessage": "mTLS CA"

@@ -2,10 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 import {
 	type Analytics,
 	type AnalyticsPeriod,
+	type AuditPage,
 	type EventQuery,
 	type EventsPage,
 	type EventsSettings,
 	getAnalytics,
+	getAudit,
 	getEvent,
 	getEvents,
 	getEventsSettings,
@@ -108,6 +110,13 @@ export const useEvents = (query: EventQuery, follow: boolean, options = {}) =>
 		refetchInterval: follow ? 5000 : false,
 		placeholderData: (previous) => previous,
 		...options,
+	});
+
+export const useAudit = (query: EventQuery) =>
+	useQuery<AuditPage, Error>({
+		queryKey: ["npmos-audit", query],
+		queryFn: () => getAudit(query),
+		placeholderData: (previous) => previous,
 	});
 
 export const useEvent = (id: string, time: string) =>

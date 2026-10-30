@@ -5,6 +5,7 @@ import errs from "../lib/error.js";
 import jwtdecode from "../lib/express/jwt-decode.js";
 import validator from "../lib/validator/api.js";
 import { debug, express as logger } from "../logger.js";
+import internalAudit from "./audit/index.js";
 import internalCrowdsec from "./crowdsec/index.js";
 import internalAnalytics from "./events/analytics.js";
 import internalEvents from "./events/index.js";
@@ -868,6 +869,48 @@ router
 				return;
 			}
 			const lines = [CSV_COLUMNS.join(","), ...rows.map((r) => CSV_COLUMNS.map((c) => csvCell(r[c])).join(","))];
+			res.set("Content-Disposition", `attachment; filename="${name}.csv"`);
+			res.type("text/csv").send(`\ufeff${lines.join("\r\n")}\r\n`);
+		} catch (err) {
+			debug(logger, `${req.method.toUpperCase()} ${req.originalUrl}: ${err}`);
+			next(err);
+		}
+	});
+
+/**
+ * GET /api/npmos/audit — a page of the audit log, newest first. Filters: period=24h|7d|30d|90d or from/to (ISO),
+ * action, object, user (comma-separated), q (text); limit (≤ 200), offset
+ */
+router
+	.route("/audit")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((req, res) => internalAudit.list(res.locals.access, req.query)));
+
+const AUDIT_CSV_COLUMNS = ["created_on", "user", "action", "object_type", "object_id", "meta", "id"];
+
+/**
+ * GET /api/npmos/audit/export?format=csv|json&<filters of /audit> — up to 100 000 entries
+ */
+router
+	.route("/audit/export")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(async (req, res, next) => {
+		try {
+			const { rows, capped } = await internalAudit.export(res.locals.access, req.query);
+			const name = `npmos-audit-${new Date().toISOString().slice(0, 19).replaceAll(":", "-")}`;
+			res.set("X-NPMOS-Export-Capped", String(capped));
+			if (req.query.format === "json") {
+				res.set("Content-Disposition", `attachment; filename="${name}.json"`);
+				res.type("application/json").send(JSON.stringify(rows, null, 2));
+				return;
+			}
+			const cell = (r, c) => (c === "user" ? r.user?.email : c === "meta" ? JSON.stringify(r.meta ?? {}) : r[c]);
+			const lines = [
+				AUDIT_CSV_COLUMNS.join(","),
+				...rows.map((r) => AUDIT_CSV_COLUMNS.map((c) => csvCell(cell(r, c))).join(",")),
+			];
 			res.set("Content-Disposition", `attachment; filename="${name}.csv"`);
 			res.type("text/csv").send(`\ufeff${lines.join("\r\n")}\r\n`);
 		} catch (err) {

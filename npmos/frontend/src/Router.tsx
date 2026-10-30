@@ -15,7 +15,8 @@ const Roles = lazy(() => import("src/npmos/pages/Roles"));
 const Settings = lazy(() => import("src/pages/Settings"));
 const Certificates = lazy(() => import("src/pages/Certificates"));
 const Access = lazy(() => import("src/pages/Access"));
-const AuditLog = lazy(() => import("src/pages/AuditLog"));
+// NPMOS: the audit log with pages from the server and filters (src/npmos/pages/AuditLog)
+const AuditLog = lazy(() => import("src/npmos/pages/AuditLog"));
 const Users = lazy(() => import("src/pages/Users"));
 // NPMOS: proxy, redirection, stream and 404 hosts are one table (src/npmos/pages/Hosts)
 const Hosts = lazy(() => import("src/npmos/pages/Hosts"));

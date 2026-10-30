@@ -701,6 +701,72 @@
 	"npmos.analytics.top-uris": {
 		"defaultMessage": "Самые атакуемые URI"
 	},
+	"npmos.audit.action.applied": {
+		"defaultMessage": "Применение"
+	},
+	"npmos.audit.action.banned": {
+		"defaultMessage": "Бан"
+	},
+	"npmos.audit.action.captcha": {
+		"defaultMessage": "Капча"
+	},
+	"npmos.audit.action.created": {
+		"defaultMessage": "Создание"
+	},
+	"npmos.audit.action.deleted": {
+		"defaultMessage": "Удаление"
+	},
+	"npmos.audit.action.disabled": {
+		"defaultMessage": "Отключение"
+	},
+	"npmos.audit.action.enabled": {
+		"defaultMessage": "Включение"
+	},
+	"npmos.audit.action.exported": {
+		"defaultMessage": "Экспорт"
+	},
+	"npmos.audit.action.imported": {
+		"defaultMessage": "Импорт"
+	},
+	"npmos.audit.action.installed": {
+		"defaultMessage": "Установка"
+	},
+	"npmos.audit.action.regenerated": {
+		"defaultMessage": "Пересоздание"
+	},
+	"npmos.audit.action.removed": {
+		"defaultMessage": "Удаление из списка"
+	},
+	"npmos.audit.action.renewed": {
+		"defaultMessage": "Продление"
+	},
+	"npmos.audit.action.restarted": {
+		"defaultMessage": "Перезапуск"
+	},
+	"npmos.audit.action.revoked": {
+		"defaultMessage": "Отзыв"
+	},
+	"npmos.audit.action.unbanned": {
+		"defaultMessage": "Снятие бана"
+	},
+	"npmos.audit.action.updated": {
+		"defaultMessage": "Изменение"
+	},
+	"npmos.audit.description": {
+		"defaultMessage": "Кто, что и когда изменил. Страницы загружаются с сервера, поиск идёт по всему журналу."
+	},
+	"npmos.audit.empty": {
+		"defaultMessage": "Нет записей под эти фильтры"
+	},
+	"npmos.audit.filter.action": {
+		"defaultMessage": "Действие"
+	},
+	"npmos.audit.filter.object": {
+		"defaultMessage": "Объект"
+	},
+	"npmos.audit.filter.user": {
+		"defaultMessage": "Пользователь"
+	},
 	"npmos.audit.name.agent": {
 		"defaultMessage": "Настройки агента WAF"
 	},
@@ -718,6 +784,30 @@
 	},
 	"npmos.audit.name.waf": {
 		"defaultMessage": "WAF (open-appsec)"
+	},
+	"npmos.audit.page": {
+		"defaultMessage": "Страница {page} из {pages}"
+	},
+	"npmos.audit.period.24h": {
+		"defaultMessage": "24 ч"
+	},
+	"npmos.audit.period.30d": {
+		"defaultMessage": "30 дней"
+	},
+	"npmos.audit.period.7d": {
+		"defaultMessage": "7 дней"
+	},
+	"npmos.audit.period.90d": {
+		"defaultMessage": "90 дней"
+	},
+	"npmos.audit.period.all": {
+		"defaultMessage": "Всё время"
+	},
+	"npmos.audit.search": {
+		"defaultMessage": "Поиск по объекту, деталям или пользователю"
+	},
+	"npmos.audit.total": {
+		"defaultMessage": "{total, plural, one {# запись} few {# записи} many {# записей} other {# записи}}"
 	},
 	"npmos.certificates.mtls": {
 		"defaultMessage": "CA для mTLS"
