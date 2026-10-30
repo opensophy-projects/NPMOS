@@ -296,7 +296,10 @@ function OverviewPage() {
 				)}
 
 				{(rbac("waf_policy") || rbac("crowdsec")) && (
-					<Panel title={<T id="npmos.nav.agents" />} link={rbac("waf_policy") ? "/waf/agent" : "/crowdsec"}>
+					<Panel
+						title={<T id="npmos.nav.agents" />}
+						link={rbac("waf_policy") ? "/agents/open-appsec?tab=agent" : "/crowdsec"}
+					>
 						{rbac("waf_policy") && (
 							<>
 								<Line

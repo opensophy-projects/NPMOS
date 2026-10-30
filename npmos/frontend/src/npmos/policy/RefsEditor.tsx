@@ -2,6 +2,7 @@
 // objects of a host (WAF settings of the host). Lists are checkboxes, single objects a select.
 import { intl, T } from "src/locale";
 import { type PolicyObject, RULE_FIELDS, type RuleRefs } from "./api";
+import { objectTitle } from "./names";
 
 const t = (id: string) => intl.formatMessage({ id });
 
@@ -46,7 +47,14 @@ export function RefsEditor({
 													})
 												}
 											/>
-											<span className="form-check-label font-monospace">{o.name}</span>
+											<span className="form-check-label">
+												{objectTitle(o)}
+												{o.builtin && (
+													<span className="text-secondary font-monospace small ms-2">
+														{o.name}
+													</span>
+												)}
+											</span>
 										</label>
 									);
 								})
@@ -68,7 +76,7 @@ export function RefsEditor({
 								<option value="">{t("npmos.policy.none")}</option>
 								{options.map((o) => (
 									<option key={o.id} value={o.id}>
-										{o.name}
+										{o.builtin ? `${objectTitle(o)} (${o.name})` : o.name}
 									</option>
 								))}
 							</select>

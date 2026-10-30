@@ -77,9 +77,13 @@ export const navigation: NavItem[] = [
 		id: "agents",
 		label: "npmos.nav.agents",
 		tabs: [
-			{ id: "waf-policy", label: "npmos.nav.waf-policy", to: "/waf/policy", rbac: "waf_policy" },
-			{ id: "waf-expert", label: "npmos.waf.expert", to: "/waf/expert", rbac: "waf_policy" },
-			{ id: "waf-agent", label: "npmos.waf.agent", to: "/waf/agent", rbac: "waf_policy" },
+			// one page per agent: its policies (GUI or code) and the agent itself
+			{
+				id: "agent-openappsec",
+				label: "npmos.nav.agent-openappsec",
+				to: "/agents/open-appsec",
+				rbac: "waf_policy",
+			},
 			{ id: "crowdsec", label: "npmos.crowdsec", to: "/crowdsec", rbac: "crowdsec" },
 		],
 	},

@@ -319,7 +319,11 @@ const importPlan = (content, objects) => {
 				withIncoming,
 				o.id ?? withIncoming.find((w) => w.name === o.name && w.kind === o.kind).id,
 			);
-			(o.id ? plan.update : plan.create).push({ ...checked, id: o.id });
+			if (!o.id) plan.create.push({ ...checked, id: o.id });
+			// an object the document leaves as it is is not an update
+			else if (JSON.stringify(checked.spec) !== JSON.stringify(objects.find((x) => x.id === o.id)?.spec)) {
+				plan.update.push({ ...checked, id: o.id });
+			}
 		} catch (err) {
 			plan.errors.push(err.message);
 		}

@@ -22,12 +22,11 @@ const Users = lazy(() => import("src/pages/Users"));
 const Hosts = lazy(() => import("src/npmos/pages/Hosts"));
 // NPMOS: our pages live in src/npmos/pages
 const Services = lazy(() => import("src/npmos/pages/Services"));
-const WafAgent = lazy(() => import("src/npmos/pages/WafAgent"));
 const WafEvents = lazy(() => import("src/npmos/pages/WafEvents"));
 const WafAnalytics = lazy(() => import("src/npmos/pages/WafAnalytics"));
 const Notifications = lazy(() => import("src/npmos/pages/Notifications"));
-const WafPolicy = lazy(() => import("src/npmos/pages/WafPolicy"));
-const WafExpert = lazy(() => import("src/npmos/pages/WafExpert"));
+// NPMOS: one page per agent: its policies (GUI or code) and the agent itself
+const AgentOpenappsec = lazy(() => import("src/npmos/pages/AgentOpenappsec"));
 const Pki = lazy(() => import("src/npmos/pages/Pki"));
 const Mtls = lazy(() => import("src/npmos/pages/Mtls"));
 const Crowdsec = lazy(() => import("src/npmos/pages/Crowdsec"));
@@ -85,11 +84,13 @@ function Router() {
 						<Route path="/pki" element={<Pki />} />
 						<Route path="/mtls" element={<Mtls />} />
 						<Route path="/crowdsec" element={<Crowdsec />} />
-						<Route path="/waf/agent" element={<WafAgent />} />
+						<Route path="/agents/open-appsec" element={<AgentOpenappsec />} />
+						{/* the pages of before open their place on the page of the agent */}
+						<Route path="/waf/agent" element={<Navigate to="/agents/open-appsec?tab=agent" replace />} />
 						<Route path="/waf/events" element={<WafEvents />} />
 						<Route path="/waf/analytics" element={<WafAnalytics />} />
-						<Route path="/waf/policy" element={<WafPolicy />} />
-						<Route path="/waf/expert" element={<WafExpert />} />
+						<Route path="/waf/policy" element={<Navigate to="/agents/open-appsec" replace />} />
+						<Route path="/waf/expert" element={<Navigate to="/agents/open-appsec?item=expert" replace />} />
 						<Route path="/" element={<Overview />} />
 					</Routes>
 				</Suspense>

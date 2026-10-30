@@ -644,6 +644,60 @@
 	"npmos.access.search": {
 		"defaultMessage": "Поиск по названию"
 	},
+	"npmos.agent.default.hint": {
+		"defaultMessage": "Действует на все хосты без своей политики: режим и блоки, которые использует агент."
+	},
+	"npmos.agent.group.blocks": {
+		"defaultMessage": "Блоки политики"
+	},
+	"npmos.agent.group.more": {
+		"defaultMessage": "Ещё"
+	},
+	"npmos.agent.group.policies": {
+		"defaultMessage": "Политики"
+	},
+	"npmos.agent.host.hint": {
+		"defaultMessage": "Политика этого хоста: проверяет ли его WAF, насколько строго и какие блоки, если они отличаются от базовой политики."
+	},
+	"npmos.agent.host.none": {
+		"defaultMessage": "Хост удалён."
+	},
+	"npmos.agent.host.saved": {
+		"defaultMessage": "Политика {name} сохранена"
+	},
+	"npmos.agent.item.expert": {
+		"defaultMessage": "Дополнения YAML"
+	},
+	"npmos.agent.item.expert.hint": {
+		"defaultMessage": "Фрагменты local_policy.yaml поверх того, что генерирует NPMOS: для того, для чего в интерфейсе нет поля."
+	},
+	"npmos.agent.item.versions": {
+		"defaultMessage": "Версии"
+	},
+	"npmos.agent.item.versions.hint": {
+		"defaultMessage": "Каждое изменение политики сохраняется; любую версию можно вернуть."
+	},
+	"npmos.agent.openappsec.description": {
+		"defaultMessage": "WAF хостов на машинном обучении: его политики (базовая и политики хостов, собранные из блоков) и сам агент."
+	},
+	"npmos.agent.policies": {
+		"defaultMessage": "Из чего состоит политика"
+	},
+	"npmos.agent.tab.agent": {
+		"defaultMessage": "Агент"
+	},
+	"npmos.agent.tab.policies": {
+		"defaultMessage": "Политики"
+	},
+	"npmos.agent.view": {
+		"defaultMessage": "Вид"
+	},
+	"npmos.agent.view.code": {
+		"defaultMessage": "Код"
+	},
+	"npmos.agent.view.gui": {
+		"defaultMessage": "Интерфейс"
+	},
 	"npmos.analytics": {
 		"defaultMessage": "Аналитика"
 	},
@@ -1033,6 +1087,51 @@
 	},
 	"npmos.certs.used.yes": {
 		"defaultMessage": "Используется хостами"
+	},
+	"npmos.code.applied": {
+		"defaultMessage": "Применено"
+	},
+	"npmos.code.apply": {
+		"defaultMessage": "Применить"
+	},
+	"npmos.code.check": {
+		"defaultMessage": "Проверить"
+	},
+	"npmos.code.check-first": {
+		"defaultMessage": "Перед применением проверьте документ"
+	},
+	"npmos.code.hint.default": {
+		"defaultMessage": "Вся политика: базовая (policies.default) и все блоки администратора. Блоки, которых здесь нет, сохраняются."
+	},
+	"npmos.code.hint.host": {
+		"defaultMessage": "Политика хоста. Блоки называются так же, как в списке слева; без objects берутся блоки базовой политики."
+	},
+	"npmos.code.hint.kind": {
+		"defaultMessage": "Блоки этого вида, созданные администратором. Изменённый обновится, новый создастся; встроенные — только для чтения."
+	},
+	"npmos.code.import.create": {
+		"defaultMessage": "Новые: {names}."
+	},
+	"npmos.code.import.policy": {
+		"defaultMessage": "Базовая политика будет заменена."
+	},
+	"npmos.code.import.skipped": {
+		"defaultMessage": "Пропущены (встроенные): {names}."
+	},
+	"npmos.code.import.update": {
+		"defaultMessage": "Изменённые: {names}."
+	},
+	"npmos.code.ready": {
+		"defaultMessage": "Проверено: можно применять"
+	},
+	"npmos.code.reset": {
+		"defaultMessage": "Отменить изменения"
+	},
+	"npmos.code.review": {
+		"defaultMessage": "Изменения"
+	},
+	"npmos.code.unchanged": {
+		"defaultMessage": "Изменений нет"
 	},
 	"npmos.common.close": {
 		"defaultMessage": "Закрыть"
@@ -3095,6 +3194,9 @@
 	"npmos.nav.administration": {
 		"defaultMessage": "Администрирование"
 	},
+	"npmos.nav.agent-openappsec": {
+		"defaultMessage": "open-appsec"
+	},
 	"npmos.nav.agents": {
 		"defaultMessage": "Агенты"
 	},
@@ -4250,6 +4352,48 @@
 	"npmos.policy.builtin-readonly": {
 		"defaultMessage": "Встроенный объект NPMOS: обновляется вместе с NPMOS и не редактируется. Сделайте копию, чтобы изменить."
 	},
+	"npmos.policy.builtin.npmos-403": {
+		"defaultMessage": "Ответ: код 403"
+	},
+	"npmos.policy.builtin.npmos-403.hint": {
+		"defaultMessage": "Заблокированный запрос получает 403 и страницу блокировки NPMOS"
+	},
+	"npmos.policy.builtin.npmos-api": {
+		"defaultMessage": "Защита от атак: API"
+	},
+	"npmos.policy.builtin.npmos-api.hint": {
+		"defaultMessage": "Для JSON API: дополнительно отклоняет недопустимые HTTP-методы"
+	},
+	"npmos.policy.builtin.npmos-block-page": {
+		"defaultMessage": "Ответ: страница блокировки агента"
+	},
+	"npmos.policy.builtin.npmos-block-page.hint": {
+		"defaultMessage": "Страница open-appsec с заголовком и текстом"
+	},
+	"npmos.policy.builtin.npmos-log": {
+		"defaultMessage": "Журналирование: атаки в NPMOS"
+	},
+	"npmos.policy.builtin.npmos-log.hint": {
+		"defaultMessage": "Обнаруженные и заблокированные запросы пишутся в журнал, который читает NPMOS (События); в облако ничего не уходит"
+	},
+	"npmos.policy.builtin.npmos-no-rate-limit": {
+		"defaultMessage": "Без ограничения запросов"
+	},
+	"npmos.policy.builtin.npmos-no-rate-limit.hint": {
+		"defaultMessage": "Число запросов от клиента не ограничивается"
+	},
+	"npmos.policy.builtin.npmos-recommended": {
+		"defaultMessage": "Защита от атак: рекомендуемая"
+	},
+	"npmos.policy.builtin.npmos-recommended.hint": {
+		"defaultMessage": "Проверка веб-атак машинным обучением с обычными лимитами; подходит большинству сайтов"
+	},
+	"npmos.policy.builtin.npmos-strict": {
+		"defaultMessage": "Защита от атак: строгая"
+	},
+	"npmos.policy.builtin.npmos-strict.hint": {
+		"defaultMessage": "Блокирует с меньшей уверенности и проверяет больше: меньше пропусков, больше ложных срабатываний"
+	},
 	"npmos.policy.condition.add": {
 		"defaultMessage": "Добавить условие"
 	},
@@ -4272,10 +4416,10 @@
 		"defaultMessage": "Средняя"
 	},
 	"npmos.policy.default": {
-		"defaultMessage": "Политика по умолчанию"
+		"defaultMessage": "Базовая политика"
 	},
 	"npmos.policy.default.hint": {
-		"defaultMessage": "Действует для запросов к хостам без WAF и для всего, что хост не задаёт сам. Исключения политики по умолчанию действуют на все хосты."
+		"defaultMessage": "Действует для запросов к хостам без WAF и для всего, что хост не задаёт сам. Исключения базовой политики действуют на все хосты."
 	},
 	"npmos.policy.default.mode-hint": {
 		"defaultMessage": "Обычно «неактивен»: WAF включается в настройках каждого хоста."
@@ -4470,7 +4614,7 @@
 		"defaultMessage": "local_policy.yaml open-appsec (v1beta1 или v1beta2) или экспорт NPMOS. Импортируются объекты и политика по умолчанию; объекты с тем же именем обновляются, встроенные не меняются."
 	},
 	"npmos.policy.import.policy": {
-		"defaultMessage": "Политика по умолчанию будет заменена."
+		"defaultMessage": "Базовая политика будет заменена."
 	},
 	"npmos.policy.import.rules": {
 		"defaultMessage": "Правила хостов из файла ({count}) не импортируются: хосты выбирают объекты в своих настройках WAF."
@@ -4554,25 +4698,46 @@
 		"defaultMessage": "Источники, чей трафик быстрее обучает ML-модель."
 	},
 	"npmos.policy.kinds.access_control": {
-		"defaultMessage": "Ограничения частоты"
+		"defaultMessage": "Ограничение запросов"
+	},
+	"npmos.policy.kinds.access_control.hint": {
+		"defaultMessage": "Сколько запросов в минуту клиент может отправить на путь; лишние блокируются или только записываются."
 	},
 	"npmos.policy.kinds.custom_response": {
-		"defaultMessage": "Ответы"
+		"defaultMessage": "Ответ на блокировку"
+	},
+	"npmos.policy.kinds.custom_response.hint": {
+		"defaultMessage": "Что получает заблокированный посетитель: код ответа, страницу блокировки или переадресацию."
 	},
 	"npmos.policy.kinds.exception": {
 		"defaultMessage": "Исключения"
 	},
+	"npmos.policy.kinds.exception.hint": {
+		"defaultMessage": "Запросы, которые агент пропускает или всегда блокирует: по IP, пути, параметру, типу атаки, стране."
+	},
 	"npmos.policy.kinds.log_trigger": {
 		"defaultMessage": "Журналирование"
 	},
+	"npmos.policy.kinds.log_trigger.hint": {
+		"defaultMessage": "Что агент записывает: заблокированные и обнаруженные запросы, разрешённые, тела запросов. NPMOS читает это в «События»."
+	},
 	"npmos.policy.kinds.source_identifiers": {
-		"defaultMessage": "Идентификаторы"
+		"defaultMessage": "Как узнать клиента"
+	},
+	"npmos.policy.kinds.source_identifiers.hint": {
+		"defaultMessage": "Как агент различает клиентов за прокси: по заголовку, cookie или полю JWT вместо IP-адреса."
 	},
 	"npmos.policy.kinds.threat_prevention": {
-		"defaultMessage": "Практики"
+		"defaultMessage": "Защита от атак"
+	},
+	"npmos.policy.kinds.threat_prevention.hint": {
+		"defaultMessage": "Как агент ищет атаки (SQL-инъекции, XSS, внедрение команд и т. п.) и насколько должен быть уверен, чтобы заблокировать (практики open-appsec)."
 	},
 	"npmos.policy.kinds.trusted_sources": {
 		"defaultMessage": "Доверенные источники"
+	},
+	"npmos.policy.kinds.trusted_sources.hint": {
+		"defaultMessage": "Клиенты, на чьём трафике агент учится как на нормальном (офис, система мониторинга)."
 	},
 	"npmos.policy.mode.detect": {
 		"defaultMessage": "Обнаруживать"
@@ -4722,7 +4887,7 @@
 		"defaultMessage": "Создан: {kind} {name}"
 	},
 	"npmos.policy.version.default-policy": {
-		"defaultMessage": "Политика по умолчанию"
+		"defaultMessage": "Базовая политика"
 	},
 	"npmos.policy.version.deleted": {
 		"defaultMessage": "Удалён: {kind} {name}"
@@ -5613,10 +5778,10 @@
 		"defaultMessage": "Свои объекты"
 	},
 	"npmos.waf.host-policy.default": {
-		"defaultMessage": "Как в политике по умолчанию"
+		"defaultMessage": "Как в базовой политике"
 	},
 	"npmos.waf.host-policy.hint": {
-		"defaultMessage": "Практики, ограничения частоты, ответ и исключения этого хоста (Агенты → Политика WAF). Исключения политики по умолчанию действуют тоже."
+		"defaultMessage": "Защита от атак, ограничение запросов, ответ и исключения этого хоста (Агенты → open-appsec). Исключения базовой политики действуют тоже."
 	},
 	"npmos.waf.host-policy.template": {
 		"defaultMessage": "Шаблон: {name}"

@@ -1,0 +1,141 @@
+/* Agents → open-appsec: the list of what the policy is made of on the left, the chosen item on the right */
+.editor {
+	display: grid;
+	grid-template-columns: minmax(14rem, 18rem) minmax(0, 1fr);
+	align-items: start;
+	gap: 1rem;
+}
+@media (max-width: 991px) {
+	.editor {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+.nav {
+	position: sticky;
+	top: 1rem;
+	display: flex;
+	flex-direction: column;
+	max-height: calc(100vh - 2rem);
+	padding: 0.75rem;
+	overflow: auto;
+}
+.navGroup {
+	margin: 0.75rem 0.5rem 0.25rem;
+	color: var(--foreground-muted);
+	font-size: 0.6875rem;
+	font-weight: 500;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+.navGroup:first-child {
+	margin-top: 0.25rem;
+}
+.navItem {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	width: 100%;
+	padding: 0.375rem 0.5rem;
+	border: 0;
+	border-radius: var(--radius-sm);
+	background: none;
+	color: var(--foreground);
+	font-size: 0.875rem;
+	text-align: left;
+}
+.navItem:hover {
+	background: var(--background-inset);
+}
+.navOn {
+	background: var(--background-inset);
+	box-shadow: var(--shadow-inset);
+	color: var(--accent);
+}
+.navLabel {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.count {
+	color: var(--foreground-muted);
+	font-size: 0.75rem;
+	font-variant-numeric: tabular-nums;
+}
+.mode {
+	padding: 0 0.375rem;
+	border-radius: 9999px;
+	font-size: 0.6875rem;
+	white-space: nowrap;
+}
+.prevent {
+	background: color-mix(in oklab, var(--tblr-red) 15%, transparent);
+	color: var(--tblr-red);
+}
+.detect {
+	background: color-mix(in oklab, var(--tblr-yellow) 18%, transparent);
+	color: color-mix(in oklab, var(--tblr-yellow) 70%, var(--foreground));
+}
+.off {
+	background: var(--background-inset);
+	color: var(--foreground-muted);
+}
+.pane {
+	min-width: 0;
+	padding: 0;
+}
+.paneHead {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 0.75rem 1rem;
+	padding: 1rem 1.25rem;
+	border-bottom: 1px solid var(--border);
+}
+.paneTitle {
+	margin: 0;
+	font-size: 1.0625rem;
+	font-weight: 500;
+}
+.paneHint {
+	max-width: 46rem;
+	margin: 0.25rem 0 0;
+	color: var(--foreground-muted);
+	font-size: 0.8125rem;
+}
+.paneBody {
+	padding: 1rem 1.25rem 1.25rem;
+}
+/* the cards of the policy pages sit flat inside the pane */
+.paneBody :global(.card) {
+	padding: 0;
+	background: transparent;
+	box-shadow: none;
+}
+.paneBody :global(.card)::before {
+	content: none;
+}
+.toggle {
+	display: inline-flex;
+	padding: 0.1875rem;
+	border-radius: var(--radius-sm);
+	background: var(--card-frame);
+	box-shadow: var(--shadow-inset);
+}
+.toggleItem {
+	height: 1.875rem;
+	padding: 0 0.75rem;
+	border: 0;
+	border-radius: var(--radius-xs);
+	background: none;
+	color: var(--foreground-muted);
+	font-size: 0.8125rem;
+	font-weight: 500;
+}
+.toggleOn {
+	background: var(--background);
+	color: var(--foreground);
+	box-shadow: 0 0 0 1px var(--border-strong);
+}

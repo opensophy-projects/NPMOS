@@ -1,0 +1,39 @@
+/* a change as in a code review */
+.diff {
+	max-height: 50vh;
+	overflow: auto;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-sm);
+	background: var(--background);
+	font-family: var(--font-mono, ui-monospace, monospace);
+	font-size: 0.8125rem;
+	line-height: 1.5;
+}
+.line {
+	display: grid;
+	grid-template-columns: 3rem 3rem 1.25rem 1fr;
+	white-space: pre;
+}
+.num {
+	padding-right: 0.5rem;
+	color: var(--foreground-muted);
+	text-align: right;
+	user-select: none;
+}
+.op {
+	color: var(--foreground-muted);
+	text-align: center;
+	user-select: none;
+}
+.add {
+	background: color-mix(in oklab, var(--tblr-green) 14%, transparent);
+}
+.del {
+	background: color-mix(in oklab, var(--tblr-red) 14%, transparent);
+}
+.fold {
+	padding-left: 6.5rem;
+	border-block: 1px dashed var(--border);
+	background: var(--background-inset);
+	color: var(--foreground-muted);
+}

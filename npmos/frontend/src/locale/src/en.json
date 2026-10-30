@@ -644,6 +644,60 @@
 	"npmos.access.search": {
 		"defaultMessage": "Search by name"
 	},
+	"npmos.agent.default.hint": {
+		"defaultMessage": "Applies to every host that has no policy of its own: the mode and the building blocks the agent uses."
+	},
+	"npmos.agent.group.blocks": {
+		"defaultMessage": "Building blocks"
+	},
+	"npmos.agent.group.more": {
+		"defaultMessage": "More"
+	},
+	"npmos.agent.group.policies": {
+		"defaultMessage": "Policies"
+	},
+	"npmos.agent.host.hint": {
+		"defaultMessage": "The policy of this host: whether the WAF inspects it, how strictly, and the building blocks if they differ from the base policy."
+	},
+	"npmos.agent.host.none": {
+		"defaultMessage": "The host is gone."
+	},
+	"npmos.agent.host.saved": {
+		"defaultMessage": "The policy of {name} is saved"
+	},
+	"npmos.agent.item.expert": {
+		"defaultMessage": "YAML additions"
+	},
+	"npmos.agent.item.expert.hint": {
+		"defaultMessage": "Fragments of local_policy.yaml merged over what NPMOS generates: for what the GUI has no field for."
+	},
+	"npmos.agent.item.versions": {
+		"defaultMessage": "Versions"
+	},
+	"npmos.agent.item.versions.hint": {
+		"defaultMessage": "Every change of the policy is kept; any version can be restored."
+	},
+	"npmos.agent.openappsec.description": {
+		"defaultMessage": "The machine-learning WAF of the hosts: its policies (the base one and those of the hosts, made of building blocks) and the agent itself."
+	},
+	"npmos.agent.policies": {
+		"defaultMessage": "What the policy is made of"
+	},
+	"npmos.agent.tab.agent": {
+		"defaultMessage": "Agent"
+	},
+	"npmos.agent.tab.policies": {
+		"defaultMessage": "Policies"
+	},
+	"npmos.agent.view": {
+		"defaultMessage": "View"
+	},
+	"npmos.agent.view.code": {
+		"defaultMessage": "Code"
+	},
+	"npmos.agent.view.gui": {
+		"defaultMessage": "Interface"
+	},
 	"npmos.analytics": {
 		"defaultMessage": "Analytics"
 	},
@@ -1033,6 +1087,51 @@
 	},
 	"npmos.certs.used.yes": {
 		"defaultMessage": "Used by hosts"
+	},
+	"npmos.code.applied": {
+		"defaultMessage": "Applied"
+	},
+	"npmos.code.apply": {
+		"defaultMessage": "Apply"
+	},
+	"npmos.code.check": {
+		"defaultMessage": "Check"
+	},
+	"npmos.code.check-first": {
+		"defaultMessage": "Check the document before applying it"
+	},
+	"npmos.code.hint.default": {
+		"defaultMessage": "The whole policy: the base policy (policies.default) and every building block of the administrator. Building blocks not named here are kept."
+	},
+	"npmos.code.hint.host": {
+		"defaultMessage": "The policy of the host. Building blocks are named as in the list on the left; leave objects out to use those of the base policy."
+	},
+	"npmos.code.hint.kind": {
+		"defaultMessage": "The building blocks of this kind created by the administrator. A changed one is updated, a new one is created; built-in ones are read only."
+	},
+	"npmos.code.import.create": {
+		"defaultMessage": "New: {names}."
+	},
+	"npmos.code.import.policy": {
+		"defaultMessage": "The base policy is replaced."
+	},
+	"npmos.code.import.skipped": {
+		"defaultMessage": "Skipped (built in): {names}."
+	},
+	"npmos.code.import.update": {
+		"defaultMessage": "Changed: {names}."
+	},
+	"npmos.code.ready": {
+		"defaultMessage": "Checked: it can be applied"
+	},
+	"npmos.code.reset": {
+		"defaultMessage": "Undo changes"
+	},
+	"npmos.code.review": {
+		"defaultMessage": "Changes"
+	},
+	"npmos.code.unchanged": {
+		"defaultMessage": "No changes"
 	},
 	"npmos.common.close": {
 		"defaultMessage": "Close"
@@ -3095,6 +3194,9 @@
 	"npmos.nav.administration": {
 		"defaultMessage": "Administration"
 	},
+	"npmos.nav.agent-openappsec": {
+		"defaultMessage": "open-appsec"
+	},
 	"npmos.nav.agents": {
 		"defaultMessage": "Agents"
 	},
@@ -4250,6 +4352,48 @@
 	"npmos.policy.builtin-readonly": {
 		"defaultMessage": "A built-in object of NPMOS: it is updated with NPMOS and cannot be changed. Duplicate it to make your own."
 	},
+	"npmos.policy.builtin.npmos-403": {
+		"defaultMessage": "Answer: code 403"
+	},
+	"npmos.policy.builtin.npmos-403.hint": {
+		"defaultMessage": "A blocked request gets 403 and the block page of NPMOS"
+	},
+	"npmos.policy.builtin.npmos-api": {
+		"defaultMessage": "Attack protection: API"
+	},
+	"npmos.policy.builtin.npmos-api.hint": {
+		"defaultMessage": "For JSON APIs: also refuses invalid HTTP methods"
+	},
+	"npmos.policy.builtin.npmos-block-page": {
+		"defaultMessage": "Answer: block page of the agent"
+	},
+	"npmos.policy.builtin.npmos-block-page.hint": {
+		"defaultMessage": "The page of open-appsec with a title and a text"
+	},
+	"npmos.policy.builtin.npmos-log": {
+		"defaultMessage": "Logging: attacks to NPMOS"
+	},
+	"npmos.policy.builtin.npmos-log.hint": {
+		"defaultMessage": "Detected and blocked requests are written to the log NPMOS reads (Events); nothing goes to a cloud"
+	},
+	"npmos.policy.builtin.npmos-no-rate-limit": {
+		"defaultMessage": "No request limits"
+	},
+	"npmos.policy.builtin.npmos-no-rate-limit.hint": {
+		"defaultMessage": "Requests per client are not limited"
+	},
+	"npmos.policy.builtin.npmos-recommended": {
+		"defaultMessage": "Attack protection: recommended"
+	},
+	"npmos.policy.builtin.npmos-recommended.hint": {
+		"defaultMessage": "Machine-learning inspection of web attacks with the usual limits; fits most sites"
+	},
+	"npmos.policy.builtin.npmos-strict": {
+		"defaultMessage": "Attack protection: strict"
+	},
+	"npmos.policy.builtin.npmos-strict.hint": {
+		"defaultMessage": "Blocks from a lower confidence and checks more: fewer missed attacks, more false positives"
+	},
 	"npmos.policy.condition.add": {
 		"defaultMessage": "Add condition"
 	},
@@ -4272,7 +4416,7 @@
 		"defaultMessage": "Medium"
 	},
 	"npmos.policy.default": {
-		"defaultMessage": "Default policy"
+		"defaultMessage": "Base policy"
 	},
 	"npmos.policy.default.hint": {
 		"defaultMessage": "Applies to requests of hosts without WAF and to what a host does not set itself. Exceptions of the default policy apply to every host."
@@ -4554,25 +4698,46 @@
 		"defaultMessage": "Sources whose traffic teaches the ML model faster (learning)."
 	},
 	"npmos.policy.kinds.access_control": {
-		"defaultMessage": "Rate limits"
+		"defaultMessage": "Request limits"
+	},
+	"npmos.policy.kinds.access_control.hint": {
+		"defaultMessage": "How many requests a client may send per minute to a path; more are blocked or only logged."
 	},
 	"npmos.policy.kinds.custom_response": {
-		"defaultMessage": "Responses"
+		"defaultMessage": "Answer to a blocked request"
+	},
+	"npmos.policy.kinds.custom_response.hint": {
+		"defaultMessage": "What a blocked visitor gets: a code, a block page or a redirect."
 	},
 	"npmos.policy.kinds.exception": {
 		"defaultMessage": "Exceptions"
 	},
+	"npmos.policy.kinds.exception.hint": {
+		"defaultMessage": "Requests the agent lets through or always blocks: by IP, path, parameter, attack type, country."
+	},
 	"npmos.policy.kinds.log_trigger": {
 		"defaultMessage": "Logging"
 	},
+	"npmos.policy.kinds.log_trigger.hint": {
+		"defaultMessage": "What the agent writes down: blocked and detected requests, allowed ones, request bodies. NPMOS reads it into Events."
+	},
 	"npmos.policy.kinds.source_identifiers": {
-		"defaultMessage": "Identifiers"
+		"defaultMessage": "Who the client is"
+	},
+	"npmos.policy.kinds.source_identifiers.hint": {
+		"defaultMessage": "How the agent tells clients apart behind a proxy: a header, a cookie, a JWT claim instead of the IP address."
 	},
 	"npmos.policy.kinds.threat_prevention": {
-		"defaultMessage": "Practices"
+		"defaultMessage": "Attack protection"
+	},
+	"npmos.policy.kinds.threat_prevention.hint": {
+		"defaultMessage": "How the agent looks for attacks: SQL injection, XSS, command injection and the like, and how sure it must be to block (practices of open-appsec)."
 	},
 	"npmos.policy.kinds.trusted_sources": {
 		"defaultMessage": "Trusted sources"
+	},
+	"npmos.policy.kinds.trusted_sources.hint": {
+		"defaultMessage": "Clients whose traffic the agent learns from as normal (an office, a monitoring system)."
 	},
 	"npmos.policy.mode.detect": {
 		"defaultMessage": "Detect"
@@ -4698,7 +4863,7 @@
 		"defaultMessage": "The open-appsec policy made of objects: practices, rate limits, log triggers, responses, exceptions. Hosts use the default policy, a template or their own objects."
 	},
 	"npmos.policy.tab.default": {
-		"defaultMessage": "Default policy"
+		"defaultMessage": "Base policy"
 	},
 	"npmos.policy.tab.versions": {
 		"defaultMessage": "Versions"
@@ -4722,7 +4887,7 @@
 		"defaultMessage": "Created: {kind} {name}"
 	},
 	"npmos.policy.version.default-policy": {
-		"defaultMessage": "Default policy"
+		"defaultMessage": "Base policy"
 	},
 	"npmos.policy.version.deleted": {
 		"defaultMessage": "Deleted: {kind} {name}"
@@ -5613,10 +5778,10 @@
 		"defaultMessage": "Own objects"
 	},
 	"npmos.waf.host-policy.default": {
-		"defaultMessage": "As the default policy"
+		"defaultMessage": "As the base policy"
 	},
 	"npmos.waf.host-policy.hint": {
-		"defaultMessage": "Practices, rate limits, response and exceptions of this host (Agents → WAF policy). Exceptions of the default policy apply too."
+		"defaultMessage": "Attack protection, request limits, answer and exceptions of this host (Agents → open-appsec). Exceptions of the base policy apply too."
 	},
 	"npmos.waf.host-policy.template": {
 		"defaultMessage": "Template: {name}"
