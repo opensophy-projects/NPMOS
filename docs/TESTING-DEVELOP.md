@@ -18,7 +18,8 @@
 - Docker Engine 26+ и Docker Compose 2.23+ (`docker version`, `docker compose version`).
 - Свободные порты 80, 443 и 81. Другие порты задаются так: `NPMOS_HTTP_PORT=8080 NPMOS_HTTPS_PORT=8443 NPMOS_ADMIN_PORT=8181`.
 - Около 10 ГБ на диске для образов и томов.
-- Если на хосте нет IPv6: `NPMOS_DISABLE_IPV6=true` перед каждой командой `docker compose` (или `export NPMOS_DISABLE_IPV6=true`).
+- По умолчанию NPMOS слушает только IPv4. Нужен IPv6 — `NPMOS_DISABLE_IPV6=false` в `deploy/.env` (или перед каждой командой `docker compose`); на хосте IPv6 должен работать.
+- `docker compose pull` падает с `TLS handshake timeout`, хотя `curl -4 https://auth.docker.io/token` отвечает: IPv6 на машине выдан, но не работает, а Docker качает по нему. Отключите IPv6 (`sudo sysctl -w net.ipv6.conf.all.disable_ipv6=1 net.ipv6.conf.default.disable_ipv6=1`, постоянно — файлом в `/etc/sysctl.d/`) или пропишите зеркало Docker Hub в `registry-mirrors` файла `/etc/docker/daemon.json`.
 - Для варианта Б нужен интернет на время сборки: GitHub, Docker Hub, Alpine, npm. Сама установка интернета не требует.
 
 ## 3. Вариант А: образы из Docker Hub
@@ -141,7 +142,7 @@ curl -s -o /dev/null -w '%{http_code}\n' -H "$H" "$T/?cmd=;cat%20/etc/passwd"   
 ### Установка и обновление
 - [ ] Чистая установка по варианту А на реальном сервере. Чистая установка по варианту Б, если ветка ещё не слита.
 - [ ] Обновление поверх прошлой develop-установки (п. 7): данные, пользователи и хосты на месте, WAF-вкладка у старых хостов показывает «Выключен».
-- [ ] Хост без IPv6 (`NPMOS_DISABLE_IPV6=true`) и нестандартные порты.
+- [ ] Хост с IPv6 (`NPMOS_DISABLE_IPV6=false`) и нестандартные порты.
 - [ ] Перезагрузка сервера: стек поднимается сам, WAF остаётся включённым, политика применяется.
 - [ ] Полностью без интернета на своём сервере: отключите внешнюю сеть (или запретите исходящий трафик в firewall) и перезапустите стек. Должно работать всё, кроме выпуска Let's Encrypt.
 

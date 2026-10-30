@@ -26,6 +26,10 @@ docker compose -f deploy/compose.yaml up -d
 
 Требования: Docker Engine 26+ и Compose 2.23+.
 
+По умолчанию NPMOS слушает только IPv4: так он запускается на любом хосте, в том числе с выключенным или неработающим IPv6. Чтобы nginx слушал и IPv6 (и видел настоящие IPv6-адреса клиентов), добавьте в `deploy/.env` строку `NPMOS_DISABLE_IPV6=false` и перезапустите стек; IPv6 на хосте должен работать.
+
+Если `docker compose pull` падает с `TLS handshake timeout`, а `curl -4 https://auth.docker.io/token` отвечает, у машины сломан IPv6 и Docker пытается скачивать по нему: отключите IPv6 в системе (`net.ipv6.conf.all.disable_ipv6=1`) или настройте зеркало Docker Hub (`registry-mirrors` в `/etc/docker/daemon.json`).
+
 Переезд с Nginx Proxy Manager, NPMplus или open-appsec-npm — в «Система → Настройки → Перенос»: хосты, сертификаты, списки доступа, пользователи и WAF-правила переносятся из архива старой установки ([подробнее](docs/MIGRATION.md)).
 
 Образы публикуются в Docker Hub `opensophy/npmos*` после слияния в ветку `work` (тег `develop`) и при выпуске версии (`X.Y.Z`, `latest`). Версии всех образов закреплены в `deploy/.env`.
@@ -51,7 +55,7 @@ pnpm vite
 
 Интерфейс откроется на `http://localhost:5173`. Он ходит в backend на `https://127.0.0.1:81` (адрес можно поменять через `NPMOS_API`).
 
-Нужны Docker, Node.js 22+ и pnpm (`npm i -g pnpm`). На хосте без IPv6 добавьте `NPMOS_DISABLE_IPV6=true` перед `docker compose`.
+Нужны Docker, Node.js 22+ и pnpm (`npm i -g pnpm`).
 
 Подробнее о командах и правилах — в [CLAUDE.md](CLAUDE.md).
 

@@ -16,7 +16,7 @@
 | `PUID`, `PGID` | `0` | `0` | Bootstrap | — |
 | `HTTP_PORT`, `HTTPS_PORT`, `NPM_PORT`, `GOA_PORT` | 80, 443, 81, 91 | те же; внешние порты — `NPMOS_*_PORT` | Bootstrap | — |
 | `IPV4_BINDING`, `IPV6_BINDING`, `NPM_*_BINDING`, `GOA_*_BINDING`, `*_LISTEN_LOCALHOST` | все адреса | те же | Bootstrap | — |
-| `DISABLE_IPV6` | `false` | `NPMOS_DISABLE_IPV6`, `false` | Bootstrap | — |
+| `DISABLE_IPV6` | `false` | `NPMOS_DISABLE_IPV6`, `true` (только IPv4; `false` включает IPv6) | Bootstrap | — |
 | `DISABLE_HTTP`, `DISABLE_H3_QUIC`, `ENABLE_MPTCP`, `NGINX_QUIC_BPF` | `false` | `false` | GUI (Система → Настройки → Сеть) | 4 ✅ |
 | `LISTEN_PROXY_PROTOCOL_HTTP`, `LISTEN_PROXY_PROTOCOL_HTTPS` | `false` | `false` | GUI (Система → Настройки → Сеть) | 4 ✅ |
 | `DB_POSTGRES_*` | — (SQLite) | Postgres из compose, пароль из `DB_POSTGRES_PASSWORD_FILE` | Bootstrap | 0 ✅ |
