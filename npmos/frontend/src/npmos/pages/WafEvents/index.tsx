@@ -35,6 +35,7 @@ import {
 	withValue,
 } from "./filters";
 import { RetentionPopover } from "./Retention";
+import { SearchField } from "../../ui/SearchField";
 
 const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id }, values);
 const PAGE_SIZE = 50;
@@ -457,17 +458,7 @@ function WafEventsPage() {
 			</div>
 
 			<div className={hostStyles.toolbar}>
-				<div className={hostStyles.searchFrame}>
-					<label className={hostStyles.search}>
-						<input
-							type="search"
-							value={search}
-							placeholder={t("npmos.waf.events.search")}
-							aria-label={t("npmos.waf.events.search")}
-							onChange={(e) => setSearch(e.target.value)}
-						/>
-					</label>
-				</div>
+				<SearchField value={search} onChange={setSearch} placeholder={t("npmos.waf.events.search")} />
 				<Periods filters={filters} onChange={setFilters} />
 				<FilterPanel filters={filters} onChange={setFilters} types={types} hosts={hosts} />
 				<Dropdown

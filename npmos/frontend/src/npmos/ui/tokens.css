@@ -411,6 +411,43 @@ h3,
 	border-radius: var(--radius-lg);
 }
 
+/* A modal is one surface: the cards upstream wraps around its tabs, sections and fields are flat, a line
+   separates the tabs from the fields and one section from the next (the role editor keeps its cards). */
+.modal-body .card:not(.os-card-keep) {
+	--tblr-card-bg: transparent;
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
+}
+.modal-body .card:not(.os-card-keep)::before {
+	content: none;
+}
+.modal-body .card:not(.os-card-keep) > .card-header {
+	padding: 0.5rem 1.5rem 0;
+	border-bottom: 1px solid var(--border);
+	border-radius: 0;
+	background: transparent;
+}
+.modal-body .card:not(.os-card-keep) > .card-header > .nav-tabs {
+	margin: 0;
+	padding: 0;
+	border-radius: 0;
+	background: transparent;
+}
+.modal-body .card:not(.os-card-keep) > .card-body {
+	padding: 1.25rem 1.5rem;
+}
+.modal-body .card:not(.os-card-keep) .card:not(.os-card-keep) {
+	padding-top: 1rem;
+	border-top: 1px solid var(--border);
+}
+.modal-body .card:not(.os-card-keep) .card:not(.os-card-keep) > .card-header,
+.modal-body .card:not(.os-card-keep) .card:not(.os-card-keep) > .card-body {
+	padding-inline: 0;
+}
+
 .table {
 	--tblr-table-border-color: var(--border-strong);
 }

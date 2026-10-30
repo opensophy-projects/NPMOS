@@ -1,18 +1,21 @@
 // NPMOS: hardcoded strings moved to the locale (en, ru)
-import { IconHelp, IconSearch } from "@tabler/icons-react";
+import { IconHelp } from "@tabler/icons-react";
 import { useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import { deleteAccessList } from "src/api/backend";
 import { Button, HasPermission, LoadingPage } from "src/components";
 import { useAccessLists } from "src/hooks";
-import { T } from "src/locale";
+import { intl, T } from "src/locale";
 import { showAccessListModal, showDeleteConfirmModal, showHelpModal } from "src/modals";
 import { ACCESS_LISTS, MANAGE } from "src/modules/Permissions";
 import { showObjectSuccess } from "src/notifications";
 import Table from "./Table";
+// NPMOS: one look of search fields (src/npmos/ui/SearchField)
+import { SearchField } from "src/npmos/ui/SearchField";
 
 export default function TableWrapper() {
 	const [search, setSearch] = useState("");
+	const [text, setText] = useState("");
 	const { isFetching, isLoading, isError, error, data } = useAccessLists(["owner", "items", "clients"]);
 
 	if (isLoading) {
@@ -53,18 +56,16 @@ export default function TableWrapper() {
 						<div className="col-md-auto col-sm-12">
 							<div className="ms-auto d-flex flex-wrap btn-list">
 								{data?.length ? (
-									<div className="input-group input-group-flat w-auto">
-										<span className="input-group-text input-group-text-sm">
-											<IconSearch size={16} />
-										</span>
-										<input
-											id="advanced-table-search"
-											type="text"
-											className="form-control form-control-sm"
-											autoComplete="off"
-											onChange={(e: any) => setSearch(e.target.value.toLowerCase().trim())}
-										/>
-									</div>
+									<SearchField
+										// NPMOS: the search field of NPMOS tables, with a hint of what it covers
+										variant="inset"
+										value={text}
+										onChange={(value) => {
+											setText(value);
+											setSearch(value.toLowerCase().trim());
+										}}
+										placeholder={intl.formatMessage({ id: "npmos.access.search" })}
+									/>
 								) : null}
 								<Button size="sm" onClick={() => showHelpModal("AccessLists")}>
 									<IconHelp size={20} />

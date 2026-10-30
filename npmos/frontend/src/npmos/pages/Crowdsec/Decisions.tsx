@@ -1,6 +1,5 @@
 // CrowdSec → Decisions and Alerts: active bans and captchas (search, filters, unban one or many,
 // ban by hand), alerts of the scenarios with their source and host.
-import { IconSearch } from "@tabler/icons-react";
 import cn from "classnames";
 import { useMemo, useState } from "react";
 import { T } from "src/locale";
@@ -10,8 +9,8 @@ import { showBanModal } from "../../crowdsec/BanModal";
 import { originLabel, remaining, t } from "../../crowdsec/labels";
 import { useCan } from "../../rbac/hooks";
 import { dateTime, timeAgo } from "../../ui/time";
-import hostStyles from "../Hosts/Hosts.module.css";
 import styles from "../Pki/Pki.module.css";
+import { SearchField } from "../../ui/SearchField";
 
 const PAGE = 100;
 
@@ -91,18 +90,15 @@ export function DecisionsTab({ refresh }: { refresh: () => void }) {
 	return (
 		<section className={cn("card", styles.card)}>
 			<div className={styles.filters}>
-				<label className={hostStyles.search}>
-					<IconSearch size={16} />
-					<input
-						value={q}
-						placeholder={t("npmos.crowdsec.decisions.search")}
-						aria-label={t("npmos.crowdsec.decisions.search")}
-						onChange={(e) => {
-							setQ(e.target.value);
-							setOffset(0);
-						}}
-					/>
-				</label>
+				<SearchField
+					variant="inset"
+					value={q}
+					onChange={(value) => {
+						setQ(value);
+						setOffset(0);
+					}}
+					placeholder={t("npmos.crowdsec.decisions.search")}
+				/>
 				<select
 					className="form-select form-select-sm w-auto"
 					aria-label={t("npmos.crowdsec.decision")}
@@ -305,15 +301,12 @@ export function AlertsTab({ initialQuery = "", refresh }: { initialQuery?: strin
 	return (
 		<section className={cn("card", styles.card)}>
 			<div className={styles.filters}>
-				<label className={hostStyles.search}>
-					<IconSearch size={16} />
-					<input
-						value={q}
-						placeholder={t("npmos.crowdsec.alerts.search")}
-						aria-label={t("npmos.crowdsec.alerts.search")}
-						onChange={(e) => setQ(e.target.value)}
-					/>
-				</label>
+				<SearchField
+					variant="inset"
+					value={q}
+					onChange={(value) => setQ(value)}
+					placeholder={t("npmos.crowdsec.alerts.search")}
+				/>
 				<label className="form-check form-switch mb-0">
 					<input
 						type="checkbox"

@@ -620,6 +620,9 @@
 	"npmos.2fa.error-start": {
 		"defaultMessage": "Failed to start 2FA setup"
 	},
+	"npmos.access.search": {
+		"defaultMessage": "Search by name"
+	},
 	"npmos.analytics": {
 		"defaultMessage": "Analytics"
 	},
@@ -2050,114 +2053,6 @@
 	},
 	"npmos.geoip.upload": {
 		"defaultMessage": "Upload .mmdb"
-	},
-	"npmos.glossary": {
-		"defaultMessage": "Glossary"
-	},
-	"npmos.glossary.access-list": {
-		"defaultMessage": "Who may open a proxy host: allowed and denied addresses and/or a login and password."
-	},
-	"npmos.glossary.acme": {
-		"defaultMessage": "Free certificates issued and renewed automatically. Needs access to the internet and a domain reachable from it; optional in NPMOS."
-	},
-	"npmos.glossary.advanced-model": {
-		"defaultMessage": "A larger detection model of open-appsec, uploaded as a file on Agents → open-appsec agent."
-	},
-	"npmos.glossary.agent": {
-		"defaultMessage": "The open-appsec service that takes requests from nginx and decides whether to let them through. Its state is on Agents → open-appsec agent."
-	},
-	"npmos.glossary.air-gap": {
-		"defaultMessage": "NPMOS works without the internet; going out (ACME, updates, hub) is an option you switch on."
-	},
-	"npmos.glossary.audit-log": {
-		"defaultMessage": "The record of who changed what and when. The history of a host is taken from it."
-	},
-	"npmos.glossary.bouncer": {
-		"defaultMessage": "The part that enforces CrowdSec bans: here nginx of NPMOS and the WAF agent."
-	},
-	"npmos.glossary.ca": {
-		"defaultMessage": "Certificate authority: the certificate that signs others. For mTLS it is the CA of your client certificates."
-	},
-	"npmos.glossary.confidence": {
-		"defaultMessage": "From what confidence a request counts as an attack in Prevent: Critical blocks the least, Medium the most."
-	},
-	"npmos.glossary.crowdsec": {
-		"defaultMessage": "Detects attackers from logs and bans their addresses. In NPMOS it runs locally, without the CrowdSec console."
-	},
-	"npmos.glossary.dead-host": {
-		"defaultMessage": "A domain that answers 404: it is reserved but serves nothing, or a TLS certificate is kept for it."
-	},
-	"npmos.glossary.decision": {
-		"defaultMessage": "A CrowdSec verdict about an address: ban or captcha, for a set time."
-	},
-	"npmos.glossary.detect-learn": {
-		"defaultMessage": "The WAF logs attacks and learns from the traffic, but lets everything through. Start here."
-	},
-	"npmos.glossary.fail-open": {
-		"defaultMessage": "What happens to requests when the agent does not answer in time: they pass without inspection (fail-open) or are refused (fail-close)."
-	},
-	"npmos.glossary.group.crowdsec": {
-		"defaultMessage": "CrowdSec"
-	},
-	"npmos.glossary.group.hosts": {
-		"defaultMessage": "Hosts"
-	},
-	"npmos.glossary.group.system": {
-		"defaultMessage": "System"
-	},
-	"npmos.glossary.group.tls": {
-		"defaultMessage": "Certificates"
-	},
-	"npmos.glossary.group.waf": {
-		"defaultMessage": "WAF (open-appsec)"
-	},
-	"npmos.glossary.hsts": {
-		"defaultMessage": "Tells browsers to open the site only over HTTPS for a long time. Hard to undo: enable it when HTTPS works."
-	},
-	"npmos.glossary.mtls": {
-		"defaultMessage": "Mutual TLS: besides the server, the client shows a certificate. Without a certificate signed by the selected CA the host does not open (Required) or the host gets to know it (Optional)."
-	},
-	"npmos.glossary.nginx": {
-		"defaultMessage": "The web server inside NPMOS that accepts all traffic and serves the hosts."
-	},
-	"npmos.glossary.open-appsec": {
-		"defaultMessage": "The WAF built into NPMOS: a machine-learning engine instead of signature lists. Works locally, without its cloud."
-	},
-	"npmos.glossary.policy": {
-		"defaultMessage": "The settings file of the agent. NPMOS generates it from the hosts; expert fragments are added on Agents → Policy (expert)."
-	},
-	"npmos.glossary.prevent-learn": {
-		"defaultMessage": "The WAF blocks attacks (403) and keeps learning. Switch to it when Detect shows no false positives."
-	},
-	"npmos.glossary.proxy-host": {
-		"defaultMessage": "A domain that NPMOS accepts over HTTP(S) and passes to an internal service (the upstream). WAF, mTLS and access lists are set on proxy hosts."
-	},
-	"npmos.glossary.redirect": {
-		"defaultMessage": "A domain that answers with a redirect (301, 302…) to another address."
-	},
-	"npmos.glossary.search": {
-		"defaultMessage": "Find a term"
-	},
-	"npmos.glossary.severity": {
-		"defaultMessage": "How dangerous an event is, in the terms of the agent. Important events are Critical and High."
-	},
-	"npmos.glossary.stream": {
-		"defaultMessage": "Forwarding of a TCP and/or UDP port without HTTP: databases, SSH, games. Shown in the hosts table as :port."
-	},
-	"npmos.glossary.subtitle": {
-		"defaultMessage": "Terms that the interface keeps in English, and what they mean in NPMOS."
-	},
-	"npmos.glossary.tls": {
-		"defaultMessage": "Encryption of the connection between the browser and NPMOS (HTTPS). SSL is its old name."
-	},
-	"npmos.glossary.tuning": {
-		"defaultMessage": "The local open-appsec services that collect what the agent learned and suggest tuning. Replace its cloud."
-	},
-	"npmos.glossary.upstream": {
-		"defaultMessage": "The address and port where a host forwards requests (the Destination column). NPMOS checks that it accepts connections."
-	},
-	"npmos.glossary.waf": {
-		"defaultMessage": "Web application firewall: inspects HTTP requests and blocks attacks (SQL injection, XSS…). In NPMOS it is open-appsec."
 	},
 	"npmos.hosts.actions": {
 		"defaultMessage": "Actions"
@@ -5332,6 +5227,9 @@
 	},
 	"npmos.system.secret.set": {
 		"defaultMessage": "set — enter a new one to replace it"
+	},
+	"npmos.users.search": {
+		"defaultMessage": "Search by name, nickname or email"
 	},
 	"npmos.waf": {
 		"defaultMessage": "WAF"

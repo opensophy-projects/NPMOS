@@ -16,6 +16,7 @@ import { Dropdown } from "../../ui/Dropdown";
 import { Popover } from "../../ui/Popover";
 import styles from "../WafEvents/Events.module.css";
 import hostStyles from "../Hosts/Hosts.module.css";
+import { SearchField } from "../../ui/SearchField";
 
 const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id }, values);
 const PAGE_SIZE = 50;
@@ -131,17 +132,7 @@ function AuditLogPage() {
 			</div>
 
 			<div className={hostStyles.toolbar}>
-				<div className={hostStyles.searchFrame}>
-					<label className={hostStyles.search}>
-						<input
-							type="search"
-							value={search}
-							placeholder={t("npmos.audit.search")}
-							aria-label={t("npmos.audit.search")}
-							onChange={(e) => setSearch(e.target.value)}
-						/>
-					</label>
-				</div>
+				<SearchField value={search} onChange={setSearch} placeholder={t("npmos.audit.search")} />
 				<div className={styles.periods} role="group" aria-label={t("npmos.events.period")}>
 					{PERIODS.map((p) => (
 						<button

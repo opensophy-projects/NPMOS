@@ -1,7 +1,7 @@
 // mTLS → the access certificates of one host (the menu of a host in Hosts): a host may have many,
 // so one is chosen first — by name, note or email, with the valid ones shown first — and then
 // downloaded, opened in detail, renewed, revoked or deleted. A new one is issued from here too.
-import { IconDots, IconDownload, IconKey, IconPlus, IconSearch } from "@tabler/icons-react";
+import { IconDots, IconDownload, IconKey, IconPlus } from "@tabler/icons-react";
 import { useQueryClient } from "@tanstack/react-query";
 import cn from "classnames";
 import EasyModal, { type InnerModalProps } from "ez-modal-react";
@@ -16,6 +16,7 @@ import { useCan } from "../rbac/hooks";
 import { Dropdown, type DropdownItem } from "../ui/Dropdown";
 import { showAccessModal } from "./AccessModal";
 import { deleteCerts, downloadCert, type HostRef, hostKey, issuersFor, type PkiCert, saveFile, usePki } from "./api";
+import { SearchField } from "../ui/SearchField";
 import { certStatus, STATUS_TONE, showCertModal } from "./CertModal";
 import { showIssueModal } from "./IssueModal";
 import { showRevokeModal } from "./RevokeModal";
@@ -167,18 +168,12 @@ const HostCertsModal = EasyModal.create(({ visible, remove, host, openHost }: Pr
 			</Modal.Header>
 			<Modal.Body>
 				<div className="d-flex flex-wrap gap-2 mb-3">
-					<div className="input-icon flex-fill" style={{ minWidth: 200 }}>
-						<span className="input-icon-addon">
-							<IconSearch size={16} />
-						</span>
-						<input
-							className="form-control"
-							value={query}
-							placeholder={t("npmos.mtls.host-certs.search")}
-							aria-label={t("npmos.mtls.host-certs.search")}
-							onChange={(e) => setQuery(e.target.value)}
-						/>
-					</div>
+					<SearchField
+						variant="inset"
+						value={query}
+						onChange={setQuery}
+						placeholder={t("npmos.mtls.host-certs.search")}
+					/>
 					<select
 						className="form-select w-auto"
 						aria-label={t("npmos.pki.status")}

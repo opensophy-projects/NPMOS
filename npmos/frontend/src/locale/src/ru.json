@@ -620,6 +620,9 @@
 	"npmos.2fa.error-start": {
 		"defaultMessage": "Не удалось начать настройку 2FA"
 	},
+	"npmos.access.search": {
+		"defaultMessage": "Поиск по названию"
+	},
 	"npmos.analytics": {
 		"defaultMessage": "Аналитика"
 	},
@@ -2050,114 +2053,6 @@
 	},
 	"npmos.geoip.upload": {
 		"defaultMessage": "Загрузить .mmdb"
-	},
-	"npmos.glossary": {
-		"defaultMessage": "Глоссарий"
-	},
-	"npmos.glossary.access-list": {
-		"defaultMessage": "Кому можно открывать прокси-хост: разрешённые и запрещённые адреса и/или логин с паролем."
-	},
-	"npmos.glossary.acme": {
-		"defaultMessage": "Бесплатные сертификаты, которые выпускаются и продлеваются автоматически. Нужны выход в интернет и домен, доступный из него; в NPMOS это опция."
-	},
-	"npmos.glossary.advanced-model": {
-		"defaultMessage": "Расширенная модель обнаружения open-appsec, загружается файлом в «Агенты → Агент open-appsec»."
-	},
-	"npmos.glossary.agent": {
-		"defaultMessage": "Сервис open-appsec, который получает запросы от nginx и решает, пропускать ли их. Его состояние — в «Агенты → Агент open-appsec»."
-	},
-	"npmos.glossary.air-gap": {
-		"defaultMessage": "NPMOS работает без интернета; обращение наружу (ACME, обновления, хаб) — опция, которую вы включаете."
-	},
-	"npmos.glossary.audit-log": {
-		"defaultMessage": "Журнал того, кто, что и когда изменил. Из него берётся история хоста."
-	},
-	"npmos.glossary.bouncer": {
-		"defaultMessage": "Часть, которая применяет баны CrowdSec: здесь это nginx NPMOS и агент WAF."
-	},
-	"npmos.glossary.ca": {
-		"defaultMessage": "Удостоверяющий центр: сертификат, которым подписаны другие. Для mTLS — CA ваших клиентских сертификатов."
-	},
-	"npmos.glossary.confidence": {
-		"defaultMessage": "С какой уверенности запрос считается атакой в режиме блокировки: Critical блокирует меньше всего, Medium — больше всего."
-	},
-	"npmos.glossary.crowdsec": {
-		"defaultMessage": "Находит атакующих по логам и банит их адреса. В NPMOS работает локально, без консоли CrowdSec."
-	},
-	"npmos.glossary.dead-host": {
-		"defaultMessage": "Домен, который отвечает 404: занят, но ничего не отдаёт, или для него держится TLS-сертификат."
-	},
-	"npmos.glossary.decision": {
-		"defaultMessage": "Решение CrowdSec об адресе: бан или капча на заданное время."
-	},
-	"npmos.glossary.detect-learn": {
-		"defaultMessage": "WAF записывает атаки и учится на трафике, но всё пропускает. С этого режима стоит начинать."
-	},
-	"npmos.glossary.fail-open": {
-		"defaultMessage": "Что происходит с запросами, если агент не ответил вовремя: проходят без проверки (fail-open) или отклоняются (fail-close)."
-	},
-	"npmos.glossary.group.crowdsec": {
-		"defaultMessage": "CrowdSec"
-	},
-	"npmos.glossary.group.hosts": {
-		"defaultMessage": "Хосты"
-	},
-	"npmos.glossary.group.system": {
-		"defaultMessage": "Система"
-	},
-	"npmos.glossary.group.tls": {
-		"defaultMessage": "Сертификаты"
-	},
-	"npmos.glossary.group.waf": {
-		"defaultMessage": "WAF (open-appsec)"
-	},
-	"npmos.glossary.hsts": {
-		"defaultMessage": "Велит браузерам надолго открывать сайт только по HTTPS. Отменить трудно: включайте, когда HTTPS работает."
-	},
-	"npmos.glossary.mtls": {
-		"defaultMessage": "Взаимный TLS: кроме сервера сертификат показывает и клиент. Без сертификата, подписанного выбранным CA, хост не откроется («Обязательно») или хост просто узнает об этом («Необязательно»)."
-	},
-	"npmos.glossary.nginx": {
-		"defaultMessage": "Веб-сервер внутри NPMOS, который принимает весь трафик и обслуживает хосты."
-	},
-	"npmos.glossary.open-appsec": {
-		"defaultMessage": "WAF, встроенный в NPMOS: движок на машинном обучении вместо списков сигнатур. Работает локально, без своего облака."
-	},
-	"npmos.glossary.policy": {
-		"defaultMessage": "Файл настроек агента. NPMOS собирает его из хостов; экспертные фрагменты добавляются в «Агенты → Политика (эксперт)»."
-	},
-	"npmos.glossary.prevent-learn": {
-		"defaultMessage": "WAF блокирует атаки (403) и продолжает учиться. Включайте, когда в режиме обнаружения нет ложных срабатываний."
-	},
-	"npmos.glossary.proxy-host": {
-		"defaultMessage": "Домен, который NPMOS принимает по HTTP(S) и передаёт внутреннему сервису (апстриму). На прокси-хостах настраиваются WAF, mTLS и списки доступа."
-	},
-	"npmos.glossary.redirect": {
-		"defaultMessage": "Домен, который отвечает перенаправлением (301, 302…) на другой адрес."
-	},
-	"npmos.glossary.search": {
-		"defaultMessage": "Найти термин"
-	},
-	"npmos.glossary.severity": {
-		"defaultMessage": "Насколько опасно событие, в терминах агента. Важные события — Critical и High."
-	},
-	"npmos.glossary.stream": {
-		"defaultMessage": "Проброс TCP- и/или UDP-порта без HTTP: базы данных, SSH, игры. В таблице хостов показывается как :порт."
-	},
-	"npmos.glossary.subtitle": {
-		"defaultMessage": "Термины, которые в интерфейсе остаются на английском, и что они значат в NPMOS."
-	},
-	"npmos.glossary.tls": {
-		"defaultMessage": "Шифрование соединения между браузером и NPMOS (HTTPS). SSL — старое название."
-	},
-	"npmos.glossary.tuning": {
-		"defaultMessage": "Локальные сервисы open-appsec, которые собирают выученное агентом и предлагают настройки. Заменяют его облако."
-	},
-	"npmos.glossary.upstream": {
-		"defaultMessage": "Адрес и порт, куда хост передаёт запросы (колонка «Назначение»). NPMOS проверяет, что он принимает подключения."
-	},
-	"npmos.glossary.waf": {
-		"defaultMessage": "Межсетевой экран для веб-приложений: проверяет HTTP-запросы и блокирует атаки (SQL-инъекции, XSS…). В NPMOS это open-appsec."
 	},
 	"npmos.hosts.actions": {
 		"defaultMessage": "Действия"
@@ -5332,6 +5227,9 @@
 	},
 	"npmos.system.secret.set": {
 		"defaultMessage": "задан — введите новый, чтобы заменить"
+	},
+	"npmos.users.search": {
+		"defaultMessage": "Поиск по имени, нику или email"
 	},
 	"npmos.waf": {
 		"defaultMessage": "WAF"

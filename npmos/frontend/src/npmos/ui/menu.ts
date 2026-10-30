@@ -91,8 +91,6 @@ export const navigation: NavItem[] = [
 			{ id: "roles", label: "npmos.rbac.roles", to: "/roles", rbac: "roles" },
 			{ id: "notifications", label: "npmos.notifications", to: "/system/notifications", rbac: "notifications" },
 			{ id: "settings", label: "settings", to: "/settings", rbac: "settings" },
-			// for everyone: the English terms of the interface explained
-			{ id: "glossary", label: "npmos.glossary", to: "/glossary" },
 		],
 	},
 ];

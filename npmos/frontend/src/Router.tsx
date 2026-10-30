@@ -10,7 +10,6 @@ const Setup = lazy(() => import("src/pages/Setup"));
 const Login = lazy(() => import("src/pages/Login"));
 // NPMOS: the overview of NPMOS replaces the upstream dashboard (phase 2)
 const Overview = lazy(() => import("src/npmos/pages/Overview"));
-const Glossary = lazy(() => import("src/npmos/pages/Glossary"));
 const Roles = lazy(() => import("src/npmos/pages/Roles"));
 const Settings = lazy(() => import("src/pages/Settings"));
 // NPMOS: one registry of all certificates with pages from the server (src/npmos/pages/Certificates)
@@ -78,7 +77,8 @@ function Router() {
 						<Route path="/nginx/stream" element={<Navigate to="/hosts?f=type:is:stream" replace />} />
 						{/* NPMOS: our pages */}
 						<Route path="/hosts" element={<Hosts />} />
-						<Route path="/glossary" element={<Glossary />} />
+						{/* the glossary is gone: the documentation explains the terms */}
+						<Route path="/glossary" element={<Navigate to="/" replace />} />
 						<Route path="/roles" element={<Roles />} />
 						<Route path="/system/services" element={<Services />} />
 						<Route path="/system/notifications" element={<Notifications />} />

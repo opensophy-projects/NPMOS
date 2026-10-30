@@ -5,7 +5,6 @@ import {
 	IconDownload,
 	IconFilter,
 	IconPlus,
-	IconSearch,
 	IconSettings,
 	IconTrash,
 	IconUpload,
@@ -17,6 +16,7 @@ import type { AccessList, Certificate } from "src/api/backend";
 import { intl, T } from "src/locale";
 import { Dropdown } from "../../ui/Dropdown";
 import { Popover } from "../../ui/Popover";
+import { SearchField } from "../../ui/SearchField";
 import styles from "./Hosts.module.css";
 import {
 	FILTER_FIELDS,
@@ -68,27 +68,11 @@ export interface View {
 /** "Changed", "Attacks 24 h" and "CrowdSec" are shown on request: the table should fit a laptop screen */
 export const DEFAULT_VIEW: View = { hidden: ["changed", "attacks", "crowdsec"], compact: false };
 
-/** search field in the inset frame of cards */
+/** search field above the table, "/" focuses it */
 export const Search = forwardRef<HTMLInputElement, { value: string; onChange: (value: string) => void }>(
 	function Search({ value, onChange }, ref) {
 		return (
-			<div className={styles.searchFrame}>
-				<label className={styles.search}>
-					<IconSearch size={16} />
-					<input
-						ref={ref}
-						type="search"
-						value={value}
-						placeholder={t("npmos.hosts.search")}
-						aria-label={t("npmos.hosts.search")}
-						onChange={(e) => onChange(e.target.value)}
-						onKeyDown={(e) => {
-							if (e.key === "Escape") onChange("");
-						}}
-					/>
-					<kbd className={styles.kbd}>/</kbd>
-				</label>
-			</div>
+			<SearchField ref={ref} value={value} onChange={onChange} placeholder={t("npmos.hosts.search")} hotkey="/" />
 		);
 	},
 );

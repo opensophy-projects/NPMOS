@@ -3,7 +3,7 @@
 // certificate is issued for a host in a few fields and managed here: details, files, one-time
 // links, renewal, revocation, deletion. The CAs and settings behind it stay in PKI.
 // ?host=proxy_host-5 filters by a host, ?cert=12 opens a certificate.
-import { IconDots, IconLock, IconPlus, IconSearch } from "@tabler/icons-react";
+import { IconDots, IconLock, IconPlus } from "@tabler/icons-react";
 import { useQueryClient } from "@tanstack/react-query";
 import cn from "classnames";
 import { useEffect, useMemo, useState } from "react";
@@ -40,6 +40,7 @@ import { useCan } from "../../rbac/hooks";
 import { Dropdown, type DropdownItem } from "../../ui/Dropdown";
 import hostStyles from "../Hosts/Hosts.module.css";
 import styles from "../Pki/Pki.module.css";
+import { SearchField } from "../../ui/SearchField";
 
 const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id }, values);
 
@@ -366,15 +367,12 @@ function CertsCard({
 				</h3>
 			</div>
 			<div className={styles.filters}>
-				<label className={hostStyles.search}>
-					<IconSearch size={16} />
-					<input
-						value={query}
-						placeholder={t("npmos.mtls.search")}
-						aria-label={t("npmos.mtls.search")}
-						onChange={(e) => setQuery(e.target.value)}
-					/>
-				</label>
+				<SearchField
+					variant="inset"
+					value={query}
+					onChange={(value) => setQuery(value)}
+					placeholder={t("npmos.mtls.search")}
+				/>
 				<select
 					className="form-select form-select-sm w-auto"
 					aria-label={t("npmos.mtls.host")}

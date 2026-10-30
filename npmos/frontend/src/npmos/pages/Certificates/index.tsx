@@ -36,6 +36,7 @@ import { Popover } from "../../ui/Popover";
 import hostStyles from "../Hosts/Hosts.module.css";
 import styles from "../WafEvents/Events.module.css";
 import own from "./Certificates.module.css";
+import { SearchField } from "../../ui/SearchField";
 
 const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id }, values);
 const PAGE_SIZE = 25;
@@ -323,17 +324,7 @@ function CertificatesPage() {
 			</div>
 
 			<div className={hostStyles.toolbar}>
-				<div className={hostStyles.searchFrame}>
-					<label className={hostStyles.search}>
-						<input
-							type="search"
-							value={search}
-							placeholder={t("npmos.certs.search")}
-							aria-label={t("npmos.certs.search")}
-							onChange={(e) => setSearch(e.target.value)}
-						/>
-					</label>
-				</div>
+				<SearchField value={search} onChange={setSearch} placeholder={t("npmos.certs.search")} />
 				<div className={styles.periods} role="group" aria-label={t("npmos.certs.status")}>
 					{segment(!status, () => update({ status: "" }), <T id="npmos.certs.status.any" />, anyStatusCount)}
 					{STATUSES.map((s) =>

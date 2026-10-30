@@ -5,6 +5,7 @@ import * as api from "src/api/backend/base";
 import { intl, T } from "src/locale";
 import type { RoleHost, RoleHostType } from "./api";
 import styles from "./RoleModal.module.css";
+import { SearchField } from "../ui/SearchField";
 
 const SOURCES: { type: RoleHostType; url: string; object: string }[] = [
 	{ type: "proxy_host", url: "/nginx/proxy-hosts", object: "proxy-host" },
@@ -48,12 +49,12 @@ export function HostPicker({
 			<span>
 				<T id="npmos.rbac.hosts" data={{ count: value.length }} />
 			</span>
-			<input
-				className="form-control form-control-sm mb-2"
-				type="search"
+			<SearchField
+				variant="inset"
+				className="mb-2"
 				value={filter}
 				disabled={disabled}
-				onChange={(e) => setFilter(e.target.value)}
+				onChange={setFilter}
 				placeholder={t("npmos.rbac.hosts.filter")}
 			/>
 			<div className={styles.hostList}>
