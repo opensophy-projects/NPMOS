@@ -6,6 +6,7 @@ import jwtdecode from "../lib/express/jwt-decode.js";
 import validator from "../lib/validator/api.js";
 import { debug, express as logger } from "../logger.js";
 import internalAudit from "./audit/index.js";
+import internalCertificates from "./certificates.js";
 import internalCrowdsec from "./crowdsec/index.js";
 import internalAnalytics from "./events/analytics.js";
 import internalEvents from "./events/index.js";
@@ -876,6 +877,17 @@ router
 			next(err);
 		}
 	});
+
+/**
+ * GET /api/npmos/certificates — all certificates of the system: TLS of the hosts, CAs and issued certificates of
+ * the PKI, certificate files on disk no record describes. Filters: source, status, kind (comma-separated),
+ * used=yes|no, q; sort=expires|-expires|name|-created; limit (≤ 200), offset
+ */
+router
+	.route("/certificates")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((req, res) => internalCertificates.list(res.locals.access, req.query)));
 
 /**
  * GET /api/npmos/audit — a page of the audit log, newest first. Filters: period=24h|7d|30d|90d or from/to (ISO),

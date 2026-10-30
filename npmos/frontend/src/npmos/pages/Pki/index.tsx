@@ -788,7 +788,11 @@ function SettingsTab({ data, refresh }: { data: PkiOverview; refresh: () => void
 function PkiPage() {
 	const can = useCan();
 	const queryClient = useQueryClient();
-	const [tab, setTab] = useState<Tab>("certificates");
+	// ?tab=cas opens a tab (links from the registry of certificates)
+	const [tab, setTab] = useState<Tab>(() => {
+		const asked = new URLSearchParams(window.location.search).get("tab");
+		return asked === "cas" || asked === "templates" || asked === "settings" ? asked : "certificates";
+	});
 	const { data, isLoading, isError, error } = usePki({ refetchInterval: 30000 });
 	const refresh = () => {
 		queryClient.invalidateQueries({ queryKey: ["npmos-pki"] });

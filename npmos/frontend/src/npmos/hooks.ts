@@ -3,11 +3,13 @@ import {
 	type Analytics,
 	type AnalyticsPeriod,
 	type AuditPage,
+	type RegistryPage,
 	type EventQuery,
 	type EventsPage,
 	type EventsSettings,
 	getAnalytics,
 	getAudit,
+	getCertificateRegistry,
 	getEvent,
 	getEvents,
 	getEventsSettings,
@@ -116,6 +118,14 @@ export const useAudit = (query: EventQuery) =>
 	useQuery<AuditPage, Error>({
 		queryKey: ["npmos-audit", query],
 		queryFn: () => getAudit(query),
+		placeholderData: (previous) => previous,
+	});
+
+// the key starts with "certificates": the modals of NPMplus refresh it when they change a certificate
+export const useCertificateRegistry = (query: EventQuery) =>
+	useQuery<RegistryPage, Error>({
+		queryKey: ["certificates", "npmos-registry", query],
+		queryFn: () => getCertificateRegistry(query),
 		placeholderData: (previous) => previous,
 	});
 

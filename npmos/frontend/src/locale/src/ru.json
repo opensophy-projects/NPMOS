@@ -812,6 +812,162 @@
 	"npmos.certificates.mtls": {
 		"defaultMessage": "CA для mTLS"
 	},
+	"npmos.certs.add": {
+		"defaultMessage": "Добавить сертификат"
+	},
+	"npmos.certs.badge.expired": {
+		"defaultMessage": "Истёк"
+	},
+	"npmos.certs.badge.expiring": {
+		"defaultMessage": "Скоро истекает"
+	},
+	"npmos.certs.badge.revoked": {
+		"defaultMessage": "Отозван"
+	},
+	"npmos.certs.badge.valid": {
+		"defaultMessage": "Действует"
+	},
+	"npmos.certs.copy-path": {
+		"defaultMessage": "Скопировать путь"
+	},
+	"npmos.certs.days-left": {
+		"defaultMessage": "{days, plural, one {остался # день} few {осталось # дня} many {осталось # дней} other {осталось # дня}}"
+	},
+	"npmos.certs.default-server": {
+		"defaultMessage": "Запросы к неизвестным именам"
+	},
+	"npmos.certs.description": {
+		"defaultMessage": "Все сертификаты системы в одном списке: TLS хостов, центры сертификации и выпущенные сертификаты PKI, а также файлы сертификатов на диске, о которых нет записей."
+	},
+	"npmos.certs.details": {
+		"defaultMessage": "Подробнее"
+	},
+	"npmos.certs.empty": {
+		"defaultMessage": "Нет сертификатов под эти фильтры"
+	},
+	"npmos.certs.expired-ago": {
+		"defaultMessage": "{days, plural, one {истёк # день назад} few {истёк # дня назад} many {истёк # дней назад} other {истёк # дня назад}}"
+	},
+	"npmos.certs.expires": {
+		"defaultMessage": "Действует до"
+	},
+	"npmos.certs.files-hint": {
+		"defaultMessage": "Файлы сертификатов на диске, о которых нет записей ни в NPMplus, ни в PKI: копии после миграции, от удалённого хоста или ручных изменений. NPMOS их не использует, кроме заглушки NPMplus; остальные, если они не нужны, удалите с диска."
+	},
+	"npmos.certs.issuer": {
+		"defaultMessage": "Кем выпущен"
+	},
+	"npmos.certs.kind": {
+		"defaultMessage": "Тип"
+	},
+	"npmos.certs.kind.dummy": {
+		"defaultMessage": "Заглушка NPMplus"
+	},
+	"npmos.certs.kind.external": {
+		"defaultMessage": "Внешний CA (загружен)"
+	},
+	"npmos.certs.kind.file": {
+		"defaultMessage": "Файл сертификата"
+	},
+	"npmos.certs.kind.file-ca": {
+		"defaultMessage": "Файл CA"
+	},
+	"npmos.certs.kind.intermediate": {
+		"defaultMessage": "Промежуточный CA"
+	},
+	"npmos.certs.kind.root": {
+		"defaultMessage": "Корневой CA"
+	},
+	"npmos.certs.name": {
+		"defaultMessage": "Сертификат"
+	},
+	"npmos.certs.next": {
+		"defaultMessage": "Следующая страница"
+	},
+	"npmos.certs.open-cas": {
+		"defaultMessage": "Открыть центры сертификации"
+	},
+	"npmos.certs.open-mtls": {
+		"defaultMessage": "Открыть в mTLS"
+	},
+	"npmos.certs.open-pki": {
+		"defaultMessage": "Открыть в PKI"
+	},
+	"npmos.certs.prev": {
+		"defaultMessage": "Предыдущая страница"
+	},
+	"npmos.certs.search": {
+		"defaultMessage": "Имя, домен, издатель, серийный номер, хост или путь"
+	},
+	"npmos.certs.sort": {
+		"defaultMessage": "Сортировка"
+	},
+	"npmos.certs.sort.-created": {
+		"defaultMessage": "Сначала новые"
+	},
+	"npmos.certs.sort.-expires": {
+		"defaultMessage": "Сначала долгие"
+	},
+	"npmos.certs.sort.expires": {
+		"defaultMessage": "Сначала истекающие"
+	},
+	"npmos.certs.sort.name": {
+		"defaultMessage": "По имени"
+	},
+	"npmos.certs.source.all": {
+		"defaultMessage": "Все"
+	},
+	"npmos.certs.source.ca": {
+		"defaultMessage": "Центры сертификации"
+	},
+	"npmos.certs.source.file": {
+		"defaultMessage": "Файлы на диске"
+	},
+	"npmos.certs.source.pki": {
+		"defaultMessage": "Выпущены PKI"
+	},
+	"npmos.certs.source.tls": {
+		"defaultMessage": "TLS хостов"
+	},
+	"npmos.certs.status": {
+		"defaultMessage": "Статус"
+	},
+	"npmos.certs.status.any": {
+		"defaultMessage": "Любой"
+	},
+	"npmos.certs.status.expired": {
+		"defaultMessage": "Истекли"
+	},
+	"npmos.certs.status.expiring": {
+		"defaultMessage": "Скоро истекают"
+	},
+	"npmos.certs.status.revoked": {
+		"defaultMessage": "Отозваны"
+	},
+	"npmos.certs.status.valid": {
+		"defaultMessage": "Действует"
+	},
+	"npmos.certs.title": {
+		"defaultMessage": "Все сертификаты"
+	},
+	"npmos.certs.total": {
+		"defaultMessage": "{total, plural, one {# сертификат} few {# сертификата} many {# сертификатов} other {# сертификата}}"
+	},
+	"npmos.certs.used": {
+		"defaultMessage": "Использование"
+	},
+	"npmos.certs.used-by": {
+		"defaultMessage": "Где используется"
+	},
+	"npmos.certs.used.any": {
+		"defaultMessage": "Любое"
+	},
+	"npmos.certs.used.no": {
+		"defaultMessage": "Не используется"
+	},
+	"npmos.certs.used.yes": {
+		"defaultMessage": "Используется хостами"
+	},
 	"npmos.common.close": {
 		"defaultMessage": "Закрыть"
 	},
@@ -2974,6 +3130,9 @@
 	},
 	"npmos.nav.agents": {
 		"defaultMessage": "Агенты"
+	},
+	"npmos.nav.all-certs": {
+		"defaultMessage": "Все сертификаты"
 	},
 	"npmos.nav.analytics": {
 		"defaultMessage": "Аналитика"

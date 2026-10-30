@@ -197,6 +197,47 @@ export const downloadAudit = (params: EventQuery, format: "csv" | "json") =>
 		`npmos-audit-${new Date().toISOString().slice(0, 19).replaceAll(":", "-")}.${format}`,
 	);
 
+export type CertSource = "tls" | "ca" | "pki" | "file";
+export type CertStatus = "valid" | "expiring" | "expired" | "revoked";
+
+/** a row of the registry of certificates (/npmos/certificates) */
+export interface RegistryCert {
+	key: string;
+	source: CertSource;
+	/** id of the record; the path of a file */
+	id: number | string;
+	name: string;
+	subjects: string[];
+	/** provider of a TLS certificate, kind of a CA (root, intermediate, external), profile of an issued one */
+	kind: string;
+	dnsProvider?: string | null;
+	issuer: string;
+	serial?: string;
+	notAfter: string | null;
+	createdOn: string | null;
+	status: CertStatus;
+	usedBy: { type: string; id: number; name: string }[];
+	/** a CA uploaded in NPMplus: its certificate there */
+	tlsId?: number | null;
+	/** a TLS certificate issued by the PKI */
+	pkiId?: number | null;
+	path?: string;
+}
+
+export interface RegistryPage {
+	items: RegistryCert[];
+	total: number;
+	limit: number;
+	offset: number;
+	counts: { source: Partial<Record<CertSource, number>>; status: Partial<Record<CertStatus, number>> };
+	kinds: string[];
+	expiringDays: number;
+	can: { tls: boolean; pki: boolean };
+}
+
+export const getCertificateRegistry = (params: EventQuery) =>
+	api.get({ url: "/npmos/certificates", params }) as Promise<RegistryPage>;
+
 export type AnalyticsPeriod = "1h" | "24h" | "7d" | "30d";
 
 export interface Analytics {

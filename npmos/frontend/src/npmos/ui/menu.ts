@@ -68,7 +68,7 @@ export const navigation: NavItem[] = [
 		id: "certificates-group",
 		label: "certificates",
 		tabs: [
-			{ id: "certificates", label: "npmos.nav.tls", to: "/certificates", section: CERTIFICATES },
+			{ id: "certificates", label: "npmos.nav.all-certs", to: "/certificates", section: CERTIFICATES },
 			{ id: "mtls", label: "npmos.nav.mtls", to: "/mtls", rbac: "pki" },
 			{ id: "pki", label: "npmos.pki", to: "/pki", rbac: "pki" },
 		],

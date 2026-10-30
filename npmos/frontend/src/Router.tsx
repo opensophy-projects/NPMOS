@@ -13,7 +13,8 @@ const Overview = lazy(() => import("src/npmos/pages/Overview"));
 const Glossary = lazy(() => import("src/npmos/pages/Glossary"));
 const Roles = lazy(() => import("src/npmos/pages/Roles"));
 const Settings = lazy(() => import("src/pages/Settings"));
-const Certificates = lazy(() => import("src/pages/Certificates"));
+// NPMOS: one registry of all certificates with pages from the server (src/npmos/pages/Certificates)
+const Certificates = lazy(() => import("src/npmos/pages/Certificates"));
 const Access = lazy(() => import("src/pages/Access"));
 // NPMOS: the audit log with pages from the server and filters (src/npmos/pages/AuditLog)
 const AuditLog = lazy(() => import("src/npmos/pages/AuditLog"));

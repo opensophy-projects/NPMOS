@@ -812,6 +812,162 @@
 	"npmos.certificates.mtls": {
 		"defaultMessage": "mTLS CA"
 	},
+	"npmos.certs.add": {
+		"defaultMessage": "Add certificate"
+	},
+	"npmos.certs.badge.expired": {
+		"defaultMessage": "Expired"
+	},
+	"npmos.certs.badge.expiring": {
+		"defaultMessage": "Expires soon"
+	},
+	"npmos.certs.badge.revoked": {
+		"defaultMessage": "Revoked"
+	},
+	"npmos.certs.badge.valid": {
+		"defaultMessage": "Valid"
+	},
+	"npmos.certs.copy-path": {
+		"defaultMessage": "Copy the path"
+	},
+	"npmos.certs.days-left": {
+		"defaultMessage": "{days, plural, one {# day left} other {# days left}}"
+	},
+	"npmos.certs.default-server": {
+		"defaultMessage": "Requests for unknown names"
+	},
+	"npmos.certs.description": {
+		"defaultMessage": "Every certificate of the system in one list: TLS of the hosts, CAs and issued certificates of the PKI, and certificate files on disk that no record describes."
+	},
+	"npmos.certs.details": {
+		"defaultMessage": "Details"
+	},
+	"npmos.certs.empty": {
+		"defaultMessage": "No certificates match the filters"
+	},
+	"npmos.certs.expired-ago": {
+		"defaultMessage": "{days, plural, one {expired # day ago} other {expired # days ago}}"
+	},
+	"npmos.certs.expires": {
+		"defaultMessage": "Valid until"
+	},
+	"npmos.certs.files-hint": {
+		"defaultMessage": "Certificate files found on disk that no record of NPMplus or the PKI describes: copies left by a migration, an old host or a manual change. NPMOS does not use them, except the placeholder of NPMplus; delete the others from the disk if they are not needed."
+	},
+	"npmos.certs.issuer": {
+		"defaultMessage": "Issued by"
+	},
+	"npmos.certs.kind": {
+		"defaultMessage": "Type"
+	},
+	"npmos.certs.kind.dummy": {
+		"defaultMessage": "Placeholder of NPMplus"
+	},
+	"npmos.certs.kind.external": {
+		"defaultMessage": "External CA (uploaded)"
+	},
+	"npmos.certs.kind.file": {
+		"defaultMessage": "Certificate file"
+	},
+	"npmos.certs.kind.file-ca": {
+		"defaultMessage": "CA file"
+	},
+	"npmos.certs.kind.intermediate": {
+		"defaultMessage": "Intermediate CA"
+	},
+	"npmos.certs.kind.root": {
+		"defaultMessage": "Root CA"
+	},
+	"npmos.certs.name": {
+		"defaultMessage": "Certificate"
+	},
+	"npmos.certs.next": {
+		"defaultMessage": "Next page"
+	},
+	"npmos.certs.open-cas": {
+		"defaultMessage": "Open the certificate authorities"
+	},
+	"npmos.certs.open-mtls": {
+		"defaultMessage": "Open in mTLS"
+	},
+	"npmos.certs.open-pki": {
+		"defaultMessage": "Open in the PKI"
+	},
+	"npmos.certs.prev": {
+		"defaultMessage": "Previous page"
+	},
+	"npmos.certs.search": {
+		"defaultMessage": "Name, domain, issuer, serial, host or path"
+	},
+	"npmos.certs.sort": {
+		"defaultMessage": "Sort"
+	},
+	"npmos.certs.sort.-created": {
+		"defaultMessage": "Newest"
+	},
+	"npmos.certs.sort.-expires": {
+		"defaultMessage": "Expires last"
+	},
+	"npmos.certs.sort.expires": {
+		"defaultMessage": "Expires first"
+	},
+	"npmos.certs.sort.name": {
+		"defaultMessage": "By name"
+	},
+	"npmos.certs.source.all": {
+		"defaultMessage": "All"
+	},
+	"npmos.certs.source.ca": {
+		"defaultMessage": "Certificate authorities"
+	},
+	"npmos.certs.source.file": {
+		"defaultMessage": "Files on disk"
+	},
+	"npmos.certs.source.pki": {
+		"defaultMessage": "Issued by the PKI"
+	},
+	"npmos.certs.source.tls": {
+		"defaultMessage": "TLS of hosts"
+	},
+	"npmos.certs.status": {
+		"defaultMessage": "Status"
+	},
+	"npmos.certs.status.any": {
+		"defaultMessage": "Any"
+	},
+	"npmos.certs.status.expired": {
+		"defaultMessage": "Expired"
+	},
+	"npmos.certs.status.expiring": {
+		"defaultMessage": "Expiring soon"
+	},
+	"npmos.certs.status.revoked": {
+		"defaultMessage": "Revoked"
+	},
+	"npmos.certs.status.valid": {
+		"defaultMessage": "Valid"
+	},
+	"npmos.certs.title": {
+		"defaultMessage": "All certificates"
+	},
+	"npmos.certs.total": {
+		"defaultMessage": "{total, plural, one {# certificate} other {# certificates}}"
+	},
+	"npmos.certs.used": {
+		"defaultMessage": "In use"
+	},
+	"npmos.certs.used-by": {
+		"defaultMessage": "Used by"
+	},
+	"npmos.certs.used.any": {
+		"defaultMessage": "Any"
+	},
+	"npmos.certs.used.no": {
+		"defaultMessage": "Not used"
+	},
+	"npmos.certs.used.yes": {
+		"defaultMessage": "Used by hosts"
+	},
 	"npmos.common.close": {
 		"defaultMessage": "Close"
 	},
@@ -2974,6 +3130,9 @@
 	},
 	"npmos.nav.agents": {
 		"defaultMessage": "Agents"
+	},
+	"npmos.nav.all-certs": {
+		"defaultMessage": "All certificates"
 	},
 	"npmos.nav.analytics": {
 		"defaultMessage": "Analytics"

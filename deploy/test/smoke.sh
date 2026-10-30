@@ -590,6 +590,19 @@ for i in $(seq 1 30); do
 done
 $CURL "$ADMIN/api/npmos/pki" | grep -q '"common_name": *"dana"' && fail "the deleted certificate is still listed"
 
+step "Certificates: the registry lists the TLS certificate and the CAs of the PKI, without the deleted one"
+registry=$($CURL "$ADMIN/api/npmos/certificates?limit=200" | tr -d ' \n')
+echo "$registry" | grep -q '"source":"tls"' || fail "no TLS certificate in the registry: $registry"
+echo "$registry" | grep -q '"name":"SmokeOffice"' || fail "no trust domain in the registry: $registry"
+echo "$registry" | grep -q '"name":"dana"' && fail "the deleted certificate is in the registry"
+$CURL "$ADMIN/api/npmos/certificates?source=pki&status=revoked&q=alice" | grep -q '"name": *"alice"' \
+  || fail "the revoked certificate is not found by its status"
+
+step "Audit log: pages from the server and the action filter"
+audit=$($CURL "$ADMIN/api/npmos/audit?action=revoked&limit=1" | tr -d ' \n')
+echo "$audit" | grep -q '"action":"revoked"' || fail "no revoked entry in the audit log: $audit"
+echo "$audit" | grep -q '"total":[1-9]' || fail "the audit log has no total: $audit"
+
 # --- phase 7 ---
 
 page() { curl -s -o /dev/null -w '%{http_code}' --max-time 10 -H 'Host: test.local' "$HTTP$1"; }
