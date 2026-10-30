@@ -21,6 +21,7 @@ import internalGeoip from "./geoip/index.js";
 import internalMigration from "./migration/index.js";
 import internalWafAgent from "./waf/agent-settings.js";
 import internalWafExpert from "./waf/expert.js";
+import internalWafHostCode from "./waf/hosts-code.js";
 import internalWafHosts from "./waf/hosts.js";
 import internalWaf from "./waf/index.js";
 import internalWafObjects from "./waf/objects/api.js";
@@ -428,6 +429,43 @@ router
 			return internalWafHosts.set(res.locals.access, req.params.host_id, data);
 		}),
 	);
+
+/**
+ * GET /api/npmos/waf/hosts/:host_id/code — the WAF policy of a host as YAML (objects by name)
+ * PUT /api/npmos/waf/hosts/:host_id/code — {content, dry_run?}: checked, or applied as the GUI does
+ */
+router
+	.route("/waf/hosts/:host_id/code")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(
+		handle(async (req, res) =>
+			internalWafHostCode.get(res.locals.access, req.params.host_id, await hostLabel(req.params.host_id)),
+		),
+	)
+	.put(
+		handle(async (req, res) =>
+			internalWafHostCode.set(res.locals.access, req.params.host_id, {
+				...(await validator(
+					{
+						type: "object",
+						additionalProperties: false,
+						required: ["content"],
+						properties: { content: { type: "string", maxLength: 262144 }, dry_run: { type: "boolean" } },
+					},
+					req.body,
+				)),
+				name: await hostLabel(req.params.host_id),
+			}),
+		),
+	);
+
+/** the domains of a proxy host, for the head of its code */
+const hostLabel = async (id) => {
+	const host = await db()("proxy_host").select("domain_names").where({ id }).first();
+	const names = typeof host?.domain_names === "string" ? JSON.parse(host.domain_names) : (host?.domain_names ?? []);
+	return names.join(", ") || `#${id}`;
+};
 
 /**
  * GET  /api/npmos/waf/policy — generated local_policy.yaml (text) and its state
@@ -1066,7 +1104,8 @@ router
 	.post(handle((req, res) => internalWafObjects.rollback(res.locals.access, req.params.version_id)));
 
 /**
- * GET  /api/npmos/waf/policy/export?format=v1beta2|v1beta1 — YAML of the objects and the default policy
+ * GET  /api/npmos/waf/policy/export?format=v1beta2|v1beta1[&section=<v1beta2 section>] — YAML of the objects and the
+ *   default policy, or of the objects of one kind
  * POST /api/npmos/waf/policy/import?dry_run=true — {content}: objects and default policy of a local_policy.yaml
  */
 router
@@ -1076,8 +1115,9 @@ router
 	.get(async (req, res, next) => {
 		try {
 			const format = req.query.format === "v1beta1" ? "v1beta1" : "v1beta2";
-			const content = await internalWafObjects.export(res.locals.access, format);
-			res.attachment(`npmos-waf-policy-${format}.yaml`);
+			const section = typeof req.query.section === "string" ? req.query.section : null;
+			const content = await internalWafObjects.export(res.locals.access, format, section);
+			res.attachment(`npmos-waf-policy-${section ?? format}.yaml`);
 			res.type("application/yaml").send(content);
 		} catch (err) {
 			debug(logger, `${req.method.toUpperCase()} ${req.originalUrl}: ${err}`);

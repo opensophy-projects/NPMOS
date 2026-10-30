@@ -505,8 +505,20 @@ const internalWafObjects = {
 	 * @param {"v1beta2"|"v1beta1"} format
 	 * @returns {Promise<string>}
 	 */
-	export: async (access, format = "v1beta2") => {
+	export: async (access, format = "v1beta2", section = null) => {
 		await access.can("waf_policy:view");
+		// one kind of objects (Agents → open-appsec → a kind → Code): the administrator's objects of it; the
+		// built-in ones are named in the head (they are not imported)
+		if (section) {
+			const kind = Object.keys(KINDS).find((k) => KINDS[k] === section);
+			if (!kind) throw new errs.ValidationError(`unknown section ${section}`);
+			const objects = (await listObjects()).filter((o) => o.kind === kind);
+			const builtin = objects.filter((o) => o.builtin).map((o) => o.name);
+			const own = objects.filter((o) => !o.builtin).map((o) => ({ name: o.name, ...o.spec }));
+			const doc = asV2({ policies: { default: { mode: "detect-learn" }, specificRules: [] }, [section]: own });
+			const head = `# NPMOS: ${section} of WAF -> Policy (v1beta2)${builtin.length ? `\n# built in, read only: ${builtin.join(", ")}` : ""}\n`;
+			return `${head}${YAML.stringify({ [section]: doc[section] ?? [] }, { lineWidth: 0, aliasDuplicateObjects: false })}`;
+		}
 		return `# NPMOS: objects and default policy of WAF -> Policy (${format})\n${YAML.stringify(await exportDoc(format), { lineWidth: 0, aliasDuplicateObjects: false })}`;
 	},
 
