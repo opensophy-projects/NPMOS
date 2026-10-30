@@ -929,6 +929,57 @@
 	"npmos.audit.total": {
 		"defaultMessage": "{total, plural, one {# entry} other {# entries}}"
 	},
+	"npmos.block-page": {
+		"defaultMessage": "Block page"
+	},
+	"npmos.block-page.accent": {
+		"defaultMessage": "Colour"
+	},
+	"npmos.block-page.contact": {
+		"defaultMessage": "Contact (optional)"
+	},
+	"npmos.block-page.contact.placeholder": {
+		"defaultMessage": "For example: write to security@example.com"
+	},
+	"npmos.block-page.description": {
+		"defaultMessage": "What a visitor sees when a request is refused: by open-appsec, by the CrowdSec bouncer or by an access list. It replaces the page of the agent with the text of Check Point."
+	},
+	"npmos.block-page.details": {
+		"defaultMessage": "Show the request ID, IP, host and time (for a request to the administrator)"
+	},
+	"npmos.block-page.enabled": {
+		"defaultMessage": "Show the page of NPMOS"
+	},
+	"npmos.block-page.enabled.hint": {
+		"defaultMessage": "Off: each component answers with its own page (open-appsec, CrowdSec, nginx)."
+	},
+	"npmos.block-page.language": {
+		"defaultMessage": "Language of the labels"
+	},
+	"npmos.block-page.off": {
+		"defaultMessage": "The page of NPMOS is off: visitors see the pages of the components."
+	},
+	"npmos.block-page.preview": {
+		"defaultMessage": "Preview"
+	},
+	"npmos.block-page.saved": {
+		"defaultMessage": "The block page is saved"
+	},
+	"npmos.block-page.settings": {
+		"defaultMessage": "Page"
+	},
+	"npmos.block-page.text": {
+		"defaultMessage": "Text"
+	},
+	"npmos.block-page.text.hint": {
+		"defaultMessage": "An empty line starts a new paragraph."
+	},
+	"npmos.block-page.title": {
+		"defaultMessage": "Title"
+	},
+	"npmos.block-page.where": {
+		"defaultMessage": "The page answers every refusal nginx makes itself (code 403); answers of your services are left as they are. Pages of mTLS and the admin interface keep their own."
+	},
 	"npmos.certificates.mtls": {
 		"defaultMessage": "mTLS CA"
 	},

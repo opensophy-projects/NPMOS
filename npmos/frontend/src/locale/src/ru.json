@@ -929,6 +929,57 @@
 	"npmos.audit.total": {
 		"defaultMessage": "{total, plural, one {# запись} few {# записи} many {# записей} other {# записи}}"
 	},
+	"npmos.block-page": {
+		"defaultMessage": "Страница блокировки"
+	},
+	"npmos.block-page.accent": {
+		"defaultMessage": "Цвет"
+	},
+	"npmos.block-page.contact": {
+		"defaultMessage": "Контакт (необязательно)"
+	},
+	"npmos.block-page.contact.placeholder": {
+		"defaultMessage": "Например: напишите на security@example.com"
+	},
+	"npmos.block-page.description": {
+		"defaultMessage": "Что видит посетитель, когда запрос отклонён: open-appsec, баунсером CrowdSec или списком доступа. Заменяет страницу агента с текстом Check Point."
+	},
+	"npmos.block-page.details": {
+		"defaultMessage": "Показывать ID запроса, IP, хост и время (для обращения к администратору)"
+	},
+	"npmos.block-page.enabled": {
+		"defaultMessage": "Показывать страницу NPMOS"
+	},
+	"npmos.block-page.enabled.hint": {
+		"defaultMessage": "Выключено: каждый компонент отвечает своей страницей (open-appsec, CrowdSec, nginx)."
+	},
+	"npmos.block-page.language": {
+		"defaultMessage": "Язык подписей"
+	},
+	"npmos.block-page.off": {
+		"defaultMessage": "Страница NPMOS выключена: посетители видят страницы компонентов."
+	},
+	"npmos.block-page.preview": {
+		"defaultMessage": "Предпросмотр"
+	},
+	"npmos.block-page.saved": {
+		"defaultMessage": "Страница блокировки сохранена"
+	},
+	"npmos.block-page.settings": {
+		"defaultMessage": "Страница"
+	},
+	"npmos.block-page.text": {
+		"defaultMessage": "Текст"
+	},
+	"npmos.block-page.text.hint": {
+		"defaultMessage": "Пустая строка начинает новый абзац."
+	},
+	"npmos.block-page.title": {
+		"defaultMessage": "Заголовок"
+	},
+	"npmos.block-page.where": {
+		"defaultMessage": "Страница отдаётся на каждый отказ, который nginx делает сам (код 403); ответы ваших сервисов не трогаются. У mTLS и панели администратора свои страницы."
+	},
 	"npmos.certificates.mtls": {
 		"defaultMessage": "CA для mTLS"
 	},

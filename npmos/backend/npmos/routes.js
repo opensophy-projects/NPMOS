@@ -6,6 +6,7 @@ import jwtdecode from "../lib/express/jwt-decode.js";
 import validator from "../lib/validator/api.js";
 import { debug, express as logger } from "../logger.js";
 import internalAudit from "./audit/index.js";
+import internalBlockPage from "./block-page.js";
 import internalCertificates from "./certificates.js";
 import internalCrowdsec from "./crowdsec/index.js";
 import internalAnalytics from "./events/analytics.js";
@@ -916,6 +917,74 @@ router
 			next(err);
 		}
 	});
+
+const blockPageSchema = {
+	type: "object",
+	additionalProperties: false,
+	required: ["enabled", "title", "text", "contact", "details", "accent"],
+	properties: {
+		enabled: { type: "boolean" },
+		title: { type: "string", maxLength: 200 },
+		text: { type: "string", maxLength: 2000 },
+		contact: { type: "string", maxLength: 500 },
+		details: { type: "boolean" },
+		accent: { type: "string", pattern: "^#[0-9a-fA-F]{6}$" },
+		language: { type: "string", enum: ["en", "ru"] },
+	},
+};
+
+/**
+ * GET  /api/npmos/block-page — settings of the block page and its HTML
+ * PUT  /api/npmos/block-page — {enabled, title, text, contact, details, accent}
+ * POST /api/npmos/block-page/preview — the HTML of settings not saved
+ */
+router
+	.route("/block-page")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalBlockPage.get(res.locals.access)))
+	.put(
+		handle(async (req, res) =>
+			internalBlockPage.set(res.locals.access, await validator(blockPageSchema, req.body)),
+		),
+	);
+
+/**
+ * GET /api/npmos/block-page/code — the settings as YAML
+ * PUT /api/npmos/block-page/code — {content, dry_run?}: checked, or saved
+ */
+router
+	.route("/block-page/code")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalBlockPage.getCode(res.locals.access)))
+	.put(
+		handle(async (req, res) =>
+			internalBlockPage.setCode(
+				res.locals.access,
+				await validator(
+					{
+						type: "object",
+						additionalProperties: false,
+						required: ["content"],
+						properties: { content: { type: "string", maxLength: 65536 }, dry_run: { type: "boolean" } },
+					},
+					req.body,
+				),
+				(doc) => validator(blockPageSchema, doc),
+			),
+		),
+	);
+
+router
+	.route("/block-page/preview")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) =>
+			internalBlockPage.preview(res.locals.access, await validator(blockPageSchema, req.body)),
+		),
+	);
 
 /**
  * GET /api/npmos/certificates — all certificates of the system: TLS of the hosts, CAs and issued certificates of

@@ -27,6 +27,7 @@ const WafAnalytics = lazy(() => import("src/npmos/pages/WafAnalytics"));
 const Notifications = lazy(() => import("src/npmos/pages/Notifications"));
 // NPMOS: one page per agent: its policies (GUI or code) and the agent itself
 const AgentOpenappsec = lazy(() => import("src/npmos/pages/AgentOpenappsec"));
+const BlockPage = lazy(() => import("src/npmos/pages/BlockPage"));
 const Pki = lazy(() => import("src/npmos/pages/Pki"));
 const Mtls = lazy(() => import("src/npmos/pages/Mtls"));
 const Crowdsec = lazy(() => import("src/npmos/pages/Crowdsec"));
@@ -85,6 +86,7 @@ function Router() {
 						<Route path="/mtls" element={<Mtls />} />
 						<Route path="/crowdsec" element={<Crowdsec />} />
 						<Route path="/agents/open-appsec" element={<AgentOpenappsec />} />
+						<Route path="/agents/block-page" element={<BlockPage />} />
 						{/* the pages of before open their place on the page of the agent */}
 						<Route path="/waf/agent" element={<Navigate to="/agents/open-appsec?tab=agent" replace />} />
 						<Route path="/waf/events" element={<WafEvents />} />

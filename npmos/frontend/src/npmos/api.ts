@@ -416,3 +416,28 @@ export const getHostHistory = (type: HostObjectType, id: number): Promise<HostCh
 	api.get({ url: `/npmos/hosts/changes/${type}/${id}` });
 
 export const getUpstreamChecks = (): Promise<UpstreamCheck[]> => api.get({ url: "/npmos/hosts/upstreams" });
+
+/** Agents → Block page: what a refused visitor sees */
+export interface BlockPageSettings {
+	enabled: boolean;
+	title: string;
+	text: string;
+	contact: string;
+	details: boolean;
+	accent: string;
+	/** language of the labels of the details */
+	language?: "en" | "ru";
+}
+
+export const getBlockPage = () =>
+	api.get({ url: "/npmos/block-page" }) as Promise<{ settings: BlockPageSettings; preview: string }>;
+export const setBlockPage = (data: BlockPageSettings) =>
+	api.put({ url: "/npmos/block-page", data }) as Promise<{ settings: BlockPageSettings; preview: string }>;
+export const previewBlockPage = (data: BlockPageSettings) =>
+	api.post({ url: "/npmos/block-page/preview", data }) as Promise<{ preview: string }>;
+export const getBlockPageCode = () => api.get({ url: "/npmos/block-page/code" }) as Promise<{ content: string }>;
+export const putBlockPageCode = (content: string, dryRun: boolean) =>
+	api.put({ url: "/npmos/block-page/code", data: { content, dryRun } }) as Promise<{
+		valid: boolean;
+		error?: string;
+	}>;

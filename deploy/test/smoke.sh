@@ -151,6 +151,12 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
   done
   [ "$(status "/?q=hello")" = 200 ] || fail "a normal request was blocked"
 
+  step "Block page: a refused request gets the page of NPMOS, not the one of the agent"
+  page=$(curl -s --max-time 10 -H 'Host: test.local' "$HTTP$SQLI")
+  echo "$page" | grep -q 'NPMOS: block page' || fail "no block page of NPMOS: $(echo "$page" | head -c 300)"
+  echo "$page" | grep -q 'Check Point' && fail "the page of the agent is shown"
+  echo "$page" | grep -q '{{ip}}' && fail "the details of the request are not filled in"
+
   # events of the agent's security log, newest first. The attack is repeated while waiting: the agent
   # restarts its services a few seconds after a start or a new policy, and the event of a request
   # handled just before such a restart can be lost.

@@ -85,6 +85,8 @@ export const navigation: NavItem[] = [
 				rbac: "waf_policy",
 			},
 			{ id: "crowdsec", label: "npmos.crowdsec", to: "/crowdsec", rbac: "crowdsec" },
+			// what a refused visitor sees, for both agents
+			{ id: "block-page", label: "npmos.block-page", to: "/agents/block-page", rbac: "waf_policy" },
 		],
 	},
 	{
