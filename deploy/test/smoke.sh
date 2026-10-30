@@ -330,6 +330,32 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
   post_json POST "/versions/$before/rollback" "" > /dev/null
   wait_status "$SQLI" 403 "SQLi is not blocked after the rollback of the import"
 
+  step "Learning: the blocked attack is a group of the queue of its host"
+  key=""
+  for i in $(seq 1 30); do
+    key=$($CURL "$ADMIN/api/npmos/learning/queue?period=24h&host=1&reason=blocked&suggestions=0" \
+      | grep -o '"key": *"[0-9a-f]*"' | head -1 | grep -o '[0-9a-f]\{32\}' || true)
+    [ -n "$key" ] && break
+    [ "$i" = 30 ] && fail "no blocked group for test.local: $($CURL "$ADMIN/api/npmos/learning/queue?period=24h")"
+    status "$SQLI" > /dev/null
+    sleep 2
+  done
+
+  step "Learning: labelled legitimate with an exception, the attack passes at once; undo blocks it again"
+  label=$($CURL -H 'Content-Type: application/json' "$ADMIN/api/npmos/learning/labels" -d "{\"key\": \"$key\", \"decision\": \"benign\",
+    \"scopes\": [{\"type\": \"parameterName\", \"value\": \"id\"}], \"exception\": true, \"ttl_days\": 1}")
+  label_id=$(echo "$label" | grep -o '"id": *[0-9]*' | head -1 | grep -o '[0-9]*$')
+  # decisions.data of the assets of the host is written in the shared storage, where the agent reads it
+  echo "$label" | grep -q '"syncError": *""' || fail "the label was not written for the agent: $label"
+  echo "$label" | grep -q '"syncedOn": *"' || fail "the label was not written for the agent: $label"
+  $CURL "$ADMIN/api/npmos/learning/queue?period=24h&host=1&suggestions=0" | grep -q "\"$key\"" \
+    && fail "the labelled group is still in the queue"
+  wait_status "$SQLI" 200 "SQLi labelled legitimate is still blocked"
+  $CURL "$ADMIN/api/npmos/waf/policy" | grep -q "npmos-learn-$label_id" || fail "no exception of the label in the policy"
+  $CURL -X DELETE "$ADMIN/api/npmos/learning/labels/$label_id" | grep -q '"ok": *true' || fail "the label was not undone"
+  wait_status "$SQLI" 403 "SQLi is not blocked after the label was undone"
+  $CURL "$ADMIN/api/npmos/learning/labels?active=0" | grep -q '"undoneOn": *"' || fail "the undone label is not in the history"
+
   step "WAF: detect-learn lets attacks through"
   $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf/hosts/1" \
     -d '{"enabled": true, "mode": "detect-learn", "minimum_confidence": "high"}' > /dev/null

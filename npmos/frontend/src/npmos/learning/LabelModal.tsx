@@ -85,6 +85,7 @@ const LabelModal = EasyModal.create(({ visible, remove, group, suggestion, decis
 			} else if (group) {
 				await createLabel({
 					key: group.key,
+					eventId: group.eventId ?? undefined,
 					decision,
 					scopes: decision === "dismiss" ? [] : scopes,
 					exception: decision !== "dismiss" && exception,

@@ -23,6 +23,7 @@ import {
 	enforcedIds,
 	exceptionActive,
 	GREY_MIN,
+	groupKey,
 	groupsOf,
 	hostStats,
 	mergeDecisions,
@@ -104,12 +105,15 @@ export const getTenant = async () => {
  * Rows of the queue: events of the assets of protected hosts (the agent names an asset after the host of its rule:
  * a domain, or domain + path of a location), grouped by asset, URI, parameter and indicators.
  */
-const groupRows = (from, assets) =>
-	db()(EVENT_TABLE)
+const groupRows = (from, assets, only = null) => {
+	const q = db()(EVENT_TABLE)
 		.where("kind", "security")
 		.where("time", ">=", from)
-		.whereIn("asset", assets.length ? assets : [""])
-		.where((w) => w.whereRaw("lower(action) = 'prevent'").orWhere("score", ">=", GREY_MIN))
+		.whereIn("asset", assets.length ? assets : [""]);
+	// one group (the card of an event): all its events; the queue: blocked or doubtful ones
+	if (only) q.where({ uri: only.uri, parameter: only.parameter, indicators: only.indicators });
+	else q.where((w) => w.whereRaw("lower(action) = 'prevent'").orWhere("score", ">=", GREY_MIN));
+	return q
 		.groupBy("asset", "uri", "parameter", "indicators")
 		.select("asset", "uri", "parameter", "indicators")
 		.select(
@@ -126,6 +130,7 @@ const groupRows = (from, assets) =>
 		)
 		.orderBy("events", "desc")
 		.limit(MAX_GROUPS);
+};
 
 /** asset → proxy host */
 const assetOwner = (hosts) => {
@@ -135,11 +140,12 @@ const assetOwner = (hosts) => {
 };
 
 /** groups of hosts (all with WAF, or one) in a period, labelled ones included or not */
-const findGroups = async (from, hosts, labelled = new Set()) =>
+const findGroups = async (from, hosts, labelled = new Set(), only = null) =>
 	groupsOf(
 		await groupRows(
 			from,
 			hosts.flatMap((h) => h.assets),
+			only,
 		),
 		labelled,
 		new Date(),
@@ -377,14 +383,37 @@ const internalLearning = {
 	 * @param {Access} access
 	 * @param {string} key
 	 */
-	group: async (access, key, period = "30d") => {
+	group: async (access, key, only = null) => {
 		await access.can("waf_learning:view");
-		const from = new Date(Date.now() - (PERIODS[period] ?? PERIODS["30d"]));
+		const from = new Date(Date.now() - PERIODS["30d"]);
 		const hosts = await wafHosts();
-		const group = (await findGroups(from, hosts)).find((g) => g.key === key);
+		const group = (await findGroups(from, hosts, new Set(), only)).find((g) => g.key === key);
 		if (!group) throw new errs.ItemNotFoundError(key);
-		const assets = hosts.find((h) => h.id === group.hostId)?.assets ?? [];
-		return { ...group, scopes: defaultScopes(group), sourceList: await groupSources(group, from, assets) };
+		const host = hosts.find((h) => h.id === group.hostId);
+		return {
+			...group,
+			hostName: host?.name ?? group.host,
+			hostMode: host?.mode ?? null,
+			scopes: defaultScopes(group),
+			sourceList: await groupSources(group, from, host?.assets ?? []),
+			labelled: (await activeKeys()).has(group.key),
+		};
+	},
+
+	/**
+	 * The group of an event (the buttons of the card of an event).
+	 * @param {Access} access
+	 * @param {string} id  id of the event
+	 */
+	groupOfEvent: async (access, id) => {
+		await access.can("waf_learning:view");
+		const event = await db()(EVENT_TABLE).where("id", id).where("kind", "security").first();
+		if (!event) throw new errs.ItemNotFoundError(id);
+		const hosts = await wafHosts();
+		const hostId = assetOwner(hosts)(event);
+		if (!hostId) throw new errs.ValidationError("The event is not of a host with WAF");
+		const key = groupKey({ hostId, uri: event.uri, parameter: event.parameter, indicators: event.indicators });
+		return internalLearning.group(access, key, event);
 	},
 
 	/**
@@ -439,9 +468,15 @@ const internalLearning = {
 			return { id };
 		}
 
-		const group = (await findGroups(new Date(now.getTime() - PERIODS["30d"]), await wafHosts())).find(
-			(g) => g.key === data.key,
-		);
+		const from = new Date(now.getTime() - PERIODS["30d"]);
+		const hosts = await wafHosts();
+		let group = (await findGroups(from, hosts)).find((g) => g.key === data.key);
+		// labelled from the card of an event whose group is not in the queue (allowed, or a low score)
+		const eventId = String(data.event_id ?? "");
+		if (!group && /^[1-9][0-9]{0,17}$/.test(eventId)) {
+			const event = await db()(EVENT_TABLE).where("id", eventId).where("kind", "security").first();
+			if (event) group = (await findGroups(from, hosts, new Set(), event)).find((g) => g.key === data.key);
+		}
 		if ((await activeKeys()).has(data.key)) throw new errs.ValidationError("The group is already labelled");
 		if (!group)
 			throw new errs.ValidationError(

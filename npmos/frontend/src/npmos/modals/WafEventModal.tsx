@@ -11,6 +11,8 @@ import { useDecisions } from "../crowdsec/api";
 import { showBanModal } from "../crowdsec/BanModal";
 import { remaining } from "../crowdsec/labels";
 import { useEvent } from "../hooks";
+import { type Decision, getEventGroup } from "../learning/api";
+import { showLabelModal } from "../learning/LabelModal";
 import { ActionBadge, EventTime, SeverityBadge } from "../pages/WafEvents/badges";
 import { getPolicyObjects } from "../policy/api";
 import { showObjectModal } from "../policy/ObjectModal";
@@ -67,6 +69,20 @@ const createException = async (event: SecurityEvent) => {
 				spec: { action: "accept", condition },
 			},
 		});
+	} catch (err: any) {
+		showError(err.message);
+	}
+};
+
+/** labels the group of the event (Agents → open-appsec → Learning) */
+const labelEvent = async (event: SecurityEvent, decision: Decision) => {
+	try {
+		const group = await getEventGroup(event.id);
+		if (group.labelled) {
+			showError(intl.formatMessage({ id: "npmos.events.label.labelled" }));
+			return;
+		}
+		showLabelModal({ group, decision });
 	} catch (err: any) {
 		showError(err.message);
 	}
@@ -204,6 +220,16 @@ const WafEventModal = EasyModal.create(({ visible, remove, event: summary, onFil
 					>
 						<T id={longest ? "npmos.events.extend-ban" : "npmos.events.ban-ip"} />
 					</Button>
+				)}
+				{event.kind === "security" && can("waf_learning", "label") && (
+					<>
+						<Button onClick={() => labelEvent(event, "benign").then(remove)}>
+							<T id="npmos.events.label.benign" />
+						</Button>
+						<Button onClick={() => labelEvent(event, "malicious").then(remove)}>
+							<T id="npmos.events.label.malicious" />
+						</Button>
+					</>
 				)}
 				{event.kind === "security" && can("waf_policy", "manage") && (
 					<Button onClick={() => createException(event).then(remove)}>

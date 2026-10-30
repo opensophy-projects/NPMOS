@@ -58,6 +58,7 @@ export interface Queue {
 
 export interface GroupDetails extends QueueGroup {
 	sourceList: { ip: string; events: number }[];
+	labelled: boolean;
 }
 
 export interface Label {
@@ -113,6 +114,8 @@ export interface LearningHost {
 
 export interface LabelInput {
 	key?: string;
+	/** an event of the group (the group of an event card may be out of the queue) */
+	eventId?: number;
 	suggestion?: Suggestion;
 	decision: Decision;
 	scopes?: Scope[];
@@ -131,6 +134,9 @@ export const getQueue = (params: Record<string, string | number | undefined>): P
 
 export const getGroup = (key: string): Promise<GroupDetails> =>
 	api.get({ url: `/npmos/learning/groups/${encodeURIComponent(key)}` });
+
+export const getEventGroup = (eventId: string | number): Promise<GroupDetails> =>
+	api.get({ url: `/npmos/learning/events/${eventId}/group` });
 
 export const getLabels = (params: Record<string, string | number | undefined>): Promise<LabelsPage> =>
 	api.get({ url: "/npmos/learning/labels", params });

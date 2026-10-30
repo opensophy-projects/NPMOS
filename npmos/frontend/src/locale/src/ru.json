@@ -2189,6 +2189,15 @@
 	"npmos.events.kind.system": {
 		"defaultMessage": "Сообщения open-appsec"
 	},
+	"npmos.events.label.benign": {
+		"defaultMessage": "Ложное срабатывание"
+	},
+	"npmos.events.label.labelled": {
+		"defaultMessage": "Группа этого события уже размечена («Агенты → open-appsec → Обучение»)."
+	},
+	"npmos.events.label.malicious": {
+		"defaultMessage": "Атака"
+	},
 	"npmos.events.newer": {
 		"defaultMessage": "Новее"
 	},

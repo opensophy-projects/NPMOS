@@ -2302,12 +2302,19 @@ router
  * GET /api/npmos/learning/queue?period=24h|7d|30d&host=&reason=blocked|grey|detected&q=&limit=&offset=&suggestions=0
  *   groups of events the agent is not sure about, and suggestions of the tuning service
  * GET /api/npmos/learning/groups/:key — a group with its sources
+ * GET /api/npmos/learning/events/:event_id/group — the group of an event
  */
 router
 	.route("/learning/queue")
 	.options((_, res) => res.sendStatus(204))
 	.all(jwtdecode())
 	.get(handle((req, res) => internalLearning.queue(res.locals.access, req.query)));
+
+router
+	.route("/learning/events/:event_id/group")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((req, res) => internalLearning.groupOfEvent(res.locals.access, req.params.event_id)));
 
 router
 	.route("/learning/groups/:key")
