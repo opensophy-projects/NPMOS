@@ -638,7 +638,9 @@ answer=$(cs_settings true "Alert.Broken(((" 2>&1 || true)
 echo "$answer" | grep -q 'previous ones are restored' || fail "a broken profile was not rolled back: $answer"
 $CURL "$ADMIN/api/npmos/crowdsec" | tr -d ' \n' | grep -q '"lapi":{"healthy":true' \
   || fail "CrowdSec is not healthy after the rollback"
-$CURL "$ADMIN/api/npmos/crowdsec/settings" | grep -q '"filter": *""' || fail "the broken profile was kept"
+# the filter of the previous step comes back, not the broken one
+$CURL "$ADMIN/api/npmos/crowdsec/settings" | grep -q 'Alert.Broken' && fail "the broken profile was kept"
+$CURL "$ADMIN/api/npmos/crowdsec/settings" | grep -q "Alert.GetScope() == 'Ip'" || fail "the previous profile did not come back"
 
 step "CrowdSec: a ban by hand blocks the tester on its hosts, not in the interface of NPMOS"
 api_json "$ADMIN/api/npmos/crowdsec/decisions" -d "{\"values\": [\"$client_ip\"], \"duration\": \"10m\", \"reason\": \"smoke\"}" \
