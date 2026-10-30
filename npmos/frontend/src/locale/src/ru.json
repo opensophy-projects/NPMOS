@@ -980,6 +980,9 @@
 	"npmos.block-page.where": {
 		"defaultMessage": "Страница отдаётся на каждый отказ, который nginx делает сам (код 403); ответы ваших сервисов не трогаются. У mTLS и панели администратора свои страницы."
 	},
+	"npmos.blocks.description": {
+		"defaultMessage": "Кого сейчас блокирует CrowdSec, за что, и списки адресов: баны, капчи, алерты, блок-листы. Здесь же — ручной бан."
+	},
 	"npmos.certificates.mtls": {
 		"defaultMessage": "CA для mTLS"
 	},
@@ -1247,6 +1250,9 @@
 	"npmos.crowdsec.activity": {
 		"defaultMessage": "Активность"
 	},
+	"npmos.crowdsec.agent.description": {
+		"defaultMessage": "Поведенческая защита: CrowdSec разбирает логи nginx и атаки open-appsec и банит источники. Здесь его политика (что читать, когда банить, кого не трогать), хаб и подключённые машины; сами баны — в «Аналитика → Блокировки»."
+	},
 	"npmos.crowdsec.alerts.active": {
 		"defaultMessage": "Только с активным решением"
 	},
@@ -1440,7 +1446,7 @@
 		"defaultMessage": "Выключено: бан никогда не закрывает администраторам доступ к интерфейсу (порт интерфейса и GoAccess). Включено: забаненные адреса не откроют и его; сначала внесите адреса администраторов в белый список."
 	},
 	"npmos.crowdsec.bouncer.appsec": {
-		"defaultMessage": "Агент WAF"
+		"defaultMessage": "агент open-appsec (репутация IP выключена)"
 	},
 	"npmos.crowdsec.bouncer.enabled": {
 		"defaultMessage": "Проверять запросы в nginx"
@@ -1476,7 +1482,7 @@
 		"defaultMessage": "Периодически скачивает все решения: меньше запросов к CrowdSec, баны действуют после следующей загрузки."
 	},
 	"npmos.crowdsec.bouncer.npmos": {
-		"defaultMessage": "nginx NPMOS"
+		"defaultMessage": "nginx NPMOS: применяет баны на всех хостах"
 	},
 	"npmos.crowdsec.bouncer.pull": {
 		"defaultMessage": "Последний запрос"
@@ -1503,7 +1509,7 @@
 		"defaultMessage": "Удалить баунсер {name}? Его ключ сразу перестанет работать."
 	},
 	"npmos.crowdsec.bouncers.hint": {
-		"defaultMessage": "Компоненты, которые применяют решения. npmos — nginx NPMOS (баунсер для всех хостов); ключи создаёт npmos-init."
+		"defaultMessage": "Баунсеры применяют решения CrowdSec. npmos — nginx NPMOS, баунсер для всех хостов; ключи создаёт npmos-init."
 	},
 	"npmos.crowdsec.capi": {
 		"defaultMessage": "Центральный API CrowdSec (обмен сигналами, community blocklist) не используется: его заменяют локальные блок-листы и решения других узлов NPMOS."
@@ -1700,6 +1706,9 @@
 	"npmos.crowdsec.left.days": {
 		"defaultMessage": "{days} дн."
 	},
+	"npmos.crowdsec.left.expired": {
+		"defaultMessage": "истёк"
+	},
 	"npmos.crowdsec.left.forever": {
 		"defaultMessage": "навсегда"
 	},
@@ -1731,10 +1740,10 @@
 		"defaultMessage": "Последний сигнал"
 	},
 	"npmos.crowdsec.machine.local": {
-		"defaultMessage": "Агент CrowdSec"
+		"defaultMessage": "Сам CrowdSec: читает логи nginx"
 	},
 	"npmos.crowdsec.machine.npmos": {
-		"defaultMessage": "NPMOS"
+		"defaultMessage": "NPMOS: передаёт атаки open-appsec, ручные баны и блок-листы"
 	},
 	"npmos.crowdsec.machine.pending": {
 		"defaultMessage": "Не подтверждена"
@@ -1752,7 +1761,7 @@
 		"defaultMessage": "Удалить машину {name}? Она больше не сможет отправлять алерты, её прежние алерты останутся. Работающий узел зарегистрируется снова при следующем запуске."
 	},
 	"npmos.crowdsec.machines.hint": {
-		"defaultMessage": "Агенты, которые отправляют алерты в локальный API. localhost — агент самого CrowdSec, npmos-… — NPMOS (ручные баны, блок-листы)."
+		"defaultMessage": "Машины — это источники алертов для CrowdSec. localhost — сам CrowdSec (разбирает логи nginx), npmos-… — NPMOS (атаки, найденные open-appsec, ручные баны, блок-листы)."
 	},
 	"npmos.crowdsec.metrics.appsec": {
 		"defaultMessage": "AppSec: заблокировано / проверено запросов"
@@ -1949,6 +1958,9 @@
 	"npmos.crowdsec.settings.applied": {
 		"defaultMessage": "Настройки применены, CrowdSec перезапущен"
 	},
+	"npmos.crowdsec.settings.code.hint": {
+		"defaultMessage": "Все настройки CrowdSec в YAML. Применяются так же, как из интерфейса: CrowdSec перезапускается, а если он не поднимется — прежние настройки возвращаются."
+	},
 	"npmos.crowdsec.settings.pending": {
 		"defaultMessage": "Файлы CrowdSec не совпадают с настройками ({files}): они применятся при следующем сохранении или сейчас."
 	},
@@ -2070,7 +2082,7 @@
 		"defaultMessage": "Машины и баунсеры"
 	},
 	"npmos.crowdsec.tab.settings": {
-		"defaultMessage": "Настройки"
+		"defaultMessage": "Политика"
 	},
 	"npmos.crowdsec.time": {
 		"defaultMessage": "Время"
@@ -3256,6 +3268,9 @@
 	},
 	"npmos.nav.analytics": {
 		"defaultMessage": "Аналитика"
+	},
+	"npmos.nav.blocks": {
+		"defaultMessage": "Блокировки"
 	},
 	"npmos.nav.close-menu": {
 		"defaultMessage": "Закрыть меню"

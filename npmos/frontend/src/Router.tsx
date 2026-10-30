@@ -31,6 +31,8 @@ const BlockPage = lazy(() => import("src/npmos/pages/BlockPage"));
 const Pki = lazy(() => import("src/npmos/pages/Pki"));
 const Mtls = lazy(() => import("src/npmos/pages/Mtls"));
 const Crowdsec = lazy(() => import("src/npmos/pages/Crowdsec"));
+// NPMOS: the decisions of CrowdSec are in Analytics → Blocks
+const Blocks = lazy(() => import("src/npmos/pages/Crowdsec").then((m) => ({ default: m.Blocks })));
 
 function Router() {
 	const health = useHealth();
@@ -87,6 +89,7 @@ function Router() {
 						<Route path="/crowdsec" element={<Crowdsec />} />
 						<Route path="/agents/open-appsec" element={<AgentOpenappsec />} />
 						<Route path="/agents/block-page" element={<BlockPage />} />
+						<Route path="/analytics/blocks" element={<Blocks />} />
 						{/* the pages of before open their place on the page of the agent */}
 						<Route path="/waf/agent" element={<Navigate to="/agents/open-appsec?tab=agent" replace />} />
 						<Route path="/waf/events" element={<WafEvents />} />

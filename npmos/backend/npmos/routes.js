@@ -1909,6 +1909,32 @@ router
 	);
 
 /**
+ * GET /api/npmos/crowdsec/settings/code — the settings as YAML
+ * PUT /api/npmos/crowdsec/settings/code — {content, dry_run?}: checked, or applied as PUT /crowdsec/settings
+ */
+router
+	.route("/crowdsec/settings/code")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalCrowdsec.getCode(res.locals.access)))
+	.put(
+		handle(async (req, res) =>
+			internalCrowdsec.setCode(
+				res.locals.access,
+				await validator(
+					{
+						type: "object",
+						additionalProperties: false,
+						required: ["content"],
+						properties: { content: { type: "string", maxLength: 262144 }, dry_run: { type: "boolean" } },
+					},
+					req.body,
+				),
+			),
+		),
+	);
+
+/**
  * POST /api/npmos/crowdsec/apply — writes the files again and restarts CrowdSec
  */
 router

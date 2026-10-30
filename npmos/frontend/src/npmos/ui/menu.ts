@@ -61,6 +61,7 @@ export const navigation: NavItem[] = [
 		tabs: [
 			{ id: "waf-analytics", label: "npmos.analytics", to: "/waf/analytics", rbac: "analytics" },
 			{ id: "waf-events", label: "npmos.waf.events", to: "/waf/events", rbac: "waf_events" },
+			{ id: "blocks", label: "npmos.nav.blocks", to: "/analytics/blocks", rbac: "crowdsec" },
 			{ id: "audit", label: "auditlogs", to: "/audit-log", rbac: "audit_log" },
 		],
 	},

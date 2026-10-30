@@ -980,6 +980,9 @@
 	"npmos.block-page.where": {
 		"defaultMessage": "The page answers every refusal nginx makes itself (code 403); answers of your services are left as they are. Pages of mTLS and the admin interface keep their own."
 	},
+	"npmos.blocks.description": {
+		"defaultMessage": "Whom CrowdSec blocks now and why, and the lists of addresses: bans, captchas, alerts, blocklists. A ban by hand is here too."
+	},
 	"npmos.certificates.mtls": {
 		"defaultMessage": "mTLS CA"
 	},
@@ -1247,6 +1250,9 @@
 	"npmos.crowdsec.activity": {
 		"defaultMessage": "Activity"
 	},
+	"npmos.crowdsec.agent.description": {
+		"defaultMessage": "Behaviour-based protection: CrowdSec reads the logs of nginx and the attacks of open-appsec and bans their sources. Here are its policy (what to read, when to ban, whom to leave alone), the hub and the machines; the bans themselves are in Analytics → Blocks."
+	},
 	"npmos.crowdsec.alerts.active": {
 		"defaultMessage": "Only with an active decision"
 	},
@@ -1440,7 +1446,7 @@
 		"defaultMessage": "Off: a ban never locks administrators out of the GUI (port of the interface and of GoAccess). On: banned addresses cannot open it either; put the addresses of administrators in the allowlist first."
 	},
 	"npmos.crowdsec.bouncer.appsec": {
-		"defaultMessage": "WAF agent"
+		"defaultMessage": "open-appsec agent (IP reputation off)"
 	},
 	"npmos.crowdsec.bouncer.enabled": {
 		"defaultMessage": "Check requests in nginx"
@@ -1476,7 +1482,7 @@
 		"defaultMessage": "Downloads all decisions periodically: fewer requests to CrowdSec, bans work after the next download."
 	},
 	"npmos.crowdsec.bouncer.npmos": {
-		"defaultMessage": "nginx of NPMOS"
+		"defaultMessage": "nginx of NPMOS: enforces bans on every host"
 	},
 	"npmos.crowdsec.bouncer.pull": {
 		"defaultMessage": "Last request"
@@ -1503,7 +1509,7 @@
 		"defaultMessage": "Delete the bouncer {name}? Its key stops working at once."
 	},
 	"npmos.crowdsec.bouncers.hint": {
-		"defaultMessage": "Components that enforce decisions. npmos is nginx of NPMOS (the bouncer for all hosts); keys come from npmos-init."
+		"defaultMessage": "Bouncers enforce the decisions of CrowdSec. npmos is nginx of NPMOS, the bouncer of every host; keys come from npmos-init."
 	},
 	"npmos.crowdsec.capi": {
 		"defaultMessage": "The Central API of CrowdSec (signal sharing, community blocklist) is not used: local blocklists and the decisions of other NPMOS nodes replace it."
@@ -1700,6 +1706,9 @@
 	"npmos.crowdsec.left.days": {
 		"defaultMessage": "{days} d"
 	},
+	"npmos.crowdsec.left.expired": {
+		"defaultMessage": "expired"
+	},
 	"npmos.crowdsec.left.forever": {
 		"defaultMessage": "forever"
 	},
@@ -1731,10 +1740,10 @@
 		"defaultMessage": "Last heartbeat"
 	},
 	"npmos.crowdsec.machine.local": {
-		"defaultMessage": "CrowdSec agent"
+		"defaultMessage": "CrowdSec itself: reads the logs of nginx"
 	},
 	"npmos.crowdsec.machine.npmos": {
-		"defaultMessage": "NPMOS"
+		"defaultMessage": "NPMOS: sends attacks of open-appsec, bans by hand and blocklists"
 	},
 	"npmos.crowdsec.machine.pending": {
 		"defaultMessage": "Not validated"
@@ -1752,7 +1761,7 @@
 		"defaultMessage": "Delete the machine {name}? It can no longer send alerts; its old alerts stay. A node that still runs registers again on its next start."
 	},
 	"npmos.crowdsec.machines.hint": {
-		"defaultMessage": "Agents that send alerts to the local API. localhost is the agent of CrowdSec itself, npmos-… is NPMOS (bans by hand, blocklists)."
+		"defaultMessage": "Machines are the sources of alerts of CrowdSec. localhost is CrowdSec itself (it reads the logs of nginx), npmos-… is NPMOS (attacks found by open-appsec, bans by hand, blocklists)."
 	},
 	"npmos.crowdsec.metrics.appsec": {
 		"defaultMessage": "AppSec: blocked / checked requests"
@@ -1949,6 +1958,9 @@
 	"npmos.crowdsec.settings.applied": {
 		"defaultMessage": "Settings applied, CrowdSec restarted"
 	},
+	"npmos.crowdsec.settings.code.hint": {
+		"defaultMessage": "Every setting of CrowdSec as YAML. Applied as from the interface: CrowdSec restarts, and if it does not start the previous settings come back."
+	},
 	"npmos.crowdsec.settings.pending": {
 		"defaultMessage": "The files of CrowdSec differ from the settings ({files}): they are applied at the next save or now."
 	},
@@ -2070,7 +2082,7 @@
 		"defaultMessage": "Machines and bouncers"
 	},
 	"npmos.crowdsec.tab.settings": {
-		"defaultMessage": "Settings"
+		"defaultMessage": "Policy"
 	},
 	"npmos.crowdsec.time": {
 		"defaultMessage": "Time"
@@ -3256,6 +3268,9 @@
 	},
 	"npmos.nav.analytics": {
 		"defaultMessage": "Analytics"
+	},
+	"npmos.nav.blocks": {
+		"defaultMessage": "Blocks"
 	},
 	"npmos.nav.close-menu": {
 		"defaultMessage": "Close menu"

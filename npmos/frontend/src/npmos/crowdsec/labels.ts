@@ -10,6 +10,8 @@ export const durationLabel = (d: string) =>
 
 /** remaining time of a decision as the LAPI gives it ("3h59m55.1s") → "3 h 59 min" */
 export const remaining = (d: string) => {
+	// a decision of an old alert ran out: the LAPI gives a negative duration ("-21h19m24s")
+	if ((d || "").startsWith("-")) return t("npmos.crowdsec.left.expired");
 	const m = /^(?:(\d+)h)?(?:(\d+)m)?(?:([\d.]+)s)?$/.exec(d || "");
 	if (!m) return d;
 	const h = Number(m[1] || 0);

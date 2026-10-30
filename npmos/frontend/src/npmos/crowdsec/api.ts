@@ -359,3 +359,11 @@ export const useCrowdsecHosts = (options = {}) =>
 	});
 export const setHostBouncer = (hostType: string, hostId: number, bouncer: boolean) =>
 	api.put({ url: `/npmos/crowdsec/hosts/${hostType}/${hostId}`, data: { bouncer } });
+
+/** Agents → CrowdSec → Policy → Code */
+export const getSettingsCode = () => api.get({ url: "/npmos/crowdsec/settings/code" }) as Promise<{ content: string }>;
+export const putSettingsCode = (content: string, dryRun: boolean) =>
+	api.put({ url: "/npmos/crowdsec/settings/code", data: { content, dryRun } }) as Promise<{
+		valid: boolean;
+		error?: string;
+	}>;
