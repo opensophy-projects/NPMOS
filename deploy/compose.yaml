@@ -71,8 +71,9 @@ services:
       COOKIE_SECRET_FILE: /run/npmos-secrets/cookie_secret
       # access/stream logs to /data/nginx/logs — read by CrowdSec
       LOGROTATE: "true"
-      # set to true on hosts without IPv6
-      DISABLE_IPV6: ${NPMOS_DISABLE_IPV6:-false}
+      # IPv4 only by default: nginx does not listen on IPv6 and its resolver asks for IPv4 only, so
+      # NPMOS starts on hosts where IPv6 is off or broken. NPMOS_DISABLE_IPV6=false turns IPv6 on.
+      DISABLE_IPV6: ${NPMOS_DISABLE_IPV6:-true}
     volumes:
       - npmos-data:/data
       - type: volume

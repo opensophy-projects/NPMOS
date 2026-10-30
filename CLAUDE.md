@@ -73,7 +73,7 @@ cd npmos/frontend && pnpm install && pnpm vite                                  
 
 - Dev-образ `npmos:dev` = upstream-образ того же тега + наши `npmos/backend` и `npmos/rootfs`. Собирается за секунды. Прод-образ собирается из `npmos/Dockerfile` в CI.
 - Vite проксирует `/api` на `NPMOS_API` (по умолчанию `https://127.0.0.1:81`) и подменяет Origin.
-- Без IPv6 на хосте: `NPMOS_DISABLE_IPV6=true`.
+- По умолчанию только IPv4 (`NPMOS_DISABLE_IPV6=true`); IPv6 включается `NPMOS_DISABLE_IPV6=false`.
 - Генератор атак для проверки WAF: `--profile attack`.
 
 ## Безопасность
