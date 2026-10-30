@@ -2117,14 +2117,14 @@
 	"npmos.hosts.mtls.cas": {
 		"defaultMessage": "Trusted: {names}"
 	},
+	"npmos.hosts.mtls.certs": {
+		"defaultMessage": "Choose a certificate ({count} of {all})…"
+	},
 	"npmos.hosts.mtls.configure": {
 		"defaultMessage": "mTLS settings…"
 	},
 	"npmos.hosts.mtls.details": {
-		"defaultMessage": "Details and certificates ({count})"
-	},
-	"npmos.hosts.mtls.download": {
-		"defaultMessage": "Download .p12: {name}"
+		"defaultMessage": "Open on the mTLS page"
 	},
 	"npmos.hosts.mtls.header": {
 		"defaultMessage": "{count, plural, =0 {No access certificates yet} one {# access certificate} other {# access certificates}}"
@@ -2690,6 +2690,27 @@
 	"npmos.mtls.host": {
 		"defaultMessage": "Host"
 	},
+	"npmos.mtls.host-certs.all": {
+		"defaultMessage": "All, with revoked and expired ({count})"
+	},
+	"npmos.mtls.host-certs.issued": {
+		"defaultMessage": "issued {time}"
+	},
+	"npmos.mtls.host-certs.none": {
+		"defaultMessage": "No access certificates for this host yet."
+	},
+	"npmos.mtls.host-certs.page": {
+		"defaultMessage": "Open on the mTLS page"
+	},
+	"npmos.mtls.host-certs.search": {
+		"defaultMessage": "Find by name, note, email or serial"
+	},
+	"npmos.mtls.host-certs.title": {
+		"defaultMessage": "Access certificates: {name}"
+	},
+	"npmos.mtls.host-certs.valid": {
+		"defaultMessage": "Valid ({count})"
+	},
 	"npmos.mtls.host.certs": {
 		"defaultMessage": "Show its certificates"
 	},
@@ -2707,6 +2728,9 @@
 	},
 	"npmos.mtls.host.inactive": {
 		"defaultMessage": "Not in force: the host is off or has no TLS certificate"
+	},
+	"npmos.mtls.host.pick": {
+		"defaultMessage": "Choose a certificate…"
 	},
 	"npmos.mtls.host.settings": {
 		"defaultMessage": "mTLS settings…"

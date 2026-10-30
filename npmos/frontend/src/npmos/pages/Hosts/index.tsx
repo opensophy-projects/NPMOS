@@ -45,13 +45,14 @@ import {
 	enableMtlsHost,
 	fromApiRule,
 	getPki,
+	hostKey,
 	type MtlsHostType,
 	setMtlsHost,
 	useMtlsHosts,
 	usePki,
 } from "../../pki/api";
 import { showAccessModal } from "../../pki/AccessModal";
-import { showSecretModal } from "../../pki/SecretModal";
+import { showHostCertsModal } from "../../pki/HostCertsModal";
 import { showMtlsModal } from "../../pki/MtlsModal";
 import { useCan } from "../../rbac/hooks";
 import { createHost, deleteHost, OBJECT, QUERY_KEY, toggleHost, updateHost } from "./api";
@@ -454,7 +455,6 @@ function HostsPage() {
 					cas: pki.data.cas,
 					canManage: (row) => can(row.type, MANAGE) || rbac("pki", "manage"),
 					canIssue: rbac("pki", "issue"),
-					canDownload: rbac("pki", "export_key"),
 					set: (row, caIds, mode) =>
 						run([row], (r) => changePkiMtls(r, caIds, mode), t("npmos.hosts.done.mtls")),
 					enable: (row) => run([row], (r) => enableMtlsHost(mtlsType(r), r.id), t("npmos.hosts.done.mtls")),
@@ -481,14 +481,10 @@ function HostsPage() {
 						(pki.data?.certificates ?? []).filter((c) =>
 							c.access.some((a) => a.hostType === mtlsType(row) && a.hostId === row.id),
 						),
-					download: (c) =>
-						pki.data &&
-						showSecretModal({
-							action: "p12",
-							objectId: c.id,
-							name: c.commonName,
-							publicUrl: pki.data.settings.publicUrl,
-							compatible: pki.data.settings.p12Compatible,
+					certs: (row) =>
+						showHostCertsModal({
+							host: hostRef(row),
+							openHost: (h) => navigate(`/mtls?host=${hostKey(h)}`),
 						}),
 					details: (row) => navigate(`/mtls?host=${mtlsType(row)}-${row.id}`),
 				}

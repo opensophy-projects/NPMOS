@@ -46,7 +46,6 @@ export interface CellContext {
 		cas: PkiCa[];
 		canManage: (row: HostRow) => boolean;
 		canIssue: boolean;
-		canDownload: boolean;
 		/** null: off */
 		set: (row: HostRow, caIds: number[] | null, mode: MtlsState) => void;
 		/** on in one step: the CAs of before, or a trust domain of its own */
@@ -56,7 +55,8 @@ export interface CellContext {
 		issue: (row: HostRow) => void;
 		/** client certificates that open the host */
 		accessCerts: (row: HostRow) => PkiCert[];
-		download: (cert: PkiCert) => void;
+		/** the access certificates of the host: one is chosen, then downloaded or changed */
+		certs: (row: HostRow) => void;
 		/** the mTLS page filtered by the host */
 		details: (row: HostRow) => void;
 	};
@@ -276,7 +276,6 @@ function PkiMtlsCell({ row, pki }: { row: HostRow; pki: NonNullable<CellContext[
 		);
 	}
 	const active = certs.filter((c) => c.status === "active");
-	const downloadable = active.filter((c) => c.hasKey && pki.canDownload);
 	const items: DropdownItem[] = [
 		...(pki.canIssue
 			? [
@@ -288,12 +287,17 @@ function PkiMtlsCell({ row, pki }: { row: HostRow; pki: NonNullable<CellContext[
 					},
 				]
 			: []),
-		...downloadable.slice(0, 5).map((c) => ({
-			key: `get${c.id}`,
-			icon: <IconDownload size={16} />,
-			label: <span className={styles.ellipsis}>{t("npmos.hosts.mtls.download", { name: c.commonName })}</span>,
-			onSelect: () => pki.download(c),
-		})),
+		// a host may have many: one is chosen in a list first, then downloaded or changed
+		...(certs.length
+			? [
+					{
+						key: "certs",
+						icon: <IconDownload size={16} />,
+						label: <T id="npmos.hosts.mtls.certs" data={{ count: active.length, all: certs.length }} />,
+						onSelect: () => pki.certs(row),
+					},
+				]
+			: []),
 		...(row.type === "proxy" && manage
 			? (["required", "optional"] as MtlsState[]).map((value, i) => ({
 					key: value,
@@ -314,7 +318,7 @@ function PkiMtlsCell({ row, pki }: { row: HostRow; pki: NonNullable<CellContext[
 			key: "details",
 			divider: true,
 			icon: <IconListDetails size={16} />,
-			label: <T id="npmos.hosts.mtls.details" data={{ count: active.length }} />,
+			label: <T id="npmos.hosts.mtls.details" />,
 			onSelect: () => pki.details(row),
 		},
 		...(manage

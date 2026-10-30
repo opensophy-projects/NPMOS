@@ -32,6 +32,7 @@ import {
 	usePki,
 } from "../../pki/api";
 import { certStatus, STATUS_TONE, showCertModal } from "../../pki/CertModal";
+import { showHostCertsModal } from "../../pki/HostCertsModal";
 import { showMtlsModal } from "../../pki/MtlsModal";
 import { showRevokeModal } from "../../pki/RevokeModal";
 import { showSecretModal } from "../../pki/SecretModal";
@@ -118,6 +119,11 @@ function HostsCard({
 					},
 				]
 			: []),
+		{
+			key: "pick",
+			label: <T id="npmos.mtls.host.pick" />,
+			onSelect: () => showHostCertsModal({ host: h, openHost: filter }),
+		},
 		{ key: "certs", label: <T id="npmos.mtls.host.certs" />, onSelect: () => filter(h) },
 		{
 			key: "settings",

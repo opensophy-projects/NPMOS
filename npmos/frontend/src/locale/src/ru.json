@@ -2117,14 +2117,14 @@
 	"npmos.hosts.mtls.cas": {
 		"defaultMessage": "Доверяет: {names}"
 	},
+	"npmos.hosts.mtls.certs": {
+		"defaultMessage": "Выбрать сертификат ({count} из {all})…"
+	},
 	"npmos.hosts.mtls.configure": {
 		"defaultMessage": "Настройки mTLS…"
 	},
 	"npmos.hosts.mtls.details": {
-		"defaultMessage": "Подробности и сертификаты ({count})"
-	},
-	"npmos.hosts.mtls.download": {
-		"defaultMessage": "Скачать .p12: {name}"
+		"defaultMessage": "Открыть на странице mTLS"
 	},
 	"npmos.hosts.mtls.header": {
 		"defaultMessage": "{count, plural, =0 {Сертификатов доступа пока нет} one {# сертификат доступа} few {# сертификата доступа} other {# сертификатов доступа}}"
@@ -2690,6 +2690,27 @@
 	"npmos.mtls.host": {
 		"defaultMessage": "Хост"
 	},
+	"npmos.mtls.host-certs.all": {
+		"defaultMessage": "Все, вместе с отозванными и истёкшими ({count})"
+	},
+	"npmos.mtls.host-certs.issued": {
+		"defaultMessage": "выдан {time}"
+	},
+	"npmos.mtls.host-certs.none": {
+		"defaultMessage": "Для этого хоста сертификатов доступа пока нет."
+	},
+	"npmos.mtls.host-certs.page": {
+		"defaultMessage": "Открыть на странице mTLS"
+	},
+	"npmos.mtls.host-certs.search": {
+		"defaultMessage": "Найти по имени, заметке, email или серийному номеру"
+	},
+	"npmos.mtls.host-certs.title": {
+		"defaultMessage": "Сертификаты доступа: {name}"
+	},
+	"npmos.mtls.host-certs.valid": {
+		"defaultMessage": "Действующие ({count})"
+	},
 	"npmos.mtls.host.certs": {
 		"defaultMessage": "Показать его сертификаты"
 	},
@@ -2707,6 +2728,9 @@
 	},
 	"npmos.mtls.host.inactive": {
 		"defaultMessage": "Не действует: хост выключен или без TLS-сертификата"
+	},
+	"npmos.mtls.host.pick": {
+		"defaultMessage": "Выбрать сертификат…"
 	},
 	"npmos.mtls.host.settings": {
 		"defaultMessage": "Настройки mTLS…"
