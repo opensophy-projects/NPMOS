@@ -360,6 +360,51 @@ h3,
 	border-radius: var(--radius-sm);
 }
 
+/* the open list of a select looks like the dropdown menus (customizable select, Chromium 135+;
+   other browsers keep their own list). The closed field keeps the chevron of Tabler. */
+@supports (appearance: base-select) {
+	select.form-select,
+	select.form-select::picker(select) {
+		appearance: base-select;
+	}
+	select.form-select::picker-icon {
+		display: none;
+	}
+	/* a base-select fits its content: keep the full width of Bootstrap unless w-auto asks otherwise */
+	select.form-select:not(.w-auto) {
+		width: 100%;
+	}
+	select.form-select::picker(select) {
+		margin-block: 0.25rem;
+		padding: 0.25rem;
+		border: 1px solid var(--border);
+		border-radius: var(--radius-sm);
+		background: var(--background);
+		color: var(--foreground);
+		box-shadow: var(--shadow-card), var(--shadow-2xl);
+	}
+	select.form-select option {
+		padding: 0.4rem 0.75rem;
+		border-radius: calc(var(--radius-sm) - 2px);
+		font-size: 0.875rem;
+	}
+	select.form-select option::checkmark {
+		display: none;
+	}
+	select.form-select option:hover,
+	select.form-select option:focus-visible {
+		background: var(--background-muted);
+		outline: none;
+	}
+	select.form-select option:checked {
+		background: color-mix(in oklab, var(--accent) 10%, transparent);
+		color: var(--accent);
+	}
+	select.form-select option:disabled {
+		color: var(--foreground-muted);
+	}
+}
+
 .modal-content {
 	--tblr-modal-bg: var(--background);
 	--tblr-modal-border-color: var(--border);
