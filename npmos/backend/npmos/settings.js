@@ -25,18 +25,39 @@ const DEFINITIONS = {
 		validate: (v) => typeof v === "boolean",
 	},
 	// open-appsec agent (WAF -> Agent), applied by the agent's entrypoint, see waf/agent-settings.js
+	// (no CrowdSec IP reputation: the agent waited ~1 s for it on every request, see agent-settings.js)
 	"waf.agent": {
 		default: () => ({
-			crowdsec: { enabled: false, mode: "prevent" },
 			failOpen: { enabled: true, timeoutMs: 50 },
 		}),
 		validate: (v) =>
-			typeof v?.crowdsec?.enabled === "boolean" &&
-			["prevent", "detect"].includes(v.crowdsec.mode) &&
 			typeof v?.failOpen?.enabled === "boolean" &&
 			Number.isInteger(v.failOpen.timeoutMs) &&
 			v.failOpen.timeoutMs >= 10 &&
 			v.failOpen.timeoutMs <= 10000,
+	},
+	// the block page (Agents → Block page), see block-page.js: what a visitor sees when a request is refused
+	"block.page": {
+		default: () => ({
+			enabled: true,
+			title: "Access denied",
+			text: "The security system of this site has blocked your request. If you think this is a mistake, contact the administrator and give them the request ID below.",
+			contact: "",
+			details: true,
+			accent: "#e11d48",
+			language: "en",
+		}),
+		validate: (v) =>
+			typeof v?.enabled === "boolean" &&
+			typeof v.title === "string" &&
+			v.title.length <= 200 &&
+			typeof v.text === "string" &&
+			v.text.length <= 2000 &&
+			typeof v.contact === "string" &&
+			v.contact.length <= 500 &&
+			typeof v.details === "boolean" &&
+			/^#[0-9a-f]{6}$/i.test(v.accent) &&
+			["en", "ru"].includes(v.language ?? "en"),
 	},
 	// security events (System → Settings → Events), see events/ingest.js: raw events and hourly
 	// aggregates are kept this many days

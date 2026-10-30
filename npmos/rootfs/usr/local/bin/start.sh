@@ -444,10 +444,14 @@ if [ ! -s "/data/tls/ech/cron.sh" ] && grep -q '^[^#]*ssl_ech_file' /usr/local/n
     sed -i "s|ssl_ech_file|#ssl_ech_file|g" /usr/local/nginx/conf/nginx.conf
 fi
 
+# NPMOS: the interface (and GoAccess) is not inspected by open-appsec; the directive exists only with
+# the attachment loaded, so it is commented back first (the file stays across restarts)
+sed -i "s|^\( *\)cp-nano-nginx-attachment off;|\1#cp-nano-nginx-attachment off;|g" /usr/local/nginx/conf/conf.d/npmplus.conf /usr/local/nginx/conf/conf.d/goaccess.conf*
 if [ "$NGINX_LOAD_OPENAPPSEC_ATTACHMENT_MODULE" = "true" ]; then
     sed -i "s|#\(load_module.\+libngx_module.so;\)|\1|g" /usr/local/nginx/conf/nginx.conf
     sed -i "s|zstd on;|zstd off;|g" /usr/local/nginx/conf/nginx.conf
     sed -i "s|zstd_static on;|zstd_static off;|g" /usr/local/nginx/conf/nginx.conf
+    sed -i "s|#\(cp-nano-nginx-attachment off;\)|\1|g" /usr/local/nginx/conf/conf.d/npmplus.conf /usr/local/nginx/conf/conf.d/goaccess.conf*
 fi
 if [ "$NGINX_LOAD_NJS_MODULE" = "true" ]; then
     sed -i "s|#\(load_module.\+js_module.so;\)|\1|g" /usr/local/nginx/conf/nginx.conf

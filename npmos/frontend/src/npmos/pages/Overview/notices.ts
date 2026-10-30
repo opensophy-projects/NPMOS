@@ -63,7 +63,12 @@ export function wafNotices(status: WafStatus | undefined): Notice[] {
 	if (!status?.enabled) return [];
 	const notices: Notice[] = [];
 	if (status.agent && !status.agent.reachable) {
-		notices.push({ key: "waf-agent", level: "alert", id: "npmos.overview.notice.agent-down", link: "/waf/agent" });
+		notices.push({
+			key: "waf-agent",
+			level: "alert",
+			id: "npmos.overview.notice.agent-down",
+			link: "/agents/open-appsec?tab=agent",
+		});
 	}
 	if (status.policy?.applied && !status.policy.applied.ok) {
 		notices.push({
@@ -71,7 +76,7 @@ export function wafNotices(status: WafStatus | undefined): Notice[] {
 			level: "alert",
 			id: "npmos.overview.notice.policy-failed",
 			data: { error: status.policy.applied.error ?? "" },
-			link: "/waf/agent",
+			link: "/agents/open-appsec?tab=agent",
 		});
 	}
 	if (status.restartRequired) {
@@ -79,7 +84,7 @@ export function wafNotices(status: WafStatus | undefined): Notice[] {
 			key: "waf-restart",
 			level: "warning",
 			id: "npmos.overview.notice.waf-restart",
-			link: "/waf/agent",
+			link: "/agents/open-appsec?tab=agent",
 		});
 	}
 	return notices;

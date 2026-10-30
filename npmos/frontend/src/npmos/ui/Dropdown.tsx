@@ -1,6 +1,7 @@
 // Dropdown of opensophy.com (ui-registry/Dropdown): inset trigger, card menu, keyboard support.
 import cn from "classnames";
 import { type CSSProperties, type ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import styles from "./Shell.module.css";
 
 export interface DropdownItem {
@@ -26,7 +27,8 @@ interface Props {
 	inline?: boolean;
 	/** extra classes of the menu (e.g. the compact language list) */
 	menuClassName?: string;
-	/** the menu is positioned against the viewport: not clipped by tables and scroll areas */
+	/** the menu is positioned against the viewport and rendered into <body>: not clipped by tables and
+	 * scroll areas, and not covered by the cards that follow */
 	floating?: boolean;
 	/** a tooltip of the trigger */
 	title?: string;
@@ -75,6 +77,8 @@ export function Dropdown({
 				fixed: floating
 					? {
 							position: "fixed",
+							// above modals too (Bootstrap: 1055)
+							zIndex: 1070,
 							margin: 0,
 							minWidth: Math.max(rect.width, 160),
 							top: goUp ? "auto" : rect.bottom + 4,
@@ -104,7 +108,11 @@ export function Dropdown({
 	useEffect(() => {
 		if (!open || !floating) return;
 		const closeMenu = (e: Event) => {
-			if (e.type === "scroll" && box.current?.contains(e.target as Node)) return;
+			if (
+				e.type === "scroll" &&
+				(box.current?.contains(e.target as Node) || menu.current?.contains(e.target as Node))
+			)
+				return;
 			setOpen(false);
 		};
 		window.addEventListener("scroll", closeMenu, true);
@@ -119,7 +127,8 @@ export function Dropdown({
 	useEffect(() => {
 		if (!open) return;
 		const outside = (e: MouseEvent) => {
-			if (box.current && !box.current.contains(e.target as Node)) setOpen(false);
+			const target = e.target as Node;
+			if (box.current && !box.current.contains(target) && !menu.current?.contains(target)) setOpen(false);
 		};
 		document.addEventListener("mousedown", outside);
 		const first = Math.max(
@@ -150,6 +159,40 @@ export function Dropdown({
 		}
 	};
 
+	// a floating menu goes to <body>; keyboard events still reach the box (React bubbles them through
+	// the portal)
+	const list = (
+		<div
+			ref={menu}
+			className={cn(styles.menu, place.up && styles.menuUp, place.right && styles.menuRight, menuClassName)}
+			style={{ "--menu-max": `${place.maxHeight}px`, ...place.fixed } as CSSProperties}
+			role="menu"
+		>
+			{header}
+			{items.map((item, i) => (
+				<div key={item.key} style={{ display: "contents" }}>
+					{item.divider && <div className={styles.menuDivider} />}
+					<button
+						ref={(el) => {
+							refs.current[i] = el;
+						}}
+						type="button"
+						role="menuitem"
+						className={cn(styles.menuItem, item.active && styles.menuItemActive)}
+						disabled={item.disabled}
+						onClick={() => {
+							close();
+							item.onSelect();
+						}}
+					>
+						{item.icon}
+						{item.label}
+					</button>
+				</div>
+			))}
+		</div>
+	);
+
 	return (
 		// biome-ignore lint/a11y/noStaticElementInteractions: keyboard navigation of the menu inside
 		<div className={cn(styles.dropdown, inline && styles.dropdownInline)} ref={box} onKeyDown={onKeyDown}>
@@ -165,42 +208,7 @@ export function Dropdown({
 			>
 				{trigger}
 			</button>
-			{open && (
-				<div
-					ref={menu}
-					className={cn(
-						styles.menu,
-						place.up && styles.menuUp,
-						place.right && styles.menuRight,
-						menuClassName,
-					)}
-					style={{ "--menu-max": `${place.maxHeight}px`, ...place.fixed } as CSSProperties}
-					role="menu"
-				>
-					{header}
-					{items.map((item, i) => (
-						<div key={item.key} style={{ display: "contents" }}>
-							{item.divider && <div className={styles.menuDivider} />}
-							<button
-								ref={(el) => {
-									refs.current[i] = el;
-								}}
-								type="button"
-								role="menuitem"
-								className={cn(styles.menuItem, item.active && styles.menuItemActive)}
-								disabled={item.disabled}
-								onClick={() => {
-									close();
-									item.onSelect();
-								}}
-							>
-								{item.icon}
-								{item.label}
-							</button>
-						</div>
-					))}
-				</div>
-			)}
+			{open && (floating ? createPortal(list, document.body) : list)}
 		</div>
 	);
 }

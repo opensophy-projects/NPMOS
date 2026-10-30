@@ -1,5 +1,6 @@
-// Overview (docs/ROADMAP.md, phase 2): hosts by type, system monitoring, WAF, a short summary of
-// WAF events and the notices that need the administrator. Replaces the upstream dashboard.
+// Overview: first what needs the administrator (notices), then the hosts by type, the traffic of the last 24 h,
+// and short panels of the system, the agents (open-appsec and CrowdSec), the certificates and the events.
+// Replaces the upstream dashboard.
 import { IconArrowRight } from "@tabler/icons-react";
 import cn from "classnames";
 import type { ReactNode } from "react";
@@ -17,9 +18,19 @@ import {
 	STREAMS,
 	VIEW,
 } from "src/modules/Permissions";
-import { useEvents, useServices, useUpstreamChecks, useWafHosts, useWafStatus } from "../../hooks";
+import { useCrowdsec } from "../../crowdsec/api";
+import {
+	useAnalytics,
+	useCertificateRegistry,
+	useEvents,
+	useServices,
+	useUpstreamChecks,
+	useWafHosts,
+	useWafStatus,
+} from "../../hooks";
 import { useCan } from "../../rbac/hooks";
 import { Admonition, type AdmonitionVariant } from "../../ui/Admonition";
+import { formatNumber, StackedBars } from "../../ui/Charts";
 import { timeAgo } from "../../ui/time";
 import { filtersToParams, HOST_TYPES, type HostRow, type HostType, recommendations, toRows } from "../Hosts/rows";
 import {
@@ -116,6 +127,10 @@ function OverviewPage() {
 		eventsOptions,
 	);
 
+	const crowdsec = useCrowdsec({ enabled: rbac("crowdsec"), refetchInterval: 30000 });
+	const traffic = useAnalytics("24h", "", { enabled: rbac("analytics") });
+	const registry = useCertificateRegistry({ limit: 1 });
+
 	if (!me || [proxy, redirect, stream, dead].some((q, i) => can(HOST_TYPES[i]) && q.isLoading)) {
 		return <LoadingPage />;
 	}
@@ -146,6 +161,44 @@ function OverviewPage() {
 		? `${preventedEvents.data.total}${preventedEvents.data.totalCapped ? "+" : ""}`
 		: "—";
 
+	const noticeList = (
+		<section className={styles.notices}>
+			<h2 className={styles.sectionTitle}>
+				<T id="npmos.overview.notices" />
+				{notices.length > 0 && <span className={styles.count}>{notices.length}</span>}
+			</h2>
+			{notices.length ? (
+				notices.map((notice) => (
+					<Admonition
+						key={notice.key}
+						compact
+						variant={VARIANT[notice.level]}
+						title={<T id={`npmos.notice.${notice.level}`} />}
+						aside={
+							<Link to={notice.link} className={styles.more}>
+								<T id="npmos.overview.fix" />
+								<IconArrowRight size={14} />
+							</Link>
+						}
+					>
+						<span className={styles.noticeTitle}>
+							<T id={notice.id} data={notice.data} />
+						</span>{" "}
+						<T id={`${notice.id}.hint`} data={notice.data} />
+					</Admonition>
+				))
+			) : (
+				<Admonition compact variant="success" title={<T id="npmos.overview.all-good" />}>
+					<T id="npmos.overview.all-good.hint" />
+				</Admonition>
+			)}
+		</section>
+	);
+
+	const cs = crowdsec.data;
+	const expiring = registry.data?.counts.status.expiring ?? 0;
+	const expired = registry.data?.counts.status.expired ?? 0;
+
 	return (
 		<div className={styles.page}>
 			<div className={styles.head}>
@@ -157,6 +210,8 @@ function OverviewPage() {
 				</p>
 			</div>
 
+			{noticeList}
+
 			{types.length > 0 && (
 				<div className={styles.stats}>
 					{types.map((type) => (
@@ -165,136 +220,198 @@ function OverviewPage() {
 				</div>
 			)}
 
-			{(rbac("services") || rbac("waf_policy") || rbac("waf_events")) && (
-				<div className={styles.panels}>
-					{rbac("services") && (
-						<Panel title={<T id="npmos.overview.system" />} link="/system/services">
-							{services.isError ? (
-								<Line label={<T id="npmos.services" />} value={services.error.message} tone="alert" />
-							) : (
-								<>
-									<Line
-										label={<T id="npmos.overview.system.services" />}
-										value={
-											<T
-												id="npmos.overview.system.running"
-												data={{ running, total: services.data?.length ?? 0 }}
-											/>
-										}
-										tone={services.data && running === services.data.length ? "ok" : "alert"}
-									/>
-									{(services.data ?? []).filter(serviceProblem).map((s) => (
-										<Line
-											key={s.service}
-											label={s.name || s.service}
-											value={s.status || s.state}
-											tone="alert"
-										/>
-									))}
-								</>
-							)}
-						</Panel>
-					)}
+			{rbac("analytics") && traffic.data && (
+				<Panel title={<T id="npmos.overview.traffic" />} link="/waf/analytics">
+					<div className={styles.trafficNumbers}>
+						<span>
+							<b>{formatNumber(traffic.data.traffic.requests)}</b>{" "}
+							<T id="npmos.overview.traffic.requests" />
+						</span>
+						<span>
+							<b>{formatNumber(traffic.data.traffic.blocked)}</b>{" "}
+							<T id="npmos.overview.traffic.blocked" />
+						</span>
+						<span>
+							<b>{formatNumber(traffic.data.traffic.s5xx)}</b> <T id="npmos.overview.traffic.5xx" />
+						</span>
+						<span>
+							<b>{formatNumber(traffic.data.kpi.attacks)}</b> <T id="npmos.overview.traffic.attacks" />
+						</span>
+					</div>
+					<StackedBars
+						height={120}
+						data={traffic.data.traffic.timeline.map((b) => ({
+							t: b.t,
+							passed: Math.max(0, b.requests - b.blocked),
+							blocked: b.blocked,
+						}))}
+						series={[
+							{
+								key: "passed",
+								label: intl.formatMessage({ id: "npmos.analytics.traffic.passed" }),
+								color: "var(--series-3)",
+							},
+							{
+								key: "blocked",
+								label: intl.formatMessage({ id: "npmos.analytics.traffic.blocked" }),
+								color: "var(--series-2)",
+							},
+						]}
+						xLabel={(b) => intl.formatTime(b.t, { hour: "2-digit", minute: "2-digit" })}
+						tooltipTitle={(b) => intl.formatDate(b.t, { dateStyle: "medium", timeStyle: "short" })}
+						emptyText={intl.formatMessage({ id: "npmos.analytics.traffic.none" })}
+						ariaLabel={intl.formatMessage({ id: "npmos.overview.traffic" })}
+					/>
+				</Panel>
+			)}
 
-					{rbac("waf_policy") && (
-						<Panel title="WAF" link="/waf/agent">
-							<Line
-								label={<T id="npmos.overview.waf.state" />}
-								value={<T id={wafStatus.data?.enabled ? "npmos.overview.on" : "npmos.overview.off"} />}
-								tone={wafStatus.data?.enabled ? "ok" : "warning"}
-							/>
-							{wafStatus.data?.enabled && (
+			<div className={styles.panels}>
+				{rbac("services") && (
+					<Panel title={<T id="npmos.overview.system" />} link="/system/services">
+						{services.isError ? (
+							<Line label={<T id="npmos.services" />} value={services.error.message} tone="alert" />
+						) : (
+							<>
 								<Line
-									label={<T id="npmos.waf.agent" />}
+									label={<T id="npmos.overview.system.services" />}
+									value={
+										<T
+											id="npmos.overview.system.running"
+											data={{ running, total: services.data?.length ?? 0 }}
+										/>
+									}
+									tone={services.data && running === services.data.length ? "ok" : "alert"}
+								/>
+								{(services.data ?? []).filter(serviceProblem).map((s) => (
+									<Line
+										key={s.service}
+										label={s.name || s.service}
+										value={s.status || s.state}
+										tone="alert"
+									/>
+								))}
+							</>
+						)}
+					</Panel>
+				)}
+
+				{(rbac("waf_policy") || rbac("crowdsec")) && (
+					<Panel
+						title={<T id="npmos.nav.agents" />}
+						link={rbac("waf_policy") ? "/agents/open-appsec?tab=agent" : "/crowdsec"}
+					>
+						{rbac("waf_policy") && (
+							<>
+								<Line
+									label="open-appsec"
 									value={
 										<T
 											id={
-												wafStatus.data.agent?.reachable
-													? "npmos.overview.waf.agent-ok"
-													: "npmos.overview.waf.agent-down"
+												!wafStatus.data?.enabled
+													? "npmos.overview.off"
+													: wafStatus.data.agent?.reachable
+														? "npmos.overview.waf.agent-ok"
+														: "npmos.overview.waf.agent-down"
 											}
 										/>
 									}
-									tone={wafStatus.data.agent?.reachable ? "ok" : "alert"}
+									tone={
+										!wafStatus.data?.enabled
+											? "warning"
+											: wafStatus.data.agent?.reachable
+												? "ok"
+												: "alert"
+									}
 								/>
-							)}
-							{(["prevent", "detect", "off"] as const).map((state) => (
 								<Line
-									key={state}
-									label={
+									label={<T id="npmos.overview.waf.modes" />}
+									value={
 										<T
-											id="npmos.overview.waf.hosts"
-											data={{ mode: intl.formatMessage({ id: `npmos.hosts.waf.${state}` }) }}
+											id="npmos.overview.waf.modes.value"
+											data={{
+												prevent: wafCount("prevent"),
+												detect: wafCount("detect"),
+												off: wafCount("off"),
+											}}
 										/>
 									}
-									value={wafCount(state)}
 								/>
-							))}
-						</Panel>
-					)}
-
-					{rbac("waf_events") && (
-						<Panel
-							title={<T id="npmos.overview.analytics" />}
-							link={rbac("analytics") ? "/waf/analytics" : "/waf/events?important=1"}
-						>
-							<Line
-								label={<T id="npmos.overview.analytics.important" />}
-								value={recent}
-								tone={events.data?.total ? "warning" : "ok"}
-							/>
-							<Line label={<T id="npmos.overview.analytics.prevented" />} value={prevented} />
-							<Line
-								label={<T id="npmos.overview.analytics.last" />}
-								value={
-									events.data?.events[0]?.time ? (
-										<span title={events.data.events[0].host}>
-											{timeAgo(events.data.events[0].time)}
-										</span>
-									) : (
-										"—"
-									)
-								}
-							/>
-							<p className={styles.note}>
-								<T id="npmos.overview.analytics.note" />
-							</p>
-						</Panel>
-					)}
-				</div>
-			)}
-
-			<section className={styles.notices}>
-				<h2 className={styles.sectionTitle}>
-					<T id="npmos.overview.notices" />
-					{notices.length > 0 && <span className={styles.count}>{notices.length}</span>}
-				</h2>
-				{notices.length ? (
-					notices.map((notice) => (
-						<Admonition
-							key={notice.key}
-							compact
-							variant={VARIANT[notice.level]}
-							title={<T id={`npmos.notice.${notice.level}`} />}
-							aside={
-								<Link to={notice.link} className={styles.more}>
-									<T id="npmos.overview.fix" />
-									<IconArrowRight size={14} />
-								</Link>
-							}
-						>
-							<span className={styles.noticeTitle}>
-								<T id={notice.id} data={notice.data} />
-							</span>{" "}
-							<T id={`${notice.id}.hint`} data={notice.data} />
-						</Admonition>
-					))
-				) : (
-					<Admonition compact variant="success" title={<T id="npmos.overview.all-good" />}>
-						<T id="npmos.overview.all-good.hint" />
-					</Admonition>
+							</>
+						)}
+						{rbac("crowdsec") && (
+							<>
+								<Line
+									label="CrowdSec"
+									value={
+										<T
+											id={
+												!cs
+													? "npmos.overview.unknown"
+													: cs.lapi.healthy
+														? "npmos.overview.waf.agent-ok"
+														: "npmos.overview.waf.agent-down"
+											}
+										/>
+									}
+									tone={!cs ? undefined : cs.lapi.healthy ? "ok" : "alert"}
+								/>
+								<Line
+									label={<T id="npmos.overview.crowdsec.decisions" />}
+									value={cs ? formatNumber(cs.decisions.total) : "—"}
+								/>
+								<Line
+									label={<T id="npmos.overview.crowdsec.alerts" />}
+									value={cs ? formatNumber(cs.alerts24h) : "—"}
+								/>
+							</>
+						)}
+					</Panel>
 				)}
-			</section>
+
+				{registry.data && (
+					<Panel title={<T id="certificates" />} link="/certificates">
+						<Line
+							label={<T id="npmos.overview.certs.total" />}
+							value={formatNumber(
+								Object.values(registry.data.counts.source).reduce((a, b) => a + (b || 0), 0),
+							)}
+						/>
+						<Line
+							label={<T id="npmos.certs.status.expiring" />}
+							value={<Link to="/certificates?status=expiring">{expiring}</Link>}
+							tone={expiring ? "warning" : "ok"}
+						/>
+						<Line
+							label={<T id="npmos.certs.status.expired" />}
+							value={<Link to="/certificates?status=expired">{expired}</Link>}
+							tone={expired ? "alert" : "ok"}
+						/>
+					</Panel>
+				)}
+
+				{rbac("waf_events") && (
+					<Panel title={<T id="npmos.waf.events" />} link="/waf/events?important=1">
+						<Line
+							label={<T id="npmos.overview.analytics.important" />}
+							value={recent}
+							tone={events.data?.total ? "warning" : "ok"}
+						/>
+						<Line label={<T id="npmos.overview.analytics.prevented" />} value={prevented} />
+						<Line
+							label={<T id="npmos.overview.analytics.last" />}
+							value={
+								events.data?.events[0]?.time ? (
+									<span title={events.data.events[0].host}>
+										{timeAgo(events.data.events[0].time)}
+									</span>
+								) : (
+									"—"
+								)
+							}
+						/>
+					</Panel>
+				)}
+			</div>
 		</div>
 	);
 }

@@ -4,15 +4,26 @@
 import { useQueryClient } from "@tanstack/react-query";
 import cn from "classnames";
 import Alert from "react-bootstrap/Alert";
-import { Link, useSearchParams } from "react-router-dom";
+import { useState } from "react";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { HasPermission, LoadingPage } from "src/components";
 import { intl, T } from "src/locale";
 import { VIEW } from "src/modules/Permissions";
 import { showError, showSuccess } from "src/notifications";
-import { applySettings, type CrowdsecOverview, useCrowdsec, useCrowdsecSettings } from "../../crowdsec/api";
+import {
+	applySettings,
+	type CrowdsecOverview,
+	type CrowdsecSettingsState,
+	getSettingsCode,
+	putSettingsCode,
+	useCrowdsec,
+	useCrowdsecSettings,
+} from "../../crowdsec/api";
 import { showBanModal } from "../../crowdsec/BanModal";
 import { originLabel, t } from "../../crowdsec/labels";
+import { CodePane } from "../../policy/CodePane";
 import { useCan } from "../../rbac/hooks";
+import agentStyles from "../AgentOpenappsec/Agent.module.css";
 import hostStyles from "../Hosts/Hosts.module.css";
 import styles from "../Pki/Pki.module.css";
 import { BlocklistsTab, RegistryTab } from "./Blocklists";
@@ -20,8 +31,59 @@ import { AlertsTab, DecisionsTab } from "./Decisions";
 import { HubTab } from "./Hub";
 import { SettingsTab } from "./Settings";
 
-const TABS = ["overview", "decisions", "alerts", "blocklists", "hub", "settings", "registry"] as const;
+// Agents → CrowdSec: the agent and its policy; Analytics → Blocks: what it decides (one page, two places)
+const AGENT_TABS = ["overview", "settings", "hub", "registry"] as const;
+const BLOCK_TABS = ["decisions", "alerts", "blocklists"] as const;
+const TABS = [...AGENT_TABS, ...BLOCK_TABS] as const;
 type Tab = (typeof TABS)[number];
+type Place = "agent" | "blocks";
+
+function SettingsView({
+	data,
+	refresh,
+	manage,
+}: {
+	data: CrowdsecSettingsState;
+	refresh: () => void;
+	manage: boolean;
+}) {
+	const [view, setView] = useState<"gui" | "code">("gui");
+	return (
+		<>
+			<div className={agentStyles.toggle} role="group" aria-label={t("npmos.agent.view")}>
+				{(["gui", "code"] as const).map((v) => (
+					<button
+						key={v}
+						type="button"
+						className={cn(agentStyles.toggleItem, view === v && agentStyles.toggleOn)}
+						aria-pressed={view === v}
+						onClick={() => setView(v)}
+					>
+						<T id={`npmos.agent.view.${v}`} />
+					</button>
+				))}
+			</div>
+			{view === "gui" ? (
+				<SettingsTab data={data} refresh={refresh} />
+			) : (
+				<section className={cn("card", styles.card)}>
+					<CodePane
+						id="crowdsec-settings"
+						manage={manage}
+						hint={<T id="npmos.crowdsec.settings.code.hint" />}
+						load={async () => (await getSettingsCode()).content}
+						check={(content) => putSettingsCode(content, true)}
+						apply={async (content) => {
+							const r = await putSettingsCode(content, false);
+							if (!r.valid) throw new Error(r.error);
+							refresh();
+						}}
+					/>
+				</section>
+			)}
+		</>
+	);
+}
 
 const n = (v: number) => intl.formatNumber(v);
 
@@ -132,17 +194,6 @@ function OverviewTab({ data, go }: { data: CrowdsecOverview; go: (tab: Tab) => v
 								</span>
 							</li>
 							<Status on={s.appsec} label="npmos.crowdsec.protection.appsec" />
-							<li className={styles.item}>
-								<span className={cn("badge", data.agent.enabled ? "bg-green-lt" : "bg-secondary-lt")}>
-									<T id={data.agent.enabled ? "enabled" : "disabled"} />
-								</span>
-								<span>
-									<T id="npmos.crowdsec.protection.agent" />{" "}
-									<Link to="/waf/agent">
-										<T id="npmos.crowdsec.agent.open" />
-									</Link>
-								</span>
-							</li>
 						</ul>
 						<button
 							type="button"
@@ -218,12 +269,19 @@ function OverviewTab({ data, go }: { data: CrowdsecOverview; go: (tab: Tab) => v
 	);
 }
 
-function CrowdsecPage() {
+function CrowdsecPage({ place }: { place: Place }) {
 	const can = useCan();
 	const queryClient = useQueryClient();
 	const [params, setParams] = useSearchParams();
-	const tab = (TABS.find((x) => x === params.get("tab")) ?? "overview") as Tab;
-	const go = (x: Tab) => setParams(x === "overview" ? {} : { tab: x }, { replace: true });
+	const navigate = useNavigate();
+	const tabs: readonly Tab[] = place === "agent" ? AGENT_TABS : BLOCK_TABS;
+	const asked = TABS.find((x) => x === params.get("tab"));
+	const tab = (asked && tabs.includes(asked) ? asked : tabs[0]) as Tab;
+	// a tab of the other place (links of before) opens there
+	const go = (x: Tab) => {
+		if (tabs.includes(x)) setParams(x === tabs[0] ? {} : { tab: x }, { replace: true });
+		else navigate(`${place === "agent" ? "/analytics/blocks" : "/crowdsec"}?tab=${x}`);
+	};
 	const overview = useCrowdsec({ refetchInterval: 30000 });
 	const settings = useCrowdsecSettings();
 	const refresh = () => {
@@ -237,6 +295,11 @@ function CrowdsecPage() {
 			queryClient.invalidateQueries({ queryKey: [key] });
 	};
 
+	if (asked && !tabs.includes(asked)) {
+		return (
+			<Navigate to={`${place === "agent" ? "/analytics/blocks" : "/crowdsec"}?${params.toString()}`} replace />
+		);
+	}
 	if (overview.isLoading || settings.isLoading) return <LoadingPage noLogo />;
 	if (overview.isError || !overview.data)
 		return <Alert variant="danger">{overview.error?.message || <T id="npmos.common.unknown-error" />}</Alert>;
@@ -247,10 +310,10 @@ function CrowdsecPage() {
 			<div className={hostStyles.head}>
 				<div>
 					<h1 className={hostStyles.title}>
-						<T id="npmos.crowdsec" />
+						<T id={place === "agent" ? "npmos.crowdsec" : "npmos.nav.blocks"} />
 					</h1>
 					<p className={hostStyles.subtitle}>
-						<T id="npmos.crowdsec.subtitle" />
+						<T id={place === "agent" ? "npmos.crowdsec.agent.description" : "npmos.blocks.description"} />
 					</p>
 				</div>
 				<div className={hostStyles.toolbar}>
@@ -297,10 +360,10 @@ function CrowdsecPage() {
 				</Alert>
 			)}
 
-			<Summary data={data} />
+			{place === "agent" && <Summary data={data} />}
 
 			<ul className="nav nav-tabs flex-nowrap overflow-auto">
-				{TABS.map((x) => (
+				{tabs.map((x) => (
 					<li className="nav-item" key={x}>
 						<button
 							type="button"
@@ -319,7 +382,7 @@ function CrowdsecPage() {
 			{tab === "blocklists" && <BlocklistsTab shareEnabled={!!settings.data?.shareEnabled} refresh={refresh} />}
 			{tab === "hub" && <HubTab onlineHub={!!settings.data?.onlineHub} refresh={refresh} />}
 			{tab === "settings" && settings.data && (
-				<SettingsTab data={settings.data} agent={data.agent} refresh={refresh} />
+				<SettingsView data={settings.data} refresh={refresh} manage={can("crowdsec", "manage")} />
 			)}
 			{tab === "registry" && <RegistryTab />}
 		</div>
@@ -328,7 +391,14 @@ function CrowdsecPage() {
 
 const Crowdsec = () => (
 	<HasPermission rbac="crowdsec" permission={VIEW} pageLoading loadingNoLogo>
-		<CrowdsecPage />
+		<CrowdsecPage place="agent" />
+	</HasPermission>
+);
+
+/** Analytics → Blocks: decisions, alerts and blocklists of CrowdSec */
+export const Blocks = () => (
+	<HasPermission rbac="crowdsec" permission={VIEW} pageLoading loadingNoLogo>
+		<CrowdsecPage place="blocks" />
 	</HasPermission>
 );
 

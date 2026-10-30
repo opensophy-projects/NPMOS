@@ -5,7 +5,6 @@ import cn from "classnames";
 import { useState } from "react";
 import { T } from "src/locale";
 import { showError, showSuccess } from "src/notifications";
-import { showConfirmModal } from "../../modals/ConfirmModal";
 import {
 	type Blocklist,
 	type Bouncer,
@@ -20,6 +19,7 @@ import {
 } from "../../crowdsec/api";
 import { showBlocklistModal } from "../../crowdsec/BlocklistModal";
 import { durationLabel, t } from "../../crowdsec/labels";
+import { showConfirmModal } from "../../modals/ConfirmModal";
 import { useCan } from "../../rbac/hooks";
 import { Dropdown } from "../../ui/Dropdown";
 import { dateTime, timeAgo } from "../../ui/time";

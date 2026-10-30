@@ -175,43 +175,6 @@
 	color: var(--foreground-muted);
 }
 
-.searchInput {
-	flex: 1;
-	min-width: 0;
-	padding: 0;
-	border: 0;
-	background: transparent;
-	color: var(--foreground);
-	font: inherit;
-	outline: none;
-}
-.searchInput::placeholder {
-	color: color-mix(in oklab, var(--foreground-muted) 70%, transparent);
-}
-.searchInput::-webkit-search-cancel-button {
-	display: none;
-}
-
-.kbd {
-	display: none;
-	align-items: center;
-	height: 1.25rem;
-	padding: 0 0.375rem;
-	border-radius: var(--radius-xs);
-	background: var(--background);
-	box-shadow: var(--shadow-card);
-	color: color-mix(in oklab, var(--foreground-muted) 70%, transparent);
-	font-family: var(--font-mono);
-	font-size: 10px;
-	font-weight: 500;
-	pointer-events: none;
-	user-select: none;
-}
-@media (min-width: 640px) {
-	.kbd {
-		display: flex;
-	}
-}
 
 .navScroll {
 	flex: 1;
@@ -532,6 +495,10 @@
 	transition:
 		background-color 150ms ease-out,
 		color 150ms ease-out;
+}
+/* icons keep their size next to long labels */
+.menuItem > svg {
+	flex: none;
 }
 .menuItem:disabled {
 	opacity: 0.5;

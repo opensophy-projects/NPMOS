@@ -19,8 +19,9 @@ function App() {
 							<EasyModal.Provider>
 								<Router />
 							</EasyModal.Provider>
+							{/* NPMOS: notifications in the bottom right corner, away from the page header */}
 							<ToastContainer
-								position="top-right"
+								position="bottom-right"
 								autoClose={5000}
 								hideProgressBar={true}
 								newestOnTop={true}

@@ -1,5 +1,4 @@
 // NPMOS: hardcoded strings moved to the locale (en, ru)
-import { IconSearch } from "@tabler/icons-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import Alert from "react-bootstrap/Alert";
@@ -7,17 +6,20 @@ import { deleteUser, toggleUser } from "src/api/backend";
 import { Button, LoadingPage } from "src/components";
 import { useAuthState } from "src/context";
 import { useUser, useUsers } from "src/hooks";
-import { T } from "src/locale";
+import { intl, T } from "src/locale";
 import { showDeleteConfirmModal, showSetPasswordModal, showUserModal } from "src/modals";
 // NPMOS: permissions of a user are its roles (phase 3)
 import { showUserRolesModal } from "src/npmos/rbac/UserRolesModal";
 import { showError, showObjectSuccess } from "src/notifications";
 import Table from "./Table";
+// NPMOS: one look of search fields (src/npmos/ui/SearchField)
+import { SearchField } from "src/npmos/ui/SearchField";
 
 export default function TableWrapper() {
 	const queryClient = useQueryClient();
 	const { loginAs } = useAuthState();
 	const [search, setSearch] = useState("");
+	const [text, setText] = useState("");
 	const { isFetching, isLoading, isError, error, data } = useUsers(["permissions"]);
 	const { data: currentUser } = useUser("me");
 
@@ -79,18 +81,16 @@ export default function TableWrapper() {
 						{data?.length ? (
 							<div className="col-md-auto col-sm-12">
 								<div className="ms-auto d-flex flex-wrap btn-list">
-									<div className="input-group input-group-flat w-auto">
-										<span className="input-group-text input-group-text-sm">
-											<IconSearch size={16} />
-										</span>
-										<input
-											id="advanced-table-search"
-											type="text"
-											className="form-control form-control-sm"
-											autoComplete="off"
-											onChange={(e: any) => setSearch(e.target.value.toLowerCase().trim())}
-										/>
-									</div>
+									<SearchField
+										// NPMOS: the search field of NPMOS tables, with a hint of what it covers
+										variant="inset"
+										value={text}
+										onChange={(value) => {
+											setText(value);
+											setSearch(value.toLowerCase().trim());
+										}}
+										placeholder={intl.formatMessage({ id: "npmos.users.search" })}
+									/>
 
 									<Button size="sm" className="btn-orange" onClick={() => showUserModal("new")}>
 										<T id="object.add" tData={{ object: "user" }} />

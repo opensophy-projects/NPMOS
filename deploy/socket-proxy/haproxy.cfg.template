@@ -49,8 +49,10 @@ frontend dockerfrontend
     # Exactly what npmos-control needs (npmos/backend/npmos/control/server.js):
     #   GET  /containers/json, /containers/<id>/json, /containers/<id>/logs
     #   POST /containers/<id>/restart
+    #   POST /containers/<id>/kill?signal=SIGHUP (reload of CrowdSec without a restart; no other signal)
     http-request allow if METH_GET { path,url_dec -m reg -i ^(/v[\d\.]+)?/containers/json$ }
     http-request allow if METH_GET { path,url_dec -m reg -i ^(/v[\d\.]+)?/containers/[a-zA-Z0-9][a-zA-Z0-9_.-]*/(json|logs)$ }
     http-request allow if METH_POST { path,url_dec -m reg -i ^(/v[\d\.]+)?/containers/[a-zA-Z0-9][a-zA-Z0-9_.-]*/restart$ }
+    http-request allow if METH_POST { path,url_dec -m reg -i ^(/v[\d\.]+)?/containers/[a-zA-Z0-9][a-zA-Z0-9_.-]*/kill$ } { query -m str signal=SIGHUP }
     http-request deny
     default_backend dockerbackend

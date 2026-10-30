@@ -1,6 +1,6 @@
 // Hosts: proxy, redirection, stream and 404 hosts in one table, as DNS records in Cloudflare
 // (docs/ROADMAP.md, phase 2). Data and the create/edit dialogs are those of NPMplus.
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import cn from "classnames";
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Alert from "react-bootstrap/Alert";
@@ -41,10 +41,20 @@ import { useHostAttacks, useHostChanges, useUpstreamChecks, useWafHosts, useWafS
 import { showConfirmModal } from "../../modals/ConfirmModal";
 import { showHostHistoryModal } from "../../modals/HostHistoryModal";
 import { setHostBouncer, useCrowdsecHosts } from "../../crowdsec/api";
-import { fromApiRule, getPki, type MtlsHostType, setMtlsHost, useMtlsHosts, usePki } from "../../pki/api";
-import { showCaModal } from "../../pki/CaModal";
-import { showIssueModal } from "../../pki/IssueModal";
+import {
+	enableMtlsHost,
+	fromApiRule,
+	getPki,
+	hostKey,
+	type MtlsHostType,
+	setMtlsHost,
+	useMtlsHosts,
+	usePki,
+} from "../../pki/api";
+import { showAccessModal } from "../../pki/AccessModal";
+import { showHostCertsModal } from "../../pki/HostCertsModal";
 import { showMtlsModal } from "../../pki/MtlsModal";
+import { getLearningHosts } from "../../learning/api";
 import { useCan } from "../../rbac/hooks";
 import { createHost, deleteHost, OBJECT, QUERY_KEY, toggleHost, updateHost } from "./api";
 import {
@@ -193,6 +203,13 @@ function HostsPage() {
 	const mtlsHosts = useMtlsHosts({ enabled: can("proxy", VIEW) || can("stream", VIEW) });
 	const pki = usePki({ enabled: rbac("pki") });
 	const wafStatus = useWafStatus({ enabled: rbac("waf_policy") });
+	// readiness of learning: hosts the model says may block
+	const learning = useQuery({
+		queryKey: ["npmos-learning-hosts"],
+		queryFn: getLearningHosts,
+		enabled: rbac("waf_learning"),
+		staleTime: 60000,
+	});
 	const certificates = useCertificates([], { enabled: hasPermission(CERTIFICATES, VIEW, perms, roles) });
 	const accessLists = useAccessLists([], { enabled: hasPermission(ACCESS_LISTS, VIEW, perms, roles) });
 	const changes = useHostChanges();
@@ -381,35 +398,7 @@ function HostsPage() {
 		});
 		if (saved.nginx && !saved.nginx.nginxOnline) throw new Error(saved.nginx.nginxErr ?? "nginx");
 	};
-	const newDomain = async (row: HostRow) => {
-		try {
-			const data = await getPki();
-			const name = row.type === "stream" ? `stream${row.names[0]}` : row.names[0];
-			const domain = (rootId: number, fresh = data) =>
-				showCaModal({
-					data: fresh,
-					mode: "intermediate",
-					parentId: rootId,
-					name,
-					onDone: async (ca) => {
-						await run([row], (r) => changePkiMtls(r, [ca.id], "required"), t("npmos.hosts.done.mtls"));
-					},
-				});
-			const root = data.cas.find((ca) => ca.kind === "root" && ca.hasKey);
-			if (root) domain(root.id);
-			else
-				showCaModal({
-					data,
-					mode: "root",
-					name: "NPMOS Root CA",
-					onDone: async (ca) => {
-						domain(ca.id, await getPki());
-					},
-				});
-		} catch (err: any) {
-			showError(err.message);
-		}
-	};
+	const hostRef = (row: HostRow) => ({ hostType: mtlsType(row), hostId: row.id, name: row.names.join(", ") });
 
 	const ctx: CellContext = {
 		canManage: (row) => can(row.type, MANAGE),
@@ -437,6 +426,8 @@ function HostsPage() {
 			),
 		setWaf: (row, state) => run([row], (r) => changeWaf(r, state), t("npmos.hosts.done.waf")),
 		wafTemplate: (row) => waf.data?.[row.id]?.template ?? null,
+		wafReady: (row) =>
+			row.type === "proxy" && !!learning.data?.hosts.some((h) => h.id === row.id && h.readyToPrevent),
 		setWafTemplate: (row, template) =>
 			run(
 				[row],
@@ -474,24 +465,38 @@ function HostsPage() {
 					cas: pki.data.cas,
 					canManage: (row) => can(row.type, MANAGE) || rbac("pki", "manage"),
 					canIssue: rbac("pki", "issue"),
-					canCreateCa: rbac("pki", "manage"),
 					set: (row, caIds, mode) =>
 						run([row], (r) => changePkiMtls(r, caIds, mode), t("npmos.hosts.done.mtls")),
+					enable: (row) => run([row], (r) => enableMtlsHost(mtlsType(r), r.id), t("npmos.hosts.done.mtls")),
 					configure: (row) =>
 						showMtlsModal({ type: mtlsType(row), hostId: row.id, onDone: () => refresh([row.type]) }),
-					newDomain,
-					issue: (row) =>
-						pki.data &&
-						showIssueModal({
-							data: pki.data,
-							preset: {
-								caId: row.mtlsCaIds.find((id) =>
-									pki.data?.cas.some((ca) => ca.id === id && ca.kind === "intermediate" && ca.hasKey),
-								),
-								profile: "client",
-							},
-							onDone: () => refresh([row.type]),
+					issue: async (row) => {
+						try {
+							// fresh: the trust domain of a host switched on a moment ago
+							const data = await getPki();
+							const ref = hostRef(row);
+							showAccessModal({
+								data,
+								host:
+									data.protected.find(
+										(h) => h.hostType === ref.hostType && h.hostId === ref.hostId,
+									) ?? ref,
+								onDone: () => refresh([row.type]),
+							});
+						} catch (err: any) {
+							showError(err.message);
+						}
+					},
+					accessCerts: (row) =>
+						(pki.data?.certificates ?? []).filter((c) =>
+							c.access.some((a) => a.hostType === mtlsType(row) && a.hostId === row.id),
+						),
+					certs: (row) =>
+						showHostCertsModal({
+							host: hostRef(row),
+							openHost: (h) => navigate(`/mtls?host=${hostKey(h)}`),
 						}),
+					details: (row) => navigate(`/mtls?host=${mtlsType(row)}-${row.id}`),
 				}
 			: undefined,
 		duplicate: (row) => EDIT[row.type](row.id, true),

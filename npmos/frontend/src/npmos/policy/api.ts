@@ -164,3 +164,20 @@ export const importPolicy = (content: string, dryRun: boolean) =>
 	request<ImportResult>("POST", `/import${dryRun ? "?dry_run=true" : ""}`, { content });
 export const exportPolicy = (format: "v1beta2" | "v1beta1") =>
 	base.download({ url: "/npmos/waf/policy/export", params: { format } }, `npmos-waf-policy-${format}.yaml`);
+
+/** a YAML document of the policy as text: all of it, or the objects of one section (Agents → open-appsec → Code) */
+export const getPolicyCode = async (section?: string) => {
+	const params = new URLSearchParams({ format: "v1beta2", ...(section ? { section } : {}) });
+	const response = await fetch(`/api/npmos/waf/policy/export?${params}`);
+	if (!response.ok) throw new Error(response.statusText);
+	return response.text();
+};
+
+export const getHostCode = (id: number) =>
+	base.get({ url: `/npmos/waf/hosts/${id}/code` }) as Promise<{ content: string }>;
+export const putHostCode = (id: number, content: string, dryRun: boolean) =>
+	base.put({ url: `/npmos/waf/hosts/${id}/code`, data: { content, dryRun } }) as Promise<{
+		valid: boolean;
+		error?: string;
+		applied?: boolean;
+	}>;

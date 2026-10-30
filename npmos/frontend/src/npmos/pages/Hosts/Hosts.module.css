@@ -339,6 +339,15 @@
 .scroller {
 	overflow-x: auto;
 }
+/* the header and rows of a table follow the rounded inner panel of the card */
+.tableCard > .scroller:first-child {
+	border-top-left-radius: calc(var(--radius-lg) - 1px);
+	border-top-right-radius: calc(var(--radius-lg) - 1px);
+}
+.tableCard > .scroller:last-child {
+	border-bottom-left-radius: calc(var(--radius-lg) - 1px);
+	border-bottom-right-radius: calc(var(--radius-lg) - 1px);
+}
 .table {
 	margin: 0;
 	font-size: 0.875rem;
@@ -628,4 +637,18 @@
 }
 .attacks:hover {
 	color: var(--accent);
+}
+/* header of the mTLS menu of a host */
+.menuHeader {
+	padding: 0.375rem 0.75rem 0.5rem;
+	color: var(--foreground-muted);
+	font-size: 0.8125rem;
+	white-space: nowrap;
+}
+/* WAF: learning says the host may block */
+.ready {
+	margin-left: 0.375rem;
+	color: color-mix(in oklab, var(--tblr-success, #2fb344) 80%, var(--foreground));
+	font-size: 0.75rem;
+	white-space: nowrap;
 }

@@ -17,7 +17,7 @@ import errs from "../../lib/error.js";
 import { global as logger } from "../../logger.js";
 import proxyHostModel from "../../models/proxy_host.js";
 import streamModel from "../../models/stream.js";
-import { onCrlChange } from "./index.js";
+import internalPki, { onCrlChange } from "./index.js";
 import { escapeRe, RULE_FIELDS, RULE_OPS, ruleRegex, trustSet } from "./trust.js";
 import { ASCII_VALUE } from "./x509.js";
 import { scopeHosts } from "../rbac/scope.js";
@@ -215,6 +215,50 @@ export const usage = async () => {
 	return result;
 };
 
+/**
+ * Which hosts each certificate opens: for every host with mTLS on, the CAs whose client
+ * certificates it accepts. Proxy hosts check the issuer, so these are the selected CAs and the
+ * intermediate CAs of selected roots; streams cannot, so a trust domain there accepts every
+ * intermediate CA of its root. Rules on fields of certificates may narrow it further.
+ * @returns {Promise<Array<{host_type: string, host_id: number, name: string, mode: string, ca_ids: number[],
+ *   accepts: number[], rules: number}>>}
+ */
+export const protectedHosts = async () => {
+	const cas = await db()("npmos_pki_ca");
+	const result = [];
+	for (const row of await db()("npmos_mtls_host").where({ enabled: true })) {
+		const host = await db()(row.host_type).where({ id: row.host_id, is_deleted: 0 }).first();
+		if (!host) continue;
+		const ids = trustSet(parse(row.ca_ids) || [], cas).ids;
+		const accepts = new Set(ids);
+		if (row.host_type === "stream") {
+			for (const ca of cas) if (ids.includes(ca.parent_id)) accepts.add(ca.id);
+		}
+		result.push({
+			host_type: row.host_type,
+			host_id: row.host_id,
+			name: hostName(row.host_type, host),
+			mode: row.mode,
+			ca_ids: parse(row.ca_ids) || [],
+			accepts: [...accepts],
+			rules: (parse(row.rules) || []).length,
+			// a host without its certificate serves no TLS: its mTLS is not in force
+			active: !!host.enabled && host.certificate_id > 0,
+		});
+	}
+	return result;
+};
+
+/** ASCII-only text for subjects of CAs (nginx prints UTF-8 escaped) */
+const ascii = (text) =>
+	text
+		.normalize("NFKD")
+		.replace(/[^\x20-\x7e]/g, "")
+		.replace(/[^A-Za-z0-9 _.@:'()&-]+/g, "-")
+		.replace(/\s+/g, " ")
+		.trim()
+		.slice(0, 60);
+
 const validate = (data, hostType, host, cas) => {
 	const b = { ...DEFAULTS, ...data };
 	if (typeof b.enabled !== "boolean") throw new errs.ValidationError("enabled: boolean");
@@ -367,6 +411,65 @@ const internalMtls = {
 		const nginx = await reconfigure(hostType, id);
 		return { ...(await internalMtls.get(access, hostType, id)), nginx };
 	},
+};
+
+/**
+ * mTLS on in one step (the switch of the hosts table): the CAs the host had before, or a trust
+ * domain of its own, made with a root when there is none (pki:manage).
+ * @param {Access} access
+ */
+internalMtls.quick = async (access, hostType, id) => {
+	if (!HOST_TYPES.includes(hostType)) throw new errs.ValidationError(`host_type: ${HOST_TYPES.join(", ")}`);
+	await access.can(`${permission(hostType)}:get`, id);
+	const host = await getHost(hostType, id);
+	if (!(host.certificate_id > 0)) {
+		throw new errs.ValidationError("mTLS needs TLS: choose a certificate of the host first");
+	}
+	const row = await db()("npmos_mtls_host").where({ host_type: hostType, host_id: id }).first();
+	const current = toBinding(row);
+	const cas = await db()("npmos_pki_ca");
+	const key = `${hostType}-${id}`;
+	let caIds = current.ca_ids.filter((caId) => cas.some((ca) => ca.id === caId));
+	if (!caIds.length) {
+		// the trust domain of this host, made by an earlier switch
+		const own = cas.find((ca) => parse(ca.meta)?.host === key && ca.key_enc);
+		if (own) {
+			caIds = [own.id];
+		} else {
+			await access.can("pki:manage");
+			const now = new Date();
+			let root = cas.find((ca) => ca.kind === "root" && ca.key_enc && new Date(ca.not_after) > now);
+			if (!root) {
+				const suffix = cas.some((ca) => ca.name === "NPMOS mTLS Root CA") ? ` ${now.getFullYear()}` : "";
+				const created = await internalPki.createCa(access, {
+					kind: "root",
+					name: `NPMOS mTLS Root CA${suffix}`,
+					subject: { common_name: `NPMOS mTLS Root CA${suffix}`, organization: "NPMOS" },
+				});
+				root = { id: created.id };
+			}
+			const label = hostName(hostType, host).split(", ")[0];
+			// names and subjects of CAs are unique: a CA left from a deleted host of the same name
+			const taken = (name, cn) => cas.some((ca) => ca.name === name || parse(ca.subject)?.common_name === cn);
+			let name = `mTLS ${label}`.slice(0, 80);
+			let cn = `mTLS ${ascii(hostType === "stream" ? `stream ${label}` : label) || key}`;
+			if (taken(name, cn)) {
+				name = `${name} (${key})`;
+				cn = `${cn} (${key})`;
+			}
+			const domain = await internalPki.createCa(access, {
+				kind: "intermediate",
+				name,
+				parent_id: root.id,
+				subject: { common_name: cn, organization: "NPMOS" },
+			});
+			await db()("npmos_pki_ca")
+				.where({ id: domain.id })
+				.update({ meta: JSON.stringify({ ...domain.meta, host: key }) });
+			caIds = [domain.id];
+		}
+	}
+	return internalMtls.set(access, hostType, id, { ...current, enabled: true, ca_ids: caIds });
 };
 
 export default internalMtls;

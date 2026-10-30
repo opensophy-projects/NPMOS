@@ -48,6 +48,15 @@ export const hourOf = (date) => {
 export const dayOf = (date) => date.toISOString().slice(0, 10);
 
 /**
+ * waapFinalScore on the scale 0..10 of the agent (< 3 low, 3..6 medium, >= 6 high). Agents since 1.1.x log it
+ * multiplied by 100 as an integer (Waf2EngineGetters.cc), older ones as it is.
+ */
+export const scoreOf = (value) => {
+	const n = num(value);
+	return n !== null && n > 10 ? Math.round(n) / 100 : n;
+};
+
+/**
  * One line of the agent's log.
  * @param {object} raw
  * @param {string} [nodeId]
@@ -119,7 +128,7 @@ export const classify = (raw, nodeId = "local") => {
 			parameter: str(data.matchedParameter, MAX_TEXT),
 			sample: str(data.matchedSample, MAX_TEXT),
 			indicators: str(data.waapFoundIndicators, MAX_TEXT),
-			score: num(data.waapFinalScore),
+			score: scoreOf(data.waapFinalScore),
 			rule: str(pick("ruleName")),
 			practice: str(pick("practiceName")),
 			override: str(data.waapOverride, 32),

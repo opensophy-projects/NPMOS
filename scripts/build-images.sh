@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Builds the NPMOS images locally:
-#   npmos, npmos-appsec-agent, npmos-appsec-smartsync, npmos-appsec-shared-storage, npmos-appsec-tuning
+#   npmos, npmos-appsec-agent, npmos-appsec-shared-storage, npmos-appsec-tuning
 #
 #   scripts/build-images.sh                    # all images, tag local/<name>:dev
 #   scripts/build-images.sh npmos appsec-agent # selected images
@@ -18,7 +18,7 @@ CROWDSEC_VERSION=$(sed -n 's/^CROWDSEC_VERSION=//p' deploy/.env)
 REGISTRY="${REGISTRY:-local}"
 TAG="${TAG:-dev}"
 images=("$@")
-[ ${#images[@]} -eq 0 ] && images=(npmos appsec-agent appsec-smartsync appsec-shared-storage appsec-tuning)
+[ ${#images[@]} -eq 0 ] && images=(npmos appsec-agent appsec-shared-storage appsec-tuning)
 
 go_service() { # name repo ref
   docker build -f deploy/openappsec/go-service/Dockerfile \
@@ -37,7 +37,6 @@ for image in "${images[@]}"; do
     appsec-agent)
       docker build --build-arg "OPENAPPSEC_REF=$OPENAPPSEC_REF" \
         -t "$REGISTRY/npmos-appsec-agent:$TAG" deploy/openappsec/agent ;;
-    appsec-smartsync) go_service appsec-smartsync smartsync "$SMARTSYNC_REF" ;;
     appsec-shared-storage) go_service appsec-shared-storage smartsync-shared-files "$SHARED_FILES_REF" ;;
     appsec-tuning) go_service appsec-tuning smartsync-tuning "$TUNING_REF" ;;
     *) echo "unknown image: $image" >&2; exit 1 ;;

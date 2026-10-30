@@ -525,13 +525,13 @@
 		"defaultMessage": "Только HTTP"
 	},
 	"lets-encrypt": {
-		"defaultMessage": "Certbot"
+		"defaultMessage": "Let's Encrypt / ACME"
 	},
 	"lets-encrypt-via-dns": {
-		"defaultMessage": "Certbot через DNS"
+		"defaultMessage": "Let's Encrypt / ACME (проверка по DNS)"
 	},
 	"lets-encrypt-via-http": {
-		"defaultMessage": "Certbot через HTTP"
+		"defaultMessage": "Let's Encrypt / ACME (проверка по HTTP)"
 	},
 	"loading": {
 		"defaultMessage": "Загрузка…"
@@ -620,6 +620,87 @@
 	"npmos.2fa.error-start": {
 		"defaultMessage": "Не удалось начать настройку 2FA"
 	},
+	"npmos.access.description": {
+		"defaultMessage": "Список доступа пускает к хосту не всех: только тех, кто знает логин и пароль, кто приходит с разрешённых адресов, или и то и другое. Остальные получают 403 (или запрос пароля) ещё до того, как запрос дойдёт до сервиса."
+	},
+	"npmos.access.point.apply": {
+		"defaultMessage": "Где действует"
+	},
+	"npmos.access.point.apply.text": {
+		"defaultMessage": "Сам по себе список ничего не делает: выберите его в хосте (Хосты → хост → Сведения → Список доступа). Один список может защищать несколько хостов; их число — в колонке справа."
+	},
+	"npmos.access.point.ip": {
+		"defaultMessage": "Адреса и сети"
+	},
+	"npmos.access.point.ip.text": {
+		"defaultMessage": "Правила «разрешить» и «запретить» для IP-адресов и сетей (192.168.1.0/24), проверяются по порядку. «Любое условие»: достаточно пароля или адреса; «все условия»: нужно и то и другое."
+	},
+	"npmos.access.point.password": {
+		"defaultMessage": "Логин и пароль"
+	},
+	"npmos.access.point.password.text": {
+		"defaultMessage": "Пользователи списка (HTTP Basic Auth): браузер один раз спросит их. Подходит для админки или тестового сайта."
+	},
+	"npmos.access.search": {
+		"defaultMessage": "Поиск по названию"
+	},
+	"npmos.agent.default.hint": {
+		"defaultMessage": "Действует на все хосты без своей политики: режим и блоки, которые использует агент."
+	},
+	"npmos.agent.group.blocks": {
+		"defaultMessage": "Блоки политики"
+	},
+	"npmos.agent.group.more": {
+		"defaultMessage": "Ещё"
+	},
+	"npmos.agent.group.policies": {
+		"defaultMessage": "Политики"
+	},
+	"npmos.agent.host.hint": {
+		"defaultMessage": "Политика этого хоста: проверяет ли его WAF, насколько строго и какие блоки, если они отличаются от базовой политики."
+	},
+	"npmos.agent.host.none": {
+		"defaultMessage": "Хост удалён."
+	},
+	"npmos.agent.host.saved": {
+		"defaultMessage": "Политика {name} сохранена"
+	},
+	"npmos.agent.item.expert": {
+		"defaultMessage": "Дополнения YAML"
+	},
+	"npmos.agent.item.expert.hint": {
+		"defaultMessage": "Фрагменты local_policy.yaml поверх того, что генерирует NPMOS: для того, для чего в интерфейсе нет поля."
+	},
+	"npmos.agent.item.versions": {
+		"defaultMessage": "Версии"
+	},
+	"npmos.agent.item.versions.hint": {
+		"defaultMessage": "Каждое изменение политики сохраняется; любую версию можно вернуть."
+	},
+	"npmos.agent.openappsec.description": {
+		"defaultMessage": "WAF хостов на машинном обучении: его политики (базовая и политики хостов, собранные из блоков) и сам агент."
+	},
+	"npmos.agent.policies": {
+		"defaultMessage": "Из чего состоит политика"
+	},
+	"npmos.agent.tab.agent": {
+		"defaultMessage": "Агент"
+	},
+	"npmos.agent.tab.learning": {
+		"defaultMessage": "Обучение"
+	},
+	"npmos.agent.tab.policies": {
+		"defaultMessage": "Политики"
+	},
+	"npmos.agent.view": {
+		"defaultMessage": "Вид"
+	},
+	"npmos.agent.view.code": {
+		"defaultMessage": "Код"
+	},
+	"npmos.agent.view.gui": {
+		"defaultMessage": "Интерфейс"
+	},
 	"npmos.analytics": {
 		"defaultMessage": "Аналитика"
 	},
@@ -641,6 +722,9 @@
 	"npmos.analytics.crowdsec-bans": {
 		"defaultMessage": "Банов CrowdSec"
 	},
+	"npmos.analytics.description": {
+		"defaultMessage": "Запросы к хостам и атаки, которые в них увидели агенты, по данным NPMOS. Нажмите на строку, чтобы открыть её события."
+	},
 	"npmos.analytics.detected": {
 		"defaultMessage": "Только обнаружено"
 	},
@@ -657,7 +741,7 @@
 		"defaultMessage": "За этот период ничего нет"
 	},
 	"npmos.analytics.note": {
-		"defaultMessage": "Короткие периоды считаются по событиям, график длинных — по почасовой статистике; срок хранения задаётся в «WAF → События → Хранение». Готовность обучения по хостам появится в фазе 8."
+		"defaultMessage": "Короткие периоды считаются по событиям, график длинных — по почасовой статистике; срок хранения задаётся в «Аналитика → События → Хранение». Готовность обучения по хостам появится в фазе 8."
 	},
 	"npmos.analytics.prevented": {
 		"defaultMessage": "Заблокировано"
@@ -671,6 +755,12 @@
 	"npmos.analytics.requests.none": {
 		"defaultMessage": "Агент ещё не прислал статистику трафика"
 	},
+	"npmos.analytics.section.attacks": {
+		"defaultMessage": "Атаки"
+	},
+	"npmos.analytics.section.traffic": {
+		"defaultMessage": "Трафик хостов"
+	},
 	"npmos.analytics.series.detect": {
 		"defaultMessage": "Обнаружено (Detect)"
 	},
@@ -682,9 +772,6 @@
 	},
 	"npmos.analytics.sources": {
 		"defaultMessage": "Источников атак"
-	},
-	"npmos.analytics.subtitle": {
-		"defaultMessage": "Атаки на хосты под защитой WAF по событиям, которые хранит NPMOS. Нажмите на строку, чтобы открыть её события."
 	},
 	"npmos.analytics.timeline": {
 		"defaultMessage": "Атаки во времени"
@@ -700,6 +787,114 @@
 	},
 	"npmos.analytics.top-uris": {
 		"defaultMessage": "Самые атакуемые URI"
+	},
+	"npmos.analytics.traffic.4xx": {
+		"defaultMessage": "Ошибки клиента (4xx)"
+	},
+	"npmos.analytics.traffic.5xx": {
+		"defaultMessage": "Ошибки сервера (5xx)"
+	},
+	"npmos.analytics.traffic.blocked": {
+		"defaultMessage": "Отклонено"
+	},
+	"npmos.analytics.traffic.host-sub": {
+		"defaultMessage": "ошибок {errors}, отклонено {blocked}"
+	},
+	"npmos.analytics.traffic.hosts": {
+		"defaultMessage": "Запросы по хостам"
+	},
+	"npmos.analytics.traffic.none": {
+		"defaultMessage": "За этот период запросов нет"
+	},
+	"npmos.analytics.traffic.ok": {
+		"defaultMessage": "Обычные ответы (2xx, 3xx)"
+	},
+	"npmos.analytics.traffic.passed": {
+		"defaultMessage": "Пропущено"
+	},
+	"npmos.analytics.traffic.requests": {
+		"defaultMessage": "Запросов"
+	},
+	"npmos.analytics.traffic.sent": {
+		"defaultMessage": "отдано клиентам {bytes}"
+	},
+	"npmos.analytics.traffic.share": {
+		"defaultMessage": "{p} от всех"
+	},
+	"npmos.analytics.traffic.timeline": {
+		"defaultMessage": "Запросы во времени"
+	},
+	"npmos.audit.action.applied": {
+		"defaultMessage": "Применение"
+	},
+	"npmos.audit.action.banned": {
+		"defaultMessage": "Бан"
+	},
+	"npmos.audit.action.captcha": {
+		"defaultMessage": "Капча"
+	},
+	"npmos.audit.action.created": {
+		"defaultMessage": "Создание"
+	},
+	"npmos.audit.action.deleted": {
+		"defaultMessage": "Удаление"
+	},
+	"npmos.audit.action.disabled": {
+		"defaultMessage": "Отключение"
+	},
+	"npmos.audit.action.enabled": {
+		"defaultMessage": "Включение"
+	},
+	"npmos.audit.action.exported": {
+		"defaultMessage": "Экспорт"
+	},
+	"npmos.audit.action.imported": {
+		"defaultMessage": "Импорт"
+	},
+	"npmos.audit.action.installed": {
+		"defaultMessage": "Установка"
+	},
+	"npmos.audit.action.labeled": {
+		"defaultMessage": "Размечено"
+	},
+	"npmos.audit.action.regenerated": {
+		"defaultMessage": "Пересоздание"
+	},
+	"npmos.audit.action.removed": {
+		"defaultMessage": "Удаление из списка"
+	},
+	"npmos.audit.action.renewed": {
+		"defaultMessage": "Продление"
+	},
+	"npmos.audit.action.restarted": {
+		"defaultMessage": "Перезапуск"
+	},
+	"npmos.audit.action.revoked": {
+		"defaultMessage": "Отзыв"
+	},
+	"npmos.audit.action.unbanned": {
+		"defaultMessage": "Снятие бана"
+	},
+	"npmos.audit.action.unlabeled": {
+		"defaultMessage": "Разметка отменена"
+	},
+	"npmos.audit.action.updated": {
+		"defaultMessage": "Изменение"
+	},
+	"npmos.audit.description": {
+		"defaultMessage": "Кто, что и когда изменил. Страницы загружаются с сервера, поиск идёт по всему журналу."
+	},
+	"npmos.audit.empty": {
+		"defaultMessage": "Нет записей под эти фильтры"
+	},
+	"npmos.audit.filter.action": {
+		"defaultMessage": "Действие"
+	},
+	"npmos.audit.filter.object": {
+		"defaultMessage": "Объект"
+	},
+	"npmos.audit.filter.user": {
+		"defaultMessage": "Пользователь"
 	},
 	"npmos.audit.name.agent": {
 		"defaultMessage": "Настройки агента WAF"
@@ -719,8 +914,287 @@
 	"npmos.audit.name.waf": {
 		"defaultMessage": "WAF (open-appsec)"
 	},
+	"npmos.audit.page": {
+		"defaultMessage": "Страница {page} из {pages}"
+	},
+	"npmos.audit.period.24h": {
+		"defaultMessage": "24 ч"
+	},
+	"npmos.audit.period.30d": {
+		"defaultMessage": "30 дней"
+	},
+	"npmos.audit.period.7d": {
+		"defaultMessage": "7 дней"
+	},
+	"npmos.audit.period.90d": {
+		"defaultMessage": "90 дней"
+	},
+	"npmos.audit.period.all": {
+		"defaultMessage": "Всё время"
+	},
+	"npmos.audit.search": {
+		"defaultMessage": "Поиск по объекту, деталям или пользователю"
+	},
+	"npmos.audit.total": {
+		"defaultMessage": "{total, plural, one {# запись} few {# записи} many {# записей} other {# записи}}"
+	},
+	"npmos.block-page": {
+		"defaultMessage": "Страница блокировки"
+	},
+	"npmos.block-page.accent": {
+		"defaultMessage": "Цвет"
+	},
+	"npmos.block-page.contact": {
+		"defaultMessage": "Контакт (необязательно)"
+	},
+	"npmos.block-page.contact.placeholder": {
+		"defaultMessage": "Например: напишите на security@example.com"
+	},
+	"npmos.block-page.description": {
+		"defaultMessage": "Что видит посетитель, когда запрос отклонён: open-appsec, баунсером CrowdSec или списком доступа. Заменяет страницу агента с текстом Check Point."
+	},
+	"npmos.block-page.details": {
+		"defaultMessage": "Показывать ID запроса, IP, хост и время (для обращения к администратору)"
+	},
+	"npmos.block-page.enabled": {
+		"defaultMessage": "Показывать страницу NPMOS"
+	},
+	"npmos.block-page.enabled.hint": {
+		"defaultMessage": "Выключено: каждый компонент отвечает своей страницей (open-appsec, CrowdSec, nginx)."
+	},
+	"npmos.block-page.language": {
+		"defaultMessage": "Язык подписей"
+	},
+	"npmos.block-page.off": {
+		"defaultMessage": "Страница NPMOS выключена: посетители видят страницы компонентов."
+	},
+	"npmos.block-page.preview": {
+		"defaultMessage": "Предпросмотр"
+	},
+	"npmos.block-page.saved": {
+		"defaultMessage": "Страница блокировки сохранена"
+	},
+	"npmos.block-page.settings": {
+		"defaultMessage": "Страница"
+	},
+	"npmos.block-page.text": {
+		"defaultMessage": "Текст"
+	},
+	"npmos.block-page.text.hint": {
+		"defaultMessage": "Пустая строка начинает новый абзац."
+	},
+	"npmos.block-page.title": {
+		"defaultMessage": "Заголовок"
+	},
+	"npmos.block-page.where": {
+		"defaultMessage": "Страница отдаётся на каждый отказ, который nginx делает сам (код 403); ответы ваших сервисов не трогаются. У mTLS и панели администратора свои страницы."
+	},
+	"npmos.blocks.description": {
+		"defaultMessage": "Кого сейчас блокирует CrowdSec, за что, и списки адресов: баны, капчи, алерты, блок-листы. Здесь же — ручной бан."
+	},
 	"npmos.certificates.mtls": {
 		"defaultMessage": "CA для mTLS"
+	},
+	"npmos.certs.add": {
+		"defaultMessage": "Добавить сертификат"
+	},
+	"npmos.certs.badge.expired": {
+		"defaultMessage": "Истёк"
+	},
+	"npmos.certs.badge.expiring": {
+		"defaultMessage": "Скоро истекает"
+	},
+	"npmos.certs.badge.revoked": {
+		"defaultMessage": "Отозван"
+	},
+	"npmos.certs.badge.valid": {
+		"defaultMessage": "Действует"
+	},
+	"npmos.certs.copy-path": {
+		"defaultMessage": "Скопировать путь"
+	},
+	"npmos.certs.days-left": {
+		"defaultMessage": "{days, plural, one {остался # день} few {осталось # дня} many {осталось # дней} other {осталось # дня}}"
+	},
+	"npmos.certs.default-server": {
+		"defaultMessage": "Запросы к неизвестным именам"
+	},
+	"npmos.certs.description": {
+		"defaultMessage": "Все сертификаты системы в одном списке: TLS хостов, центры сертификации и выпущенные сертификаты PKI, а также файлы сертификатов на диске, о которых нет записей."
+	},
+	"npmos.certs.details": {
+		"defaultMessage": "Подробнее"
+	},
+	"npmos.certs.empty": {
+		"defaultMessage": "Нет сертификатов под эти фильтры"
+	},
+	"npmos.certs.expired-ago": {
+		"defaultMessage": "{days, plural, one {истёк # день назад} few {истёк # дня назад} many {истёк # дней назад} other {истёк # дня назад}}"
+	},
+	"npmos.certs.expires": {
+		"defaultMessage": "Действует до"
+	},
+	"npmos.certs.files-hint": {
+		"defaultMessage": "Файлы сертификатов на диске, о которых нет записей ни в NPMplus, ни в PKI: копии после миграции, от удалённого хоста или ручных изменений. NPMOS их не использует, кроме заглушки NPMplus; остальные, если они не нужны, удалите с диска."
+	},
+	"npmos.certs.issuer": {
+		"defaultMessage": "Кем выпущен"
+	},
+	"npmos.certs.kind": {
+		"defaultMessage": "Тип"
+	},
+	"npmos.certs.kind.dummy": {
+		"defaultMessage": "Заглушка NPMplus"
+	},
+	"npmos.certs.kind.external": {
+		"defaultMessage": "Внешний CA (загружен)"
+	},
+	"npmos.certs.kind.file": {
+		"defaultMessage": "Файл сертификата"
+	},
+	"npmos.certs.kind.file-ca": {
+		"defaultMessage": "Файл CA"
+	},
+	"npmos.certs.kind.intermediate": {
+		"defaultMessage": "Промежуточный CA"
+	},
+	"npmos.certs.kind.root": {
+		"defaultMessage": "Корневой CA"
+	},
+	"npmos.certs.name": {
+		"defaultMessage": "Сертификат"
+	},
+	"npmos.certs.next": {
+		"defaultMessage": "Следующая страница"
+	},
+	"npmos.certs.open-cas": {
+		"defaultMessage": "Открыть центры сертификации"
+	},
+	"npmos.certs.open-mtls": {
+		"defaultMessage": "Открыть в mTLS"
+	},
+	"npmos.certs.open-pki": {
+		"defaultMessage": "Открыть в PKI"
+	},
+	"npmos.certs.prev": {
+		"defaultMessage": "Предыдущая страница"
+	},
+	"npmos.certs.search": {
+		"defaultMessage": "Имя, домен, издатель, серийный номер, хост или путь"
+	},
+	"npmos.certs.sort": {
+		"defaultMessage": "Сортировка"
+	},
+	"npmos.certs.sort.-created": {
+		"defaultMessage": "Сначала новые"
+	},
+	"npmos.certs.sort.-expires": {
+		"defaultMessage": "Сначала долгие"
+	},
+	"npmos.certs.sort.expires": {
+		"defaultMessage": "Сначала истекающие"
+	},
+	"npmos.certs.sort.name": {
+		"defaultMessage": "По имени"
+	},
+	"npmos.certs.source.all": {
+		"defaultMessage": "Все"
+	},
+	"npmos.certs.source.ca": {
+		"defaultMessage": "Центры сертификации"
+	},
+	"npmos.certs.source.file": {
+		"defaultMessage": "Файлы на диске"
+	},
+	"npmos.certs.source.pki": {
+		"defaultMessage": "Выпущены PKI"
+	},
+	"npmos.certs.source.tls": {
+		"defaultMessage": "TLS хостов"
+	},
+	"npmos.certs.status": {
+		"defaultMessage": "Статус"
+	},
+	"npmos.certs.status.any": {
+		"defaultMessage": "Любой"
+	},
+	"npmos.certs.status.expired": {
+		"defaultMessage": "Истекли"
+	},
+	"npmos.certs.status.expiring": {
+		"defaultMessage": "Скоро истекают"
+	},
+	"npmos.certs.status.revoked": {
+		"defaultMessage": "Отозваны"
+	},
+	"npmos.certs.status.valid": {
+		"defaultMessage": "Действует"
+	},
+	"npmos.certs.title": {
+		"defaultMessage": "Все сертификаты"
+	},
+	"npmos.certs.total": {
+		"defaultMessage": "{total, plural, one {# сертификат} few {# сертификата} many {# сертификатов} other {# сертификата}}"
+	},
+	"npmos.certs.used": {
+		"defaultMessage": "Использование"
+	},
+	"npmos.certs.used-by": {
+		"defaultMessage": "Где используется"
+	},
+	"npmos.certs.used.any": {
+		"defaultMessage": "Любое"
+	},
+	"npmos.certs.used.no": {
+		"defaultMessage": "Не используется"
+	},
+	"npmos.certs.used.yes": {
+		"defaultMessage": "Используется хостами"
+	},
+	"npmos.code.applied": {
+		"defaultMessage": "Применено"
+	},
+	"npmos.code.apply": {
+		"defaultMessage": "Применить"
+	},
+	"npmos.code.check": {
+		"defaultMessage": "Проверить"
+	},
+	"npmos.code.check-first": {
+		"defaultMessage": "Перед применением проверьте документ"
+	},
+	"npmos.code.hint.default": {
+		"defaultMessage": "Вся политика: базовая (policies.default) и все блоки администратора. Блоки, которых здесь нет, сохраняются."
+	},
+	"npmos.code.hint.host": {
+		"defaultMessage": "Политика хоста. Блоки называются так же, как в списке слева; без objects берутся блоки базовой политики."
+	},
+	"npmos.code.hint.kind": {
+		"defaultMessage": "Блоки этого вида, созданные администратором. Изменённый обновится, новый создастся; встроенные — только для чтения."
+	},
+	"npmos.code.import.create": {
+		"defaultMessage": "Новые: {names}."
+	},
+	"npmos.code.import.policy": {
+		"defaultMessage": "Базовая политика будет заменена."
+	},
+	"npmos.code.import.skipped": {
+		"defaultMessage": "Пропущены (встроенные): {names}."
+	},
+	"npmos.code.import.update": {
+		"defaultMessage": "Изменённые: {names}."
+	},
+	"npmos.code.ready": {
+		"defaultMessage": "Проверено: можно применять"
+	},
+	"npmos.code.reset": {
+		"defaultMessage": "Отменить изменения"
+	},
+	"npmos.code.review": {
+		"defaultMessage": "Изменения"
+	},
+	"npmos.code.unchanged": {
+		"defaultMessage": "Изменений нет"
 	},
 	"npmos.common.close": {
 		"defaultMessage": "Закрыть"
@@ -785,14 +1259,8 @@
 	"npmos.crowdsec.activity": {
 		"defaultMessage": "Активность"
 	},
-	"npmos.crowdsec.agent.off": {
-		"defaultMessage": "Агент WAF не использует эти решения; включается в разделе"
-	},
-	"npmos.crowdsec.agent.on": {
-		"defaultMessage": "Агент WAF тоже проверяет IP клиентов по этим решениям (режим: {mode})."
-	},
-	"npmos.crowdsec.agent.open": {
-		"defaultMessage": "WAF → Агент"
+	"npmos.crowdsec.agent.description": {
+		"defaultMessage": "Поведенческая защита: CrowdSec разбирает логи nginx и атаки open-appsec и банит источники. Здесь его политика (что читать, когда банить, кого не трогать), хаб и подключённые машины; сами баны — в «Аналитика → Блокировки»."
 	},
 	"npmos.crowdsec.alerts.active": {
 		"defaultMessage": "Только с активным решением"
@@ -863,8 +1331,14 @@
 	"npmos.crowdsec.ban.done": {
 		"defaultMessage": "Забанено: {count}"
 	},
+	"npmos.crowdsec.ban.extend": {
+		"defaultMessage": "Продлить бан"
+	},
 	"npmos.crowdsec.ban.reason": {
 		"defaultMessage": "Причина (для журнала аудита)"
+	},
+	"npmos.crowdsec.ban.replace.hint": {
+		"defaultMessage": "Если адрес уже забанен, это решение заменит текущие, а не добавится вторым."
 	},
 	"npmos.crowdsec.ban.title": {
 		"defaultMessage": "Забанить адреса"
@@ -981,7 +1455,7 @@
 		"defaultMessage": "Выключено: бан никогда не закрывает администраторам доступ к интерфейсу (порт интерфейса и GoAccess). Включено: забаненные адреса не откроют и его; сначала внесите адреса администраторов в белый список."
 	},
 	"npmos.crowdsec.bouncer.appsec": {
-		"defaultMessage": "Агент WAF"
+		"defaultMessage": "агент open-appsec (репутация IP выключена)"
 	},
 	"npmos.crowdsec.bouncer.enabled": {
 		"defaultMessage": "Проверять запросы в nginx"
@@ -1017,7 +1491,7 @@
 		"defaultMessage": "Периодически скачивает все решения: меньше запросов к CrowdSec, баны действуют после следующей загрузки."
 	},
 	"npmos.crowdsec.bouncer.npmos": {
-		"defaultMessage": "nginx NPMOS"
+		"defaultMessage": "nginx NPMOS: применяет баны на всех хостах"
 	},
 	"npmos.crowdsec.bouncer.pull": {
 		"defaultMessage": "Последний запрос"
@@ -1044,7 +1518,7 @@
 		"defaultMessage": "Удалить баунсер {name}? Его ключ сразу перестанет работать."
 	},
 	"npmos.crowdsec.bouncers.hint": {
-		"defaultMessage": "Компоненты, которые применяют решения. npmos — nginx NPMOS, appsec — агент WAF (репутация IP); их ключи создаёт npmos-init."
+		"defaultMessage": "Баунсеры применяют решения CrowdSec. npmos — nginx NPMOS, баунсер для всех хостов; ключи создаёт npmos-init."
 	},
 	"npmos.crowdsec.capi": {
 		"defaultMessage": "Центральный API CrowdSec (обмен сигналами, community blocklist) не используется: его заменяют локальные блок-листы и решения других узлов NPMOS."
@@ -1109,6 +1583,9 @@
 	"npmos.crowdsec.duration.30d": {
 		"defaultMessage": "30 дней"
 	},
+	"npmos.crowdsec.duration.3650d": {
+		"defaultMessage": "Навсегда"
+	},
 	"npmos.crowdsec.duration.4h": {
 		"defaultMessage": "4 часа"
 	},
@@ -1122,7 +1599,7 @@
 		"defaultMessage": "Хост"
 	},
 	"npmos.crowdsec.hub.hint": {
-		"defaultMessage": "Снимок hub на этом узле: из интернета ничего не скачивается. Новый снимок загружается здесь (.index.json от cscli hub update --with-content или архив scripts/crowdsec-hub-snapshot.sh с файлами данных). Установка и удаление перезапускают CrowdSec."
+		"defaultMessage": "Снимок hub на этом узле: из интернета ничего не скачивается. Новый снимок загружается здесь (.index.json от cscli hub update --with-content или архив scripts/crowdsec-hub-snapshot.sh с файлами данных). Установка и удаление применяются без перезапуска CrowdSec."
 	},
 	"npmos.crowdsec.hub.index-updated": {
 		"defaultMessage": "Индекс hub обновлён: элементов {count}"
@@ -1238,6 +1715,12 @@
 	"npmos.crowdsec.left.days": {
 		"defaultMessage": "{days} дн."
 	},
+	"npmos.crowdsec.left.expired": {
+		"defaultMessage": "истёк"
+	},
+	"npmos.crowdsec.left.forever": {
+		"defaultMessage": "навсегда"
+	},
 	"npmos.crowdsec.left.hours": {
 		"defaultMessage": "{hours} ч {minutes} мин"
 	},
@@ -1266,10 +1749,10 @@
 		"defaultMessage": "Последний сигнал"
 	},
 	"npmos.crowdsec.machine.local": {
-		"defaultMessage": "Агент CrowdSec"
+		"defaultMessage": "Сам CrowdSec: читает логи nginx"
 	},
 	"npmos.crowdsec.machine.npmos": {
-		"defaultMessage": "NPMOS"
+		"defaultMessage": "NPMOS: передаёт атаки open-appsec, ручные баны и блок-листы"
 	},
 	"npmos.crowdsec.machine.pending": {
 		"defaultMessage": "Не подтверждена"
@@ -1287,7 +1770,7 @@
 		"defaultMessage": "Удалить машину {name}? Она больше не сможет отправлять алерты, её прежние алерты останутся. Работающий узел зарегистрируется снова при следующем запуске."
 	},
 	"npmos.crowdsec.machines.hint": {
-		"defaultMessage": "Агенты, которые отправляют алерты в локальный API. localhost — агент самого CrowdSec, npmos-… — NPMOS (ручные баны, блок-листы)."
+		"defaultMessage": "Машины — это источники алертов для CrowdSec. localhost — сам CrowdSec (разбирает логи nginx), npmos-… — NPMOS (атаки, найденные open-appsec, ручные баны, блок-листы)."
 	},
 	"npmos.crowdsec.metrics.appsec": {
 		"defaultMessage": "AppSec: заблокировано / проверено запросов"
@@ -1445,9 +1928,6 @@
 	"npmos.crowdsec.protection": {
 		"defaultMessage": "Защита"
 	},
-	"npmos.crowdsec.protection.agent": {
-		"defaultMessage": "Репутация IP в агенте WAF"
-	},
 	"npmos.crowdsec.protection.appsec": {
 		"defaultMessage": "CrowdSec AppSec: виртуальные патчи известных уязвимостей"
 	},
@@ -1487,11 +1967,17 @@
 	"npmos.crowdsec.settings.applied": {
 		"defaultMessage": "Настройки применены, CrowdSec перезапущен"
 	},
+	"npmos.crowdsec.settings.code.hint": {
+		"defaultMessage": "Все настройки CrowdSec в YAML. Применяются так же, как из интерфейса: CrowdSec перезапускается, а если он не поднимется — прежние настройки возвращаются."
+	},
 	"npmos.crowdsec.settings.pending": {
 		"defaultMessage": "Файлы CrowdSec не совпадают с настройками ({files}): они применятся при следующем сохранении или сейчас."
 	},
+	"npmos.crowdsec.settings.reloaded": {
+		"defaultMessage": "Настройки применены: CrowdSec перечитал их без перезапуска"
+	},
 	"npmos.crowdsec.settings.restarting": {
-		"defaultMessage": "CrowdSec перезапускается с новыми файлами; если он не запустится, вернутся прежние."
+		"defaultMessage": "CrowdSec перечитывает новые файлы (перезапуск — только для основной конфигурации); если он их не примет, вернутся прежние."
 	},
 	"npmos.crowdsec.settings.save": {
 		"defaultMessage": "Сохранить и применить"
@@ -1605,7 +2091,7 @@
 		"defaultMessage": "Машины и баунсеры"
 	},
 	"npmos.crowdsec.tab.settings": {
-		"defaultMessage": "Настройки"
+		"defaultMessage": "Политика"
 	},
 	"npmos.crowdsec.time": {
 		"defaultMessage": "Время"
@@ -1625,6 +2111,18 @@
 	"npmos.crowdsec.version": {
 		"defaultMessage": "Версия"
 	},
+	"npmos.events.agent": {
+		"defaultMessage": "Агент"
+	},
+	"npmos.events.agent.crowdsec": {
+		"defaultMessage": "CrowdSec"
+	},
+	"npmos.events.agent.mtls": {
+		"defaultMessage": "mTLS"
+	},
+	"npmos.events.agent.open-appsec": {
+		"defaultMessage": "open-appsec"
+	},
 	"npmos.events.attack-type": {
 		"defaultMessage": "Тип атаки"
 	},
@@ -1640,11 +2138,20 @@
 	"npmos.events.create-exception": {
 		"defaultMessage": "Создать исключение"
 	},
+	"npmos.events.cs-banned": {
+		"defaultMessage": "CrowdSec: адрес забанен ({decision}), осталось {left}."
+	},
+	"npmos.events.cs-not-banned": {
+		"defaultMessage": "CrowdSec: активных решений по адресу нет."
+	},
 	"npmos.events.empty": {
 		"defaultMessage": "Событий с такими фильтрами нет. Здесь появляются атаки на хосты под защитой WAF."
 	},
 	"npmos.events.export": {
 		"defaultMessage": "Экспорт"
+	},
+	"npmos.events.extend-ban": {
+		"defaultMessage": "Продлить бан в CrowdSec"
 	},
 	"npmos.events.filter-by": {
 		"defaultMessage": "Показать только эти события"
@@ -1670,20 +2177,26 @@
 	"npmos.events.ingest-error": {
 		"defaultMessage": "События не сохраняются:"
 	},
+	"npmos.events.kind.agents": {
+		"defaultMessage": "Агенты"
+	},
 	"npmos.events.kind.all": {
 		"defaultMessage": "Все"
-	},
-	"npmos.events.kind.crowdsec": {
-		"defaultMessage": "CrowdSec"
 	},
 	"npmos.events.kind.mtls": {
 		"defaultMessage": "mTLS"
 	},
-	"npmos.events.kind.security": {
-		"defaultMessage": "Атаки"
-	},
 	"npmos.events.kind.system": {
-		"defaultMessage": "Сообщения агента"
+		"defaultMessage": "Сообщения open-appsec"
+	},
+	"npmos.events.label.benign": {
+		"defaultMessage": "Ложное срабатывание"
+	},
+	"npmos.events.label.labelled": {
+		"defaultMessage": "Группа этого события уже размечена («Агенты → open-appsec → Обучение»)."
+	},
+	"npmos.events.label.malicious": {
+		"defaultMessage": "Атака"
 	},
 	"npmos.events.newer": {
 		"defaultMessage": "Новее"
@@ -1792,114 +2305,6 @@
 	},
 	"npmos.geoip.upload": {
 		"defaultMessage": "Загрузить .mmdb"
-	},
-	"npmos.glossary": {
-		"defaultMessage": "Глоссарий"
-	},
-	"npmos.glossary.access-list": {
-		"defaultMessage": "Кому можно открывать прокси-хост: разрешённые и запрещённые адреса и/или логин с паролем."
-	},
-	"npmos.glossary.acme": {
-		"defaultMessage": "Бесплатные сертификаты, которые выпускаются и продлеваются автоматически. Нужны выход в интернет и домен, доступный из него; в NPMOS это опция."
-	},
-	"npmos.glossary.advanced-model": {
-		"defaultMessage": "Расширенная модель обнаружения open-appsec, загружается файлом в «WAF → Агент»."
-	},
-	"npmos.glossary.agent": {
-		"defaultMessage": "Сервис open-appsec, который получает запросы от nginx и решает, пропускать ли их. Его состояние — в «WAF → Агент»."
-	},
-	"npmos.glossary.air-gap": {
-		"defaultMessage": "NPMOS работает без интернета; обращение наружу (ACME, обновления, хаб) — опция, которую вы включаете."
-	},
-	"npmos.glossary.audit-log": {
-		"defaultMessage": "Журнал того, кто, что и когда изменил. Из него берётся история хоста."
-	},
-	"npmos.glossary.bouncer": {
-		"defaultMessage": "Часть, которая применяет баны CrowdSec: здесь это nginx NPMOS и агент WAF."
-	},
-	"npmos.glossary.ca": {
-		"defaultMessage": "Удостоверяющий центр: сертификат, которым подписаны другие. Для mTLS — CA ваших клиентских сертификатов."
-	},
-	"npmos.glossary.confidence": {
-		"defaultMessage": "С какой уверенности запрос считается атакой в режиме блокировки: Critical блокирует меньше всего, Medium — больше всего."
-	},
-	"npmos.glossary.crowdsec": {
-		"defaultMessage": "Находит атакующих по логам и банит их адреса. В NPMOS работает локально, без консоли CrowdSec."
-	},
-	"npmos.glossary.dead-host": {
-		"defaultMessage": "Домен, который отвечает 404: занят, но ничего не отдаёт, или для него держится TLS-сертификат."
-	},
-	"npmos.glossary.decision": {
-		"defaultMessage": "Решение CrowdSec об адресе: бан или капча на заданное время."
-	},
-	"npmos.glossary.detect-learn": {
-		"defaultMessage": "WAF записывает атаки и учится на трафике, но всё пропускает. С этого режима стоит начинать."
-	},
-	"npmos.glossary.fail-open": {
-		"defaultMessage": "Что происходит с запросами, если агент не ответил вовремя: проходят без проверки (fail-open) или отклоняются (fail-close)."
-	},
-	"npmos.glossary.group.crowdsec": {
-		"defaultMessage": "CrowdSec"
-	},
-	"npmos.glossary.group.hosts": {
-		"defaultMessage": "Хосты"
-	},
-	"npmos.glossary.group.system": {
-		"defaultMessage": "Система"
-	},
-	"npmos.glossary.group.tls": {
-		"defaultMessage": "Сертификаты"
-	},
-	"npmos.glossary.group.waf": {
-		"defaultMessage": "WAF (open-appsec)"
-	},
-	"npmos.glossary.hsts": {
-		"defaultMessage": "Велит браузерам надолго открывать сайт только по HTTPS. Отменить трудно: включайте, когда HTTPS работает."
-	},
-	"npmos.glossary.mtls": {
-		"defaultMessage": "Взаимный TLS: кроме сервера сертификат показывает и клиент. Без сертификата, подписанного выбранным CA, хост не откроется («Обязательно») или хост просто узнает об этом («Необязательно»)."
-	},
-	"npmos.glossary.nginx": {
-		"defaultMessage": "Веб-сервер внутри NPMOS, который принимает весь трафик и обслуживает хосты."
-	},
-	"npmos.glossary.open-appsec": {
-		"defaultMessage": "WAF, встроенный в NPMOS: движок на машинном обучении вместо списков сигнатур. Работает локально, без своего облака."
-	},
-	"npmos.glossary.policy": {
-		"defaultMessage": "Файл настроек агента. NPMOS собирает его из хостов; экспертные фрагменты добавляются в «WAF → Политика (эксперт)»."
-	},
-	"npmos.glossary.prevent-learn": {
-		"defaultMessage": "WAF блокирует атаки (403) и продолжает учиться. Включайте, когда в режиме обнаружения нет ложных срабатываний."
-	},
-	"npmos.glossary.proxy-host": {
-		"defaultMessage": "Домен, который NPMOS принимает по HTTP(S) и передаёт внутреннему сервису (апстриму). На прокси-хостах настраиваются WAF, mTLS и списки доступа."
-	},
-	"npmos.glossary.redirect": {
-		"defaultMessage": "Домен, который отвечает перенаправлением (301, 302…) на другой адрес."
-	},
-	"npmos.glossary.search": {
-		"defaultMessage": "Найти термин"
-	},
-	"npmos.glossary.severity": {
-		"defaultMessage": "Насколько опасно событие, в терминах агента. Важные события — Critical и High."
-	},
-	"npmos.glossary.stream": {
-		"defaultMessage": "Проброс TCP- и/или UDP-порта без HTTP: базы данных, SSH, игры. В таблице хостов показывается как :порт."
-	},
-	"npmos.glossary.subtitle": {
-		"defaultMessage": "Термины, которые в интерфейсе остаются на английском, и что они значат в NPMOS."
-	},
-	"npmos.glossary.tls": {
-		"defaultMessage": "Шифрование соединения между браузером и NPMOS (HTTPS). SSL — старое название."
-	},
-	"npmos.glossary.tuning": {
-		"defaultMessage": "Локальные сервисы open-appsec, которые собирают выученное агентом и предлагают настройки. Заменяют его облако."
-	},
-	"npmos.glossary.upstream": {
-		"defaultMessage": "Адрес и порт, куда хост передаёт запросы (колонка «Назначение»). NPMOS проверяет, что он принимает подключения."
-	},
-	"npmos.glossary.waf": {
-		"defaultMessage": "Межсетевой экран для веб-приложений: проверяет HTTP-запросы и блокирует атаки (SQL-инъекции, XSS…). В NPMOS это open-appsec."
 	},
 	"npmos.hosts.actions": {
 		"defaultMessage": "Действия"
@@ -2105,17 +2510,23 @@
 	"npmos.hosts.mtls.cas": {
 		"defaultMessage": "Доверяет: {names}"
 	},
+	"npmos.hosts.mtls.certs": {
+		"defaultMessage": "Выбрать сертификат ({count} из {all})…"
+	},
 	"npmos.hosts.mtls.configure": {
 		"defaultMessage": "Настройки mTLS…"
 	},
+	"npmos.hosts.mtls.details": {
+		"defaultMessage": "Открыть на странице mTLS"
+	},
+	"npmos.hosts.mtls.header": {
+		"defaultMessage": "{count, plural, =0 {Сертификатов доступа пока нет} one {# сертификат доступа} few {# сертификата доступа} other {# сертификатов доступа}}"
+	},
 	"npmos.hosts.mtls.issue": {
-		"defaultMessage": "Выпустить клиентский сертификат"
+		"defaultMessage": "Выдать сертификат доступа…"
 	},
 	"npmos.hosts.mtls.needs-tls": {
 		"defaultMessage": "Для mTLS нужен TLS-сертификат на хосте"
-	},
-	"npmos.hosts.mtls.new-domain": {
-		"defaultMessage": "Создать домен доверия для хоста"
 	},
 	"npmos.hosts.mtls.no-ca": {
 		"defaultMessage": "CA пока нет: загрузите его в «Сертификатах»"
@@ -2134,6 +2545,15 @@
 	},
 	"npmos.hosts.mtls.required.hint": {
 		"defaultMessage": "Пропускаются только клиенты с сертификатом этого CA"
+	},
+	"npmos.hosts.mtls.turn-off": {
+		"defaultMessage": "Выключить mTLS"
+	},
+	"npmos.hosts.mtls.turn-on": {
+		"defaultMessage": "Включить mTLS: пускать только клиентов с сертификатом доступа"
+	},
+	"npmos.hosts.mtls.upstream": {
+		"defaultMessage": "У хоста включён mTLS NPMplus (CA из «Сертификатов»)"
 	},
 	"npmos.hosts.no-access": {
 		"defaultMessage": "У вас нет доступа к хостам"
@@ -2193,7 +2613,7 @@
 		"defaultMessage": "WAF выключен для всего NPMOS"
 	},
 	"npmos.hosts.rec.waf-global-off.hint": {
-		"defaultMessage": "Режимы на хостах не действуют, пока WAF не включён в «Безопасность → WAF → Агент»."
+		"defaultMessage": "Режимы на хостах не действуют, пока WAF не включён в «Агенты → Агент open-appsec»."
 	},
 	"npmos.hosts.rec.waf-off": {
 		"defaultMessage": "WAF выключен на публичных прокси-хостах: {count}"
@@ -2312,6 +2732,12 @@
 	"npmos.hosts.waf.prevent.hint": {
 		"defaultMessage": "Атаки блокируются (ответ 403)"
 	},
+	"npmos.hosts.waf.ready": {
+		"defaultMessage": "готов к блокировке"
+	},
+	"npmos.hosts.waf.ready.hint": {
+		"defaultMessage": "Модель хоста обучилась достаточно, чтобы блокировать атаки («Агенты → open-appsec → Обучение»). Переключите режим на блокировку в этом меню."
+	},
 	"npmos.hosts.waf.template.api.hint": {
 		"defaultMessage": "Шаблон: для API, нестандартные HTTP-методы блокируются"
 	},
@@ -2323,6 +2749,348 @@
 	},
 	"npmos.hosts.waf.template.strict.hint": {
 		"defaultMessage": "Шаблон: средняя уверенность, CSRF, раскрытие ошибок, редиректы, страница блокировки"
+	},
+	"npmos.learning.attacks": {
+		"defaultMessage": "Типы атак"
+	},
+	"npmos.learning.ban": {
+		"defaultMessage": "Забанить {count, plural, one {источник} few {# источника} many {# источников} other {# источника}} в CrowdSec"
+	},
+	"npmos.learning.ban.duration": {
+		"defaultMessage": "на"
+	},
+	"npmos.learning.decision": {
+		"defaultMessage": "Решение"
+	},
+	"npmos.learning.decision.benign": {
+		"defaultMessage": "Легитимно"
+	},
+	"npmos.learning.decision.benign.text": {
+		"defaultMessage": "Обычный трафик приложения: агент учится, что это не атака."
+	},
+	"npmos.learning.decision.dismiss": {
+		"defaultMessage": "Пропустить"
+	},
+	"npmos.learning.decision.dismiss.text": {
+		"defaultMessage": "Неясно или неважно: группа уходит из очереди, ничего не меняется."
+	},
+	"npmos.learning.decision.malicious": {
+		"defaultMessage": "Атака"
+	},
+	"npmos.learning.decision.malicious.text": {
+		"defaultMessage": "Настоящая атака: не попадает в обучение, модель никогда не примет её за норму."
+	},
+	"npmos.learning.description": {
+		"defaultMessage": "Разметьте то, в чём агент не уверен. Легитимный запрос перестанет блокироваться (сразу — через исключение, или после цикла обучения модели); атака не попадёт в обучение. Всё локально: агент читает разметку из общего хранилища стека."
+	},
+	"npmos.learning.done.benign": {
+		"defaultMessage": "Отмечено как легитимное"
+	},
+	"npmos.learning.done.dismiss": {
+		"defaultMessage": "Пропущено"
+	},
+	"npmos.learning.done.malicious": {
+		"defaultMessage": "Отмечено как атака"
+	},
+	"npmos.learning.duration.168h": {
+		"defaultMessage": "7 дней"
+	},
+	"npmos.learning.duration.1h": {
+		"defaultMessage": "1 час"
+	},
+	"npmos.learning.duration.24h": {
+		"defaultMessage": "1 день"
+	},
+	"npmos.learning.duration.4h": {
+		"defaultMessage": "4 часа"
+	},
+	"npmos.learning.duration.720h": {
+		"defaultMessage": "30 дней"
+	},
+	"npmos.learning.effect.banned": {
+		"defaultMessage": "забанено {count} на {duration}"
+	},
+	"npmos.learning.effect.dismiss": {
+		"defaultMessage": "убрано из очереди"
+	},
+	"npmos.learning.effect.error": {
+		"defaultMessage": "не передано: {error}"
+	},
+	"npmos.learning.effect.exception": {
+		"defaultMessage": "исключение в политике"
+	},
+	"npmos.learning.effect.exception.ended": {
+		"defaultMessage": "исключение снято"
+	},
+	"npmos.learning.effect.exception.until": {
+		"defaultMessage": "исключение до {date}"
+	},
+	"npmos.learning.effect.pending": {
+		"defaultMessage": "ожидает передачи агенту"
+	},
+	"npmos.learning.effect.synced": {
+		"defaultMessage": "передано агенту"
+	},
+	"npmos.learning.effect.tuning": {
+		"defaultMessage": "записано сервисом настройки"
+	},
+	"npmos.learning.effects": {
+		"defaultMessage": "Эффект"
+	},
+	"npmos.learning.effects.benign": {
+		"defaultMessage": "Агент получит разметку в течение 30 минут и учтёт её в следующих циклах обучения (часы). Чтобы перестать блокировать сразу, добавьте исключение для хоста на время, пока модель учится."
+	},
+	"npmos.learning.effects.malicious": {
+		"defaultMessage": "Агент получит разметку в течение 30 минут: эти запросы больше не учитываются в обучении. Сразу блокировать — по желанию."
+	},
+	"npmos.learning.effects.tuning": {
+		"defaultMessage": "Подсказка сервиса настройки open-appsec: решение для агента он записывает сам."
+	},
+	"npmos.learning.enforced": {
+		"defaultMessage": "агент применил {count}"
+	},
+	"npmos.learning.events": {
+		"defaultMessage": "События"
+	},
+	"npmos.learning.events.value": {
+		"defaultMessage": "{sources, plural, one {# источник} few {# источника} many {# источников} other {# источника}}{blocked, plural, =0 {} other {, заблокировано #}}"
+	},
+	"npmos.learning.exception.benign": {
+		"defaultMessage": "Сразу перестать блокировать"
+	},
+	"npmos.learning.exception.benign.text": {
+		"defaultMessage": "исключение (accept) для хоста в политике"
+	},
+	"npmos.learning.exception.malicious": {
+		"defaultMessage": "Сразу блокировать"
+	},
+	"npmos.learning.exception.malicious.text": {
+		"defaultMessage": "исключение (drop) для хоста в политике, до отмены"
+	},
+	"npmos.learning.false-positives": {
+		"defaultMessage": "Ложные срабатывания, 7 дн"
+	},
+	"npmos.learning.false-positives.value": {
+		"defaultMessage": "{before} до → {after} после"
+	},
+	"npmos.learning.history": {
+		"defaultMessage": "История разметки"
+	},
+	"npmos.learning.history.empty": {
+		"defaultMessage": "Разметки пока нет."
+	},
+	"npmos.learning.history.text": {
+		"defaultMessage": "Кто, что и когда разметил: локальный размеченный датасет. Отмена убирает разметку и её эффекты, группа возвращается в очередь."
+	},
+	"npmos.learning.host": {
+		"defaultMessage": "Хост"
+	},
+	"npmos.learning.hosts": {
+		"defaultMessage": "Хосты"
+	},
+	"npmos.learning.hosts.empty": {
+		"defaultMessage": "Ни на одном хосте не включён WAF."
+	},
+	"npmos.learning.hosts.text": {
+		"defaultMessage": "Насколько обучилась модель каждого хоста, что размечено, и события групп, отмеченных легитимными, за 7 дней до и после разметки."
+	},
+	"npmos.learning.indicators": {
+		"defaultMessage": "Индикаторы"
+	},
+	"npmos.learning.label.title": {
+		"defaultMessage": "Разметка группы событий"
+	},
+	"npmos.learning.labels": {
+		"defaultMessage": "Разметка"
+	},
+	"npmos.learning.labels.value": {
+		"defaultMessage": "легитимных {benign} · атак {malicious} · в очереди {queue}"
+	},
+	"npmos.learning.last": {
+		"defaultMessage": "Последнее"
+	},
+	"npmos.learning.mode": {
+		"defaultMessage": "Режим"
+	},
+	"npmos.learning.mode.detect-learn": {
+		"defaultMessage": "Обнаружение"
+	},
+	"npmos.learning.mode.prevent-learn": {
+		"defaultMessage": "Блокировка"
+	},
+	"npmos.learning.new": {
+		"defaultMessage": "новое"
+	},
+	"npmos.learning.note": {
+		"defaultMessage": "Комментарий (необязательно)"
+	},
+	"npmos.learning.parameter": {
+		"defaultMessage": "Параметр"
+	},
+	"npmos.learning.prevent": {
+		"defaultMessage": "Перевести в блокировку"
+	},
+	"npmos.learning.prevent.done": {
+		"defaultMessage": "{name}: включена блокировка"
+	},
+	"npmos.learning.queue": {
+		"defaultMessage": "Очередь разметки"
+	},
+	"npmos.learning.queue.empty": {
+		"defaultMessage": "Размечать нечего: за период нет заблокированных или сомнительных запросов."
+	},
+	"npmos.learning.queue.text": {
+		"defaultMessage": "События защищённых хостов, сгруппированные по хосту, URL, параметру и индикаторам: одна разметка — на всю группу."
+	},
+	"npmos.learning.queue.total": {
+		"defaultMessage": "{total, plural, one {# группа} few {# группы} many {# групп} other {# группы}}"
+	},
+	"npmos.learning.readiness": {
+		"defaultMessage": "Обучение"
+	},
+	"npmos.learning.readiness.graduate": {
+		"defaultMessage": "Выпускник"
+	},
+	"npmos.learning.readiness.high": {
+		"defaultMessage": "Средняя школа"
+	},
+	"npmos.learning.readiness.kindergarten": {
+		"defaultMessage": "Детский сад"
+	},
+	"npmos.learning.readiness.master": {
+		"defaultMessage": "Магистр"
+	},
+	"npmos.learning.readiness.none": {
+		"defaultMessage": "Нет данных"
+	},
+	"npmos.learning.readiness.phd": {
+		"defaultMessage": "Доктор наук"
+	},
+	"npmos.learning.readiness.primary": {
+		"defaultMessage": "Начальная школа"
+	},
+	"npmos.learning.ready": {
+		"defaultMessage": "Готов к блокировке"
+	},
+	"npmos.learning.reason": {
+		"defaultMessage": "Почему"
+	},
+	"npmos.learning.reason.blocked": {
+		"defaultMessage": "Заблокировано"
+	},
+	"npmos.learning.reason.blocked.text": {
+		"defaultMessage": "Запросы были отклонены: если они легитимны, это уже мешает пользователям."
+	},
+	"npmos.learning.reason.detected": {
+		"defaultMessage": "Обнаружено"
+	},
+	"npmos.learning.reason.detected.text": {
+		"defaultMessage": "Высокая оценка на хосте в режиме обнаружения: в режиме блокировки запрос был бы отклонён."
+	},
+	"npmos.learning.reason.grey": {
+		"defaultMessage": "Серая зона"
+	},
+	"npmos.learning.reason.grey.text": {
+		"defaultMessage": "Средняя оценка (3–6): блокируется или нет в зависимости от минимальной уверенности."
+	},
+	"npmos.learning.recommendation.keep_learning": {
+		"defaultMessage": "Продолжать обучение"
+	},
+	"npmos.learning.recommendation.prevent_critical": {
+		"defaultMessage": "Можно блокировать критичные атаки"
+	},
+	"npmos.learning.recommendation.prevent_high": {
+		"defaultMessage": "Можно блокировать атаки высокой и критичной важности"
+	},
+	"npmos.learning.recommendation.review": {
+		"defaultMessage": "Разметить подсказки"
+	},
+	"npmos.learning.recommendation.review_critical": {
+		"defaultMessage": "Разметить критичные подсказки"
+	},
+	"npmos.learning.recommendation.send_traffic": {
+		"defaultMessage": "Нужен трафик на хост"
+	},
+	"npmos.learning.scope.parameterName": {
+		"defaultMessage": "Имя параметра"
+	},
+	"npmos.learning.scope.parameterValue": {
+		"defaultMessage": "Значение параметра"
+	},
+	"npmos.learning.scope.source": {
+		"defaultMessage": "Источники"
+	},
+	"npmos.learning.scope.source.benign": {
+		"defaultMessage": "доверять им при обучении (офис, QA, мониторинг)"
+	},
+	"npmos.learning.scope.source.malicious": {
+		"defaultMessage": "не учитывать их запросы при обучении"
+	},
+	"npmos.learning.scope.url": {
+		"defaultMessage": "URL"
+	},
+	"npmos.learning.scopes": {
+		"defaultMessage": "На что распространяется"
+	},
+	"npmos.learning.scopes.text": {
+		"defaultMessage": "Агент учитывает каждый выбранный признак отдельно (это значение в любом месте хоста, этот параметр, этот URL, эти источники). Исключение срабатывает, только когда совпадают все."
+	},
+	"npmos.learning.score": {
+		"defaultMessage": "Оценка"
+	},
+	"npmos.learning.search": {
+		"defaultMessage": "URL, параметр, значение, индикатор"
+	},
+	"npmos.learning.severity": {
+		"defaultMessage": "Важность"
+	},
+	"npmos.learning.submit.benign": {
+		"defaultMessage": "Отметить легитимным"
+	},
+	"npmos.learning.submit.dismiss": {
+		"defaultMessage": "Пропустить"
+	},
+	"npmos.learning.submit.malicious": {
+		"defaultMessage": "Отметить атакой"
+	},
+	"npmos.learning.suggestions": {
+		"defaultMessage": "Подсказки сервиса настройки"
+	},
+	"npmos.learning.suggestions.text": {
+		"defaultMessage": "open-appsec находит их сам на нагруженных хостах (много разных источников)."
+	},
+	"npmos.learning.ttl": {
+		"defaultMessage": "Убрать исключение через"
+	},
+	"npmos.learning.ttl.days": {
+		"defaultMessage": "{days, plural, one {# день} few {# дня} many {# дней} other {# дня}}"
+	},
+	"npmos.learning.ttl.none": {
+		"defaultMessage": "никогда"
+	},
+	"npmos.learning.tuning-error": {
+		"defaultMessage": "Сервис настройки open-appsec не отвечает: {error}"
+	},
+	"npmos.learning.undo": {
+		"defaultMessage": "Отменить"
+	},
+	"npmos.learning.undo.done": {
+		"defaultMessage": "Разметка отменена"
+	},
+	"npmos.learning.undone": {
+		"defaultMessage": "отменил(а) {who} {when}"
+	},
+	"npmos.learning.url": {
+		"defaultMessage": "URL"
+	},
+	"npmos.learning.value": {
+		"defaultMessage": "Значение"
+	},
+	"npmos.learning.what": {
+		"defaultMessage": "Что"
+	},
+	"npmos.learning.when": {
+		"defaultMessage": "Когда"
 	},
 	"npmos.migration.after": {
 		"defaultMessage": "Проверьте хосты, направьте DNS или порты на NPMOS и после этого остановите старый контейнер. WAF и CrowdSec настраиваются для хостов уже в NPMOS."
@@ -2385,7 +3153,7 @@
 		"defaultMessage": "Перенос не удался, в базу ничего не записано: {message}"
 	},
 	"npmos.migration.failed-after": {
-		"defaultMessage": "Данные перенесены, но следующий шаг не удался: {message}. Проверьте хосты и пересоздайте конфиги nginx (Система → Сервисы)."
+		"defaultMessage": "Данные перенесены, но следующий шаг не удался: {message}. Проверьте хосты и пересоздайте конфиги nginx (Обзор → Сервисы)."
 	},
 	"npmos.migration.files-hint": {
 		"defaultMessage": "База прочитана. Загрузите ещё архив /data и /etc/letsencrypt, чтобы перенести файлы сертификатов и сниппеты."
@@ -2430,7 +3198,7 @@
 		"defaultMessage": "Читаю архив и проверяю базу…"
 	},
 	"npmos.migration.restart": {
-		"defaultMessage": "Часть сертификатов использует DNS-проверку: перезапустите NPMOS (Система → Сервисы), чтобы certbot получил DNS-плагины и учётные данные до следующего продления."
+		"defaultMessage": "Часть сертификатов использует DNS-проверку: перезапустите NPMOS (Обзор → Сервисы), чтобы certbot получил DNS-плагины и учётные данные до следующего продления."
 	},
 	"npmos.migration.table.access_list": {
 		"defaultMessage": "Списки доступа"
@@ -2495,11 +3263,59 @@
 	"npmos.migration.what": {
 		"defaultMessage": "Что будет перенесено"
 	},
+	"npmos.mtls.access.days": {
+		"defaultMessage": "Действует, дней"
+	},
+	"npmos.mtls.access.email": {
+		"defaultMessage": "Email (необязательно)"
+	},
+	"npmos.mtls.access.issue": {
+		"defaultMessage": "Выдать сертификат доступа"
+	},
+	"npmos.mtls.access.issued": {
+		"defaultMessage": "{name} теперь открывает {host}. Установите .p12 на устройство с паролем ниже."
+	},
+	"npmos.mtls.access.keep": {
+		"defaultMessage": "Хранить ключ в NPMOS, чтобы скачивать сертификат повторно"
+	},
+	"npmos.mtls.access.keep.hint": {
+		"defaultMessage": "Хранится зашифрованным. Без этого .p12 выдаётся только сейчас."
+	},
+	"npmos.mtls.access.link": {
+		"defaultMessage": "Создать и одноразовую ссылку на скачивание (24 ч)"
+	},
+	"npmos.mtls.access.name": {
+		"defaultMessage": "Имя"
+	},
+	"npmos.mtls.access.name.hint": {
+		"defaultMessage": "Показывается в браузере, когда он спрашивает сертификат, а также в правилах и событиях mTLS (CN)."
+	},
+	"npmos.mtls.access.name.placeholder": {
+		"defaultMessage": "ivanov-laptop"
+	},
+	"npmos.mtls.access.no-hosts": {
+		"defaultMessage": "Сначала защитите хост: включите его переключатель mTLS в «Хостах» или нажмите «Защитить хост»."
+	},
+	"npmos.mtls.access.no-issuer": {
+		"defaultMessage": "Этот хост доверяет только внешним CA: NPMOS не может выпускать для него сертификаты. Добавьте домен доверия в настройках mTLS хоста."
+	},
+	"npmos.mtls.access.rules": {
+		"defaultMessage": "У хоста есть правила по полям сертификата: имя должно им соответствовать."
+	},
+	"npmos.mtls.access.submit": {
+		"defaultMessage": "Выдать"
+	},
+	"npmos.mtls.access.title": {
+		"defaultMessage": "Новый сертификат доступа"
+	},
 	"npmos.mtls.advanced": {
 		"defaultMessage": "Дополнительно"
 	},
 	"npmos.mtls.advanced.hide": {
 		"defaultMessage": "Скрыть настройки"
+	},
+	"npmos.mtls.all-hosts": {
+		"defaultMessage": "Все хосты"
 	},
 	"npmos.mtls.cas": {
 		"defaultMessage": "Доверенные CA"
@@ -2510,8 +3326,83 @@
 	"npmos.mtls.cas.stream-hint": {
 		"defaultMessage": "Стримы не умеют проверять издателя: домен доверия пускает сертификаты всех доменов доверия своего корня."
 	},
+	"npmos.mtls.cert.access": {
+		"defaultMessage": "Открывает"
+	},
+	"npmos.mtls.cert.created": {
+		"defaultMessage": "Выдан"
+	},
+	"npmos.mtls.cert.details": {
+		"defaultMessage": "Сертификат"
+	},
+	"npmos.mtls.cert.files": {
+		"defaultMessage": "Файлы"
+	},
+	"npmos.mtls.cert.fingerprint": {
+		"defaultMessage": "Отпечаток (SHA-256)"
+	},
+	"npmos.mtls.cert.issuer": {
+		"defaultMessage": "Выпущен"
+	},
+	"npmos.mtls.cert.key": {
+		"defaultMessage": "Ключ"
+	},
+	"npmos.mtls.cert.key.kept": {
+		"defaultMessage": "хранится в NPMOS (зашифрован)"
+	},
+	"npmos.mtls.cert.key.not-kept": {
+		"defaultMessage": "не хранится"
+	},
+	"npmos.mtls.cert.missing": {
+		"defaultMessage": "Сертификат не найден (удалён?)."
+	},
+	"npmos.mtls.cert.no-access": {
+		"defaultMessage": "Сейчас его не принимает ни один защищённый хост."
+	},
+	"npmos.mtls.cert.no-key": {
+		"defaultMessage": "NPMOS не хранит ключ: .p12 повторно не скачать. Перевыпустите сертификат, чтобы получить новый."
+	},
+	"npmos.mtls.cert.revoked": {
+		"defaultMessage": "Отозван {time}: {reason}. Он больше не открывает хосты."
+	},
+	"npmos.mtls.cert.serial": {
+		"defaultMessage": "Серийный номер"
+	},
+	"npmos.mtls.cert.valid": {
+		"defaultMessage": "Действует"
+	},
+	"npmos.mtls.certs": {
+		"defaultMessage": "Сертификатов"
+	},
+	"npmos.mtls.certs.none": {
+		"defaultMessage": "Сертификатов доступа пока нет."
+	},
+	"npmos.mtls.certs.title": {
+		"defaultMessage": "Сертификаты доступа"
+	},
+	"npmos.mtls.delete": {
+		"defaultMessage": "Удалить"
+	},
+	"npmos.mtls.delete.confirm": {
+		"defaultMessage": "Удалить этот сертификат из списка?"
+	},
+	"npmos.mtls.delete.confirm-valid": {
+		"defaultMessage": "Сертификат действует: он будет отозван и перестанет открывать хосты. Удалить?"
+	},
+	"npmos.mtls.delete.selected": {
+		"defaultMessage": "Удалить ({count})"
+	},
+	"npmos.mtls.delete.text": {
+		"defaultMessage": "{count, plural, one {Сертификат будет удалён из списка.} few {# сертификата будут удалены из списка.} other {# сертификатов будут удалены из списка.}} Действующий сертификат сначала отзывается и через несколько секунд перестаёт открывать хосты."
+	},
+	"npmos.mtls.deleted": {
+		"defaultMessage": "{count, plural, one {Сертификат удалён} few {Удалено # сертификата} other {Удалено # сертификатов}}"
+	},
 	"npmos.mtls.depth": {
 		"defaultMessage": "Глубина цепочки"
+	},
+	"npmos.mtls.details": {
+		"defaultMessage": "Подробности"
 	},
 	"npmos.mtls.enabled": {
 		"defaultMessage": "Требовать клиентские сертификаты"
@@ -2537,6 +3428,75 @@
 	"npmos.mtls.headers.hint": {
 		"defaultMessage": "Заголовки X-Client-Verify, X-Client-S-DN, X-Client-I-DN, X-Client-Serial, X-Client-Fingerprint; такие же заголовки от клиентов заменяются."
 	},
+	"npmos.mtls.host": {
+		"defaultMessage": "Хост"
+	},
+	"npmos.mtls.host-certs.all": {
+		"defaultMessage": "Все, вместе с отозванными и истёкшими ({count})"
+	},
+	"npmos.mtls.host-certs.issued": {
+		"defaultMessage": "выдан {time}"
+	},
+	"npmos.mtls.host-certs.none": {
+		"defaultMessage": "Для этого хоста сертификатов доступа пока нет."
+	},
+	"npmos.mtls.host-certs.page": {
+		"defaultMessage": "Открыть на странице mTLS"
+	},
+	"npmos.mtls.host-certs.search": {
+		"defaultMessage": "Найти по имени, заметке, email или серийному номеру"
+	},
+	"npmos.mtls.host-certs.title": {
+		"defaultMessage": "Сертификаты доступа: {name}"
+	},
+	"npmos.mtls.host-certs.valid": {
+		"defaultMessage": "Действующие ({count})"
+	},
+	"npmos.mtls.host.certs": {
+		"defaultMessage": "Показать его сертификаты"
+	},
+	"npmos.mtls.host.disable": {
+		"defaultMessage": "Выключить mTLS"
+	},
+	"npmos.mtls.host.disable.text": {
+		"defaultMessage": "{name} будет пускать клиентов без сертификата. Сертификаты и настройки сохранятся и снова заработают, когда mTLS включат."
+	},
+	"npmos.mtls.host.disabled": {
+		"defaultMessage": "mTLS для {name} выключен"
+	},
+	"npmos.mtls.host.enabled": {
+		"defaultMessage": "{name} теперь требует сертификат доступа"
+	},
+	"npmos.mtls.host.inactive": {
+		"defaultMessage": "Не действует: хост выключен или без TLS-сертификата"
+	},
+	"npmos.mtls.host.pick": {
+		"defaultMessage": "Выбрать сертификат…"
+	},
+	"npmos.mtls.host.settings": {
+		"defaultMessage": "Настройки mTLS…"
+	},
+	"npmos.mtls.hosts": {
+		"defaultMessage": "Защищённые хосты"
+	},
+	"npmos.mtls.hosts.none": {
+		"defaultMessage": "Ни один хост не требует клиентский сертификат."
+	},
+	"npmos.mtls.link.active": {
+		"defaultMessage": "Ссылка активна"
+	},
+	"npmos.mtls.link.delete": {
+		"defaultMessage": "Удалить ссылку"
+	},
+	"npmos.mtls.link.expired": {
+		"defaultMessage": "Ссылка истекла"
+	},
+	"npmos.mtls.link.times": {
+		"defaultMessage": "{created} → {until}"
+	},
+	"npmos.mtls.link.used": {
+		"defaultMessage": "Ссылка использована"
+	},
 	"npmos.mtls.mode": {
 		"defaultMessage": "Где требовать"
 	},
@@ -2561,11 +3521,29 @@
 	"npmos.mtls.no-cas": {
 		"defaultMessage": "CA пока нет: создайте домен доверия для этого хоста."
 	},
+	"npmos.mtls.notes": {
+		"defaultMessage": "Заметка"
+	},
+	"npmos.mtls.notes.placeholder": {
+		"defaultMessage": "Для кого или чего: ноутбук бухгалтера, CI-раннер…"
+	},
+	"npmos.mtls.notes.saved": {
+		"defaultMessage": "Заметка сохранена"
+	},
 	"npmos.mtls.op.one_of": {
 		"defaultMessage": "одно из"
 	},
 	"npmos.mtls.op.regex": {
 		"defaultMessage": "совпадает с"
+	},
+	"npmos.mtls.opens": {
+		"defaultMessage": "Открывает"
+	},
+	"npmos.mtls.pki-hint": {
+		"defaultMessage": "CA, шаблоны, сроки и публичный адрес для CRL — в разделе"
+	},
+	"npmos.mtls.protect": {
+		"defaultMessage": "Защитить хост"
 	},
 	"npmos.mtls.replaces-upstream": {
 		"defaultMessage": "У хоста выбран mTLS CA из NPMplus; пока эти настройки включены, они его заменяют."
@@ -2597,6 +3575,9 @@
 	"npmos.mtls.rules": {
 		"defaultMessage": "Правила по полям сертификата"
 	},
+	"npmos.mtls.rules.count": {
+		"defaultMessage": "{count, plural, one {# правило по полям} few {# правила по полям} other {# правил по полям}}"
+	},
 	"npmos.mtls.rules.hint": {
 		"defaultMessage": "Должны выполняться все правила. Значения — латиницей; «одно из» — через запятую."
 	},
@@ -2606,17 +3587,56 @@
 	"npmos.mtls.saved": {
 		"defaultMessage": "mTLS сохранён, nginx перезагружен"
 	},
+	"npmos.mtls.search": {
+		"defaultMessage": "Имя, email, заметка, серийный номер, хост"
+	},
 	"npmos.mtls.send-ca-names": {
 		"defaultMessage": "Сообщать клиентам имена CA"
 	},
 	"npmos.mtls.send-ca-names.hint": {
 		"defaultMessage": "Тогда браузер предлагает только подходящие сертификаты. Выключено — имена ваших CA не раскрываются."
 	},
+	"npmos.mtls.start": {
+		"defaultMessage": "Пока ни один хост не защищён. Включите переключатель mTLS в таблице «Хостов» или нажмите «Защитить хост»: NPMOS сам создаст CA, а сертификаты доступа выдаются здесь."
+	},
+	"npmos.mtls.subtitle": {
+		"defaultMessage": "Хосты, которые пускают только клиентов с сертификатом доступа, и сами сертификаты"
+	},
+	"npmos.mtls.summary.active": {
+		"defaultMessage": "Действующих сертификатов"
+	},
+	"npmos.mtls.summary.expiring": {
+		"defaultMessage": "Истекают за 30 дней"
+	},
+	"npmos.mtls.summary.hosts": {
+		"defaultMessage": "Защищённых хостов"
+	},
+	"npmos.mtls.summary.revoked": {
+		"defaultMessage": "Отозвано"
+	},
 	"npmos.mtls.title": {
 		"defaultMessage": "mTLS"
 	},
+	"npmos.mtls.trust": {
+		"defaultMessage": "Доверенные CA"
+	},
 	"npmos.nav.administration": {
 		"defaultMessage": "Администрирование"
+	},
+	"npmos.nav.agent-openappsec": {
+		"defaultMessage": "open-appsec"
+	},
+	"npmos.nav.agents": {
+		"defaultMessage": "Агенты"
+	},
+	"npmos.nav.all-certs": {
+		"defaultMessage": "Все сертификаты"
+	},
+	"npmos.nav.analytics": {
+		"defaultMessage": "Аналитика"
+	},
+	"npmos.nav.blocks": {
+		"defaultMessage": "Блокировки"
 	},
 	"npmos.nav.close-menu": {
 		"defaultMessage": "Закрыть меню"
@@ -2630,6 +3650,9 @@
 	"npmos.nav.menu": {
 		"defaultMessage": "Навигация"
 	},
+	"npmos.nav.mtls": {
+		"defaultMessage": "mTLS"
+	},
 	"npmos.nav.nothing-found": {
 		"defaultMessage": "Ничего не найдено"
 	},
@@ -2638,9 +3661,6 @@
 	},
 	"npmos.nav.overview": {
 		"defaultMessage": "Обзор"
-	},
-	"npmos.nav.search": {
-		"defaultMessage": "Поиск по меню…"
 	},
 	"npmos.nav.security": {
 		"defaultMessage": "Безопасность"
@@ -2662,6 +3682,9 @@
 	},
 	"npmos.nav.user-menu": {
 		"defaultMessage": "Меню пользователя"
+	},
+	"npmos.nav.waf-policy": {
+		"defaultMessage": "Политика WAF"
 	},
 	"npmos.notice.alert": {
 		"defaultMessage": "Проблема"
@@ -2807,6 +3830,30 @@
 	"npmos.notifications.param.window": {
 		"defaultMessage": "Окно, минут"
 	},
+	"npmos.notifications.preset.attacks": {
+		"defaultMessage": "Атаки"
+	},
+	"npmos.notifications.preset.attacks.text": {
+		"defaultMessage": "Всплески атак, молчащий агент WAF и события на разметку"
+	},
+	"npmos.notifications.preset.certificates": {
+		"defaultMessage": "Сертификаты"
+	},
+	"npmos.notifications.preset.certificates.text": {
+		"defaultMessage": "Сертификаты, которые скоро истекут"
+	},
+	"npmos.notifications.preset.failures": {
+		"defaultMessage": "Только сбои"
+	},
+	"npmos.notifications.preset.failures.text": {
+		"defaultMessage": "Сервисы, агенты, ошибки политики и хостов"
+	},
+	"npmos.notifications.preset.recommended": {
+		"defaultMessage": "Рекомендуемые"
+	},
+	"npmos.notifications.preset.recommended.text": {
+		"defaultMessage": "Сбои, сертификаты и всплески атак"
+	},
 	"npmos.notifications.repeat": {
 		"defaultMessage": "Напоминать каждые, минут"
 	},
@@ -2861,6 +3908,15 @@
 	"npmos.notifications.rule.host_problem.hint": {
 		"defaultMessage": "nginx не принял конфигурацию включённого хоста (как красная рекомендация в таблице хостов)."
 	},
+	"npmos.notifications.rule.learning_queue": {
+		"defaultMessage": "События на разметку"
+	},
+	"npmos.notifications.rule.learning_queue.hint": {
+		"defaultMessage": "Агент не уверен в группах запросов за последние 24 ч («Агенты → open-appsec → Обучение»)."
+	},
+	"npmos.notifications.rule.learning_queue.params": {
+		"defaultMessage": "от {threshold} групп"
+	},
 	"npmos.notifications.rule.new": {
 		"defaultMessage": "Новое правило"
 	},
@@ -2877,7 +3933,7 @@
 		"defaultMessage": "Сервис не работает"
 	},
 	"npmos.notifications.rule.service_down.hint": {
-		"defaultMessage": "Сервис стека («Система → Сервисы») остановлен, перезапускается или нездоров."
+		"defaultMessage": "Сервис стека («Обзор → Сервисы») остановлен, перезапускается или нездоров."
 	},
 	"npmos.notifications.rule.type": {
 		"defaultMessage": "Что отслеживать"
@@ -2893,6 +3949,75 @@
 	},
 	"npmos.notifications.secret.keep": {
 		"defaultMessage": "Сохранён. Оставьте пустым, чтобы не менять."
+	},
+	"npmos.notifications.setup": {
+		"defaultMessage": "Быстрая настройка"
+	},
+	"npmos.notifications.setup.another": {
+		"defaultMessage": "Или добавьте ещё:"
+	},
+	"npmos.notifications.setup.back": {
+		"defaultMessage": "Назад"
+	},
+	"npmos.notifications.setup.create": {
+		"defaultMessage": "{count, plural, one {Создать # правило} few {Создать # правила} many {Создать # правил} other {Создать # правила}}"
+	},
+	"npmos.notifications.setup.done": {
+		"defaultMessage": "{count, plural, one {Создано # правило} few {Создано # правила} many {Создано # правил} other {Создано # правила}}"
+	},
+	"npmos.notifications.setup.exists": {
+		"defaultMessage": "уже настроено"
+	},
+	"npmos.notifications.setup.first": {
+		"defaultMessage": "Каналов пока нет. Добавьте:"
+	},
+	"npmos.notifications.setup.next": {
+		"defaultMessage": "Далее"
+	},
+	"npmos.notifications.setup.offline": {
+		"defaultMessage": "Без интернета работают только почтовый сервер вашей сети и webhook в ваши системы; Telegram нужен доступ к его API."
+	},
+	"npmos.notifications.setup.step1": {
+		"defaultMessage": "Куда слать"
+	},
+	"npmos.notifications.setup.step1.text": {
+		"defaultMessage": "Отметьте каналы, куда придут сообщения. Канал — это адрес: почтовый ящик, webhook вашей системы или чат Telegram."
+	},
+	"npmos.notifications.setup.step2": {
+		"defaultMessage": "О чём сообщать"
+	},
+	"npmos.notifications.setup.step2.text": {
+		"defaultMessage": "Выберите готовый набор или отметьте правила по одному. У каждого правила разумные настройки по умолчанию, их можно изменить потом."
+	},
+	"npmos.notifications.setup.step3": {
+		"defaultMessage": "Проверить и создать"
+	},
+	"npmos.notifications.setup.step3.text": {
+		"defaultMessage": "Будут созданы и включены правила:"
+	},
+	"npmos.notifications.setup.to": {
+		"defaultMessage": "Сообщения придут в: {channels}. Когда проблема уйдёт, тоже придёт сообщение."
+	},
+	"npmos.notifications.setup.why.agent_down": {
+		"defaultMessage": "Агент open-appsec не отвечает: хосты не проверяются."
+	},
+	"npmos.notifications.setup.why.attack_spike": {
+		"defaultMessage": "Много атак за короткое время: хост сканируют или атакуют."
+	},
+	"npmos.notifications.setup.why.cert_expiry": {
+		"defaultMessage": "Сертификат хоста истекает в ближайшие 14 дней."
+	},
+	"npmos.notifications.setup.why.host_problem": {
+		"defaultMessage": "nginx не принял конфигурацию хоста: хост не работает."
+	},
+	"npmos.notifications.setup.why.learning_queue": {
+		"defaultMessage": "У агента WAF есть сомнительные запросы на разметку: легитимные перестанут блокироваться."
+	},
+	"npmos.notifications.setup.why.policy_error": {
+		"defaultMessage": "Изменённая политика WAF не применилась: агент работает по прежней."
+	},
+	"npmos.notifications.setup.why.service_down": {
+		"defaultMessage": "Контейнер NPMOS остановился или постоянно перезапускается."
 	},
 	"npmos.notifications.status.firing": {
 		"defaultMessage": "Проблема"
@@ -2958,10 +4083,19 @@
 		"defaultMessage": "Последнее событие"
 	},
 	"npmos.overview.analytics.note": {
-		"defaultMessage": "Сохранённые события агента за последние 24 часа. Графики — в «WAF → Аналитика»."
+		"defaultMessage": "Сохранённые события агента за последние 24 часа. Графики — в «Аналитика»."
 	},
 	"npmos.overview.analytics.prevented": {
 		"defaultMessage": "Из них заблокировано"
+	},
+	"npmos.overview.certs.total": {
+		"defaultMessage": "Всего сертификатов"
+	},
+	"npmos.overview.crowdsec.alerts": {
+		"defaultMessage": "Алертов за 24 ч"
+	},
+	"npmos.overview.crowdsec.decisions": {
+		"defaultMessage": "Действующие баны и капчи"
 	},
 	"npmos.overview.fix": {
 		"defaultMessage": "Перейти"
@@ -3056,6 +4190,24 @@
 	"npmos.overview.system.services": {
 		"defaultMessage": "Сервисы"
 	},
+	"npmos.overview.traffic": {
+		"defaultMessage": "Трафик за 24 часа"
+	},
+	"npmos.overview.traffic.5xx": {
+		"defaultMessage": "ошибок сервера"
+	},
+	"npmos.overview.traffic.attacks": {
+		"defaultMessage": "атак"
+	},
+	"npmos.overview.traffic.blocked": {
+		"defaultMessage": "отклонено"
+	},
+	"npmos.overview.traffic.requests": {
+		"defaultMessage": "запросов"
+	},
+	"npmos.overview.unknown": {
+		"defaultMessage": "неизвестно"
+	},
 	"npmos.overview.waf.agent-down": {
 		"defaultMessage": "недоступен"
 	},
@@ -3064,6 +4216,12 @@
 	},
 	"npmos.overview.waf.hosts": {
 		"defaultMessage": "Прокси-хосты: {mode}"
+	},
+	"npmos.overview.waf.modes": {
+		"defaultMessage": "Хосты: блокировка · обнаружение · выкл"
+	},
+	"npmos.overview.waf.modes.value": {
+		"defaultMessage": "{prevent} · {detect} · {off}"
 	},
 	"npmos.overview.waf.state": {
 		"defaultMessage": "Защита"
@@ -3638,6 +4796,48 @@
 	"npmos.policy.builtin-readonly": {
 		"defaultMessage": "Встроенный объект NPMOS: обновляется вместе с NPMOS и не редактируется. Сделайте копию, чтобы изменить."
 	},
+	"npmos.policy.builtin.npmos-403": {
+		"defaultMessage": "Ответ: код 403"
+	},
+	"npmos.policy.builtin.npmos-403.hint": {
+		"defaultMessage": "Заблокированный запрос получает 403 и страницу блокировки NPMOS"
+	},
+	"npmos.policy.builtin.npmos-api": {
+		"defaultMessage": "Защита от атак: API"
+	},
+	"npmos.policy.builtin.npmos-api.hint": {
+		"defaultMessage": "Для JSON API: дополнительно отклоняет недопустимые HTTP-методы"
+	},
+	"npmos.policy.builtin.npmos-block-page": {
+		"defaultMessage": "Ответ: страница блокировки агента"
+	},
+	"npmos.policy.builtin.npmos-block-page.hint": {
+		"defaultMessage": "Страница open-appsec с заголовком и текстом"
+	},
+	"npmos.policy.builtin.npmos-log": {
+		"defaultMessage": "Журналирование: атаки в NPMOS"
+	},
+	"npmos.policy.builtin.npmos-log.hint": {
+		"defaultMessage": "Обнаруженные и заблокированные запросы пишутся в журнал, который читает NPMOS (События); в облако ничего не уходит"
+	},
+	"npmos.policy.builtin.npmos-no-rate-limit": {
+		"defaultMessage": "Без ограничения запросов"
+	},
+	"npmos.policy.builtin.npmos-no-rate-limit.hint": {
+		"defaultMessage": "Число запросов от клиента не ограничивается"
+	},
+	"npmos.policy.builtin.npmos-recommended": {
+		"defaultMessage": "Защита от атак: рекомендуемая"
+	},
+	"npmos.policy.builtin.npmos-recommended.hint": {
+		"defaultMessage": "Проверка веб-атак машинным обучением с обычными лимитами; подходит большинству сайтов"
+	},
+	"npmos.policy.builtin.npmos-strict": {
+		"defaultMessage": "Защита от атак: строгая"
+	},
+	"npmos.policy.builtin.npmos-strict.hint": {
+		"defaultMessage": "Блокирует с меньшей уверенности и проверяет больше: меньше пропусков, больше ложных срабатываний"
+	},
 	"npmos.policy.condition.add": {
 		"defaultMessage": "Добавить условие"
 	},
@@ -3660,10 +4860,10 @@
 		"defaultMessage": "Средняя"
 	},
 	"npmos.policy.default": {
-		"defaultMessage": "Политика по умолчанию"
+		"defaultMessage": "Базовая политика"
 	},
 	"npmos.policy.default.hint": {
-		"defaultMessage": "Действует для запросов к хостам без WAF и для всего, что хост не задаёт сам. Исключения политики по умолчанию действуют на все хосты."
+		"defaultMessage": "Действует для запросов к хостам без WAF и для всего, что хост не задаёт сам. Исключения базовой политики действуют на все хосты."
 	},
 	"npmos.policy.default.mode-hint": {
 		"defaultMessage": "Обычно «неактивен»: WAF включается в настройках каждого хоста."
@@ -3710,9 +4910,6 @@
 	"npmos.policy.f.additionalSuspiciousEventsLogging.responseCode": {
 		"defaultMessage": "Код ответа"
 	},
-	"npmos.policy.f.antiBot.overrideMode": {
-		"defaultMessage": "Антибот"
-	},
 	"npmos.policy.f.appsecLogging.allWebRequests": {
 		"defaultMessage": "Все запросы (много данных)"
 	},
@@ -3737,14 +4934,8 @@
 	"npmos.policy.f.extendedLogging.urlQuery": {
 		"defaultMessage": "Параметры URL"
 	},
-	"npmos.policy.f.fileSecurity.overrideMode": {
-		"defaultMessage": "Проверка файлов"
-	},
 	"npmos.policy.f.httpResponseCode": {
 		"defaultMessage": "HTTP-код"
-	},
-	"npmos.policy.f.intrusionPrevention.overrideMode": {
-		"defaultMessage": "Предотвращение вторжений (IPS)"
 	},
 	"npmos.policy.f.messageBody": {
 		"defaultMessage": "Текст страницы"
@@ -3769,9 +4960,6 @@
 	},
 	"npmos.policy.f.redirectUrl": {
 		"defaultMessage": "Перенаправлять на"
-	},
-	"npmos.policy.f.schemaValidation.overrideMode": {
-		"defaultMessage": "Проверка по схеме API"
 	},
 	"npmos.policy.f.snortSignatures.files": {
 		"defaultMessage": "Файлы сигнатур в агенте, по одному в строке"
@@ -3830,9 +5018,6 @@
 	"npmos.policy.h.extendedLogging": {
 		"defaultMessage": "Подробности"
 	},
-	"npmos.policy.h.premium": {
-		"defaultMessage": "Premium-версия агента"
-	},
 	"npmos.policy.h.snortSignatures": {
 		"defaultMessage": "Сигнатуры Snort"
 	},
@@ -3873,7 +5058,7 @@
 		"defaultMessage": "local_policy.yaml open-appsec (v1beta1 или v1beta2) или экспорт NPMOS. Импортируются объекты и политика по умолчанию; объекты с тем же именем обновляются, встроенные не меняются."
 	},
 	"npmos.policy.import.policy": {
-		"defaultMessage": "Политика по умолчанию будет заменена."
+		"defaultMessage": "Базовая политика будет заменена."
 	},
 	"npmos.policy.import.rules": {
 		"defaultMessage": "Правила хостов из файла ({count}) не импортируются: хосты выбирают объекты в своих настройках WAF."
@@ -3936,7 +5121,7 @@
 		"defaultMessage": "Журналирование"
 	},
 	"npmos.policy.kind.log_trigger.hint": {
-		"defaultMessage": "Какие события агент пишет в журнал и с какими подробностями (NPMOS читает их для WAF → События)."
+		"defaultMessage": "Какие события агент пишет в журнал и с какими подробностями (NPMOS читает их для Аналитика → События)."
 	},
 	"npmos.policy.kind.source_identifiers": {
 		"defaultMessage": "Идентификаторы источника"
@@ -3948,7 +5133,7 @@
 		"defaultMessage": "Практика защиты"
 	},
 	"npmos.policy.kind.threat_prevention.hint": {
-		"defaultMessage": "Что и насколько строго проверяет WAF: веб-атаки (ML), сигнатуры Snort; IPS, файлы, схема API и антибот требуют Premium-версии агента."
+		"defaultMessage": "Что и насколько строго проверяет WAF: веб-атаки (ML) и сигнатуры Snort."
 	},
 	"npmos.policy.kind.trusted_sources": {
 		"defaultMessage": "Доверенные источники"
@@ -3957,25 +5142,46 @@
 		"defaultMessage": "Источники, чей трафик быстрее обучает ML-модель."
 	},
 	"npmos.policy.kinds.access_control": {
-		"defaultMessage": "Ограничения частоты"
+		"defaultMessage": "Ограничение запросов"
+	},
+	"npmos.policy.kinds.access_control.hint": {
+		"defaultMessage": "Сколько запросов в минуту клиент может отправить на путь; лишние блокируются или только записываются."
 	},
 	"npmos.policy.kinds.custom_response": {
-		"defaultMessage": "Ответы"
+		"defaultMessage": "Ответ на блокировку"
+	},
+	"npmos.policy.kinds.custom_response.hint": {
+		"defaultMessage": "Что получает заблокированный посетитель: код ответа, страницу блокировки или переадресацию."
 	},
 	"npmos.policy.kinds.exception": {
 		"defaultMessage": "Исключения"
 	},
+	"npmos.policy.kinds.exception.hint": {
+		"defaultMessage": "Запросы, которые агент пропускает или всегда блокирует: по IP, пути, параметру, типу атаки, стране."
+	},
 	"npmos.policy.kinds.log_trigger": {
 		"defaultMessage": "Журналирование"
 	},
+	"npmos.policy.kinds.log_trigger.hint": {
+		"defaultMessage": "Что агент записывает: заблокированные и обнаруженные запросы, разрешённые, тела запросов. NPMOS читает это в «События»."
+	},
 	"npmos.policy.kinds.source_identifiers": {
-		"defaultMessage": "Идентификаторы"
+		"defaultMessage": "Как узнать клиента"
+	},
+	"npmos.policy.kinds.source_identifiers.hint": {
+		"defaultMessage": "Как агент различает клиентов за прокси: по заголовку, cookie или полю JWT вместо IP-адреса."
 	},
 	"npmos.policy.kinds.threat_prevention": {
-		"defaultMessage": "Практики"
+		"defaultMessage": "Защита от атак"
+	},
+	"npmos.policy.kinds.threat_prevention.hint": {
+		"defaultMessage": "Как агент ищет атаки (SQL-инъекции, XSS, внедрение команд и т. п.) и насколько должен быть уверен, чтобы заблокировать (практики open-appsec)."
 	},
 	"npmos.policy.kinds.trusted_sources": {
 		"defaultMessage": "Доверенные источники"
+	},
+	"npmos.policy.kinds.trusted_sources.hint": {
+		"defaultMessage": "Клиенты, на чьём трафике агент учится как на нормальном (офис, система мониторинга)."
 	},
 	"npmos.policy.mode.detect": {
 		"defaultMessage": "Обнаруживать"
@@ -4013,9 +5219,6 @@
 	"npmos.policy.none": {
 		"defaultMessage": "Нет"
 	},
-	"npmos.policy.premium": {
-		"defaultMessage": "Premium"
-	},
 	"npmos.policy.previewing": {
 		"defaultMessage": "Собираем политику…"
 	},
@@ -4041,10 +5244,10 @@
 		"defaultMessage": "URI"
 	},
 	"npmos.policy.reason.file-security": {
-		"defaultMessage": "проверка файлов в практике {name} (Premium)"
+		"defaultMessage": "проверка файлов в практике {name}"
 	},
 	"npmos.policy.reason.ips": {
-		"defaultMessage": "IPS в практике {name} (Premium)"
+		"defaultMessage": "IPS в практике {name}"
 	},
 	"npmos.policy.reason.rate-limit": {
 		"defaultMessage": "ограничения частоты {name}"
@@ -4128,7 +5331,7 @@
 		"defaultMessage": "Создан: {kind} {name}"
 	},
 	"npmos.policy.version.default-policy": {
-		"defaultMessage": "Политика по умолчанию"
+		"defaultMessage": "Базовая политика"
 	},
 	"npmos.policy.version.deleted": {
 		"defaultMessage": "Удалён: {kind} {name}"
@@ -4583,8 +5786,35 @@
 	"npmos.settings.events-retention": {
 		"defaultMessage": "Срок хранения событий безопасности"
 	},
+	"npmos.system.acme.custom": {
+		"defaultMessage": "Другой (URL)"
+	},
 	"npmos.system.after-restart": {
 		"defaultMessage": "после перезапуска"
+	},
+	"npmos.system.env.ACME_EAB_HMAC_KEY": {
+		"defaultMessage": "EAB: HMAC-ключ"
+	},
+	"npmos.system.env.ACME_EAB_HMAC_KEY.hint": {
+		"defaultMessage": "HMAC-ключ к этому ID. После сохранения не показывается."
+	},
+	"npmos.system.env.ACME_EAB_KID": {
+		"defaultMessage": "EAB: ID ключа"
+	},
+	"npmos.system.env.ACME_EAB_KID.hint": {
+		"defaultMessage": "Привязка внешнего аккаунта (EAB): ID ключа со страницы аккаунта центра сертификации. Для Let's Encrypt не нужен."
+	},
+	"npmos.system.env.ACME_EMAIL": {
+		"defaultMessage": "Email аккаунта ACME"
+	},
+	"npmos.system.env.ACME_EMAIL.hint": {
+		"defaultMessage": "Сюда центр сертификации присылает напоминания об истечении. Нужен для ZeroSSL и EAB."
+	},
+	"npmos.system.env.ACME_SERVER": {
+		"defaultMessage": "ACME-сервер"
+	},
+	"npmos.system.env.ACME_SERVER.hint": {
+		"defaultMessage": "Центр сертификации, который выпускает сертификаты. «Другой» — адрес directory любого ACME-сервера, в том числе в вашей сети."
 	},
 	"npmos.system.env.DEFAULT_CERT_ID": {
 		"defaultMessage": "Сертификат по умолчанию"
@@ -4594,12 +5824,6 @@
 	},
 	"npmos.system.env.DEFAULT_CERT_ID.none": {
 		"defaultMessage": "Самоподписанный"
-	},
-	"npmos.system.env.DISABLE_GRAVATAR": {
-		"defaultMessage": "Без Gravatar"
-	},
-	"npmos.system.env.DISABLE_GRAVATAR.hint": {
-		"defaultMessage": "Аватары пользователей не загружаются с gravatar.com."
 	},
 	"npmos.system.env.DISABLE_H3_QUIC": {
 		"defaultMessage": "Отключить HTTP/3 (QUIC)"
@@ -4736,6 +5960,12 @@
 	"npmos.system.env.auto": {
 		"defaultMessage": "Авто"
 	},
+	"npmos.system.group.acme": {
+		"defaultMessage": "ACME (Let's Encrypt и другие)"
+	},
+	"npmos.system.group.acme.hint": {
+		"defaultMessage": "Откуда берутся сертификаты «Let's Encrypt / ACME». Для Let's Encrypt больше ничего не нужно; ZeroSSL нужен email, Google Trust Services и SSL.com — ключи EAB со страницы аккаунта. Аккаунт регистрируется при первом запросе сертификата."
+	},
 	"npmos.system.group.external": {
 		"defaultMessage": "Внешние сервисы"
 	},
@@ -4799,6 +6029,12 @@
 	"npmos.system.saved": {
 		"defaultMessage": "Сохранено: применится при следующем перезапуске NPMOS"
 	},
+	"npmos.system.secret.set": {
+		"defaultMessage": "задан — введите новый, чтобы заменить"
+	},
+	"npmos.users.search": {
+		"defaultMessage": "Поиск по имени, нику или email"
+	},
 	"npmos.waf": {
 		"defaultMessage": "WAF"
 	},
@@ -4813,21 +6049,6 @@
 	},
 	"npmos.waf.agent-settings": {
 		"defaultMessage": "Настройки агента"
-	},
-	"npmos.waf.agent-settings.crowdsec": {
-		"defaultMessage": "Репутация IP из CrowdSec"
-	},
-	"npmos.waf.agent-settings.crowdsec-mode": {
-		"defaultMessage": "Режим CrowdSec"
-	},
-	"npmos.waf.agent-settings.crowdsec.detect": {
-		"defaultMessage": "Detect: только записывать в журнал"
-	},
-	"npmos.waf.agent-settings.crowdsec.hint": {
-		"defaultMessage": "Агент проверяет IP клиентов по решениям (банам) локального CrowdSec. Без облака: только решения этого стека."
-	},
-	"npmos.waf.agent-settings.crowdsec.prevent": {
-		"defaultMessage": "Prevent: блокировать забаненные IP"
 	},
 	"npmos.waf.agent-settings.fail-open": {
 		"defaultMessage": "Fail-open"
@@ -4890,7 +6111,7 @@
 		"defaultMessage": "Компонент агента"
 	},
 	"npmos.waf.events.description": {
-		"defaultMessage": "Журнал безопасности агента open-appsec: обнаруженные и заблокированные атаки и события самого агента"
+		"defaultMessage": "Что нашли агенты: атаки, которые обнаружил или заблокировал open-appsec, и алерты CrowdSec; в каждой строке указан агент. Отказы mTLS и сообщения агентов — на своих вкладках."
 	},
 	"npmos.waf.events.event": {
 		"defaultMessage": "Событие"
@@ -4903,6 +6124,9 @@
 	},
 	"npmos.waf.events.matched": {
 		"defaultMessage": "Что обнаружил WAF"
+	},
+	"npmos.waf.events.matched-crowdsec": {
+		"defaultMessage": "Что обнаружил CrowdSec"
 	},
 	"npmos.waf.events.matched-location": {
 		"defaultMessage": "Где"
@@ -4998,10 +6222,10 @@
 		"defaultMessage": "Свои объекты"
 	},
 	"npmos.waf.host-policy.default": {
-		"defaultMessage": "Как в политике по умолчанию"
+		"defaultMessage": "Как в базовой политике"
 	},
 	"npmos.waf.host-policy.hint": {
-		"defaultMessage": "Практики, ограничения частоты, ответ и исключения этого хоста (WAF → Политика). Исключения политики по умолчанию действуют тоже."
+		"defaultMessage": "Защита от атак, ограничение запросов, ответ и исключения этого хоста (Агенты → open-appsec). Исключения базовой политики действуют тоже."
 	},
 	"npmos.waf.host-policy.template": {
 		"defaultMessage": "Шаблон: {name}"

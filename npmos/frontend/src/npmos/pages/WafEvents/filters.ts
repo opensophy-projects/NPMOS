@@ -4,12 +4,22 @@ import type { EventQuery } from "../../api";
 
 export const PERIODS = ["1h", "24h", "7d", "30d", "custom"] as const;
 export type Period = (typeof PERIODS)[number];
-export const KINDS = ["security", "crowdsec", "mtls", "system", "all"] as const;
+// "agents": open-appsec and CrowdSec in one list, the agent named in each row
+export const KINDS = ["agents", "mtls", "system", "all"] as const;
 export type Kind = (typeof KINDS)[number];
-export const ACTIONS = ["Prevent", "Detect", "Accept"] as const;
+// open-appsec (Prevent, Detect, Accept), CrowdSec (decision type, an alert without one, a simulated one), mTLS
+export const ACTIONS = ["Prevent", "Detect", "Accept", "ban", "captcha", "alert", "simulated", "denied"] as const;
 export const SEVERITIES = ["Critical", "High", "Medium", "Low", "Info"] as const;
+export const AGENTS = ["open-appsec", "crowdsec"] as const;
+/** the agent of an event by its kind */
+export const AGENT_OF: Record<string, string> = {
+	security: "open-appsec",
+	crowdsec: "crowdsec",
+	mtls: "mtls",
+	system: "open-appsec",
+};
 /** list filters: comma-separated in the URL and the API */
-export const LIST_FIELDS = ["host", "ip", "action", "severity", "type"] as const;
+export const LIST_FIELDS = ["agent", "host", "ip", "action", "severity", "type"] as const;
 export type ListField = (typeof LIST_FIELDS)[number];
 
 export interface EventFilters {
@@ -20,6 +30,7 @@ export interface EventFilters {
 	kind: Kind;
 	important: boolean;
 	q: string;
+	agent: string[];
 	host: string[];
 	ip: string[];
 	action: string[];
@@ -33,9 +44,10 @@ export const DEFAULT_FILTERS: EventFilters = {
 	period: "24h",
 	from: "",
 	to: "",
-	kind: "security",
+	kind: "agents",
 	important: false,
 	q: "",
+	agent: [],
 	host: [],
 	ip: [],
 	action: [],
@@ -57,6 +69,9 @@ const validScore = (value: string | null) => (value && /^\d{1,2}(\.\d+)?$/.test(
 export const filtersFromParams = (params: URLSearchParams): EventFilters => {
 	const period = PERIODS.find((p) => p === params.get("period")) ?? DEFAULT_FILTERS.period;
 	const from = validDate(params.get("from"));
+	// links of before: kind=security (open-appsec) and kind=crowdsec are the agents with one agent
+	const old = { security: "open-appsec", crowdsec: "crowdsec" }[params.get("kind") ?? ""];
+	const agent = split(params.get("agent")).filter((a) => (AGENTS as readonly string[]).includes(a));
 	return {
 		period: period === "custom" && !from ? DEFAULT_FILTERS.period : period,
 		from: period === "custom" ? from : "",
@@ -64,6 +79,7 @@ export const filtersFromParams = (params: URLSearchParams): EventFilters => {
 		kind: KINDS.find((k) => k === params.get("kind")) ?? DEFAULT_FILTERS.kind,
 		important: params.get("important") === "1",
 		q: (params.get("q") ?? "").slice(0, 200),
+		agent: old && !agent.includes(old) ? [...agent, old] : agent,
 		host: split(params.get("host")),
 		ip: split(params.get("ip")),
 		action: split(params.get("action")),

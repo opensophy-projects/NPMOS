@@ -1,6 +1,8 @@
 // Objects of the policy in the database and the policy built from them (v1beta2 terms): the default
 // policy, a rule per protected proxy host and location, every object.
 import db from "../../../db.js";
+import { learningExceptions } from "../../learning/policy.js";
+import { ruleHost } from "../../learning/model.js";
 import { getSetting } from "../../settings.js";
 import { BUILTIN, builtinSpec, DEFAULT_POLICY, KINDS, RULE_FIELDS } from "./model.js";
 
@@ -190,6 +192,24 @@ export const buildDoc = async (candidate = {}) => {
 				location.minimum_confidence,
 				locationRule(own, resolveRule(parse(location.objects) || {}, byId)),
 			);
+		}
+	}
+
+	// learning (phase 8): exceptions of labels in force, on every rule of their host (domains and locations)
+	const learned = candidate.learning ?? (await learningExceptions());
+	if (learned.size) {
+		for (const rule of doc.policies.specificRules) {
+			const extra = learned.get(ruleHost(rule.name)?.hostId);
+			if (!extra) continue;
+			rule.exceptions = [
+				...new Set([...(rule.exceptions ?? defaults.exceptions ?? []), ...extra.map((e) => e.name)]),
+			];
+		}
+		const added = new Set();
+		for (const e of [...learned.values()].flat()) {
+			if (added.has(e.name)) continue;
+			added.add(e.name);
+			doc.exceptions.push(e);
 		}
 	}
 	return { doc, hosts };

@@ -151,6 +151,12 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
   done
   [ "$(status "/?q=hello")" = 200 ] || fail "a normal request was blocked"
 
+  step "Block page: a refused request gets the page of NPMOS, not the one of the agent"
+  page=$(curl -s --max-time 10 -H 'Host: test.local' "$HTTP$SQLI")
+  echo "$page" | grep -q 'NPMOS: block page' || fail "no block page of NPMOS: $(echo "$page" | head -c 300)"
+  echo "$page" | grep -q 'Check Point' && fail "the page of the agent is shown"
+  echo "$page" | grep -q '{{ip}}' && fail "the details of the request are not filled in"
+
   # events of the agent's security log, newest first. The attack is repeated while waiting: the agent
   # restarts its services a few seconds after a start or a new policy, and the event of a request
   # handled just before such a restart can be lost.
@@ -172,14 +178,15 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
     step "WAF -> Agent: $2"
     $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf/agent" -d "$1" \
       | grep -q '"restarting": *true' || fail "saving agent settings did not restart the agent"
+    # npmos restarts with the agent: the API is away for a while (connections are reset)
     for i in $(seq 1 60); do
-      agent=$($CURL "$ADMIN/api/npmos/waf/agent")
+      agent=$($CURL "$ADMIN/api/npmos/waf/agent" 2>/dev/null || true)
       echo "$agent" | grep -q '"restartRequired": *false' && break
       [ "$i" = 60 ] && fail "the agent did not apply its settings: $agent"
       sleep 2
     done
     for i in $(seq 1 60); do
-      $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true' && break
+      $CURL "$ADMIN/api/npmos/waf" 2>/dev/null | grep -q '"reachable": *true' && break
       [ "$i" = 60 ] && fail "the agent did not come back after the restart: $($CURL "$ADMIN/api/npmos/waf")"
       sleep 2
     done
@@ -199,10 +206,22 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
     fail "attacks after the agent's restart are not in WAF -> Events: $($CURL "$ADMIN/api/npmos/events?kind=all&limit=3")"
   }
 
-  agent_settings '{"crowdsec": {"enabled": false, "mode": "prevent"}, "fail_open": {"enabled": true, "timeout_ms": 100}}' \
+  agent_settings '{"fail_open": {"enabled": true, "timeout_ms": 100}}' \
     "fail-open timeout from the GUI is applied at the agent's restart, attacks are still blocked and logged"
-  agent_settings '{"crowdsec": {"enabled": true, "mode": "prevent"}, "fail_open": {"enabled": true, "timeout_ms": 100}}' \
-    "IP reputation from the local CrowdSec on, attacks are still blocked and logged"
+  agent_settings '{"fail_open": {"enabled": true, "timeout_ms": 50}}' \
+    "a second change is applied the same way"
+
+  # applying agent settings restarts npmos with the agent: restarted alone, the agent left the nginx
+  # attachment without its IPC and every request waited for it (about 1-2 s)
+  step "WAF -> Agent: after the agent's restart requests are not held up"
+  slow=0
+  for i in $(seq 1 10); do
+    t=$(curl -s -o /dev/null -w '%{time_total}' --max-time 10 -H 'Host: test.local' "$HTTP/")
+    awk -v t="$t" 'BEGIN {exit !(t > 0.5)}' && slow=$((slow + 1))
+  done
+  [ "$slow" -le 1 ] || fail "$slow of 10 requests took more than 0.5 s after the agent's restart"
+  t=$($CURL -o /dev/null -w '%{time_total}' "$ADMIN/api/")
+  awk -v t="$t" 'BEGIN {exit !(t > 0.5)}' && fail "the interface took $t s: it must not wait for the agent"
 
   step "WAF -> Policy (expert): an exception for the tester's IP lets the attack through"
   $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf/policy/custom" -d "{
@@ -310,6 +329,32 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
   done
   post_json POST "/versions/$before/rollback" "" > /dev/null
   wait_status "$SQLI" 403 "SQLi is not blocked after the rollback of the import"
+
+  step "Learning: the blocked attack is a group of the queue of its host"
+  key=""
+  for i in $(seq 1 30); do
+    key=$($CURL "$ADMIN/api/npmos/learning/queue?period=24h&host=1&reason=blocked&suggestions=0" \
+      | grep -o '"key": *"[0-9a-f]*"' | head -1 | grep -o '[0-9a-f]\{32\}' || true)
+    [ -n "$key" ] && break
+    [ "$i" = 30 ] && fail "no blocked group for test.local: $($CURL "$ADMIN/api/npmos/learning/queue?period=24h")"
+    status "$SQLI" > /dev/null
+    sleep 2
+  done
+
+  step "Learning: labelled legitimate with an exception, the attack passes at once; undo blocks it again"
+  label=$($CURL -H 'Content-Type: application/json' "$ADMIN/api/npmos/learning/labels" -d "{\"key\": \"$key\", \"decision\": \"benign\",
+    \"scopes\": [{\"type\": \"parameterName\", \"value\": \"id\"}], \"exception\": true, \"ttl_days\": 1}")
+  label_id=$(echo "$label" | grep -o '"id": *[0-9]*' | head -1 | grep -o '[0-9]*$')
+  # decisions.data of the assets of the host is written in the shared storage, where the agent reads it
+  echo "$label" | grep -q '"syncError": *""' || fail "the label was not written for the agent: $label"
+  echo "$label" | grep -q '"syncedOn": *"' || fail "the label was not written for the agent: $label"
+  $CURL "$ADMIN/api/npmos/learning/queue?period=24h&host=1&suggestions=0" | grep -q "\"$key\"" \
+    && fail "the labelled group is still in the queue"
+  wait_status "$SQLI" 200 "SQLi labelled legitimate is still blocked"
+  $CURL "$ADMIN/api/npmos/waf/policy" | grep -q "npmos-learn-$label_id" || fail "no exception of the label in the policy"
+  $CURL -X DELETE "$ADMIN/api/npmos/learning/labels/$label_id" | grep -q '"ok": *true' || fail "the label was not undone"
+  wait_status "$SQLI" 403 "SQLi is not blocked after the label was undone"
+  $CURL "$ADMIN/api/npmos/learning/labels?active=0" | grep -q '"undoneOn": *"' || fail "the undone label is not in the history"
 
   step "WAF: detect-learn lets attacks through"
   $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf/hosts/1" \
@@ -543,6 +588,53 @@ for i in $(seq 1 30); do
   sleep 2
 done
 
+step "mTLS in one step: the switch of a host creates its trust domain, an access certificate opens it"
+quick_id=$(api_json "$ADMIN/api/nginx/proxy-hosts" -d "{\"domain_names\": [\"quick.local\"], \"forward_scheme\": \"http\",
+  \"forward_host\": \"test-upstream\", \"forward_port\": \"80\", \"certificate_id\": $tls_id}" | json_id)
+[ -n "$quick_id" ] || fail "proxy host quick.local was not created"
+quick=$(api_json -X POST "$ADMIN/api/npmos/mtls/proxy_host/$quick_id/enable" | tr -d ' \n')
+echo "$quick" | grep -q '"enabled":true' || fail "mTLS was not turned on: $quick"
+quick_ca=$(echo "$quick" | grep -o '"ca_ids":\[[0-9]*' | grep -o '[0-9]*$')
+$CURL "$ADMIN/api/npmos/pki/cas/$quick_ca" | grep -q '"host": *"proxy_host-'"$quick_id"'"' \
+  || fail "the trust domain of quick.local is not its own"
+dana=$(client dana IT "$quick_ca")
+quick_mtls() { curl -sS -k --max-time 10 --connect-to quick.local:443:npmos:443 -o /dev/null -w '%{http_code}' "$@" https://quick.local/; }
+for i in $(seq 1 15); do
+  [ "$(quick_mtls --cert /tmp/dana.crt --key /tmp/dana.key)" = 200 ] && break
+  [ "$i" = 15 ] && fail "the access certificate does not open quick.local"
+  sleep 2
+done
+expect "$(quick_mtls)" 403 "quick.local without a certificate"
+expect "$(quick_mtls --cert /tmp/carol.crt --key /tmp/carol.key)" 403 "quick.local with a certificate of another domain"
+expect "$(mtls --cert /tmp/dana.crt --key /tmp/dana.key)" 403 "mtls.local with the access certificate of quick.local"
+# dana is the only certificate of the trust domain of quick.local
+$CURL "$ADMIN/api/npmos/pki" | tr -d ' \n' | grep -q '{"host_type":"proxy_host","host_id":'"$quick_id"',"name":"quick.local"}' \
+  || fail "the certificate does not list quick.local as what it opens"
+
+step "mTLS: a deleted access certificate is revoked and gone from the list"
+dana_id=$(echo "$dana" | tr -d ' \n' | grep -o '"certificate":{"id":[0-9]*' | grep -o '[0-9]*$')
+api_json "$ADMIN/api/npmos/pki/certs/delete" -d "{\"ids\": [$dana_id]}" | tr -d ' \n' \
+  | grep -q '"deleted":1,"revoked":1' || fail "dana was not deleted"
+for i in $(seq 1 30); do
+  [ "$(quick_mtls --cert /tmp/dana.crt --key /tmp/dana.key)" = 403 ] && break
+  [ "$i" = 30 ] && fail "the deleted certificate still opens quick.local"
+  sleep 2
+done
+$CURL "$ADMIN/api/npmos/pki" | grep -q '"common_name": *"dana"' && fail "the deleted certificate is still listed"
+
+step "Certificates: the registry lists the TLS certificate and the CAs of the PKI, without the deleted one"
+registry=$($CURL "$ADMIN/api/npmos/certificates?limit=200" | tr -d ' \n')
+echo "$registry" | grep -q '"source":"tls"' || fail "no TLS certificate in the registry: $registry"
+echo "$registry" | grep -q '"name":"SmokeOffice"' || fail "no trust domain in the registry: $registry"
+echo "$registry" | grep -q '"name":"dana"' && fail "the deleted certificate is in the registry"
+$CURL "$ADMIN/api/npmos/certificates?source=pki&status=revoked&q=alice" | grep -q '"name": *"alice"' \
+  || fail "the revoked certificate is not found by its status"
+
+step "Audit log: pages from the server and the action filter"
+audit=$($CURL "$ADMIN/api/npmos/audit?action=revoked&limit=1" | tr -d ' \n')
+echo "$audit" | grep -q '"action":"revoked"' || fail "no revoked entry in the audit log: $audit"
+echo "$audit" | grep -q '"total":[1-9]' || fail "the audit log has no total: $audit"
+
 # --- phase 7 ---
 
 page() { curl -s -o /dev/null -w '%{http_code}' --max-time 10 -H 'Host: test.local' "$HTTP$1"; }
@@ -575,15 +667,25 @@ done
 $CURL "$ADMIN/api/npmos/crowdsec/registry" | grep -q '"name": *"npmos-' || fail "NPMOS is not a machine of CrowdSec"
 
 # the closed network has private addresses only: they are not allowlisted here
-step "CrowdSec: settings from the GUI are applied, CrowdSec restarts (bouncer and AppSec on)"
-cs_settings true "" | tr -d ' \n' | grep -q '"restarted":true' || fail "the settings did not restart CrowdSec"
+step "CrowdSec: settings from the GUI are applied (bouncer and AppSec on)"
+cs_settings true "" | tr -d ' \n' | grep -q '"\(restarted\|reloaded\)":true' || fail "the settings were not applied"
+
+# profiles, acquisition, allowlists and scenarios are reread on SIGHUP: no restart of the container
+step "CrowdSec: a change of a profile is applied by a reload, not a restart"
+cs_started() { $CURL "$ADMIN/api/npmos/services/crowdsec" | grep -o '"startedAt": *"[^"]*"'; }
+before=$(cs_started)
+cs_settings true "Alert.GetScope() == 'Ip'" | tr -d ' \n' | grep -q '"reloaded":true' \
+  || fail "the profile change was not applied by a reload"
+[ "$(cs_started)" = "$before" ] || fail "CrowdSec was restarted for a profile change"
 
 step "CrowdSec: a broken profile is refused at the start of CrowdSec, the previous files come back"
 answer=$(cs_settings true "Alert.Broken(((" 2>&1 || true)
 echo "$answer" | grep -q 'previous ones are restored' || fail "a broken profile was not rolled back: $answer"
 $CURL "$ADMIN/api/npmos/crowdsec" | tr -d ' \n' | grep -q '"lapi":{"healthy":true' \
   || fail "CrowdSec is not healthy after the rollback"
-$CURL "$ADMIN/api/npmos/crowdsec/settings" | grep -q '"filter": *""' || fail "the broken profile was kept"
+# the filter of the previous step comes back, not the broken one
+$CURL "$ADMIN/api/npmos/crowdsec/settings" | grep -q 'Alert.Broken' && fail "the broken profile was kept"
+$CURL "$ADMIN/api/npmos/crowdsec/settings" | grep -q "Alert.GetScope() == 'Ip'" || fail "the previous profile did not come back"
 
 step "CrowdSec: a ban by hand blocks the tester on its hosts, not in the interface of NPMOS"
 api_json "$ADMIN/api/npmos/crowdsec/decisions" -d "{\"values\": [\"$client_ip\"], \"duration\": \"10m\", \"reason\": \"smoke\"}" \
@@ -610,6 +712,9 @@ for i in $(seq 1 45); do
   [ "$i" = 45 ] && fail "no CrowdSec alert in the events: $($CURL "$ADMIN/api/npmos/events?kind=crowdsec&limit=5")"
   sleep 2
 done
+# the agents are one list, each row names its agent
+$CURL "$ADMIN/api/npmos/events?agent=crowdsec&limit=5" | grep -q '"kind": *"crowdsec"' \
+  || fail "the CrowdSec alert is not in the events of the agents"
 api_json "$ADMIN/api/npmos/crowdsec/decisions/delete" -d "{\"values\": [\"$client_ip\"]}" > /dev/null || true
 
 if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then

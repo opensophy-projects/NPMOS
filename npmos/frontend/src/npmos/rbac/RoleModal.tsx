@@ -132,7 +132,7 @@ const RoleModal = EasyModal.create(({ role, from, visible, remove }: Props) => {
 								<T id="npmos.rbac.builtin.note" />
 							</p>
 						)}
-						<section className={cn("card", styles.info)}>
+						<section className={cn("card os-card-keep", styles.info)}>
 							<div className={styles.infoGrid}>
 								{!role && (
 									<label className={styles.field}>

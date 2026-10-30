@@ -18,7 +18,7 @@ test("values of env settings in their form", () => {
 });
 
 test("running values fall back to the defaults", () => {
-	assert.equal(running("DISABLE_GRAVATAR", {}), true);
+	assert.equal(running("NPMOS_CHECK_VERSION", {}), false);
 	assert.equal(running("NGINX_WORKER_CONNECTIONS", { NGINX_WORKER_CONNECTIONS: "2048" }), 2048);
 	assert.equal(running("TZ", { TZ: "bad zone" }), "UTC");
 });

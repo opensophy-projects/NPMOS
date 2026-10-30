@@ -4,6 +4,10 @@
 // only these names with values of the same form (rootfs/usr/local/bin/envs.sh): a bad value can't
 // stop the container.
 
+export const LETS_ENCRYPT = "https://acme-v02.api.letsencrypt.org/directory";
+// shown instead of a secret that is set; sent back unchanged it keeps the secret
+export const SECRET_SET = "********";
+
 const bool = (env, group, fallback, extra = {}) => ({ env, group, type: "bool", default: fallback, ...extra });
 const int = (env, group, fallback, min, max) => ({ env, group, type: "int", default: fallback, min, max });
 
@@ -32,7 +36,12 @@ export const SYSTEM_ENV = [
 	bool("NGINX_TRUST_SECPR1", "tls", true),
 	bool("NGINX_TRUST_RSA_PKCS1", "tls", false),
 	int("LOGROTATIONS", "logs", 3, 1, 365),
-	bool("DISABLE_GRAVATAR", "external", true, { internet: true }),
+	// ACME: where certificates of "Let's Encrypt / ACME" come from; the account is registered at the
+	// first request (npmos/acme.js), EAB is what ZeroSSL, Google and others ask for
+	{ env: "ACME_SERVER", group: "acme", type: "url", default: LETS_ENCRYPT, internet: true },
+	{ env: "ACME_EMAIL", group: "acme", type: "email", default: "" },
+	{ env: "ACME_EAB_KID", group: "acme", type: "token", default: "" },
+	{ env: "ACME_EAB_HMAC_KEY", group: "acme", type: "secret", default: "" },
 	bool("NPMOS_CHECK_VERSION", "external", false, { internet: true }),
 ];
 
@@ -72,6 +81,21 @@ export const normalize = (env, value) => {
 		}
 		case "tz":
 			return validTimeZone(value) ? value : undefined;
+		// the same forms envs.sh accepts from runtime.env (no spaces, quotes or "=")
+		case "url":
+			return typeof value === "string" &&
+				value.length <= 512 &&
+				/^https?:\/\/[A-Za-z0-9._~:/?&%+@-]+$/.test(value)
+				? value
+				: undefined;
+		case "email":
+			return typeof value === "string" &&
+				(value === "" || /^[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]{1,190}$/.test(value))
+				? value
+				: undefined;
+		case "token":
+		case "secret":
+			return typeof value === "string" && /^[A-Za-z0-9_-]{0,512}$/.test(value) ? value : undefined;
 		default:
 			return undefined;
 	}
@@ -101,6 +125,12 @@ export const conflicts = (values) => {
 	}
 	if (v("NGINX_FORCE_X25519MLKEM768") === true && v("NGINX_TRUST_SECPR1") === true) {
 		problems.push("NGINX_FORCE_X25519MLKEM768 needs NGINX_TRUST_SECPR1 off");
+	}
+	if (!!v("ACME_EAB_KID") !== !!v("ACME_EAB_HMAC_KEY")) {
+		problems.push("ACME_EAB_KID and ACME_EAB_HMAC_KEY go together");
+	}
+	if ((v("ACME_EAB_KID") || /acme\.zerossl\.com/.test(v("ACME_SERVER") ?? "")) && !v("ACME_EMAIL")) {
+		problems.push("ACME_EMAIL is needed with EAB and ZeroSSL");
 	}
 	return problems;
 };

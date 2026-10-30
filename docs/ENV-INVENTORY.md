@@ -2,7 +2,7 @@
 
 Принцип «всё через GUI» означает, что после `docker compose up -d` администратор ничего не правит в compose-файле. Каждую переменную окружения NPMplus, агента open-appsec и CrowdSec относим к одному из классов:
 
-- **Bootstrap.** Нужна до запуска backend: порты, сеть, БД, секреты. Остаётся в env, имеет безопасное значение по умолчанию в `deploy/compose.yaml`, в GUI показывается только для чтения (страница «Система → Сервисы», фаза 1).
+- **Bootstrap.** Нужна до запуска backend: порты, сеть, БД, секреты. Остаётся в env, имеет безопасное значение по умолчанию в `deploy/compose.yaml`, в GUI показывается только для чтения (страница «Обзор → Сервисы», фаза 1).
 - **GUI (фаза N).** Переносится в настройки NPMOS, которые хранятся в БД. Env остаётся только как значение для первого запуска; если значение в БД задано, оно приоритетнее env.
 - **NPMOS фиксирует.** Значение задаёт NPMOS, администратору его менять не нужно (часто ради local-first).
 
@@ -12,39 +12,40 @@
 
 | Переменная | Upstream по умолчанию | NPMOS по умолчанию | Класс | Фаза |
 |---|---|---|---|---|
-| `TZ` | — (обязательна) | `UTC` | GUI (Система → Настройки → Общие) | 4 ✅ |
+| `TZ` | — (обязательна) | `UTC` | GUI (Администрирование → Настройки → Общие) | 4 ✅ |
 | `PUID`, `PGID` | `0` | `0` | Bootstrap | — |
 | `HTTP_PORT`, `HTTPS_PORT`, `NPM_PORT`, `GOA_PORT` | 80, 443, 81, 91 | те же; внешние порты — `NPMOS_*_PORT` | Bootstrap | — |
 | `IPV4_BINDING`, `IPV6_BINDING`, `NPM_*_BINDING`, `GOA_*_BINDING`, `*_LISTEN_LOCALHOST` | все адреса | те же | Bootstrap | — |
 | `DISABLE_IPV6` | `false` | `NPMOS_DISABLE_IPV6`, `true` (только IPv4; `false` включает IPv6) | Bootstrap | — |
-| `DISABLE_HTTP`, `DISABLE_H3_QUIC`, `ENABLE_MPTCP`, `NGINX_QUIC_BPF` | `false` | `false` | GUI (Система → Настройки → Сеть) | 4 ✅ |
-| `LISTEN_PROXY_PROTOCOL_HTTP`, `LISTEN_PROXY_PROTOCOL_HTTPS` | `false` | `false` | GUI (Система → Настройки → Сеть) | 4 ✅ |
+| `DISABLE_HTTP`, `DISABLE_H3_QUIC`, `ENABLE_MPTCP`, `NGINX_QUIC_BPF` | `false` | `false` | GUI (Администрирование → Настройки → Сеть) | 4 ✅ |
+| `LISTEN_PROXY_PROTOCOL_HTTP`, `LISTEN_PROXY_PROTOCOL_HTTPS` | `false` | `false` | GUI (Администрирование → Настройки → Сеть) | 4 ✅ |
 | `DB_POSTGRES_*` | — (SQLite) | Postgres из compose, пароль из `DB_POSTGRES_PASSWORD_FILE` | Bootstrap | 0 ✅ |
 | `DB_MYSQL_*` | — | не используется | Bootstrap (поддержка upstream сохраняется) | — |
 | `COOKIE_SECRET` | случайный при каждом старте | `COOKIE_SECRET_FILE` от `npmos-init` ✅ | Bootstrap (секрет) | 0 |
 | `INITIAL_ADMIN_EMAIL`, `INITIAL_ADMIN_PASSWORD` | — | не задаём: первый админ создаётся мастером в GUI | Bootstrap | — |
-| `ACME_SERVER`, `ACME_EMAIL`, `ACME_EAB_KID`, `ACME_EAB_HMAC_KEY`, `ACME_PROFILE`, `ACME_KEY_TYPE`, `ACME_KEY_SIZE`, `ACME_MUST_STAPLE`, `ACME_OCSP_STAPLING`, `ACME_SERVER_TLS_VERIFY` | Let's Encrypt | Let's Encrypt; аккаунт регистрируется при первом запросе сертификата, при старте обращений нет ✅ | GUI (Сертификаты → ACME) | 6 |
+| `ACME_SERVER`, `ACME_EMAIL`, `ACME_EAB_KID`, `ACME_EAB_HMAC_KEY` | Let's Encrypt | Let's Encrypt; аккаунт регистрируется при первом запросе сертификата, при старте обращений нет ✅ | GUI (Администрирование → Настройки → ACME): Let's Encrypt, тестовый Let's Encrypt, ZeroSSL, Google Trust Services, SSL.com или свой URL; HMAC-ключ не показывается после сохранения | 6 ✅ |
+| `ACME_PROFILE`, `ACME_KEY_TYPE`, `ACME_KEY_SIZE`, `ACME_MUST_STAPLE`, `ACME_OCSP_STAPLING`, `ACME_SERVER_TLS_VERIFY` | | те же | env (редко нужны) | 6 |
 | `CUSTOM_OCSP_STAPLING` | `false` | `false` | GUI (Сертификаты) | 6 |
 | `CERTBOT_RUN_INTERVAL` | 3 ч | 3 ч | GUI (Сертификаты) | 6 |
-| `DEFAULT_CERT_ID` | 0 | 0 | GUI (Система → Настройки → Общие) | 4 ✅ |
+| `DEFAULT_CERT_ID` | 0 | 0 | GUI (Администрирование → Настройки → Общие) | 4 ✅ |
 | `ECH_ROTATION_INTERVAL` | 1 ч | 1 ч | GUI (Сертификаты) | 6 |
-| `NGINX_WORKER_PROCESSES`, `NGINX_WORKER_CONNECTIONS`, `NGINX_LOG_NOT_FOUND` | auto, 512, false | те же | GUI (Система → Настройки → Nginx) | 4 ✅ |
-| `NGINX_FORCE_X25519MLKEM768`, `NGINX_DISABLE_TLS12`, `NGINX_TRUST_SECPR1`, `NGINX_TRUST_RSA_PKCS1` | | те же | GUI (Система → Настройки → TLS) | 4 ✅ |
+| `NGINX_WORKER_PROCESSES`, `NGINX_WORKER_CONNECTIONS`, `NGINX_LOG_NOT_FOUND` | auto, 512, false | те же | GUI (Администрирование → Настройки → Nginx) | 4 ✅ |
+| `NGINX_FORCE_X25519MLKEM768`, `NGINX_DISABLE_TLS12`, `NGINX_TRUST_SECPR1`, `NGINX_TRUST_RSA_PKCS1` | | те же | GUI (Администрирование → Настройки → TLS) | 4 ✅ |
 | `DISABLE_NGINX_BEAUTIFIER` | `false` | `false` | NPMOS фиксирует | — |
-| `NGINX_LOAD_OPENAPPSEC_ATTACHMENT_MODULE` | `false` | `false` | GUI (WAF → Агент: «Включить WAF»), значение из БД пишется в `/data/npmos/runtime.env` | 1 ✅ |
-| `NGINX_LOAD_NJS_MODULE`, `NGINX_LOAD_GEOIP2_MODULE`, `NGINX_LOAD_LDAP_MODULE`, `NGINX_LOAD_NTLM_MODULE`, `NGINX_LOAD_VHOST_TRAFFIC_STATUS_MODULE` | `false` | `false` | GUI (Система → Настройки → Nginx) | 4 ✅ |
-| `TRUST_CLOUDFLARE` | `false` | `false` (загрузка IP-диапазонов Cloudflare — только при явном включении) | GUI (Система → Настройки → Сеть, помечено «интернет») | 4 ✅ |
-| `DISABLE_GRAVATAR` | `false` | **`true`** ✅ | GUI (Система → Настройки → Внешние сервисы) | 4 ✅ |
-| `NPMOS_CHECK_VERSION` | — (проверка всегда включена) | **`false`** ✅ | GUI (Система → Настройки → Внешние сервисы) | 4 ✅ |
-| `LOGROTATE`, `LOGROTATIONS` | `false`, 3 | **`true`** (логи нужны CrowdSec и аналитике), 3 | NPMOS фиксирует `LOGROTATE`; `LOGROTATIONS` — GUI (Система → Настройки → Журналы) | 4 ✅ |
-| `GOA`, `GOACLA` | `false` | `false` | Заменяется аналитикой NPMOS (WAF → Аналитика) | 4 ✅ |
+| `NGINX_LOAD_OPENAPPSEC_ATTACHMENT_MODULE` | `false` | `false` | GUI (Агенты → Агент open-appsec: «Включить WAF»), значение из БД пишется в `/data/npmos/runtime.env` | 1 ✅ |
+| `NGINX_LOAD_NJS_MODULE`, `NGINX_LOAD_GEOIP2_MODULE`, `NGINX_LOAD_LDAP_MODULE`, `NGINX_LOAD_NTLM_MODULE`, `NGINX_LOAD_VHOST_TRAFFIC_STATUS_MODULE` | `false` | `false` | GUI (Администрирование → Настройки → Nginx) | 4 ✅ |
+| `TRUST_CLOUDFLARE` | `false` | `false` (загрузка IP-диапазонов Cloudflare — только при явном включении) | GUI (Администрирование → Настройки → Сеть, помечено «интернет») | 4 ✅ |
+| `DISABLE_GRAVATAR` | `false` | **`true`** ✅ | NPMOS фиксирует: Gravatar убран, аватары с gravatar.com не загружаются | — |
+| `NPMOS_CHECK_VERSION` | — (проверка всегда включена) | **`false`** ✅ | GUI (Администрирование → Настройки → Внешние сервисы) | 4 ✅ |
+| `LOGROTATE`, `LOGROTATIONS` | `false`, 3 | **`true`** (логи нужны CrowdSec и аналитике), 3 | NPMOS фиксирует `LOGROTATE`; `LOGROTATIONS` — GUI (Администрирование → Настройки → Журналы) | 4 ✅ |
+| `GOA`, `GOACLA` | `false` | `false` | Заменяется аналитикой NPMOS (Аналитика) | 4 ✅ |
 | `PHP83`, `PHP84`, `PHP85` | `false` | `false` | PHP нет в образе NPMOS; если понадобится — GUI | позже |
 | `INITIAL_DEFAULT_PAGE` | `congratulations` | то же | NPMOS фиксирует (настройка «страница по умолчанию» уже есть в GUI upstream) | — |
 | `OIDC_ISSUER_URL`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `OIDC_REDIRECT_DOMAIN`, `OIDC_REQUIRE_VERIFIED_EMAIL`, `OIDC_DISABLE_PASSWORD` | — | — | GUI (Администрирование → Вход через OIDC) | 3 |
 | `AUTH_REQUEST_*_UPSTREAM` (Anubis, Tinyauth, oauth2-proxy, VoidAuth, Authelia, Authentik) | — | — | GUI (Безопасность → Внешняя аутентификация) | позже |
 | `ENABLE_PRERUN` | `false` | `false` | NPMOS фиксирует (скрипты до запуска противоречат «всё через GUI») | — |
 | `NODE_TLS_REJECT_UNAUTHORIZED` | — | — | Не используется; доверенные CA для OIDC/ACME добавляются в GUI | 6 |
-| `REGENERATE_ALL` | — | — | Кнопка «Пересоздать конфигурацию» в Система → Сервисы | 1 ✅ |
+| `REGENERATE_ALL` | — | — | Кнопка «Пересоздать конфигурацию» в Обзор → Сервисы | 1 ✅ |
 | `NC_AIO`, `NC_DOMAIN` | — | — | Интеграция Nextcloud AIO upstream; не трогаем | — |
 
 ## Агент open-appsec (`appsec-agent`)
@@ -55,11 +56,11 @@
 | `user_email` | не задаётся | NPMOS фиксирует | 0 ✅ |
 | `autoPolicyLoad` | `true` (агент сам применяет `local_policy.yaml`, который генерирует NPMOS) | NPMOS фиксирует | 0 ✅ |
 | `nginxproxymanager` | не задаётся (только помечает отчёт агента в облако) | NPMOS фиксирует | 1 ✅ |
-| `SHARED_STORAGE_HOST`, `LEARNING_HOST`, `TUNING_HOST` | имена сервисов compose | Bootstrap | 0 ✅ |
+| `SHARED_STORAGE_HOST`, `TUNING_HOST` | имена сервисов compose | Bootstrap | 0 ✅ |
 | `https_proxy` | не задаётся | GUI (Система → Внешние сервисы), только если администратор включит онлайн-функции | 4 |
-| `CROWDSEC_ENABLED`, `CROWDSEC_MODE`, `CROWDSEC_API_URL`, `CROWDSEC_AUTH_METHOD`, `CROWDSEC_AUTH_DATA` (встроенная интеграция агента) | выключено; LAPI `crowdsec:8080`, ключ bouncer `appsec` от `npmos-init` | GUI (WAF → Агент → «Репутация IP из CrowdSec»); `npmos-entry.sh` образа агента выставляет их из `npmos-agent.env` | 1 ✅ |
-| Advanced ML-модель | файл `/advanced-model/open-appsec-advanced-model.tgz` (том `appsec-model`) | Загрузка файла в GUI (WAF → Агент) | 1 ✅ |
-| Fail-open/fail-close attachment и тайм-аут ответа агента (`agent.failOpenState.nginxModule`, `agent.failOpenTimeout.nginxModule` в `settings.json` агента) | fail-open, 50 мс | GUI (WAF → Агент) | 1 ✅ |
+| `CROWDSEC_ENABLED`, `CROWDSEC_MODE`, `CROWDSEC_API_URL`, `CROWDSEC_AUTH_METHOD`, `CROWDSEC_AUTH_DATA` (встроенная интеграция агента) | выключено; LAPI `crowdsec:8080`, ключ bouncer `appsec` от `npmos-init` | GUI (Агенты → Агент open-appsec → «Репутация IP из CrowdSec»); `npmos-entry.sh` образа агента выставляет их из `npmos-agent.env` | 1 ✅ |
+| Advanced ML-модель | файл `/advanced-model/open-appsec-advanced-model.tgz` (том `appsec-model`) | Загрузка файла в GUI (Агенты → Агент open-appsec) | 1 ✅ |
+| Fail-open/fail-close attachment и тайм-аут ответа агента (`agent.failOpenState.nginxModule`, `agent.failOpenTimeout.nginxModule` в `settings.json` агента) | fail-open, 50 мс | GUI (Агенты → Агент open-appsec) | 1 ✅ |
 | Уровень отладки агента | по умолчанию | GUI (Система → Диагностика) | 4 |
 
 Режим (prevent/detect), `minimum-confidence`, практики, триггеры и исключения — это не env, а `local_policy.yaml`. Его целиком генерирует NPMOS из своей БД (фазы 1 и 5).
@@ -70,7 +71,9 @@
 |---|---|---|---|
 | `appsec-tuning-svc` | `QUERY_DB_HOST`, `QUERY_DB_USER` | `postgres`, роль `appsec` (CREATEDB) | Bootstrap |
 | `appsec-tuning-svc` | `QUERY_DB_PASSWORD` | `QUERY_DB_PASSWORD_FILE` (entrypoint образа NPMOS), секрет от `npmos-init` | Bootstrap (секрет) ✅ |
-| `appsec-smartsync`, `appsec-tuning-svc` | `SHARED_STORAGE_HOST` | `appsec-shared-storage` | Bootstrap |
+| `appsec-tuning-svc` | `SHARED_STORAGE_HOST` | `appsec-shared-storage` | Bootstrap |
+
+`appsec-smartsync` (централизованное обучение нескольких агентов) убран из стека: в локальном режиме без регистрации у агента нет Fog-токена, поэтому выгрузка `CentralizedData` в него падала с «Access token is missing», и сервис простаивал. Агент учится локально; разметку NPMOS он читает из `tuning/decisions.data` shared-storage напрямую. Подробно — `docs/adr/0011-learning.md`.
 
 ## CrowdSec (`crowdsec`, официальный образ `crowdsecurity/crowdsec`)
 

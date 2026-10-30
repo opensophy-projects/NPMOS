@@ -2,7 +2,7 @@
 // own CAs as a table (status, expiry, where used, filters, bulk revocation), the CAs (roots, trust
 // domains, external ones), templates of certificates and settings (public address for CRLs and
 // links, lifetimes).
-import { IconDots, IconPlus, IconSearch } from "@tabler/icons-react";
+import { IconDots, IconPlus } from "@tabler/icons-react";
 import { useQueryClient } from "@tanstack/react-query";
 import cn from "classnames";
 import { useMemo, useState } from "react";
@@ -35,6 +35,7 @@ import { useCan } from "../../rbac/hooks";
 import { Dropdown, type DropdownItem } from "../../ui/Dropdown";
 import hostStyles from "../Hosts/Hosts.module.css";
 import styles from "./Pki.module.css";
+import { SearchField } from "../../ui/SearchField";
 
 const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id }, values);
 
@@ -198,15 +199,12 @@ function CertificatesTab({ data, refresh }: { data: PkiOverview; refresh: () => 
 	return (
 		<section className={cn("card", styles.card)}>
 			<div className={styles.filters}>
-				<label className={hostStyles.search}>
-					<IconSearch size={16} />
-					<input
-						value={query}
-						placeholder={t("npmos.pki.search")}
-						aria-label={t("npmos.pki.search")}
-						onChange={(e) => setQuery(e.target.value)}
-					/>
-				</label>
+				<SearchField
+					variant="inset"
+					value={query}
+					onChange={(value) => setQuery(value)}
+					placeholder={t("npmos.pki.search")}
+				/>
 				<select
 					className="form-select form-select-sm w-auto"
 					aria-label={t("npmos.pki.status")}
@@ -788,7 +786,11 @@ function SettingsTab({ data, refresh }: { data: PkiOverview; refresh: () => void
 function PkiPage() {
 	const can = useCan();
 	const queryClient = useQueryClient();
-	const [tab, setTab] = useState<Tab>("certificates");
+	// ?tab=cas opens a tab (links from the registry of certificates)
+	const [tab, setTab] = useState<Tab>(() => {
+		const asked = new URLSearchParams(window.location.search).get("tab");
+		return asked === "cas" || asked === "templates" || asked === "settings" ? asked : "certificates";
+	});
 	const { data, isLoading, isError, error } = usePki({ refetchInterval: 30000 });
 	const refresh = () => {
 		queryClient.invalidateQueries({ queryKey: ["npmos-pki"] });

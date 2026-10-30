@@ -525,13 +525,13 @@
 		"defaultMessage": "HTTP Only"
 	},
 	"lets-encrypt": {
-		"defaultMessage": "Certbot"
+		"defaultMessage": "Let's Encrypt / ACME"
 	},
 	"lets-encrypt-via-dns": {
-		"defaultMessage": "Certbot via DNS"
+		"defaultMessage": "Let's Encrypt / ACME (DNS challenge)"
 	},
 	"lets-encrypt-via-http": {
-		"defaultMessage": "Certbot via HTTP"
+		"defaultMessage": "Let's Encrypt / ACME (HTTP challenge)"
 	},
 	"loading": {
 		"defaultMessage": "Loading…"
@@ -620,6 +620,87 @@
 	"npmos.2fa.error-start": {
 		"defaultMessage": "Failed to start 2FA setup"
 	},
+	"npmos.access.description": {
+		"defaultMessage": "An access list lets only some visitors reach a host: those who know a login and password, those who come from allowed addresses, or both. Everyone else gets 403 (or a password prompt) before the request reaches the service."
+	},
+	"npmos.access.point.apply": {
+		"defaultMessage": "Where it works"
+	},
+	"npmos.access.point.apply.text": {
+		"defaultMessage": "A list does nothing on its own: choose it in a host (Hosts → the host → Details → Access list). One list can protect several hosts; the column on the right counts them."
+	},
+	"npmos.access.point.ip": {
+		"defaultMessage": "Addresses and networks"
+	},
+	"npmos.access.point.ip.text": {
+		"defaultMessage": "Allow or deny rules for IP addresses and networks (192.168.1.0/24), checked in order. \"Satisfy any\": one of password or address is enough; \"all\": both are needed."
+	},
+	"npmos.access.point.password": {
+		"defaultMessage": "Login and password"
+	},
+	"npmos.access.point.password.text": {
+		"defaultMessage": "Users of the list (HTTP Basic Auth): the browser asks for them once. Good for an admin panel or a staging site."
+	},
+	"npmos.access.search": {
+		"defaultMessage": "Search by name"
+	},
+	"npmos.agent.default.hint": {
+		"defaultMessage": "Applies to every host that has no policy of its own: the mode and the building blocks the agent uses."
+	},
+	"npmos.agent.group.blocks": {
+		"defaultMessage": "Building blocks"
+	},
+	"npmos.agent.group.more": {
+		"defaultMessage": "More"
+	},
+	"npmos.agent.group.policies": {
+		"defaultMessage": "Policies"
+	},
+	"npmos.agent.host.hint": {
+		"defaultMessage": "The policy of this host: whether the WAF inspects it, how strictly, and the building blocks if they differ from the base policy."
+	},
+	"npmos.agent.host.none": {
+		"defaultMessage": "The host is gone."
+	},
+	"npmos.agent.host.saved": {
+		"defaultMessage": "The policy of {name} is saved"
+	},
+	"npmos.agent.item.expert": {
+		"defaultMessage": "YAML additions"
+	},
+	"npmos.agent.item.expert.hint": {
+		"defaultMessage": "Fragments of local_policy.yaml merged over what NPMOS generates: for what the GUI has no field for."
+	},
+	"npmos.agent.item.versions": {
+		"defaultMessage": "Versions"
+	},
+	"npmos.agent.item.versions.hint": {
+		"defaultMessage": "Every change of the policy is kept; any version can be restored."
+	},
+	"npmos.agent.openappsec.description": {
+		"defaultMessage": "The machine-learning WAF of the hosts: its policies (the base one and those of the hosts, made of building blocks) and the agent itself."
+	},
+	"npmos.agent.policies": {
+		"defaultMessage": "What the policy is made of"
+	},
+	"npmos.agent.tab.agent": {
+		"defaultMessage": "Agent"
+	},
+	"npmos.agent.tab.learning": {
+		"defaultMessage": "Learning"
+	},
+	"npmos.agent.tab.policies": {
+		"defaultMessage": "Policies"
+	},
+	"npmos.agent.view": {
+		"defaultMessage": "View"
+	},
+	"npmos.agent.view.code": {
+		"defaultMessage": "Code"
+	},
+	"npmos.agent.view.gui": {
+		"defaultMessage": "Interface"
+	},
 	"npmos.analytics": {
 		"defaultMessage": "Analytics"
 	},
@@ -641,6 +722,9 @@
 	"npmos.analytics.crowdsec-bans": {
 		"defaultMessage": "CrowdSec bans"
 	},
+	"npmos.analytics.description": {
+		"defaultMessage": "Requests to the hosts and the attacks the agents saw in them, from the data NPMOS keeps. Click a row to open its events."
+	},
 	"npmos.analytics.detected": {
 		"defaultMessage": "Detected only"
 	},
@@ -657,7 +741,7 @@
 		"defaultMessage": "Nothing in this period"
 	},
 	"npmos.analytics.note": {
-		"defaultMessage": "Short periods are counted from the events, the timeline of longer ones from the hourly statistics; both are kept as set in WAF → Events → Retention. Learning readiness per host comes with phase 8."
+		"defaultMessage": "Short periods are counted from the events, the timeline of longer ones from the hourly statistics; both are kept as set in Analytics → Events → Retention. Learning readiness per host comes with phase 8."
 	},
 	"npmos.analytics.prevented": {
 		"defaultMessage": "Blocked"
@@ -671,6 +755,12 @@
 	"npmos.analytics.requests.none": {
 		"defaultMessage": "The agent has not reported traffic statistics yet"
 	},
+	"npmos.analytics.section.attacks": {
+		"defaultMessage": "Attacks"
+	},
+	"npmos.analytics.section.traffic": {
+		"defaultMessage": "Traffic of the hosts"
+	},
 	"npmos.analytics.series.detect": {
 		"defaultMessage": "Detected (Detect)"
 	},
@@ -682,9 +772,6 @@
 	},
 	"npmos.analytics.sources": {
 		"defaultMessage": "Attack sources"
-	},
-	"npmos.analytics.subtitle": {
-		"defaultMessage": "Attacks on the hosts protected by the WAF, from the events NPMOS stores. Click a line to see its events."
 	},
 	"npmos.analytics.timeline": {
 		"defaultMessage": "Attacks over time"
@@ -700,6 +787,114 @@
 	},
 	"npmos.analytics.top-uris": {
 		"defaultMessage": "Most attacked URIs"
+	},
+	"npmos.analytics.traffic.4xx": {
+		"defaultMessage": "Client errors (4xx)"
+	},
+	"npmos.analytics.traffic.5xx": {
+		"defaultMessage": "Server errors (5xx)"
+	},
+	"npmos.analytics.traffic.blocked": {
+		"defaultMessage": "Refused"
+	},
+	"npmos.analytics.traffic.host-sub": {
+		"defaultMessage": "errors {errors}, refused {blocked}"
+	},
+	"npmos.analytics.traffic.hosts": {
+		"defaultMessage": "Requests by host"
+	},
+	"npmos.analytics.traffic.none": {
+		"defaultMessage": "No requests in this period"
+	},
+	"npmos.analytics.traffic.ok": {
+		"defaultMessage": "Answered normally (2xx, 3xx)"
+	},
+	"npmos.analytics.traffic.passed": {
+		"defaultMessage": "Passed"
+	},
+	"npmos.analytics.traffic.requests": {
+		"defaultMessage": "Requests"
+	},
+	"npmos.analytics.traffic.sent": {
+		"defaultMessage": "{bytes} sent to clients"
+	},
+	"npmos.analytics.traffic.share": {
+		"defaultMessage": "{p} of all"
+	},
+	"npmos.analytics.traffic.timeline": {
+		"defaultMessage": "Requests over time"
+	},
+	"npmos.audit.action.applied": {
+		"defaultMessage": "Applied"
+	},
+	"npmos.audit.action.banned": {
+		"defaultMessage": "Banned"
+	},
+	"npmos.audit.action.captcha": {
+		"defaultMessage": "Captcha"
+	},
+	"npmos.audit.action.created": {
+		"defaultMessage": "Created"
+	},
+	"npmos.audit.action.deleted": {
+		"defaultMessage": "Deleted"
+	},
+	"npmos.audit.action.disabled": {
+		"defaultMessage": "Disabled"
+	},
+	"npmos.audit.action.enabled": {
+		"defaultMessage": "Enabled"
+	},
+	"npmos.audit.action.exported": {
+		"defaultMessage": "Exported"
+	},
+	"npmos.audit.action.imported": {
+		"defaultMessage": "Imported"
+	},
+	"npmos.audit.action.installed": {
+		"defaultMessage": "Installed"
+	},
+	"npmos.audit.action.labeled": {
+		"defaultMessage": "Labelled"
+	},
+	"npmos.audit.action.regenerated": {
+		"defaultMessage": "Regenerated"
+	},
+	"npmos.audit.action.removed": {
+		"defaultMessage": "Removed"
+	},
+	"npmos.audit.action.renewed": {
+		"defaultMessage": "Renewed"
+	},
+	"npmos.audit.action.restarted": {
+		"defaultMessage": "Restarted"
+	},
+	"npmos.audit.action.revoked": {
+		"defaultMessage": "Revoked"
+	},
+	"npmos.audit.action.unbanned": {
+		"defaultMessage": "Unbanned"
+	},
+	"npmos.audit.action.unlabeled": {
+		"defaultMessage": "Label undone"
+	},
+	"npmos.audit.action.updated": {
+		"defaultMessage": "Updated"
+	},
+	"npmos.audit.description": {
+		"defaultMessage": "Who changed what and when. Every page is loaded from the server; search covers the whole log."
+	},
+	"npmos.audit.empty": {
+		"defaultMessage": "No entries match the filters"
+	},
+	"npmos.audit.filter.action": {
+		"defaultMessage": "Action"
+	},
+	"npmos.audit.filter.object": {
+		"defaultMessage": "Object"
+	},
+	"npmos.audit.filter.user": {
+		"defaultMessage": "User"
 	},
 	"npmos.audit.name.agent": {
 		"defaultMessage": "WAF agent settings"
@@ -719,8 +914,287 @@
 	"npmos.audit.name.waf": {
 		"defaultMessage": "WAF (open-appsec)"
 	},
+	"npmos.audit.page": {
+		"defaultMessage": "Page {page} of {pages}"
+	},
+	"npmos.audit.period.24h": {
+		"defaultMessage": "24 h"
+	},
+	"npmos.audit.period.30d": {
+		"defaultMessage": "30 days"
+	},
+	"npmos.audit.period.7d": {
+		"defaultMessage": "7 days"
+	},
+	"npmos.audit.period.90d": {
+		"defaultMessage": "90 days"
+	},
+	"npmos.audit.period.all": {
+		"defaultMessage": "All time"
+	},
+	"npmos.audit.search": {
+		"defaultMessage": "Search by object, details or user"
+	},
+	"npmos.audit.total": {
+		"defaultMessage": "{total, plural, one {# entry} other {# entries}}"
+	},
+	"npmos.block-page": {
+		"defaultMessage": "Block page"
+	},
+	"npmos.block-page.accent": {
+		"defaultMessage": "Colour"
+	},
+	"npmos.block-page.contact": {
+		"defaultMessage": "Contact (optional)"
+	},
+	"npmos.block-page.contact.placeholder": {
+		"defaultMessage": "For example: write to security@example.com"
+	},
+	"npmos.block-page.description": {
+		"defaultMessage": "What a visitor sees when a request is refused: by open-appsec, by the CrowdSec bouncer or by an access list. It replaces the page of the agent with the text of Check Point."
+	},
+	"npmos.block-page.details": {
+		"defaultMessage": "Show the request ID, IP, host and time (for a request to the administrator)"
+	},
+	"npmos.block-page.enabled": {
+		"defaultMessage": "Show the page of NPMOS"
+	},
+	"npmos.block-page.enabled.hint": {
+		"defaultMessage": "Off: each component answers with its own page (open-appsec, CrowdSec, nginx)."
+	},
+	"npmos.block-page.language": {
+		"defaultMessage": "Language of the labels"
+	},
+	"npmos.block-page.off": {
+		"defaultMessage": "The page of NPMOS is off: visitors see the pages of the components."
+	},
+	"npmos.block-page.preview": {
+		"defaultMessage": "Preview"
+	},
+	"npmos.block-page.saved": {
+		"defaultMessage": "The block page is saved"
+	},
+	"npmos.block-page.settings": {
+		"defaultMessage": "Page"
+	},
+	"npmos.block-page.text": {
+		"defaultMessage": "Text"
+	},
+	"npmos.block-page.text.hint": {
+		"defaultMessage": "An empty line starts a new paragraph."
+	},
+	"npmos.block-page.title": {
+		"defaultMessage": "Title"
+	},
+	"npmos.block-page.where": {
+		"defaultMessage": "The page answers every refusal nginx makes itself (code 403); answers of your services are left as they are. Pages of mTLS and the admin interface keep their own."
+	},
+	"npmos.blocks.description": {
+		"defaultMessage": "Whom CrowdSec blocks now and why, and the lists of addresses: bans, captchas, alerts, blocklists. A ban by hand is here too."
+	},
 	"npmos.certificates.mtls": {
 		"defaultMessage": "mTLS CA"
+	},
+	"npmos.certs.add": {
+		"defaultMessage": "Add certificate"
+	},
+	"npmos.certs.badge.expired": {
+		"defaultMessage": "Expired"
+	},
+	"npmos.certs.badge.expiring": {
+		"defaultMessage": "Expires soon"
+	},
+	"npmos.certs.badge.revoked": {
+		"defaultMessage": "Revoked"
+	},
+	"npmos.certs.badge.valid": {
+		"defaultMessage": "Valid"
+	},
+	"npmos.certs.copy-path": {
+		"defaultMessage": "Copy the path"
+	},
+	"npmos.certs.days-left": {
+		"defaultMessage": "{days, plural, one {# day left} other {# days left}}"
+	},
+	"npmos.certs.default-server": {
+		"defaultMessage": "Requests for unknown names"
+	},
+	"npmos.certs.description": {
+		"defaultMessage": "Every certificate of the system in one list: TLS of the hosts, CAs and issued certificates of the PKI, and certificate files on disk that no record describes."
+	},
+	"npmos.certs.details": {
+		"defaultMessage": "Details"
+	},
+	"npmos.certs.empty": {
+		"defaultMessage": "No certificates match the filters"
+	},
+	"npmos.certs.expired-ago": {
+		"defaultMessage": "{days, plural, one {expired # day ago} other {expired # days ago}}"
+	},
+	"npmos.certs.expires": {
+		"defaultMessage": "Valid until"
+	},
+	"npmos.certs.files-hint": {
+		"defaultMessage": "Certificate files found on disk that no record of NPMplus or the PKI describes: copies left by a migration, an old host or a manual change. NPMOS does not use them, except the placeholder of NPMplus; delete the others from the disk if they are not needed."
+	},
+	"npmos.certs.issuer": {
+		"defaultMessage": "Issued by"
+	},
+	"npmos.certs.kind": {
+		"defaultMessage": "Type"
+	},
+	"npmos.certs.kind.dummy": {
+		"defaultMessage": "Placeholder of NPMplus"
+	},
+	"npmos.certs.kind.external": {
+		"defaultMessage": "External CA (uploaded)"
+	},
+	"npmos.certs.kind.file": {
+		"defaultMessage": "Certificate file"
+	},
+	"npmos.certs.kind.file-ca": {
+		"defaultMessage": "CA file"
+	},
+	"npmos.certs.kind.intermediate": {
+		"defaultMessage": "Intermediate CA"
+	},
+	"npmos.certs.kind.root": {
+		"defaultMessage": "Root CA"
+	},
+	"npmos.certs.name": {
+		"defaultMessage": "Certificate"
+	},
+	"npmos.certs.next": {
+		"defaultMessage": "Next page"
+	},
+	"npmos.certs.open-cas": {
+		"defaultMessage": "Open the certificate authorities"
+	},
+	"npmos.certs.open-mtls": {
+		"defaultMessage": "Open in mTLS"
+	},
+	"npmos.certs.open-pki": {
+		"defaultMessage": "Open in the PKI"
+	},
+	"npmos.certs.prev": {
+		"defaultMessage": "Previous page"
+	},
+	"npmos.certs.search": {
+		"defaultMessage": "Name, domain, issuer, serial, host or path"
+	},
+	"npmos.certs.sort": {
+		"defaultMessage": "Sort"
+	},
+	"npmos.certs.sort.-created": {
+		"defaultMessage": "Newest"
+	},
+	"npmos.certs.sort.-expires": {
+		"defaultMessage": "Expires last"
+	},
+	"npmos.certs.sort.expires": {
+		"defaultMessage": "Expires first"
+	},
+	"npmos.certs.sort.name": {
+		"defaultMessage": "By name"
+	},
+	"npmos.certs.source.all": {
+		"defaultMessage": "All"
+	},
+	"npmos.certs.source.ca": {
+		"defaultMessage": "Certificate authorities"
+	},
+	"npmos.certs.source.file": {
+		"defaultMessage": "Files on disk"
+	},
+	"npmos.certs.source.pki": {
+		"defaultMessage": "Issued by the PKI"
+	},
+	"npmos.certs.source.tls": {
+		"defaultMessage": "TLS of hosts"
+	},
+	"npmos.certs.status": {
+		"defaultMessage": "Status"
+	},
+	"npmos.certs.status.any": {
+		"defaultMessage": "Any"
+	},
+	"npmos.certs.status.expired": {
+		"defaultMessage": "Expired"
+	},
+	"npmos.certs.status.expiring": {
+		"defaultMessage": "Expiring soon"
+	},
+	"npmos.certs.status.revoked": {
+		"defaultMessage": "Revoked"
+	},
+	"npmos.certs.status.valid": {
+		"defaultMessage": "Valid"
+	},
+	"npmos.certs.title": {
+		"defaultMessage": "All certificates"
+	},
+	"npmos.certs.total": {
+		"defaultMessage": "{total, plural, one {# certificate} other {# certificates}}"
+	},
+	"npmos.certs.used": {
+		"defaultMessage": "In use"
+	},
+	"npmos.certs.used-by": {
+		"defaultMessage": "Used by"
+	},
+	"npmos.certs.used.any": {
+		"defaultMessage": "Any"
+	},
+	"npmos.certs.used.no": {
+		"defaultMessage": "Not used"
+	},
+	"npmos.certs.used.yes": {
+		"defaultMessage": "Used by hosts"
+	},
+	"npmos.code.applied": {
+		"defaultMessage": "Applied"
+	},
+	"npmos.code.apply": {
+		"defaultMessage": "Apply"
+	},
+	"npmos.code.check": {
+		"defaultMessage": "Check"
+	},
+	"npmos.code.check-first": {
+		"defaultMessage": "Check the document before applying it"
+	},
+	"npmos.code.hint.default": {
+		"defaultMessage": "The whole policy: the base policy (policies.default) and every building block of the administrator. Building blocks not named here are kept."
+	},
+	"npmos.code.hint.host": {
+		"defaultMessage": "The policy of the host. Building blocks are named as in the list on the left; leave objects out to use those of the base policy."
+	},
+	"npmos.code.hint.kind": {
+		"defaultMessage": "The building blocks of this kind created by the administrator. A changed one is updated, a new one is created; built-in ones are read only."
+	},
+	"npmos.code.import.create": {
+		"defaultMessage": "New: {names}."
+	},
+	"npmos.code.import.policy": {
+		"defaultMessage": "The base policy is replaced."
+	},
+	"npmos.code.import.skipped": {
+		"defaultMessage": "Skipped (built in): {names}."
+	},
+	"npmos.code.import.update": {
+		"defaultMessage": "Changed: {names}."
+	},
+	"npmos.code.ready": {
+		"defaultMessage": "Checked: it can be applied"
+	},
+	"npmos.code.reset": {
+		"defaultMessage": "Undo changes"
+	},
+	"npmos.code.review": {
+		"defaultMessage": "Changes"
+	},
+	"npmos.code.unchanged": {
+		"defaultMessage": "No changes"
 	},
 	"npmos.common.close": {
 		"defaultMessage": "Close"
@@ -785,14 +1259,8 @@
 	"npmos.crowdsec.activity": {
 		"defaultMessage": "Activity"
 	},
-	"npmos.crowdsec.agent.off": {
-		"defaultMessage": "The WAF agent does not use these decisions; switch it on in"
-	},
-	"npmos.crowdsec.agent.on": {
-		"defaultMessage": "The WAF agent also checks client IPs against these decisions (mode: {mode})."
-	},
-	"npmos.crowdsec.agent.open": {
-		"defaultMessage": "WAF → Agent"
+	"npmos.crowdsec.agent.description": {
+		"defaultMessage": "Behaviour-based protection: CrowdSec reads the logs of nginx and the attacks of open-appsec and bans their sources. Here are its policy (what to read, when to ban, whom to leave alone), the hub and the machines; the bans themselves are in Analytics → Blocks."
 	},
 	"npmos.crowdsec.alerts.active": {
 		"defaultMessage": "Only with an active decision"
@@ -863,8 +1331,14 @@
 	"npmos.crowdsec.ban.done": {
 		"defaultMessage": "Banned: {count}"
 	},
+	"npmos.crowdsec.ban.extend": {
+		"defaultMessage": "Extend the ban"
+	},
 	"npmos.crowdsec.ban.reason": {
 		"defaultMessage": "Reason (for the audit log)"
+	},
+	"npmos.crowdsec.ban.replace.hint": {
+		"defaultMessage": "An address that is banned already gets this decision instead of its current ones, not a second one."
 	},
 	"npmos.crowdsec.ban.title": {
 		"defaultMessage": "Ban addresses"
@@ -981,7 +1455,7 @@
 		"defaultMessage": "Off: a ban never locks administrators out of the GUI (port of the interface and of GoAccess). On: banned addresses cannot open it either; put the addresses of administrators in the allowlist first."
 	},
 	"npmos.crowdsec.bouncer.appsec": {
-		"defaultMessage": "WAF agent"
+		"defaultMessage": "open-appsec agent (IP reputation off)"
 	},
 	"npmos.crowdsec.bouncer.enabled": {
 		"defaultMessage": "Check requests in nginx"
@@ -1017,7 +1491,7 @@
 		"defaultMessage": "Downloads all decisions periodically: fewer requests to CrowdSec, bans work after the next download."
 	},
 	"npmos.crowdsec.bouncer.npmos": {
-		"defaultMessage": "nginx of NPMOS"
+		"defaultMessage": "nginx of NPMOS: enforces bans on every host"
 	},
 	"npmos.crowdsec.bouncer.pull": {
 		"defaultMessage": "Last request"
@@ -1044,7 +1518,7 @@
 		"defaultMessage": "Delete the bouncer {name}? Its key stops working at once."
 	},
 	"npmos.crowdsec.bouncers.hint": {
-		"defaultMessage": "Components that enforce decisions. npmos is nginx of NPMOS, appsec the WAF agent (IP reputation); their keys come from npmos-init."
+		"defaultMessage": "Bouncers enforce the decisions of CrowdSec. npmos is nginx of NPMOS, the bouncer of every host; keys come from npmos-init."
 	},
 	"npmos.crowdsec.capi": {
 		"defaultMessage": "The Central API of CrowdSec (signal sharing, community blocklist) is not used: local blocklists and the decisions of other NPMOS nodes replace it."
@@ -1109,6 +1583,9 @@
 	"npmos.crowdsec.duration.30d": {
 		"defaultMessage": "30 days"
 	},
+	"npmos.crowdsec.duration.3650d": {
+		"defaultMessage": "Forever"
+	},
 	"npmos.crowdsec.duration.4h": {
 		"defaultMessage": "4 hours"
 	},
@@ -1122,7 +1599,7 @@
 		"defaultMessage": "Host"
 	},
 	"npmos.crowdsec.hub.hint": {
-		"defaultMessage": "The hub snapshot of this node: nothing is downloaded from the internet. A new snapshot is uploaded here (.index.json of cscli hub update --with-content, or the archive of scripts/crowdsec-hub-snapshot.sh with data files). Installing or removing restarts CrowdSec."
+		"defaultMessage": "The hub snapshot of this node: nothing is downloaded from the internet. A new snapshot is uploaded here (.index.json of cscli hub update --with-content, or the archive of scripts/crowdsec-hub-snapshot.sh with data files). Installing or removing applies without a restart of CrowdSec."
 	},
 	"npmos.crowdsec.hub.index-updated": {
 		"defaultMessage": "Hub index updated: {count} items"
@@ -1238,6 +1715,12 @@
 	"npmos.crowdsec.left.days": {
 		"defaultMessage": "{days} d"
 	},
+	"npmos.crowdsec.left.expired": {
+		"defaultMessage": "expired"
+	},
+	"npmos.crowdsec.left.forever": {
+		"defaultMessage": "forever"
+	},
 	"npmos.crowdsec.left.hours": {
 		"defaultMessage": "{hours} h {minutes} min"
 	},
@@ -1266,10 +1749,10 @@
 		"defaultMessage": "Last heartbeat"
 	},
 	"npmos.crowdsec.machine.local": {
-		"defaultMessage": "CrowdSec agent"
+		"defaultMessage": "CrowdSec itself: reads the logs of nginx"
 	},
 	"npmos.crowdsec.machine.npmos": {
-		"defaultMessage": "NPMOS"
+		"defaultMessage": "NPMOS: sends attacks of open-appsec, bans by hand and blocklists"
 	},
 	"npmos.crowdsec.machine.pending": {
 		"defaultMessage": "Not validated"
@@ -1287,7 +1770,7 @@
 		"defaultMessage": "Delete the machine {name}? It can no longer send alerts; its old alerts stay. A node that still runs registers again on its next start."
 	},
 	"npmos.crowdsec.machines.hint": {
-		"defaultMessage": "Agents that send alerts to the local API. localhost is the agent of CrowdSec itself, npmos-… is NPMOS (bans by hand, blocklists)."
+		"defaultMessage": "Machines are the sources of alerts of CrowdSec. localhost is CrowdSec itself (it reads the logs of nginx), npmos-… is NPMOS (attacks found by open-appsec, bans by hand, blocklists)."
 	},
 	"npmos.crowdsec.metrics.appsec": {
 		"defaultMessage": "AppSec: blocked / checked requests"
@@ -1445,9 +1928,6 @@
 	"npmos.crowdsec.protection": {
 		"defaultMessage": "Protection"
 	},
-	"npmos.crowdsec.protection.agent": {
-		"defaultMessage": "IP reputation in the WAF agent"
-	},
 	"npmos.crowdsec.protection.appsec": {
 		"defaultMessage": "CrowdSec AppSec: virtual patching of known vulnerabilities"
 	},
@@ -1487,11 +1967,17 @@
 	"npmos.crowdsec.settings.applied": {
 		"defaultMessage": "Settings applied, CrowdSec restarted"
 	},
+	"npmos.crowdsec.settings.code.hint": {
+		"defaultMessage": "Every setting of CrowdSec as YAML. Applied as from the interface: CrowdSec restarts, and if it does not start the previous settings come back."
+	},
 	"npmos.crowdsec.settings.pending": {
 		"defaultMessage": "The files of CrowdSec differ from the settings ({files}): they are applied at the next save or now."
 	},
+	"npmos.crowdsec.settings.reloaded": {
+		"defaultMessage": "Settings applied: CrowdSec reread them without a restart"
+	},
 	"npmos.crowdsec.settings.restarting": {
-		"defaultMessage": "CrowdSec restarts with the new files; if it does not start, the previous ones come back."
+		"defaultMessage": "CrowdSec rereads the new files (a restart only for the main configuration); if it does not take them, the previous ones come back."
 	},
 	"npmos.crowdsec.settings.save": {
 		"defaultMessage": "Save and apply"
@@ -1605,7 +2091,7 @@
 		"defaultMessage": "Machines and bouncers"
 	},
 	"npmos.crowdsec.tab.settings": {
-		"defaultMessage": "Settings"
+		"defaultMessage": "Policy"
 	},
 	"npmos.crowdsec.time": {
 		"defaultMessage": "Time"
@@ -1625,6 +2111,18 @@
 	"npmos.crowdsec.version": {
 		"defaultMessage": "Version"
 	},
+	"npmos.events.agent": {
+		"defaultMessage": "Agent"
+	},
+	"npmos.events.agent.crowdsec": {
+		"defaultMessage": "CrowdSec"
+	},
+	"npmos.events.agent.mtls": {
+		"defaultMessage": "mTLS"
+	},
+	"npmos.events.agent.open-appsec": {
+		"defaultMessage": "open-appsec"
+	},
 	"npmos.events.attack-type": {
 		"defaultMessage": "Attack type"
 	},
@@ -1640,11 +2138,20 @@
 	"npmos.events.create-exception": {
 		"defaultMessage": "Create exception"
 	},
+	"npmos.events.cs-banned": {
+		"defaultMessage": "CrowdSec: the address is banned ({decision}), {left} left."
+	},
+	"npmos.events.cs-not-banned": {
+		"defaultMessage": "CrowdSec: the address has no active decision."
+	},
 	"npmos.events.empty": {
 		"defaultMessage": "No events for these filters. Attacks on hosts protected by the WAF appear here."
 	},
 	"npmos.events.export": {
 		"defaultMessage": "Export"
+	},
+	"npmos.events.extend-ban": {
+		"defaultMessage": "Extend the ban in CrowdSec"
 	},
 	"npmos.events.filter-by": {
 		"defaultMessage": "Show only these events"
@@ -1670,20 +2177,26 @@
 	"npmos.events.ingest-error": {
 		"defaultMessage": "Events are not being stored:"
 	},
+	"npmos.events.kind.agents": {
+		"defaultMessage": "Agents"
+	},
 	"npmos.events.kind.all": {
 		"defaultMessage": "All"
-	},
-	"npmos.events.kind.crowdsec": {
-		"defaultMessage": "CrowdSec"
 	},
 	"npmos.events.kind.mtls": {
 		"defaultMessage": "mTLS"
 	},
-	"npmos.events.kind.security": {
-		"defaultMessage": "Attacks"
-	},
 	"npmos.events.kind.system": {
-		"defaultMessage": "Agent notices"
+		"defaultMessage": "Messages of open-appsec"
+	},
+	"npmos.events.label.benign": {
+		"defaultMessage": "False positive"
+	},
+	"npmos.events.label.labelled": {
+		"defaultMessage": "The group of this event is already labelled (Agents → open-appsec → Learning)."
+	},
+	"npmos.events.label.malicious": {
+		"defaultMessage": "Attack"
 	},
 	"npmos.events.newer": {
 		"defaultMessage": "Newer"
@@ -1792,114 +2305,6 @@
 	},
 	"npmos.geoip.upload": {
 		"defaultMessage": "Upload .mmdb"
-	},
-	"npmos.glossary": {
-		"defaultMessage": "Glossary"
-	},
-	"npmos.glossary.access-list": {
-		"defaultMessage": "Who may open a proxy host: allowed and denied addresses and/or a login and password."
-	},
-	"npmos.glossary.acme": {
-		"defaultMessage": "Free certificates issued and renewed automatically. Needs access to the internet and a domain reachable from it; optional in NPMOS."
-	},
-	"npmos.glossary.advanced-model": {
-		"defaultMessage": "A larger detection model of open-appsec, uploaded as a file on WAF → Agent."
-	},
-	"npmos.glossary.agent": {
-		"defaultMessage": "The open-appsec service that takes requests from nginx and decides whether to let them through. Its state is on WAF → Agent."
-	},
-	"npmos.glossary.air-gap": {
-		"defaultMessage": "NPMOS works without the internet; going out (ACME, updates, hub) is an option you switch on."
-	},
-	"npmos.glossary.audit-log": {
-		"defaultMessage": "The record of who changed what and when. The history of a host is taken from it."
-	},
-	"npmos.glossary.bouncer": {
-		"defaultMessage": "The part that enforces CrowdSec bans: here nginx of NPMOS and the WAF agent."
-	},
-	"npmos.glossary.ca": {
-		"defaultMessage": "Certificate authority: the certificate that signs others. For mTLS it is the CA of your client certificates."
-	},
-	"npmos.glossary.confidence": {
-		"defaultMessage": "From what confidence a request counts as an attack in Prevent: Critical blocks the least, Medium the most."
-	},
-	"npmos.glossary.crowdsec": {
-		"defaultMessage": "Detects attackers from logs and bans their addresses. In NPMOS it runs locally, without the CrowdSec console."
-	},
-	"npmos.glossary.dead-host": {
-		"defaultMessage": "A domain that answers 404: it is reserved but serves nothing, or a TLS certificate is kept for it."
-	},
-	"npmos.glossary.decision": {
-		"defaultMessage": "A CrowdSec verdict about an address: ban or captcha, for a set time."
-	},
-	"npmos.glossary.detect-learn": {
-		"defaultMessage": "The WAF logs attacks and learns from the traffic, but lets everything through. Start here."
-	},
-	"npmos.glossary.fail-open": {
-		"defaultMessage": "What happens to requests when the agent does not answer in time: they pass without inspection (fail-open) or are refused (fail-close)."
-	},
-	"npmos.glossary.group.crowdsec": {
-		"defaultMessage": "CrowdSec"
-	},
-	"npmos.glossary.group.hosts": {
-		"defaultMessage": "Hosts"
-	},
-	"npmos.glossary.group.system": {
-		"defaultMessage": "System"
-	},
-	"npmos.glossary.group.tls": {
-		"defaultMessage": "Certificates"
-	},
-	"npmos.glossary.group.waf": {
-		"defaultMessage": "WAF (open-appsec)"
-	},
-	"npmos.glossary.hsts": {
-		"defaultMessage": "Tells browsers to open the site only over HTTPS for a long time. Hard to undo: enable it when HTTPS works."
-	},
-	"npmos.glossary.mtls": {
-		"defaultMessage": "Mutual TLS: besides the server, the client shows a certificate. Without a certificate signed by the selected CA the host does not open (Required) or the host gets to know it (Optional)."
-	},
-	"npmos.glossary.nginx": {
-		"defaultMessage": "The web server inside NPMOS that accepts all traffic and serves the hosts."
-	},
-	"npmos.glossary.open-appsec": {
-		"defaultMessage": "The WAF built into NPMOS: a machine-learning engine instead of signature lists. Works locally, without its cloud."
-	},
-	"npmos.glossary.policy": {
-		"defaultMessage": "The settings file of the agent. NPMOS generates it from the hosts; expert fragments are added on WAF → Policy (expert)."
-	},
-	"npmos.glossary.prevent-learn": {
-		"defaultMessage": "The WAF blocks attacks (403) and keeps learning. Switch to it when Detect shows no false positives."
-	},
-	"npmos.glossary.proxy-host": {
-		"defaultMessage": "A domain that NPMOS accepts over HTTP(S) and passes to an internal service (the upstream). WAF, mTLS and access lists are set on proxy hosts."
-	},
-	"npmos.glossary.redirect": {
-		"defaultMessage": "A domain that answers with a redirect (301, 302…) to another address."
-	},
-	"npmos.glossary.search": {
-		"defaultMessage": "Find a term"
-	},
-	"npmos.glossary.severity": {
-		"defaultMessage": "How dangerous an event is, in the terms of the agent. Important events are Critical and High."
-	},
-	"npmos.glossary.stream": {
-		"defaultMessage": "Forwarding of a TCP and/or UDP port without HTTP: databases, SSH, games. Shown in the hosts table as :port."
-	},
-	"npmos.glossary.subtitle": {
-		"defaultMessage": "Terms that the interface keeps in English, and what they mean in NPMOS."
-	},
-	"npmos.glossary.tls": {
-		"defaultMessage": "Encryption of the connection between the browser and NPMOS (HTTPS). SSL is its old name."
-	},
-	"npmos.glossary.tuning": {
-		"defaultMessage": "The local open-appsec services that collect what the agent learned and suggest tuning. Replace its cloud."
-	},
-	"npmos.glossary.upstream": {
-		"defaultMessage": "The address and port where a host forwards requests (the Destination column). NPMOS checks that it accepts connections."
-	},
-	"npmos.glossary.waf": {
-		"defaultMessage": "Web application firewall: inspects HTTP requests and blocks attacks (SQL injection, XSS…). In NPMOS it is open-appsec."
 	},
 	"npmos.hosts.actions": {
 		"defaultMessage": "Actions"
@@ -2105,17 +2510,23 @@
 	"npmos.hosts.mtls.cas": {
 		"defaultMessage": "Trusted: {names}"
 	},
+	"npmos.hosts.mtls.certs": {
+		"defaultMessage": "Choose a certificate ({count} of {all})…"
+	},
 	"npmos.hosts.mtls.configure": {
 		"defaultMessage": "mTLS settings…"
 	},
+	"npmos.hosts.mtls.details": {
+		"defaultMessage": "Open on the mTLS page"
+	},
+	"npmos.hosts.mtls.header": {
+		"defaultMessage": "{count, plural, =0 {No access certificates yet} one {# access certificate} other {# access certificates}}"
+	},
 	"npmos.hosts.mtls.issue": {
-		"defaultMessage": "Issue a client certificate"
+		"defaultMessage": "Issue access certificate…"
 	},
 	"npmos.hosts.mtls.needs-tls": {
 		"defaultMessage": "mTLS needs a TLS certificate on the host"
-	},
-	"npmos.hosts.mtls.new-domain": {
-		"defaultMessage": "Create a trust domain for the host"
 	},
 	"npmos.hosts.mtls.no-ca": {
 		"defaultMessage": "No CA yet: upload one in Certificates"
@@ -2134,6 +2545,15 @@
 	},
 	"npmos.hosts.mtls.required.hint": {
 		"defaultMessage": "Only clients with a certificate of the CA get through"
+	},
+	"npmos.hosts.mtls.turn-off": {
+		"defaultMessage": "Turn off mTLS"
+	},
+	"npmos.hosts.mtls.turn-on": {
+		"defaultMessage": "Turn on mTLS: only clients with an access certificate get through"
+	},
+	"npmos.hosts.mtls.upstream": {
+		"defaultMessage": "mTLS of NPMplus (Certificates → mTLS CA) is on for this host"
 	},
 	"npmos.hosts.no-access": {
 		"defaultMessage": "You have no access to hosts"
@@ -2193,7 +2613,7 @@
 		"defaultMessage": "WAF is switched off for the whole NPMOS"
 	},
 	"npmos.hosts.rec.waf-global-off.hint": {
-		"defaultMessage": "Modes set on {count, plural, one {# host} other {# hosts}} do not work until WAF is switched on in Security → WAF → Agent."
+		"defaultMessage": "Modes set on {count, plural, one {# host} other {# hosts}} do not work until WAF is switched on in Agents → open-appsec agent → Agent."
 	},
 	"npmos.hosts.rec.waf-off": {
 		"defaultMessage": "WAF is off on {count, plural, one {# public proxy host} other {# public proxy hosts}}"
@@ -2312,6 +2732,12 @@
 	"npmos.hosts.waf.prevent.hint": {
 		"defaultMessage": "Attacks are blocked with 403"
 	},
+	"npmos.hosts.waf.ready": {
+		"defaultMessage": "ready to block"
+	},
+	"npmos.hosts.waf.ready.hint": {
+		"defaultMessage": "The model of the host has learnt enough to block attacks (Agents → open-appsec → Learning). Switch the mode to prevention in this menu."
+	},
 	"npmos.hosts.waf.template.api.hint": {
 		"defaultMessage": "Template: for APIs, non-standard HTTP methods are blocked"
 	},
@@ -2323,6 +2749,348 @@
 	},
 	"npmos.hosts.waf.template.strict.hint": {
 		"defaultMessage": "Template: medium confidence, CSRF, error disclosure, open redirect, block page"
+	},
+	"npmos.learning.attacks": {
+		"defaultMessage": "Attack types"
+	},
+	"npmos.learning.ban": {
+		"defaultMessage": "Ban {count, plural, one {the source} other {# sources}} in CrowdSec"
+	},
+	"npmos.learning.ban.duration": {
+		"defaultMessage": "for"
+	},
+	"npmos.learning.decision": {
+		"defaultMessage": "Decision"
+	},
+	"npmos.learning.decision.benign": {
+		"defaultMessage": "Legitimate"
+	},
+	"npmos.learning.decision.benign.text": {
+		"defaultMessage": "Normal traffic of the application: the agent learns it is not an attack."
+	},
+	"npmos.learning.decision.dismiss": {
+		"defaultMessage": "Skip"
+	},
+	"npmos.learning.decision.dismiss.text": {
+		"defaultMessage": "Not sure or not important: the group leaves the queue, nothing changes."
+	},
+	"npmos.learning.decision.malicious": {
+		"defaultMessage": "Attack"
+	},
+	"npmos.learning.decision.malicious.text": {
+		"defaultMessage": "A real attack: kept out of learning, so the model never takes it as normal."
+	},
+	"npmos.learning.description": {
+		"defaultMessage": "Label what the agent is not sure about. A legitimate request stops being blocked (at once with an exception, or after a learning cycle of the model); an attack stays out of learning. Everything is local: the agent reads the labels from the shared storage of the stack."
+	},
+	"npmos.learning.done.benign": {
+		"defaultMessage": "Marked legitimate"
+	},
+	"npmos.learning.done.dismiss": {
+		"defaultMessage": "Skipped"
+	},
+	"npmos.learning.done.malicious": {
+		"defaultMessage": "Marked as attack"
+	},
+	"npmos.learning.duration.168h": {
+		"defaultMessage": "7 days"
+	},
+	"npmos.learning.duration.1h": {
+		"defaultMessage": "1 hour"
+	},
+	"npmos.learning.duration.24h": {
+		"defaultMessage": "1 day"
+	},
+	"npmos.learning.duration.4h": {
+		"defaultMessage": "4 hours"
+	},
+	"npmos.learning.duration.720h": {
+		"defaultMessage": "30 days"
+	},
+	"npmos.learning.effect.banned": {
+		"defaultMessage": "{count} banned for {duration}"
+	},
+	"npmos.learning.effect.dismiss": {
+		"defaultMessage": "left out of the queue"
+	},
+	"npmos.learning.effect.error": {
+		"defaultMessage": "not written: {error}"
+	},
+	"npmos.learning.effect.exception": {
+		"defaultMessage": "exception in the policy"
+	},
+	"npmos.learning.effect.exception.ended": {
+		"defaultMessage": "exception ended"
+	},
+	"npmos.learning.effect.exception.until": {
+		"defaultMessage": "exception until {date}"
+	},
+	"npmos.learning.effect.pending": {
+		"defaultMessage": "waiting to be written"
+	},
+	"npmos.learning.effect.synced": {
+		"defaultMessage": "written for the agent"
+	},
+	"npmos.learning.effect.tuning": {
+		"defaultMessage": "written by the tuning service"
+	},
+	"npmos.learning.effects": {
+		"defaultMessage": "Effect"
+	},
+	"npmos.learning.effects.benign": {
+		"defaultMessage": "The agent takes the label within 30 minutes and learns from it over the next cycles (hours). To stop blocking at once, add an exception for the host until the model has learnt."
+	},
+	"npmos.learning.effects.malicious": {
+		"defaultMessage": "The agent takes the label within 30 minutes: these requests no longer count in learning. Blocking at once is optional."
+	},
+	"npmos.learning.effects.tuning": {
+		"defaultMessage": "A suggestion of the tuning service of open-appsec: it writes the decision for the agent itself."
+	},
+	"npmos.learning.enforced": {
+		"defaultMessage": "{count} taken by the agent"
+	},
+	"npmos.learning.events": {
+		"defaultMessage": "Events"
+	},
+	"npmos.learning.events.value": {
+		"defaultMessage": "{sources, plural, one {# source} other {# sources}}{blocked, plural, =0 {} other {, # blocked}}"
+	},
+	"npmos.learning.exception.benign": {
+		"defaultMessage": "Stop blocking at once"
+	},
+	"npmos.learning.exception.benign.text": {
+		"defaultMessage": "an exception (accept) for the host in the policy"
+	},
+	"npmos.learning.exception.malicious": {
+		"defaultMessage": "Block at once"
+	},
+	"npmos.learning.exception.malicious.text": {
+		"defaultMessage": "an exception (drop) for the host in the policy, until undone"
+	},
+	"npmos.learning.false-positives": {
+		"defaultMessage": "False positives, 7 d"
+	},
+	"npmos.learning.false-positives.value": {
+		"defaultMessage": "{before} before → {after} after"
+	},
+	"npmos.learning.history": {
+		"defaultMessage": "History"
+	},
+	"npmos.learning.history.empty": {
+		"defaultMessage": "No labels yet."
+	},
+	"npmos.learning.history.text": {
+		"defaultMessage": "Who labelled what and when: the local dataset. Undo takes back the label and its effects; the group comes back to the queue."
+	},
+	"npmos.learning.host": {
+		"defaultMessage": "Host"
+	},
+	"npmos.learning.hosts": {
+		"defaultMessage": "Hosts"
+	},
+	"npmos.learning.hosts.empty": {
+		"defaultMessage": "No host has the WAF on."
+	},
+	"npmos.learning.hosts.text": {
+		"defaultMessage": "How far the model of each host has learnt, what was labelled, and the events of groups marked legitimate in the 7 days before and after the label."
+	},
+	"npmos.learning.indicators": {
+		"defaultMessage": "Indicators"
+	},
+	"npmos.learning.label.title": {
+		"defaultMessage": "Label a group of events"
+	},
+	"npmos.learning.labels": {
+		"defaultMessage": "Labels"
+	},
+	"npmos.learning.labels.value": {
+		"defaultMessage": "{benign} legitimate · {malicious} attacks · {queue} in queue"
+	},
+	"npmos.learning.last": {
+		"defaultMessage": "Last"
+	},
+	"npmos.learning.mode": {
+		"defaultMessage": "Mode"
+	},
+	"npmos.learning.mode.detect-learn": {
+		"defaultMessage": "Detection"
+	},
+	"npmos.learning.mode.prevent-learn": {
+		"defaultMessage": "Prevention"
+	},
+	"npmos.learning.new": {
+		"defaultMessage": "new"
+	},
+	"npmos.learning.note": {
+		"defaultMessage": "Note (optional)"
+	},
+	"npmos.learning.parameter": {
+		"defaultMessage": "Parameter"
+	},
+	"npmos.learning.prevent": {
+		"defaultMessage": "Switch to prevention"
+	},
+	"npmos.learning.prevent.done": {
+		"defaultMessage": "{name}: prevention on"
+	},
+	"npmos.learning.queue": {
+		"defaultMessage": "Queue"
+	},
+	"npmos.learning.queue.empty": {
+		"defaultMessage": "Nothing to label: no blocked or doubtful requests in this period."
+	},
+	"npmos.learning.queue.text": {
+		"defaultMessage": "Events of protected hosts grouped by host, URL, parameter and indicators: one label covers a group."
+	},
+	"npmos.learning.queue.total": {
+		"defaultMessage": "{total, plural, one {# group} other {# groups}}"
+	},
+	"npmos.learning.readiness": {
+		"defaultMessage": "Learning"
+	},
+	"npmos.learning.readiness.graduate": {
+		"defaultMessage": "Graduate"
+	},
+	"npmos.learning.readiness.high": {
+		"defaultMessage": "High school"
+	},
+	"npmos.learning.readiness.kindergarten": {
+		"defaultMessage": "Kindergarten"
+	},
+	"npmos.learning.readiness.master": {
+		"defaultMessage": "Master"
+	},
+	"npmos.learning.readiness.none": {
+		"defaultMessage": "No data"
+	},
+	"npmos.learning.readiness.phd": {
+		"defaultMessage": "PhD"
+	},
+	"npmos.learning.readiness.primary": {
+		"defaultMessage": "Primary school"
+	},
+	"npmos.learning.ready": {
+		"defaultMessage": "Ready to block"
+	},
+	"npmos.learning.reason": {
+		"defaultMessage": "Why"
+	},
+	"npmos.learning.reason.blocked": {
+		"defaultMessage": "Blocked"
+	},
+	"npmos.learning.reason.blocked.text": {
+		"defaultMessage": "Requests were refused: if they are legitimate, users are affected now."
+	},
+	"npmos.learning.reason.detected": {
+		"defaultMessage": "Detected"
+	},
+	"npmos.learning.reason.detected.text": {
+		"defaultMessage": "High score on a host that only detects or learns: would be blocked in prevention."
+	},
+	"npmos.learning.reason.grey": {
+		"defaultMessage": "Grey zone"
+	},
+	"npmos.learning.reason.grey.text": {
+		"defaultMessage": "Medium score (3–6): blocked or not depending on the minimum confidence."
+	},
+	"npmos.learning.recommendation.keep_learning": {
+		"defaultMessage": "Keep learning"
+	},
+	"npmos.learning.recommendation.prevent_critical": {
+		"defaultMessage": "Ready to block critical attacks"
+	},
+	"npmos.learning.recommendation.prevent_high": {
+		"defaultMessage": "Ready to block high and critical attacks"
+	},
+	"npmos.learning.recommendation.review": {
+		"defaultMessage": "Label the suggestions"
+	},
+	"npmos.learning.recommendation.review_critical": {
+		"defaultMessage": "Label the critical suggestions"
+	},
+	"npmos.learning.recommendation.send_traffic": {
+		"defaultMessage": "Send traffic to the host"
+	},
+	"npmos.learning.scope.parameterName": {
+		"defaultMessage": "Name of the parameter"
+	},
+	"npmos.learning.scope.parameterValue": {
+		"defaultMessage": "Value of the parameter"
+	},
+	"npmos.learning.scope.source": {
+		"defaultMessage": "Sources"
+	},
+	"npmos.learning.scope.source.benign": {
+		"defaultMessage": "trust them while learning (office, QA, monitoring)"
+	},
+	"npmos.learning.scope.source.malicious": {
+		"defaultMessage": "keep their requests out of learning"
+	},
+	"npmos.learning.scope.url": {
+		"defaultMessage": "URL"
+	},
+	"npmos.learning.scopes": {
+		"defaultMessage": "Applies to"
+	},
+	"npmos.learning.scopes.text": {
+		"defaultMessage": "The agent takes each chosen item on its own (this value anywhere on the host, this parameter, this URL, these sources). The exception matches only when all of them match."
+	},
+	"npmos.learning.score": {
+		"defaultMessage": "Score"
+	},
+	"npmos.learning.search": {
+		"defaultMessage": "URL, parameter, value, indicator"
+	},
+	"npmos.learning.severity": {
+		"defaultMessage": "Severity"
+	},
+	"npmos.learning.submit.benign": {
+		"defaultMessage": "Mark legitimate"
+	},
+	"npmos.learning.submit.dismiss": {
+		"defaultMessage": "Skip"
+	},
+	"npmos.learning.submit.malicious": {
+		"defaultMessage": "Mark as attack"
+	},
+	"npmos.learning.suggestions": {
+		"defaultMessage": "Suggestions of the tuning service"
+	},
+	"npmos.learning.suggestions.text": {
+		"defaultMessage": "open-appsec finds them itself on busy hosts (many different sources)."
+	},
+	"npmos.learning.ttl": {
+		"defaultMessage": "Remove the exception after"
+	},
+	"npmos.learning.ttl.days": {
+		"defaultMessage": "{days, plural, one {# day} other {# days}}"
+	},
+	"npmos.learning.ttl.none": {
+		"defaultMessage": "never"
+	},
+	"npmos.learning.tuning-error": {
+		"defaultMessage": "The tuning service of open-appsec does not answer: {error}"
+	},
+	"npmos.learning.undo": {
+		"defaultMessage": "Undo"
+	},
+	"npmos.learning.undo.done": {
+		"defaultMessage": "Label undone"
+	},
+	"npmos.learning.undone": {
+		"defaultMessage": "undone by {who} {when}"
+	},
+	"npmos.learning.url": {
+		"defaultMessage": "URL"
+	},
+	"npmos.learning.value": {
+		"defaultMessage": "Value"
+	},
+	"npmos.learning.what": {
+		"defaultMessage": "What"
+	},
+	"npmos.learning.when": {
+		"defaultMessage": "When"
 	},
 	"npmos.migration.after": {
 		"defaultMessage": "Check the hosts: point DNS or the ports to NPMOS, then stop the old container. WAF and CrowdSec are configured per host in NPMOS."
@@ -2385,7 +3153,7 @@
 		"defaultMessage": "The import failed, nothing was saved to the database: {message}"
 	},
 	"npmos.migration.failed-after": {
-		"defaultMessage": "The data is imported, but a later step failed: {message}. Check the hosts and regenerate the nginx configs (System → Services)."
+		"defaultMessage": "The data is imported, but a later step failed: {message}. Check the hosts and regenerate the nginx configs (Overview → Services)."
 	},
 	"npmos.migration.files-hint": {
 		"defaultMessage": "The database is read. Upload an archive of /data and /etc/letsencrypt too, to move the certificate files and custom snippets."
@@ -2430,7 +3198,7 @@
 		"defaultMessage": "Reading the archive and checking the database…"
 	},
 	"npmos.migration.restart": {
-		"defaultMessage": "Some certificates use a DNS challenge: restart NPMOS (System → Services) so that certbot gets its DNS plugins and credentials before the next renewal."
+		"defaultMessage": "Some certificates use a DNS challenge: restart NPMOS (Overview → Services) so that certbot gets its DNS plugins and credentials before the next renewal."
 	},
 	"npmos.migration.table.access_list": {
 		"defaultMessage": "Access lists"
@@ -2495,11 +3263,59 @@
 	"npmos.migration.what": {
 		"defaultMessage": "What is moved"
 	},
+	"npmos.mtls.access.days": {
+		"defaultMessage": "Valid, days"
+	},
+	"npmos.mtls.access.email": {
+		"defaultMessage": "Email (optional)"
+	},
+	"npmos.mtls.access.issue": {
+		"defaultMessage": "Issue access certificate"
+	},
+	"npmos.mtls.access.issued": {
+		"defaultMessage": "{name} now opens {host}. Install the .p12 on the device with the password below."
+	},
+	"npmos.mtls.access.keep": {
+		"defaultMessage": "Keep the key in NPMOS to download the certificate again"
+	},
+	"npmos.mtls.access.keep.hint": {
+		"defaultMessage": "Encrypted. Without it the .p12 is handed out only now."
+	},
+	"npmos.mtls.access.link": {
+		"defaultMessage": "Also make a one-time download link (24 h)"
+	},
+	"npmos.mtls.access.name": {
+		"defaultMessage": "Name"
+	},
+	"npmos.mtls.access.name.hint": {
+		"defaultMessage": "Shown in the browser when it asks for a certificate, and in the rules and events of mTLS (CN)."
+	},
+	"npmos.mtls.access.name.placeholder": {
+		"defaultMessage": "ivanov-laptop"
+	},
+	"npmos.mtls.access.no-hosts": {
+		"defaultMessage": "Protect a host first: turn on its mTLS switch in Hosts or use “Protect a host”."
+	},
+	"npmos.mtls.access.no-issuer": {
+		"defaultMessage": "This host trusts only external CAs: NPMOS cannot issue certificates for it. Add a trust domain in its mTLS settings."
+	},
+	"npmos.mtls.access.rules": {
+		"defaultMessage": "The host has rules on fields of certificates: the name must match them."
+	},
+	"npmos.mtls.access.submit": {
+		"defaultMessage": "Issue"
+	},
+	"npmos.mtls.access.title": {
+		"defaultMessage": "New access certificate"
+	},
 	"npmos.mtls.advanced": {
 		"defaultMessage": "More settings"
 	},
 	"npmos.mtls.advanced.hide": {
 		"defaultMessage": "Hide settings"
+	},
+	"npmos.mtls.all-hosts": {
+		"defaultMessage": "All hosts"
 	},
 	"npmos.mtls.cas": {
 		"defaultMessage": "Trusted CAs"
@@ -2510,8 +3326,83 @@
 	"npmos.mtls.cas.stream-hint": {
 		"defaultMessage": "Streams cannot check the issuer: a trust domain admits certificates of every trust domain of its root."
 	},
+	"npmos.mtls.cert.access": {
+		"defaultMessage": "Opens"
+	},
+	"npmos.mtls.cert.created": {
+		"defaultMessage": "Issued"
+	},
+	"npmos.mtls.cert.details": {
+		"defaultMessage": "Certificate"
+	},
+	"npmos.mtls.cert.files": {
+		"defaultMessage": "Files"
+	},
+	"npmos.mtls.cert.fingerprint": {
+		"defaultMessage": "Fingerprint (SHA-256)"
+	},
+	"npmos.mtls.cert.issuer": {
+		"defaultMessage": "Issued by"
+	},
+	"npmos.mtls.cert.key": {
+		"defaultMessage": "Key"
+	},
+	"npmos.mtls.cert.key.kept": {
+		"defaultMessage": "kept in NPMOS (encrypted)"
+	},
+	"npmos.mtls.cert.key.not-kept": {
+		"defaultMessage": "not kept"
+	},
+	"npmos.mtls.cert.missing": {
+		"defaultMessage": "The certificate is not found (deleted?)."
+	},
+	"npmos.mtls.cert.no-access": {
+		"defaultMessage": "No protected host accepts it now."
+	},
+	"npmos.mtls.cert.no-key": {
+		"defaultMessage": "NPMOS did not keep the key: the .p12 cannot be downloaded again. Renew the certificate to get a new one."
+	},
+	"npmos.mtls.cert.revoked": {
+		"defaultMessage": "Revoked {time}: {reason}. It no longer opens any host."
+	},
+	"npmos.mtls.cert.serial": {
+		"defaultMessage": "Serial number"
+	},
+	"npmos.mtls.cert.valid": {
+		"defaultMessage": "Valid"
+	},
+	"npmos.mtls.certs": {
+		"defaultMessage": "Certificates"
+	},
+	"npmos.mtls.certs.none": {
+		"defaultMessage": "No access certificates yet."
+	},
+	"npmos.mtls.certs.title": {
+		"defaultMessage": "Access certificates"
+	},
+	"npmos.mtls.delete": {
+		"defaultMessage": "Delete"
+	},
+	"npmos.mtls.delete.confirm": {
+		"defaultMessage": "Delete this certificate from the list?"
+	},
+	"npmos.mtls.delete.confirm-valid": {
+		"defaultMessage": "The certificate is valid: it will be revoked and stop opening hosts. Delete it?"
+	},
+	"npmos.mtls.delete.selected": {
+		"defaultMessage": "Delete ({count})"
+	},
+	"npmos.mtls.delete.text": {
+		"defaultMessage": "{count, plural, one {The certificate is removed from the list.} other {# certificates are removed from the list.}} A valid certificate is revoked first, so it stops opening hosts within seconds."
+	},
+	"npmos.mtls.deleted": {
+		"defaultMessage": "{count, plural, one {Certificate deleted} other {# certificates deleted}}"
+	},
 	"npmos.mtls.depth": {
 		"defaultMessage": "Chain depth"
+	},
+	"npmos.mtls.details": {
+		"defaultMessage": "Details"
 	},
 	"npmos.mtls.enabled": {
 		"defaultMessage": "Require client certificates"
@@ -2537,6 +3428,75 @@
 	"npmos.mtls.headers.hint": {
 		"defaultMessage": "Headers X-Client-Verify, X-Client-S-DN, X-Client-I-DN, X-Client-Serial, X-Client-Fingerprint; the same headers from clients are replaced."
 	},
+	"npmos.mtls.host": {
+		"defaultMessage": "Host"
+	},
+	"npmos.mtls.host-certs.all": {
+		"defaultMessage": "All, with revoked and expired ({count})"
+	},
+	"npmos.mtls.host-certs.issued": {
+		"defaultMessage": "issued {time}"
+	},
+	"npmos.mtls.host-certs.none": {
+		"defaultMessage": "No access certificates for this host yet."
+	},
+	"npmos.mtls.host-certs.page": {
+		"defaultMessage": "Open on the mTLS page"
+	},
+	"npmos.mtls.host-certs.search": {
+		"defaultMessage": "Find by name, note, email or serial"
+	},
+	"npmos.mtls.host-certs.title": {
+		"defaultMessage": "Access certificates: {name}"
+	},
+	"npmos.mtls.host-certs.valid": {
+		"defaultMessage": "Valid ({count})"
+	},
+	"npmos.mtls.host.certs": {
+		"defaultMessage": "Show its certificates"
+	},
+	"npmos.mtls.host.disable": {
+		"defaultMessage": "Turn off mTLS"
+	},
+	"npmos.mtls.host.disable.text": {
+		"defaultMessage": "{name} will admit clients without a certificate. Certificates and settings are kept and work again when mTLS is turned on."
+	},
+	"npmos.mtls.host.disabled": {
+		"defaultMessage": "mTLS of {name} is off"
+	},
+	"npmos.mtls.host.enabled": {
+		"defaultMessage": "{name} now requires an access certificate"
+	},
+	"npmos.mtls.host.inactive": {
+		"defaultMessage": "Not in force: the host is off or has no TLS certificate"
+	},
+	"npmos.mtls.host.pick": {
+		"defaultMessage": "Choose a certificate…"
+	},
+	"npmos.mtls.host.settings": {
+		"defaultMessage": "mTLS settings…"
+	},
+	"npmos.mtls.hosts": {
+		"defaultMessage": "Protected hosts"
+	},
+	"npmos.mtls.hosts.none": {
+		"defaultMessage": "No host requires a client certificate."
+	},
+	"npmos.mtls.link.active": {
+		"defaultMessage": "Link active"
+	},
+	"npmos.mtls.link.delete": {
+		"defaultMessage": "Delete the link"
+	},
+	"npmos.mtls.link.expired": {
+		"defaultMessage": "Link expired"
+	},
+	"npmos.mtls.link.times": {
+		"defaultMessage": "{created} → {until}"
+	},
+	"npmos.mtls.link.used": {
+		"defaultMessage": "Link used"
+	},
 	"npmos.mtls.mode": {
 		"defaultMessage": "Where"
 	},
@@ -2561,11 +3521,29 @@
 	"npmos.mtls.no-cas": {
 		"defaultMessage": "No CAs yet: create a trust domain for this host."
 	},
+	"npmos.mtls.notes": {
+		"defaultMessage": "Note"
+	},
+	"npmos.mtls.notes.placeholder": {
+		"defaultMessage": "Who or what it is for: laptop of the accountant, CI runner…"
+	},
+	"npmos.mtls.notes.saved": {
+		"defaultMessage": "Note saved"
+	},
 	"npmos.mtls.op.one_of": {
 		"defaultMessage": "one of"
 	},
 	"npmos.mtls.op.regex": {
 		"defaultMessage": "matches"
+	},
+	"npmos.mtls.opens": {
+		"defaultMessage": "Opens"
+	},
+	"npmos.mtls.pki-hint": {
+		"defaultMessage": "CAs, templates, lifetimes and the public address for CRLs are in"
+	},
+	"npmos.mtls.protect": {
+		"defaultMessage": "Protect a host"
 	},
 	"npmos.mtls.replaces-upstream": {
 		"defaultMessage": "The host has an mTLS CA of NPMplus; these settings replace it while they are on."
@@ -2597,6 +3575,9 @@
 	"npmos.mtls.rules": {
 		"defaultMessage": "Rules on the certificate"
 	},
+	"npmos.mtls.rules.count": {
+		"defaultMessage": "{count, plural, one {# rule on fields} other {# rules on fields}}"
+	},
 	"npmos.mtls.rules.hint": {
 		"defaultMessage": "All rules must match. Values in Latin letters; one of: comma-separated."
 	},
@@ -2606,17 +3587,56 @@
 	"npmos.mtls.saved": {
 		"defaultMessage": "mTLS saved, nginx reloaded"
 	},
+	"npmos.mtls.search": {
+		"defaultMessage": "Name, email, note, serial, host"
+	},
 	"npmos.mtls.send-ca-names": {
 		"defaultMessage": "Send the names of the CAs to clients"
 	},
 	"npmos.mtls.send-ca-names.hint": {
 		"defaultMessage": "Browsers then offer only suitable certificates. Off: the names of your CAs are not disclosed."
 	},
+	"npmos.mtls.start": {
+		"defaultMessage": "No host is protected yet. Turn on the mTLS switch in the Hosts table or use “Protect a host”: NPMOS creates the CAs itself, then issue access certificates here."
+	},
+	"npmos.mtls.subtitle": {
+		"defaultMessage": "Hosts that admit only clients with an access certificate, and the certificates themselves"
+	},
+	"npmos.mtls.summary.active": {
+		"defaultMessage": "Valid certificates"
+	},
+	"npmos.mtls.summary.expiring": {
+		"defaultMessage": "Expire within 30 days"
+	},
+	"npmos.mtls.summary.hosts": {
+		"defaultMessage": "Protected hosts"
+	},
+	"npmos.mtls.summary.revoked": {
+		"defaultMessage": "Revoked"
+	},
 	"npmos.mtls.title": {
 		"defaultMessage": "mTLS"
 	},
+	"npmos.mtls.trust": {
+		"defaultMessage": "Trusted CAs"
+	},
 	"npmos.nav.administration": {
 		"defaultMessage": "Administration"
+	},
+	"npmos.nav.agent-openappsec": {
+		"defaultMessage": "open-appsec"
+	},
+	"npmos.nav.agents": {
+		"defaultMessage": "Agents"
+	},
+	"npmos.nav.all-certs": {
+		"defaultMessage": "All certificates"
+	},
+	"npmos.nav.analytics": {
+		"defaultMessage": "Analytics"
+	},
+	"npmos.nav.blocks": {
+		"defaultMessage": "Blocks"
 	},
 	"npmos.nav.close-menu": {
 		"defaultMessage": "Close menu"
@@ -2630,6 +3650,9 @@
 	"npmos.nav.menu": {
 		"defaultMessage": "Navigation"
 	},
+	"npmos.nav.mtls": {
+		"defaultMessage": "mTLS"
+	},
 	"npmos.nav.nothing-found": {
 		"defaultMessage": "Nothing found"
 	},
@@ -2638,9 +3661,6 @@
 	},
 	"npmos.nav.overview": {
 		"defaultMessage": "Overview"
-	},
-	"npmos.nav.search": {
-		"defaultMessage": "Search the menu…"
 	},
 	"npmos.nav.security": {
 		"defaultMessage": "Security"
@@ -2662,6 +3682,9 @@
 	},
 	"npmos.nav.user-menu": {
 		"defaultMessage": "User menu"
+	},
+	"npmos.nav.waf-policy": {
+		"defaultMessage": "WAF policy"
 	},
 	"npmos.notice.alert": {
 		"defaultMessage": "Problem"
@@ -2807,6 +3830,30 @@
 	"npmos.notifications.param.window": {
 		"defaultMessage": "Window, minutes"
 	},
+	"npmos.notifications.preset.attacks": {
+		"defaultMessage": "Attacks"
+	},
+	"npmos.notifications.preset.attacks.text": {
+		"defaultMessage": "Attack spikes, a silent WAF agent and events to label"
+	},
+	"npmos.notifications.preset.certificates": {
+		"defaultMessage": "Certificates"
+	},
+	"npmos.notifications.preset.certificates.text": {
+		"defaultMessage": "Certificates that expire soon"
+	},
+	"npmos.notifications.preset.failures": {
+		"defaultMessage": "Failures only"
+	},
+	"npmos.notifications.preset.failures.text": {
+		"defaultMessage": "Services, agents, policy and host errors"
+	},
+	"npmos.notifications.preset.recommended": {
+		"defaultMessage": "Recommended"
+	},
+	"npmos.notifications.preset.recommended.text": {
+		"defaultMessage": "Failures, certificates and attack spikes"
+	},
 	"npmos.notifications.repeat": {
 		"defaultMessage": "Remind every, minutes"
 	},
@@ -2861,6 +3908,15 @@
 	"npmos.notifications.rule.host_problem.hint": {
 		"defaultMessage": "nginx did not take the configuration of an enabled host (as the red recommendation of the hosts table)."
 	},
+	"npmos.notifications.rule.learning_queue": {
+		"defaultMessage": "Events to label"
+	},
+	"npmos.notifications.rule.learning_queue.hint": {
+		"defaultMessage": "The agent is not sure about groups of requests of the last 24 h (Agents → open-appsec → Learning)."
+	},
+	"npmos.notifications.rule.learning_queue.params": {
+		"defaultMessage": "from {threshold} groups"
+	},
 	"npmos.notifications.rule.new": {
 		"defaultMessage": "New rule"
 	},
@@ -2877,7 +3933,7 @@
 		"defaultMessage": "Service down"
 	},
 	"npmos.notifications.rule.service_down.hint": {
-		"defaultMessage": "A service of the stack (System → Services) is stopped, restarting or unhealthy."
+		"defaultMessage": "A service of the stack (Overview → Services) is stopped, restarting or unhealthy."
 	},
 	"npmos.notifications.rule.type": {
 		"defaultMessage": "What to watch"
@@ -2893,6 +3949,75 @@
 	},
 	"npmos.notifications.secret.keep": {
 		"defaultMessage": "Stored. Leave empty to keep it."
+	},
+	"npmos.notifications.setup": {
+		"defaultMessage": "Quick setup"
+	},
+	"npmos.notifications.setup.another": {
+		"defaultMessage": "Or add another:"
+	},
+	"npmos.notifications.setup.back": {
+		"defaultMessage": "Back"
+	},
+	"npmos.notifications.setup.create": {
+		"defaultMessage": "{count, plural, one {Create # rule} other {Create # rules}}"
+	},
+	"npmos.notifications.setup.done": {
+		"defaultMessage": "{count, plural, one {# rule created} other {# rules created}}"
+	},
+	"npmos.notifications.setup.exists": {
+		"defaultMessage": "already set up"
+	},
+	"npmos.notifications.setup.first": {
+		"defaultMessage": "No channels yet. Add one:"
+	},
+	"npmos.notifications.setup.next": {
+		"defaultMessage": "Next"
+	},
+	"npmos.notifications.setup.offline": {
+		"defaultMessage": "Without internet only the mail server of your network and webhooks to your systems work; Telegram needs access to its API."
+	},
+	"npmos.notifications.setup.step1": {
+		"defaultMessage": "Where to send"
+	},
+	"npmos.notifications.setup.step1.text": {
+		"defaultMessage": "Tick the channels the messages go to. A channel is an address: a mailbox, a webhook of your system or a Telegram chat."
+	},
+	"npmos.notifications.setup.step2": {
+		"defaultMessage": "What to send"
+	},
+	"npmos.notifications.setup.step2.text": {
+		"defaultMessage": "Choose a preset or tick the rules one by one. Each rule has sensible defaults; you can change them later."
+	},
+	"npmos.notifications.setup.step3": {
+		"defaultMessage": "Check and create"
+	},
+	"npmos.notifications.setup.step3.text": {
+		"defaultMessage": "These rules are created and turned on:"
+	},
+	"npmos.notifications.setup.to": {
+		"defaultMessage": "Messages go to: {channels}. A message also comes when a problem is resolved."
+	},
+	"npmos.notifications.setup.why.agent_down": {
+		"defaultMessage": "The open-appsec agent does not answer: the hosts are not inspected."
+	},
+	"npmos.notifications.setup.why.attack_spike": {
+		"defaultMessage": "Many attacks in a short time: someone is scanning or attacking a host."
+	},
+	"npmos.notifications.setup.why.cert_expiry": {
+		"defaultMessage": "A certificate of a host expires within 14 days."
+	},
+	"npmos.notifications.setup.why.host_problem": {
+		"defaultMessage": "nginx refused the configuration of a host: it does not work."
+	},
+	"npmos.notifications.setup.why.learning_queue": {
+		"defaultMessage": "The WAF agent has doubtful requests to label: legitimate ones stop being blocked."
+	},
+	"npmos.notifications.setup.why.policy_error": {
+		"defaultMessage": "A changed WAF policy did not apply: the agent keeps the previous one."
+	},
+	"npmos.notifications.setup.why.service_down": {
+		"defaultMessage": "A container of NPMOS stopped or keeps restarting."
 	},
 	"npmos.notifications.status.firing": {
 		"defaultMessage": "Problem"
@@ -2958,10 +4083,19 @@
 		"defaultMessage": "Last event"
 	},
 	"npmos.overview.analytics.note": {
-		"defaultMessage": "Stored events of the agent for the last 24 hours. Charts are in WAF → Analytics."
+		"defaultMessage": "Stored events of the agent for the last 24 hours. Charts are in Analytics."
 	},
 	"npmos.overview.analytics.prevented": {
 		"defaultMessage": "Of them blocked"
+	},
+	"npmos.overview.certs.total": {
+		"defaultMessage": "All certificates"
+	},
+	"npmos.overview.crowdsec.alerts": {
+		"defaultMessage": "Alerts in 24 h"
+	},
+	"npmos.overview.crowdsec.decisions": {
+		"defaultMessage": "Active bans and captchas"
 	},
 	"npmos.overview.fix": {
 		"defaultMessage": "Go"
@@ -3056,6 +4190,24 @@
 	"npmos.overview.system.services": {
 		"defaultMessage": "Services"
 	},
+	"npmos.overview.traffic": {
+		"defaultMessage": "Traffic of the last 24 hours"
+	},
+	"npmos.overview.traffic.5xx": {
+		"defaultMessage": "server errors"
+	},
+	"npmos.overview.traffic.attacks": {
+		"defaultMessage": "attacks"
+	},
+	"npmos.overview.traffic.blocked": {
+		"defaultMessage": "refused"
+	},
+	"npmos.overview.traffic.requests": {
+		"defaultMessage": "requests"
+	},
+	"npmos.overview.unknown": {
+		"defaultMessage": "unknown"
+	},
 	"npmos.overview.waf.agent-down": {
 		"defaultMessage": "unavailable"
 	},
@@ -3064,6 +4216,12 @@
 	},
 	"npmos.overview.waf.hosts": {
 		"defaultMessage": "Proxy hosts: {mode}"
+	},
+	"npmos.overview.waf.modes": {
+		"defaultMessage": "Hosts: block · detect · off"
+	},
+	"npmos.overview.waf.modes.value": {
+		"defaultMessage": "{prevent} · {detect} · {off}"
 	},
 	"npmos.overview.waf.state": {
 		"defaultMessage": "Protection"
@@ -3638,6 +4796,48 @@
 	"npmos.policy.builtin-readonly": {
 		"defaultMessage": "A built-in object of NPMOS: it is updated with NPMOS and cannot be changed. Duplicate it to make your own."
 	},
+	"npmos.policy.builtin.npmos-403": {
+		"defaultMessage": "Answer: code 403"
+	},
+	"npmos.policy.builtin.npmos-403.hint": {
+		"defaultMessage": "A blocked request gets 403 and the block page of NPMOS"
+	},
+	"npmos.policy.builtin.npmos-api": {
+		"defaultMessage": "Attack protection: API"
+	},
+	"npmos.policy.builtin.npmos-api.hint": {
+		"defaultMessage": "For JSON APIs: also refuses invalid HTTP methods"
+	},
+	"npmos.policy.builtin.npmos-block-page": {
+		"defaultMessage": "Answer: block page of the agent"
+	},
+	"npmos.policy.builtin.npmos-block-page.hint": {
+		"defaultMessage": "The page of open-appsec with a title and a text"
+	},
+	"npmos.policy.builtin.npmos-log": {
+		"defaultMessage": "Logging: attacks to NPMOS"
+	},
+	"npmos.policy.builtin.npmos-log.hint": {
+		"defaultMessage": "Detected and blocked requests are written to the log NPMOS reads (Events); nothing goes to a cloud"
+	},
+	"npmos.policy.builtin.npmos-no-rate-limit": {
+		"defaultMessage": "No request limits"
+	},
+	"npmos.policy.builtin.npmos-no-rate-limit.hint": {
+		"defaultMessage": "Requests per client are not limited"
+	},
+	"npmos.policy.builtin.npmos-recommended": {
+		"defaultMessage": "Attack protection: recommended"
+	},
+	"npmos.policy.builtin.npmos-recommended.hint": {
+		"defaultMessage": "Machine-learning inspection of web attacks with the usual limits; fits most sites"
+	},
+	"npmos.policy.builtin.npmos-strict": {
+		"defaultMessage": "Attack protection: strict"
+	},
+	"npmos.policy.builtin.npmos-strict.hint": {
+		"defaultMessage": "Blocks from a lower confidence and checks more: fewer missed attacks, more false positives"
+	},
 	"npmos.policy.condition.add": {
 		"defaultMessage": "Add condition"
 	},
@@ -3660,7 +4860,7 @@
 		"defaultMessage": "Medium"
 	},
 	"npmos.policy.default": {
-		"defaultMessage": "Default policy"
+		"defaultMessage": "Base policy"
 	},
 	"npmos.policy.default.hint": {
 		"defaultMessage": "Applies to requests of hosts without WAF and to what a host does not set itself. Exceptions of the default policy apply to every host."
@@ -3710,9 +4910,6 @@
 	"npmos.policy.f.additionalSuspiciousEventsLogging.responseCode": {
 		"defaultMessage": "Response code"
 	},
-	"npmos.policy.f.antiBot.overrideMode": {
-		"defaultMessage": "Anti-bot"
-	},
 	"npmos.policy.f.appsecLogging.allWebRequests": {
 		"defaultMessage": "All requests (a lot of data)"
 	},
@@ -3737,14 +4934,8 @@
 	"npmos.policy.f.extendedLogging.urlQuery": {
 		"defaultMessage": "URL query"
 	},
-	"npmos.policy.f.fileSecurity.overrideMode": {
-		"defaultMessage": "File security"
-	},
 	"npmos.policy.f.httpResponseCode": {
 		"defaultMessage": "HTTP code"
-	},
-	"npmos.policy.f.intrusionPrevention.overrideMode": {
-		"defaultMessage": "Intrusion prevention (IPS)"
 	},
 	"npmos.policy.f.messageBody": {
 		"defaultMessage": "Text of the page"
@@ -3769,9 +4960,6 @@
 	},
 	"npmos.policy.f.redirectUrl": {
 		"defaultMessage": "Redirect to"
-	},
-	"npmos.policy.f.schemaValidation.overrideMode": {
-		"defaultMessage": "API schema validation"
 	},
 	"npmos.policy.f.snortSignatures.files": {
 		"defaultMessage": "Files of signatures in the agent, one per line"
@@ -3829,9 +5017,6 @@
 	},
 	"npmos.policy.h.extendedLogging": {
 		"defaultMessage": "Details"
-	},
-	"npmos.policy.h.premium": {
-		"defaultMessage": "Premium edition of the agent"
 	},
 	"npmos.policy.h.snortSignatures": {
 		"defaultMessage": "Snort signatures"
@@ -3936,7 +5121,7 @@
 		"defaultMessage": "Log trigger"
 	},
 	"npmos.policy.kind.log_trigger.hint": {
-		"defaultMessage": "Which events the agent logs and with which details (NPMOS reads them for WAF → Events)."
+		"defaultMessage": "Which events the agent logs and with which details (NPMOS reads them for Analytics → Events)."
 	},
 	"npmos.policy.kind.source_identifiers": {
 		"defaultMessage": "Source identifiers"
@@ -3948,7 +5133,7 @@
 		"defaultMessage": "Threat prevention practice"
 	},
 	"npmos.policy.kind.threat_prevention.hint": {
-		"defaultMessage": "What the WAF inspects and how strictly: web attacks (ML), Snort signatures; IPS, file security, schema validation and anti-bot need the Premium edition of the agent."
+		"defaultMessage": "What the WAF inspects and how strictly: web attacks (ML) and Snort signatures."
 	},
 	"npmos.policy.kind.trusted_sources": {
 		"defaultMessage": "Trusted sources"
@@ -3957,25 +5142,46 @@
 		"defaultMessage": "Sources whose traffic teaches the ML model faster (learning)."
 	},
 	"npmos.policy.kinds.access_control": {
-		"defaultMessage": "Rate limits"
+		"defaultMessage": "Request limits"
+	},
+	"npmos.policy.kinds.access_control.hint": {
+		"defaultMessage": "How many requests a client may send per minute to a path; more are blocked or only logged."
 	},
 	"npmos.policy.kinds.custom_response": {
-		"defaultMessage": "Responses"
+		"defaultMessage": "Answer to a blocked request"
+	},
+	"npmos.policy.kinds.custom_response.hint": {
+		"defaultMessage": "What a blocked visitor gets: a code, a block page or a redirect."
 	},
 	"npmos.policy.kinds.exception": {
 		"defaultMessage": "Exceptions"
 	},
+	"npmos.policy.kinds.exception.hint": {
+		"defaultMessage": "Requests the agent lets through or always blocks: by IP, path, parameter, attack type, country."
+	},
 	"npmos.policy.kinds.log_trigger": {
 		"defaultMessage": "Logging"
 	},
+	"npmos.policy.kinds.log_trigger.hint": {
+		"defaultMessage": "What the agent writes down: blocked and detected requests, allowed ones, request bodies. NPMOS reads it into Events."
+	},
 	"npmos.policy.kinds.source_identifiers": {
-		"defaultMessage": "Identifiers"
+		"defaultMessage": "Who the client is"
+	},
+	"npmos.policy.kinds.source_identifiers.hint": {
+		"defaultMessage": "How the agent tells clients apart behind a proxy: a header, a cookie, a JWT claim instead of the IP address."
 	},
 	"npmos.policy.kinds.threat_prevention": {
-		"defaultMessage": "Practices"
+		"defaultMessage": "Attack protection"
+	},
+	"npmos.policy.kinds.threat_prevention.hint": {
+		"defaultMessage": "How the agent looks for attacks: SQL injection, XSS, command injection and the like, and how sure it must be to block (practices of open-appsec)."
 	},
 	"npmos.policy.kinds.trusted_sources": {
 		"defaultMessage": "Trusted sources"
+	},
+	"npmos.policy.kinds.trusted_sources.hint": {
+		"defaultMessage": "Clients whose traffic the agent learns from as normal (an office, a monitoring system)."
 	},
 	"npmos.policy.mode.detect": {
 		"defaultMessage": "Detect"
@@ -4013,9 +5219,6 @@
 	"npmos.policy.none": {
 		"defaultMessage": "None"
 	},
-	"npmos.policy.premium": {
-		"defaultMessage": "Premium"
-	},
 	"npmos.policy.previewing": {
 		"defaultMessage": "Building the policy…"
 	},
@@ -4041,10 +5244,10 @@
 		"defaultMessage": "URI"
 	},
 	"npmos.policy.reason.file-security": {
-		"defaultMessage": "file security of practice {name} (Premium)"
+		"defaultMessage": "file security of practice {name}"
 	},
 	"npmos.policy.reason.ips": {
-		"defaultMessage": "IPS of practice {name} (Premium)"
+		"defaultMessage": "IPS of practice {name}"
 	},
 	"npmos.policy.reason.rate-limit": {
 		"defaultMessage": "rate limits of {name}"
@@ -4104,7 +5307,7 @@
 		"defaultMessage": "The open-appsec policy made of objects: practices, rate limits, log triggers, responses, exceptions. Hosts use the default policy, a template or their own objects."
 	},
 	"npmos.policy.tab.default": {
-		"defaultMessage": "Default policy"
+		"defaultMessage": "Base policy"
 	},
 	"npmos.policy.tab.versions": {
 		"defaultMessage": "Versions"
@@ -4128,7 +5331,7 @@
 		"defaultMessage": "Created: {kind} {name}"
 	},
 	"npmos.policy.version.default-policy": {
-		"defaultMessage": "Default policy"
+		"defaultMessage": "Base policy"
 	},
 	"npmos.policy.version.deleted": {
 		"defaultMessage": "Deleted: {kind} {name}"
@@ -4583,8 +5786,35 @@
 	"npmos.settings.events-retention": {
 		"defaultMessage": "Retention of security events"
 	},
+	"npmos.system.acme.custom": {
+		"defaultMessage": "Other (URL)"
+	},
 	"npmos.system.after-restart": {
 		"defaultMessage": "after restart"
+	},
+	"npmos.system.env.ACME_EAB_HMAC_KEY": {
+		"defaultMessage": "EAB HMAC key"
+	},
+	"npmos.system.env.ACME_EAB_HMAC_KEY.hint": {
+		"defaultMessage": "The HMAC key that goes with the key ID. Not shown after saving."
+	},
+	"npmos.system.env.ACME_EAB_KID": {
+		"defaultMessage": "EAB key ID"
+	},
+	"npmos.system.env.ACME_EAB_KID.hint": {
+		"defaultMessage": "External account binding: the key ID from the account page of the authority. Empty for Let's Encrypt."
+	},
+	"npmos.system.env.ACME_EMAIL": {
+		"defaultMessage": "Email of the ACME account"
+	},
+	"npmos.system.env.ACME_EMAIL.hint": {
+		"defaultMessage": "Expiry notices of the authority go here. Needed for ZeroSSL and EAB."
+	},
+	"npmos.system.env.ACME_SERVER": {
+		"defaultMessage": "ACME server"
+	},
+	"npmos.system.env.ACME_SERVER.hint": {
+		"defaultMessage": "The certificate authority that issues certificates. \"Other\" takes the directory URL of any ACME server, also one in your own network."
 	},
 	"npmos.system.env.DEFAULT_CERT_ID": {
 		"defaultMessage": "Default certificate"
@@ -4594,12 +5824,6 @@
 	},
 	"npmos.system.env.DEFAULT_CERT_ID.none": {
 		"defaultMessage": "Self-signed"
-	},
-	"npmos.system.env.DISABLE_GRAVATAR": {
-		"defaultMessage": "No Gravatar"
-	},
-	"npmos.system.env.DISABLE_GRAVATAR.hint": {
-		"defaultMessage": "Avatars of users are not loaded from gravatar.com."
 	},
 	"npmos.system.env.DISABLE_H3_QUIC": {
 		"defaultMessage": "Turn off HTTP/3 (QUIC)"
@@ -4736,6 +5960,12 @@
 	"npmos.system.env.auto": {
 		"defaultMessage": "Auto"
 	},
+	"npmos.system.group.acme": {
+		"defaultMessage": "ACME (Let's Encrypt and others)"
+	},
+	"npmos.system.group.acme.hint": {
+		"defaultMessage": "Where certificates of \"Let's Encrypt / ACME\" come from. Let's Encrypt needs nothing else; ZeroSSL needs an email, Google Trust Services and SSL.com need EAB keys from their account page. The account is registered at the first certificate request."
+	},
 	"npmos.system.group.external": {
 		"defaultMessage": "External services"
 	},
@@ -4799,6 +6029,12 @@
 	"npmos.system.saved": {
 		"defaultMessage": "Saved: applied at the next restart of NPMOS"
 	},
+	"npmos.system.secret.set": {
+		"defaultMessage": "set — enter a new one to replace it"
+	},
+	"npmos.users.search": {
+		"defaultMessage": "Search by name, nickname or email"
+	},
 	"npmos.waf": {
 		"defaultMessage": "WAF"
 	},
@@ -4813,21 +6049,6 @@
 	},
 	"npmos.waf.agent-settings": {
 		"defaultMessage": "Agent settings"
-	},
-	"npmos.waf.agent-settings.crowdsec": {
-		"defaultMessage": "IP reputation from CrowdSec"
-	},
-	"npmos.waf.agent-settings.crowdsec-mode": {
-		"defaultMessage": "CrowdSec mode"
-	},
-	"npmos.waf.agent-settings.crowdsec.detect": {
-		"defaultMessage": "Detect: only log banned IPs"
-	},
-	"npmos.waf.agent-settings.crowdsec.hint": {
-		"defaultMessage": "The agent checks client IPs against the decisions (bans) of the local CrowdSec. No cloud: only decisions of this stack."
-	},
-	"npmos.waf.agent-settings.crowdsec.prevent": {
-		"defaultMessage": "Prevent: block banned IPs"
 	},
 	"npmos.waf.agent-settings.fail-open": {
 		"defaultMessage": "Fail-open"
@@ -4854,7 +6075,7 @@
 		"defaultMessage": "Settings saved, the agent is restarting"
 	},
 	"npmos.waf.agent-unreachable": {
-		"defaultMessage": "The agent is not reachable. Check the appsec-agent service in System → Services."
+		"defaultMessage": "The agent is not reachable. Check the appsec-agent service in Overview → Services."
 	},
 	"npmos.waf.apply": {
 		"defaultMessage": "Apply now"
@@ -4890,7 +6111,7 @@
 		"defaultMessage": "Agent component"
 	},
 	"npmos.waf.events.description": {
-		"defaultMessage": "Security log of the open-appsec agent: attacks it detected or blocked and its own events"
+		"defaultMessage": "What the agents found: attacks open-appsec detected or blocked and alerts of CrowdSec, each row names its agent; refusals of mTLS and messages of the agents on their own tabs."
 	},
 	"npmos.waf.events.event": {
 		"defaultMessage": "Event"
@@ -4903,6 +6124,9 @@
 	},
 	"npmos.waf.events.matched": {
 		"defaultMessage": "What the WAF matched"
+	},
+	"npmos.waf.events.matched-crowdsec": {
+		"defaultMessage": "What CrowdSec detected"
 	},
 	"npmos.waf.events.matched-location": {
 		"defaultMessage": "Location"
@@ -4998,10 +6222,10 @@
 		"defaultMessage": "Own objects"
 	},
 	"npmos.waf.host-policy.default": {
-		"defaultMessage": "As the default policy"
+		"defaultMessage": "As the base policy"
 	},
 	"npmos.waf.host-policy.hint": {
-		"defaultMessage": "Practices, rate limits, response and exceptions of this host (WAF → Policy). Exceptions of the default policy apply too."
+		"defaultMessage": "Attack protection, request limits, answer and exceptions of this host (Agents → open-appsec). Exceptions of the base policy apply too."
 	},
 	"npmos.waf.host-policy.template": {
 		"defaultMessage": "Template: {name}"

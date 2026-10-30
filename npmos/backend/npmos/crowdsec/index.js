@@ -25,7 +25,16 @@ import { OWN_SCENARIO, alertsStatus, startAlerts } from "./alerts.js";
 import { apply, pending } from "./apply.js";
 import { dueLists, scenarioOf, syncList } from "./blocklists.js";
 import { HOST_TYPES, applyBouncer, perHostSupported } from "./bouncer.js";
-import { ConfigError, DECISION_TYPES, durationMinutes, normalize, normalizeIpOrCidr, requiredItems } from "./config.js";
+import YAML from "yaml";
+import {
+	ConfigError,
+	DECISION_TYPES,
+	defaults,
+	durationMinutes,
+	normalize,
+	normalizeIpOrCidr,
+	requiredItems,
+} from "./config.js";
 import * as hub from "./hub.js";
 import * as lapi from "./lapi.js";
 import { exportText, parseList } from "./lists.js";
@@ -213,7 +222,6 @@ const internalCrowdsec = {
 				appsec: s.appsec.enabled,
 				openappsec_ban: s.openappsec_ban,
 			},
-			agent: (await getSetting("waf.agent")).crowdsec,
 			lapi: { healthy: false, error: "" },
 			metrics: null,
 			machines: [],
@@ -320,6 +328,50 @@ const internalCrowdsec = {
 		});
 	},
 
+	/**
+	 * The settings as YAML (Agents → CrowdSec → Policy → Code); the secret of the captcha is never shown.
+	 * @param {Access} access
+	 */
+	getCode: async (access) => {
+		await access.can("crowdsec:view");
+		const s = publicSettings(await settings());
+		delete s.bouncer.captcha.has_secret;
+		delete s.bouncer.captcha.secret_key;
+		return {
+			content: `# NPMOS: settings of CrowdSec (the secret key of the captcha is kept unless set here as bouncer.captcha.secret_key)\n${YAML.stringify(s, { lineWidth: 0 })}`,
+		};
+	},
+
+	/**
+	 * Checks (dry run) or applies a YAML document of the settings, as the GUI does (rolled back when CrowdSec
+	 * does not start with it).
+	 * @param {Access} access
+	 * @param {{content: string, dry_run?: boolean}} data
+	 */
+	setCode: async (access, data) => {
+		await access.can(data.dry_run ? "crowdsec:view" : "crowdsec:manage");
+		let doc;
+		try {
+			doc = YAML.parse(String(data.content ?? ""));
+			if (!doc || typeof doc !== "object" || Array.isArray(doc)) throw new Error("the document must be a map");
+			const known = Object.keys(defaults());
+			const unknown = Object.keys(doc).filter((k) => !known.includes(k));
+			if (unknown.length) throw new Error(`unknown fields: ${unknown.join(", ")} (${known.join(", ")})`);
+			normalize({ ...(await settings()), ...doc });
+		} catch (err) {
+			return { valid: false, error: err.message };
+		}
+		if (data.dry_run) return { valid: true };
+		// the stored secret is encrypted: an empty one keeps it, one in the document replaces it
+		const merged = { ...(await settings()), ...doc };
+		merged.bouncer = {
+			...merged.bouncer,
+			captcha: { ...merged.bouncer?.captcha, secret_key: String(doc.bouncer?.captcha?.secret_key ?? "") },
+		};
+		const result = await internalCrowdsec.setSettings(access, merged);
+		return { valid: true, applied: true, result: result.result };
+	},
+
 	/** @param {Access} access */
 	apply: async (access) => {
 		await access.can("crowdsec:manage");
@@ -397,9 +449,10 @@ const internalCrowdsec = {
 	},
 
 	/**
-	 * Ban (or captcha) by hand, one or many addresses.
+	 * Ban (or captcha) by hand, one or many addresses. replace: the decisions the addresses already
+	 * have go first, so that an address has one decision (a longer ban, not a second one).
 	 * @param {Access} access
-	 * @param {{values: string[], type?: string, duration?: string, reason?: string}} data
+	 * @param {{values: string[], type?: string, duration?: string, reason?: string, replace?: boolean}} data
 	 */
 	ban: async (access, data) => {
 		await access.can("crowdsec:decide");
@@ -411,6 +464,12 @@ const internalCrowdsec = {
 			durationMinutes(duration);
 			const reason = String(data.reason || "").slice(0, 200);
 			const user = access.token.getUserId(0);
+			if (data.replace) {
+				if (list.length > 100) throw new errs.ValidationError("Replace works for up to 100 addresses");
+				for (const value of list) {
+					await lapi.deleteDecisions(value.includes("/") ? { range: value } : { ip: value });
+				}
+			}
 			for (let i = 0; i < list.length; i += 1000) {
 				await lapi.pushDecisions({
 					scenario: "npmos/manual",

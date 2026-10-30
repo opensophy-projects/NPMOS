@@ -117,7 +117,8 @@ services:
       # No AGENT_TOKEN: managed locally by NPMOS (no my.openappsec.io)
       NPMOS_LOCAL_ONLY: "true"
       SHARED_STORAGE_HOST: appsec-shared-storage
-      LEARNING_HOST: appsec-smartsync
+      # No LEARNING_HOST: central learning (smartsync) needs a Fog access token the agent does not have
+      # in local-only mode, so it stayed idle. NPMOS learns locally; see docs/adr/0011-learning.md.
       TUNING_HOST: appsec-tuning-svc
       # security events also go to the local tuning service (its Postgres DB feeds learning and
       # tuning suggestions); NPMOS keeps its own copy from the log files (npmos/backend/npmos/events)
@@ -139,17 +140,6 @@ services:
         read_only: true
         volume:
           subpath: appsec-agent
-
-  appsec-smartsync:
-    <<: *managed
-    image: ${NPMOS_REGISTRY}/npmos-appsec-smartsync:${NPMOS_VERSION}
-    container_name: npmos-appsec-smartsync
-    depends_on:
-      - appsec-shared-storage
-    environment:
-      SHARED_STORAGE_HOST: appsec-shared-storage
-    networks:
-      - internal
 
   appsec-shared-storage:
     <<: *managed

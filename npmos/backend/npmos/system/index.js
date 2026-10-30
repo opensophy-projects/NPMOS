@@ -5,14 +5,17 @@ import internalAuditLog from "../../internal/audit-log.js";
 import errs from "../../lib/error.js";
 import control from "../control/client.js";
 import { getSetting, setSetting } from "../settings.js";
-import { conflicts, normalize, running, SYSTEM_ENV } from "./env.js";
+import { conflicts, normalize, running, SECRET_SET, SYSTEM_ENV } from "./env.js";
+
+/** a secret is never sent back, only whether it is set */
+const shown = (def, value) => (def.type === "secret" && value ? SECRET_SET : value);
 
 const state = async () => {
 	const saved = await getSetting("system.env");
 	const items = SYSTEM_ENV.map((def) => {
 		const current = running(def.env);
 		const value = saved[def.env] ?? current;
-		return { ...def, value, running: current, pending: value !== current };
+		return { ...def, value: shown(def, value), running: shown(def, current), pending: value !== current };
 	});
 	return { items, restartRequired: items.some((i) => i.pending) };
 };
@@ -32,10 +35,11 @@ const internalSystem = {
 		const saved = { ...(await getSetting("system.env")) };
 		const changed = {};
 		for (const { env, value } of values) {
+			const def = SYSTEM_ENV.find((d) => d.env === env);
+			if (def?.type === "secret" && value === SECRET_SET) continue;
 			const normalized = normalize(env, value);
 			if (normalized === undefined) throw new errs.ValidationError(`Invalid value for ${env}`);
 			// a value equal to the running one and to the default needs no line in runtime.env
-			const def = SYSTEM_ENV.find((d) => d.env === env);
 			if (normalized === running(env) && normalized === def.default) delete saved[env];
 			else saved[env] = normalized;
 			changed[env] = normalized;
@@ -47,7 +51,15 @@ const internalSystem = {
 		await internalAuditLog.add(access, {
 			action: "updated",
 			object_type: "setting",
-			meta: { name: "system.env", ...changed },
+			meta: {
+				name: "system.env",
+				...Object.fromEntries(
+					Object.entries(changed).map(([env, value]) => [
+						env,
+						shown({ type: SYSTEM_ENV.find((d) => d.env === env).type }, value),
+					]),
+				),
+			},
 		});
 		const result = await state();
 		const restarting = apply && result.restartRequired;

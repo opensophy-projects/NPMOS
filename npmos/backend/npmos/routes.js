@@ -5,20 +5,25 @@ import errs from "../lib/error.js";
 import jwtdecode from "../lib/express/jwt-decode.js";
 import validator from "../lib/validator/api.js";
 import { debug, express as logger } from "../logger.js";
+import internalAudit from "./audit/index.js";
+import internalBlockPage from "./block-page.js";
+import internalCertificates from "./certificates.js";
 import internalCrowdsec from "./crowdsec/index.js";
 import internalAnalytics from "./events/analytics.js";
 import internalEvents from "./events/index.js";
 import internalHosts, { HOST_OBJECTS } from "./hosts.js";
 import internalNotifications from "./notifications/index.js";
 import internalPki from "./pki/index.js";
-import internalMtls, { usage as mtlsUsage, usedBy as mtlsUsedBy } from "./pki/mtls.js";
+import internalMtls, { protectedHosts, usage as mtlsUsage, usedBy as mtlsUsedBy } from "./pki/mtls.js";
 import internalRbac from "./rbac/index.js";
 import internalServices from "./services.js";
 import internalSystem from "./system/index.js";
 import internalGeoip from "./geoip/index.js";
+import internalLearning from "./learning/index.js";
 import internalMigration from "./migration/index.js";
 import internalWafAgent from "./waf/agent-settings.js";
 import internalWafExpert from "./waf/expert.js";
+import internalWafHostCode from "./waf/hosts-code.js";
 import internalWafHosts from "./waf/hosts.js";
 import internalWaf from "./waf/index.js";
 import internalWafObjects from "./waf/objects/api.js";
@@ -71,7 +76,17 @@ router.param("version_id", (req, res, next, id) => {
 	next();
 });
 
-for (const name of ["role_id", "user_id", "channel_id", "rule_id", "ca_id", "cert_id", "link_id", "blocklist_id"]) {
+for (const name of [
+	"role_id",
+	"user_id",
+	"channel_id",
+	"rule_id",
+	"ca_id",
+	"cert_id",
+	"link_id",
+	"blocklist_id",
+	"label_id",
+]) {
 	router.param(name, (req, res, next, id) => {
 		if (!/^[1-9][0-9]{0,9}$/.test(id)) {
 			return res.status(400).send({ error: { code: 400, message: `Invalid ${name}` } });
@@ -428,6 +443,43 @@ router
 	);
 
 /**
+ * GET /api/npmos/waf/hosts/:host_id/code — the WAF policy of a host as YAML (objects by name)
+ * PUT /api/npmos/waf/hosts/:host_id/code — {content, dry_run?}: checked, or applied as the GUI does
+ */
+router
+	.route("/waf/hosts/:host_id/code")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(
+		handle(async (req, res) =>
+			internalWafHostCode.get(res.locals.access, req.params.host_id, await hostLabel(req.params.host_id)),
+		),
+	)
+	.put(
+		handle(async (req, res) =>
+			internalWafHostCode.set(res.locals.access, req.params.host_id, {
+				...(await validator(
+					{
+						type: "object",
+						additionalProperties: false,
+						required: ["content"],
+						properties: { content: { type: "string", maxLength: 262144 }, dry_run: { type: "boolean" } },
+					},
+					req.body,
+				)),
+				name: await hostLabel(req.params.host_id),
+			}),
+		),
+	);
+
+/** the domains of a proxy host, for the head of its code */
+const hostLabel = async (id) => {
+	const host = await db()("proxy_host").select("domain_names").where({ id }).first();
+	const names = typeof host?.domain_names === "string" ? JSON.parse(host.domain_names) : (host?.domain_names ?? []);
+	return names.join(", ") || `#${id}`;
+};
+
+/**
  * GET  /api/npmos/waf/policy — generated local_policy.yaml (text) and its state
  * POST /api/npmos/waf/policy/apply — regenerate and make the agent apply it now
  */
@@ -445,7 +497,7 @@ router
 
 /**
  * GET /api/npmos/waf/agent — agent settings, restartRequired, advanced model
- * PUT /api/npmos/waf/agent — {crowdsec: {enabled, mode}, fail_open: {enabled, timeout_ms}, apply?: boolean}
+ * PUT /api/npmos/waf/agent — {fail_open: {enabled, timeout_ms}, apply?: boolean}
  */
 router
 	.route("/waf/agent")
@@ -458,14 +510,8 @@ router
 				{
 					type: "object",
 					additionalProperties: false,
-					required: ["crowdsec", "fail_open"],
+					required: ["fail_open"],
 					properties: {
-						crowdsec: {
-							type: "object",
-							additionalProperties: false,
-							required: ["enabled", "mode"],
-							properties: { enabled: { type: "boolean" }, mode: { enum: ["prevent", "detect"] } },
-						},
 						fail_open: {
 							type: "object",
 							additionalProperties: false,
@@ -573,7 +619,17 @@ const ruleSchema = (create) => ({
 	required: create ? ["name", "type", "channel_ids"] : [],
 	properties: {
 		name: { type: "string", minLength: 1, maxLength: 100 },
-		type: { enum: ["attack_spike", "agent_down", "policy_error", "service_down", "cert_expiry", "host_problem"] },
+		type: {
+			enum: [
+				"attack_spike",
+				"agent_down",
+				"policy_error",
+				"service_down",
+				"cert_expiry",
+				"host_problem",
+				"learning_queue",
+			],
+		},
 		enabled: { type: "boolean" },
 		params: { type: "object", maxProperties: 10 },
 		channel_ids: { type: "array", maxItems: 20, items: { type: "integer", minimum: 1 } },
@@ -816,7 +872,8 @@ router
 
 /**
  * GET /api/npmos/events — security events of the agent, newest first. Filters: from, to (ISO, default
- * the last 24 h), kind=security|system|all, important=true, host, ip, action, severity, type
+ * the last 24 h), kind=agents (open-appsec and CrowdSec, default)|security|crowdsec|mtls|system|all, agent
+ * (open-appsec, crowdsec, mtls), important=true, host, ip, action, severity, type
  * (comma-separated), min_score, max_score, q (text); limit (≤ 500), before (cursor: next of a page)
  */
 router
@@ -874,6 +931,127 @@ router
 				return;
 			}
 			const lines = [CSV_COLUMNS.join(","), ...rows.map((r) => CSV_COLUMNS.map((c) => csvCell(r[c])).join(","))];
+			res.set("Content-Disposition", `attachment; filename="${name}.csv"`);
+			res.type("text/csv").send(`\ufeff${lines.join("\r\n")}\r\n`);
+		} catch (err) {
+			debug(logger, `${req.method.toUpperCase()} ${req.originalUrl}: ${err}`);
+			next(err);
+		}
+	});
+
+const blockPageSchema = {
+	type: "object",
+	additionalProperties: false,
+	required: ["enabled", "title", "text", "contact", "details", "accent"],
+	properties: {
+		enabled: { type: "boolean" },
+		title: { type: "string", maxLength: 200 },
+		text: { type: "string", maxLength: 2000 },
+		contact: { type: "string", maxLength: 500 },
+		details: { type: "boolean" },
+		accent: { type: "string", pattern: "^#[0-9a-fA-F]{6}$" },
+		language: { type: "string", enum: ["en", "ru"] },
+	},
+};
+
+/**
+ * GET  /api/npmos/block-page — settings of the block page and its HTML
+ * PUT  /api/npmos/block-page — {enabled, title, text, contact, details, accent}
+ * POST /api/npmos/block-page/preview — the HTML of settings not saved
+ */
+router
+	.route("/block-page")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalBlockPage.get(res.locals.access)))
+	.put(
+		handle(async (req, res) =>
+			internalBlockPage.set(res.locals.access, await validator(blockPageSchema, req.body)),
+		),
+	);
+
+/**
+ * GET /api/npmos/block-page/code — the settings as YAML
+ * PUT /api/npmos/block-page/code — {content, dry_run?}: checked, or saved
+ */
+router
+	.route("/block-page/code")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalBlockPage.getCode(res.locals.access)))
+	.put(
+		handle(async (req, res) =>
+			internalBlockPage.setCode(
+				res.locals.access,
+				await validator(
+					{
+						type: "object",
+						additionalProperties: false,
+						required: ["content"],
+						properties: { content: { type: "string", maxLength: 65536 }, dry_run: { type: "boolean" } },
+					},
+					req.body,
+				),
+				(doc) => validator(blockPageSchema, doc),
+			),
+		),
+	);
+
+router
+	.route("/block-page/preview")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) =>
+			internalBlockPage.preview(res.locals.access, await validator(blockPageSchema, req.body)),
+		),
+	);
+
+/**
+ * GET /api/npmos/certificates — all certificates of the system: TLS of the hosts, CAs and issued certificates of
+ * the PKI, certificate files on disk no record describes. Filters: source, status, kind (comma-separated),
+ * used=yes|no, q; sort=expires|-expires|name|-created; limit (≤ 200), offset
+ */
+router
+	.route("/certificates")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((req, res) => internalCertificates.list(res.locals.access, req.query)));
+
+/**
+ * GET /api/npmos/audit — a page of the audit log, newest first. Filters: period=24h|7d|30d|90d or from/to (ISO),
+ * action, object, user (comma-separated), q (text); limit (≤ 200), offset
+ */
+router
+	.route("/audit")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((req, res) => internalAudit.list(res.locals.access, req.query)));
+
+const AUDIT_CSV_COLUMNS = ["created_on", "user", "action", "object_type", "object_id", "meta", "id"];
+
+/**
+ * GET /api/npmos/audit/export?format=csv|json&<filters of /audit> — up to 100 000 entries
+ */
+router
+	.route("/audit/export")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(async (req, res, next) => {
+		try {
+			const { rows, capped } = await internalAudit.export(res.locals.access, req.query);
+			const name = `npmos-audit-${new Date().toISOString().slice(0, 19).replaceAll(":", "-")}`;
+			res.set("X-NPMOS-Export-Capped", String(capped));
+			if (req.query.format === "json") {
+				res.set("Content-Disposition", `attachment; filename="${name}.json"`);
+				res.type("application/json").send(JSON.stringify(rows, null, 2));
+				return;
+			}
+			const cell = (r, c) => (c === "user" ? r.user?.email : c === "meta" ? JSON.stringify(r.meta ?? {}) : r[c]);
+			const lines = [
+				AUDIT_CSV_COLUMNS.join(","),
+				...rows.map((r) => AUDIT_CSV_COLUMNS.map((c) => csvCell(cell(r, c))).join(",")),
+			];
 			res.set("Content-Disposition", `attachment; filename="${name}.csv"`);
 			res.type("text/csv").send(`\ufeff${lines.join("\r\n")}\r\n`);
 		} catch (err) {
@@ -1016,7 +1194,8 @@ router
 	.post(handle((req, res) => internalWafObjects.rollback(res.locals.access, req.params.version_id)));
 
 /**
- * GET  /api/npmos/waf/policy/export?format=v1beta2|v1beta1 — YAML of the objects and the default policy
+ * GET  /api/npmos/waf/policy/export?format=v1beta2|v1beta1[&section=<v1beta2 section>] — YAML of the objects and the
+ *   default policy, or of the objects of one kind
  * POST /api/npmos/waf/policy/import?dry_run=true — {content}: objects and default policy of a local_policy.yaml
  */
 router
@@ -1026,8 +1205,9 @@ router
 	.get(async (req, res, next) => {
 		try {
 			const format = req.query.format === "v1beta1" ? "v1beta1" : "v1beta2";
-			const content = await internalWafObjects.export(res.locals.access, format);
-			res.attachment(`npmos-waf-policy-${format}.yaml`);
+			const section = typeof req.query.section === "string" ? req.query.section : null;
+			const content = await internalWafObjects.export(res.locals.access, format, section);
+			res.attachment(`npmos-waf-policy-${section ?? format}.yaml`);
 			res.type("application/yaml").send(content);
 		} catch (err) {
 			debug(logger, `${req.method.toUpperCase()} ${req.originalUrl}: ${err}`);
@@ -1176,7 +1356,8 @@ const p12Properties = {
 };
 
 /**
- * GET /api/npmos/pki — CAs, certificates, settings; hosts of CAs (mTLS) and of server certificates
+ * GET /api/npmos/pki — CAs, certificates, settings; hosts of CAs (mTLS) and of server certificates;
+ *   protected: hosts with mTLS on; access of a certificate: the hosts it opens
  */
 router
 	.route("/pki")
@@ -1187,9 +1368,17 @@ router
 			const overview = await internalPki.overview(res.locals.access);
 			const used = await mtlsUsage();
 			for (const ca of overview.cas) ca.hosts = used.cas[ca.id] || [];
+			const hosts = await protectedHosts();
 			for (const cert of overview.certificates) {
 				cert.hosts = cert.certificate_id ? used.certificates[cert.certificate_id] || [] : [];
+				cert.access =
+					cert.profile === "client"
+						? hosts
+								.filter((h) => h.accepts.includes(cert.ca_id))
+								.map((h) => ({ host_type: h.host_type, host_id: h.host_id, name: h.name }))
+						: [];
 			}
+			overview.protected = hosts.map(({ accepts, ...h }) => h);
 			return overview;
 		}),
 	);
@@ -1426,6 +1615,52 @@ router
 	);
 
 /**
+ * POST /api/npmos/pki/certs/delete — {ids}: still valid ones are revoked, then hidden
+ */
+router
+	.route("/pki/certs/delete")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["ids"],
+					properties: {
+						ids: { type: "array", minItems: 1, maxItems: 1000, items: { type: "integer", minimum: 1 } },
+					},
+				},
+				req.body,
+			);
+			return internalPki.deleteCerts(res.locals.access, data.ids);
+		}),
+	);
+
+/**
+ * PUT /api/npmos/pki/certs/:cert_id — {notes}
+ */
+router
+	.route("/pki/certs/:cert_id")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.put(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["notes"],
+					properties: { notes: { type: "string", maxLength: 500 } },
+				},
+				req.body,
+			);
+			return internalPki.updateCert(res.locals.access, Number(req.params.cert_id), data);
+		}),
+	);
+
+/**
  * POST /api/npmos/pki/certs/:cert_id/renew — {days?, key_type?, csr_pem?, revoke_old?, password?, ...}
  */
 router
@@ -1629,6 +1864,18 @@ router
 	);
 
 /**
+ * POST /api/npmos/mtls/:host_type/:host_id/enable — mTLS on in one step: the CAs it had before, or
+ *   a trust domain of its own (created with the root when missing)
+ */
+router
+	.route("/mtls/:host_type/:host_id/enable")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle((req, res) => internalMtls.quick(res.locals.access, req.params.host_type, Number(req.params.host_id))),
+	);
+
+/**
  * CrowdSec (docs/adr/0010-crowdsec.md)
  * GET /api/npmos/crowdsec — overview: LAPI, metrics, machines, bouncers, decisions, hub
  */
@@ -1683,6 +1930,32 @@ router
 	);
 
 /**
+ * GET /api/npmos/crowdsec/settings/code — the settings as YAML
+ * PUT /api/npmos/crowdsec/settings/code — {content, dry_run?}: checked, or applied as PUT /crowdsec/settings
+ */
+router
+	.route("/crowdsec/settings/code")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalCrowdsec.getCode(res.locals.access)))
+	.put(
+		handle(async (req, res) =>
+			internalCrowdsec.setCode(
+				res.locals.access,
+				await validator(
+					{
+						type: "object",
+						additionalProperties: false,
+						required: ["content"],
+						properties: { content: { type: "string", maxLength: 262144 }, dry_run: { type: "boolean" } },
+					},
+					req.body,
+				),
+			),
+		),
+	);
+
+/**
  * POST /api/npmos/crowdsec/apply — writes the files again and restarts CrowdSec
  */
 router
@@ -1727,7 +2000,7 @@ router
 
 /**
  * GET  /api/npmos/crowdsec/decisions?q=&type=&origin=&offset=&limit=
- * POST /api/npmos/crowdsec/decisions — ban: {values, type?, duration?, reason?}
+ * POST /api/npmos/crowdsec/decisions — ban: {values, type?, duration?, reason?, replace?}
  */
 router
 	.route("/crowdsec/decisions")
@@ -1761,6 +2034,7 @@ router
 						type: { type: "string", enum: ["ban", "captcha"] },
 						duration: { type: "string", pattern: "^[1-9][0-9]{0,5}[mhd]$" },
 						reason: { type: "string", maxLength: 200 },
+						replace: { type: "boolean" },
 					},
 				},
 				req.body,
@@ -2023,5 +2297,56 @@ router
 			return internalCrowdsec.setHost(res.locals.access, req.params.type, req.params.host_id, data.bouncer);
 		}),
 	);
+
+/**
+ * GET /api/npmos/learning/queue?period=24h|7d|30d&host=&reason=blocked|grey|detected&q=&limit=&offset=&suggestions=0
+ *   groups of events the agent is not sure about, and suggestions of the tuning service
+ * GET /api/npmos/learning/groups/:key — a group with its sources
+ * GET /api/npmos/learning/events/:event_id/group — the group of an event
+ */
+router
+	.route("/learning/queue")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((req, res) => internalLearning.queue(res.locals.access, req.query)));
+
+router
+	.route("/learning/events/:event_id/group")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((req, res) => internalLearning.groupOfEvent(res.locals.access, req.params.event_id)));
+
+router
+	.route("/learning/groups/:key")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((req, res) => internalLearning.group(res.locals.access, String(req.params.key).slice(0, 64))));
+
+/**
+ * GET  /api/npmos/learning/labels?host=&decision=&active=1|0&limit=&offset= — history of labels
+ * POST /api/npmos/learning/labels — {key | suggestion, decision, scopes, exception?, ttl_days?, ban?, ban_duration?, note?}
+ * DELETE /api/npmos/learning/labels/:label_id — undo
+ */
+router
+	.route("/learning/labels")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((req, res) => internalLearning.labels(res.locals.access, req.query)))
+	.post(handle((req, res) => internalLearning.label(res.locals.access, req.body), 201));
+
+router
+	.route("/learning/labels/:label_id")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.delete(handle((req, res) => internalLearning.undo(res.locals.access, req.params.label_id)));
+
+/**
+ * GET /api/npmos/learning/hosts — readiness of learning per host with WAF, labels, false positives before/after
+ */
+router
+	.route("/learning/hosts")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_req, res) => internalLearning.hosts(res.locals.access)));
 
 export default router;

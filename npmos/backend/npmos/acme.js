@@ -97,7 +97,19 @@ const acmeError = (err) => {
 		return err;
 	}
 	const detail = `${err?.message || err}`.trim() || "no output";
-	return new errs.ValidationError(`Certificate request failed: ${detail}`, err);
+	return new errs.ValidationError(`Certificate request failed: ${detail}${timeoutHint(detail)}`, err);
+};
+
+/** certbot gives up after 45 s without an answer: say what to check instead of only the traceback */
+const timeoutHint = (detail) => {
+	if (!/ReadTimeout|ConnectTimeout|Read timed out|timed out|Max retries exceeded|NewConnectionError/i.test(detail)) {
+		return "";
+	}
+	let host = "";
+	try {
+		host = serverHost();
+	} catch {}
+	return `\n\nThe ACME server ${host} did not answer in time. Check that NPMOS can reach it (DNS, HTTPS on port 443, firewall, proxy) and try again, or choose another ACME server in System -> Settings -> ACME.`;
 };
 
 export { acmeError, ensureAcmeAccount };

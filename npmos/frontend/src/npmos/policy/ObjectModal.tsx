@@ -374,11 +374,6 @@ export function ObjectForm({
 						<div key={field.path} className="mb-3">
 							<label className="form-label" htmlFor={`policy-${field.path}`}>
 								<T id={`npmos.policy.f.${field.path}`} />
-								{field.premium && (
-									<span className="badge bg-yellow-lt ms-2">
-										<T id="npmos.policy.premium" />
-									</span>
-								)}
 								{field.v2 && (
 									<span className="badge bg-purple-lt ms-2" title={t("npmos.policy.v2-hint")}>
 										v1beta2

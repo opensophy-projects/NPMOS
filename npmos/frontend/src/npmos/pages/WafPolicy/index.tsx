@@ -30,6 +30,7 @@ import {
 	setDefaultPolicy,
 } from "../../policy/api";
 import { summary } from "../../policy/fields";
+import { objectHint, objectTitle } from "../../policy/names";
 import { showImportModal } from "../../policy/ImportModal";
 import { showObjectModal } from "../../policy/ObjectModal";
 import { RefsEditor } from "../../policy/RefsEditor";
@@ -44,7 +45,7 @@ const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id 
 
 type Tab = "default" | Kind | "versions";
 
-const QUERY = ["npmos-waf-policy-objects"];
+export const QUERY = ["npmos-waf-policy-objects"];
 
 /** the backend writes comments of versions in English: created exception/office, rollback to version 3 */
 const versionComment = (comment: string) => {
@@ -58,7 +59,15 @@ const versionComment = (comment: string) => {
 	return comment;
 };
 
-function DefaultPolicyTab({ data, manage, refresh }: { data: PolicyObjects; manage: boolean; refresh: () => void }) {
+export function DefaultPolicyTab({
+	data,
+	manage,
+	refresh,
+}: {
+	data: PolicyObjects;
+	manage: boolean;
+	refresh: () => void;
+}) {
 	const [policy, setPolicy] = useState<DefaultPolicy>(data.policy);
 	useEffect(() => setPolicy(data.policy), [data.policy]);
 	const changed = JSON.stringify(policy) !== JSON.stringify(data.policy);
@@ -154,7 +163,7 @@ function DefaultPolicyTab({ data, manage, refresh }: { data: PolicyObjects; mana
 	);
 }
 
-function ObjectsTab({
+export function ObjectsTab({
 	kind,
 	data,
 	manage,
@@ -210,8 +219,11 @@ function ObjectsTab({
 					{objects.map((o) => (
 						<li key={o.id} className={styles.item}>
 							<div className={styles.main}>
-								<div className={cn(styles.name, "font-monospace")}>
-									{o.name}
+								<div className={styles.name}>
+									{objectTitle(o)}
+									{o.builtin && (
+										<span className="text-secondary font-monospace small ms-2">{o.name}</span>
+									)}
 									{o.builtin && (
 										<span className="badge bg-secondary-lt ms-2">
 											<T id="npmos.policy.builtin" />
@@ -219,7 +231,9 @@ function ObjectsTab({
 									)}
 								</div>
 								<div className={styles.sub}>
-									{[o.description, ...summary(kind, o.spec)].filter(Boolean).join(" · ") || "—"}
+									{[o.description || objectHint(o), ...summary(kind, o.spec)]
+										.filter(Boolean)
+										.join(" · ") || "—"}
 								</div>
 							</div>
 							<button type="button" className={hostStyles.tool} onClick={() => open({ object: o })}>
@@ -265,7 +279,7 @@ function ObjectsTab({
 	);
 }
 
-function VersionsTab({ manage, refresh }: { manage: boolean; refresh: () => void }) {
+export function VersionsTab({ manage, refresh }: { manage: boolean; refresh: () => void }) {
 	const { locale } = useLocaleState();
 	const { data, refetch } = useQuery<PolicyVersion[], Error>({
 		queryKey: ["npmos-waf-policy-versions"],

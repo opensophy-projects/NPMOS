@@ -9,7 +9,7 @@ import { EnvSection, RestartBanner } from "./EnvSection";
 import { GeoipForm } from "./Geoip";
 import { MigrationForm } from "./Migration";
 
-const GROUPS: EnvGroup[] = ["general", "network", "nginx", "tls", "logs", "external"];
+const GROUPS: EnvGroup[] = ["general", "network", "nginx", "tls", "acme", "logs", "external"];
 
 export interface SettingsSection {
 	id: string;

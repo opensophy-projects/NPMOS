@@ -51,6 +51,9 @@ const LIST_COLUMNS = [
 	"service",
 ];
 
+/** the agent that wrote an event → its kind */
+const AGENT_KINDS = { "open-appsec": "security", crowdsec: "crowdsec", mtls: "mtls" };
+
 const list = (value) =>
 	String(value ?? "")
 		.split(",")
@@ -73,7 +76,8 @@ const score = (value) => {
 
 /**
  * Filters from query parameters.
- * from/to: ISO time (default: `period` before `to`, the last 24 h); kind: security (default) | system | crowdsec | mtls | all;
+ * from/to: ISO time (default: `period` before `to`, the last 24 h); kind: agents (default: security and crowdsec) |
+ * security | system | crowdsec | mtls | all; agent: open-appsec, crowdsec, mtls (comma-separated);
  * important: only critical/high; host, ip, action, severity, type: comma-separated, exact;
  * min_score/max_score; q: text in host, request, IP, sample, parameter, event name and type.
  */
@@ -84,11 +88,17 @@ export const parseFilters = (query, now = new Date()) => {
 		new Date(to.getTime() - (Object.hasOwn(PERIODS, query.period) ? PERIODS[query.period] : DAY)),
 	);
 	if (from > to) throw new errs.ValidationError("from is after to");
-	const kind = ["security", "system", "crowdsec", "mtls", "all"].includes(query.kind) ? query.kind : "security";
+	// "agents": what open-appsec and CrowdSec found, in one list (the default)
+	const kind = ["agents", "security", "system", "crowdsec", "mtls", "all"].includes(query.kind)
+		? query.kind
+		: "agents";
 	return {
 		from,
 		to,
 		kind,
+		agent: list(query.agent)
+			.map((a) => AGENT_KINDS[a.toLowerCase()])
+			.filter(Boolean),
 		important: query.important === "true" || query.important === true,
 		host: list(query.host).map((h) => h.toLowerCase()),
 		ip: list(query.ip),
@@ -108,7 +118,9 @@ const like = (q) => `%${q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
 /** where clauses of the filters on a query builder */
 const applyFilters = (builder, f) => {
 	builder.where("time", ">=", f.from).where("time", "<=", f.to);
-	if (f.kind !== "all") builder.where("kind", f.kind);
+	if (f.kind === "agents") builder.whereIn("kind", ["security", "crowdsec"]);
+	else if (f.kind !== "all") builder.where("kind", f.kind);
+	if (f.agent.length) builder.whereIn("kind", f.agent);
 	if (f.important)
 		builder.whereRaw(`lower(severity) in (${IMPORTANT_SEVERITIES.map(() => "?").join(",")})`, IMPORTANT_SEVERITIES);
 	if (f.host.length) builder.whereIn("host", f.host);

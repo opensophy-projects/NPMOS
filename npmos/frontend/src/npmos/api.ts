@@ -1,4 +1,5 @@
 // NPMOS API client (/api/npmos/*), see npmos/backend/npmos/routes.js
+import type { AuditLog } from "src/api/backend";
 import * as api from "src/api/backend/base";
 import type { HostObjects } from "./policy/api";
 
@@ -117,7 +118,7 @@ export interface SecurityEvent {
 	id: string;
 	time: string;
 	/** security: an attack the WAF decided on; system: a notice of the agent */
-	kind: "security" | "system";
+	kind: "security" | "crowdsec" | "mtls" | "system";
 	name: string;
 	severity: string;
 	priority: string;
@@ -179,6 +180,64 @@ export const downloadEvents = (params: EventQuery, format: "csv" | "json") =>
 		`npmos-events-${new Date().toISOString().slice(0, 19).replaceAll(":", "-")}.${format}`,
 	);
 
+/** a page of the audit log (/npmos/audit), with the values the filters offer */
+export interface AuditPage {
+	items: AuditLog[];
+	total: number;
+	limit: number;
+	offset: number;
+	facets: { actions: string[]; objects: string[]; users: { id: number; name: string }[] };
+}
+
+export const getAudit = (params: EventQuery) => api.get({ url: "/npmos/audit", params }) as Promise<AuditPage>;
+
+export const downloadAudit = (params: EventQuery, format: "csv" | "json") =>
+	api.download(
+		{ url: "/npmos/audit/export", params: { ...params, format } },
+		`npmos-audit-${new Date().toISOString().slice(0, 19).replaceAll(":", "-")}.${format}`,
+	);
+
+export type CertSource = "tls" | "ca" | "pki" | "file";
+export type CertStatus = "valid" | "expiring" | "expired" | "revoked";
+
+/** a row of the registry of certificates (/npmos/certificates) */
+export interface RegistryCert {
+	key: string;
+	source: CertSource;
+	/** id of the record; the path of a file */
+	id: number | string;
+	name: string;
+	subjects: string[];
+	/** provider of a TLS certificate, kind of a CA (root, intermediate, external), profile of an issued one */
+	kind: string;
+	dnsProvider?: string | null;
+	issuer: string;
+	serial?: string;
+	notAfter: string | null;
+	createdOn: string | null;
+	status: CertStatus;
+	usedBy: { type: string; id: number; name: string }[];
+	/** a CA uploaded in NPMplus: its certificate there */
+	tlsId?: number | null;
+	/** a TLS certificate issued by the PKI */
+	pkiId?: number | null;
+	path?: string;
+}
+
+export interface RegistryPage {
+	items: RegistryCert[];
+	total: number;
+	limit: number;
+	offset: number;
+	counts: { source: Partial<Record<CertSource, number>>; status: Partial<Record<CertStatus, number>> };
+	kinds: string[];
+	expiringDays: number;
+	can: { tls: boolean; pki: boolean };
+}
+
+export const getCertificateRegistry = (params: EventQuery) =>
+	api.get({ url: "/npmos/certificates", params }) as Promise<RegistryPage>;
+
 export type AnalyticsPeriod = "1h" | "24h" | "7d" | "30d";
 
 export interface Analytics {
@@ -200,6 +259,19 @@ export interface Analytics {
 		readiness: null;
 	};
 	timeline: { t: string; prevent: number; detect: number; other: number }[];
+	/** all requests of the hosts, from the access log of nginx */
+	traffic: {
+		requests: number;
+		ok: number;
+		s2xx: number;
+		s3xx: number;
+		s4xx: number;
+		s5xx: number;
+		blocked: number;
+		bytes: number;
+		hosts: { host: string; requests: number; errors: number; blocked: number }[];
+		timeline: { t: string; requests: number; blocked: number }[];
+	};
 	actions: { action: string; events: number }[];
 	severities: { severity: string; events: number }[];
 	types: { type: string; events: number }[];
@@ -244,7 +316,6 @@ export interface WafAgentModel {
 }
 
 export interface WafAgentSettings {
-	crowdsec: { enabled: boolean; mode: "prevent" | "detect" };
 	failOpen: { enabled: boolean; timeoutMs: number };
 }
 
@@ -345,3 +416,28 @@ export const getHostHistory = (type: HostObjectType, id: number): Promise<HostCh
 	api.get({ url: `/npmos/hosts/changes/${type}/${id}` });
 
 export const getUpstreamChecks = (): Promise<UpstreamCheck[]> => api.get({ url: "/npmos/hosts/upstreams" });
+
+/** Agents → Block page: what a refused visitor sees */
+export interface BlockPageSettings {
+	enabled: boolean;
+	title: string;
+	text: string;
+	contact: string;
+	details: boolean;
+	accent: string;
+	/** language of the labels of the details */
+	language?: "en" | "ru";
+}
+
+export const getBlockPage = () =>
+	api.get({ url: "/npmos/block-page" }) as Promise<{ settings: BlockPageSettings; preview: string }>;
+export const setBlockPage = (data: BlockPageSettings) =>
+	api.put({ url: "/npmos/block-page", data }) as Promise<{ settings: BlockPageSettings; preview: string }>;
+export const previewBlockPage = (data: BlockPageSettings) =>
+	api.post({ url: "/npmos/block-page/preview", data }) as Promise<{ preview: string }>;
+export const getBlockPageCode = () => api.get({ url: "/npmos/block-page/code" }) as Promise<{ content: string }>;
+export const putBlockPageCode = (content: string, dryRun: boolean) =>
+	api.put({ url: "/npmos/block-page/code", data: { content, dryRun } }) as Promise<{
+		valid: boolean;
+		error?: string;
+	}>;

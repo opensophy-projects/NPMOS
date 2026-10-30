@@ -13,16 +13,18 @@ const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id 
 interface Props extends InnerModalProps {
 	values?: string[];
 	reason?: string;
+	/** the address is banned already: the new ban replaces the decisions it has */
+	extend?: boolean;
 	onDone?: () => void;
 }
 
 /** addresses separated by lines, commas or spaces */
 export const splitValues = (text: string) => [...new Set(text.split(/[\s,;]+/).filter(Boolean))];
 
-const BanModal = EasyModal.create(({ visible, remove, values = [], reason = "", onDone }: Props) => {
+const BanModal = EasyModal.create(({ visible, remove, values = [], reason = "", extend = false, onDone }: Props) => {
 	const [text, setText] = useState(values.join("\n"));
 	const [type, setType] = useState<string>("ban");
-	const [duration, setDuration] = useState("4h");
+	const [duration, setDuration] = useState(extend ? "24h" : "4h");
 	const [why, setWhy] = useState(reason);
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -32,7 +34,8 @@ const BanModal = EasyModal.create(({ visible, remove, values = [], reason = "", 
 		setBusy(true);
 		setError(null);
 		try {
-			const { count } = await ban({ values: list, type, duration, reason: why });
+			// one decision per address: a ban of an address that has one replaces it (up to 100 addresses)
+			const { count } = await ban({ values: list, type, duration, reason: why, replace: list.length <= 100 });
 			showSuccess(t("npmos.crowdsec.ban.done", { count }));
 			onDone?.();
 			remove();
@@ -46,7 +49,7 @@ const BanModal = EasyModal.create(({ visible, remove, values = [], reason = "", 
 		<Modal show={visible} onHide={remove}>
 			<Modal.Header closeButton>
 				<Modal.Title>
-					<T id="npmos.crowdsec.ban.title" />
+					<T id={extend ? "npmos.crowdsec.ban.extend" : "npmos.crowdsec.ban.title"} />
 				</Modal.Title>
 			</Modal.Header>
 			<Modal.Body>
@@ -64,7 +67,7 @@ const BanModal = EasyModal.create(({ visible, remove, values = [], reason = "", 
 						onChange={(e) => setText(e.target.value)}
 					/>
 					<div className="form-hint">
-						<T id="npmos.crowdsec.ban.values.hint" />
+						<T id="npmos.crowdsec.ban.values.hint" /> <T id="npmos.crowdsec.ban.replace.hint" />
 					</div>
 				</div>
 				<div className="row">

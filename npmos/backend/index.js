@@ -7,8 +7,10 @@ import internalIpRanges from "./internal/ip_ranges.js";
 import { global as logger } from "./logger.js";
 import { migrateUp } from "./migrate.js";
 // NPMOS: open-appsec policy and agent settings from the database, security events of the agent, CRLs of the PKI
+import { bootstrap as bootstrapBlockPage } from "./npmos/block-page.js";
 import { bootstrap as bootstrapCrowdsec } from "./npmos/crowdsec/index.js";
 import { start as startEventIngest } from "./npmos/events/ingest.js";
+import { start as startLearning } from "./npmos/learning/index.js";
 import { start as startNotifications } from "./npmos/notifications/index.js";
 import { bootstrap as bootstrapPki } from "./npmos/pki/index.js";
 import { bootstrap as bootstrapWafAgent } from "./npmos/waf/agent-settings.js";
@@ -24,8 +26,10 @@ async function appStart() {
 			.then(bootstrapWafPolicy)
 			.then(bootstrapWafAgent)
 			.then(bootstrapPki)
+			.then(bootstrapBlockPage)
 			.then(bootstrapCrowdsec)
 			.then(startEventIngest)
+			.then(startLearning)
 			.then(startNotifications)
 			.then(getCompiledSchema)
 			.then(() => {

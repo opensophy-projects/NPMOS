@@ -9,7 +9,9 @@ import { useSetUser, useUser } from "src/hooks";
 import { intl, T } from "src/locale";
 import { validateEmail, validateString } from "src/modules/Validations";
 import { showObjectSuccess } from "src/notifications";
-import { showUserRolesModal } from "src/npmos/rbac/UserRolesModal";
+import { setUserRoles } from "src/npmos/rbac/api";
+import { useRbacRefresh, useRoleAssignments } from "src/npmos/rbac/hooks";
+import { RolePicker } from "src/npmos/rbac/UserRolesModal";
 
 const showUserModal = (id: number | "me" | "new") => {
 	EasyModal.show(UserModal, { id });
@@ -24,6 +26,12 @@ const UserModal = EasyModal.create(({ id, visible, remove }: Props) => {
 	const { mutate: setUser } = useSetUser();
 	const [errorMsg, setErrorMsg] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	// NPMOS: roles of NPMOS instead of the Administrator switch, given with the user
+	const { data: assignments } = useRoleAssignments();
+	const refreshRbac = useRbacRefresh();
+	const [chosenRoles, setChosenRoles] = useState<Set<number> | null>(null);
+	const currentRoles = new Set(id === "new" ? [] : (assignments?.[id === "me" ? -1 : id] ?? []).map((r) => r.id));
+	const selectedRoles = chosenRoles ?? currentRoles;
 
 	const onSubmit = async (values: any, { setSubmitting }: any) => {
 		if (isSubmitting) return;
@@ -36,24 +44,29 @@ const UserModal = EasyModal.create(({ id, visible, remove }: Props) => {
 			...values,
 		};
 
-		if (data?.id === currentUser?.id) {
+		const self = data?.id === currentUser?.id;
+		if (self) {
 			// Prevent user from locking themselves out
 			delete payload.isDisabled;
-			delete payload.roles;
-		} else if (payload.isAdmin) {
-			payload.roles = ["admin"];
 		}
-
-		// this isn't a real field, just for the form
-		delete payload.isAdmin;
+		// NPMOS: the admin flag follows the Administrator role, set with the roles below
+		if (id === "new") payload.roles = [];
+		else delete payload.roles;
 
 		setUser(payload, {
 			onError: (err: any) => setErrorMsg(err.message),
-			onSuccess: (saved: any) => {
+			onSuccess: async (saved: any) => {
+				if (!self && chosenRoles && saved?.id) {
+					try {
+						await setUserRoles(saved.id, [...chosenRoles]);
+						refreshRbac();
+					} catch (err: any) {
+						setErrorMsg(err.message);
+						return;
+					}
+				}
 				showObjectSuccess("user", "saved");
 				remove();
-				// NPMOS: a new user has no permissions until it gets a role
-				if (id === "new" && saved?.id) showUserRolesModal(saved.id, saved.name);
 			},
 			onSettled: () => {
 				setIsSubmitting(false);
@@ -77,7 +90,6 @@ const UserModal = EasyModal.create(({ id, visible, remove }: Props) => {
 							name: data?.name,
 							nickname: data?.nickname,
 							email: data?.email,
-							isAdmin: data?.roles?.includes("admin"),
 							isDisabled: data?.isDisabled,
 						} as any
 					}
@@ -180,27 +192,6 @@ const UserModal = EasyModal.create(({ id, visible, remove }: Props) => {
 										</h4>
 										<div className="divide-y">
 											<div>
-												<label className="row" htmlFor="isAdmin">
-													<span className="col">
-														<T id="role.admin" />
-													</span>
-													<span className="col-auto">
-														<Field name="isAdmin" type="checkbox">
-															{({ field }: any) => (
-																<label className="form-check form-check-single form-switch">
-																	<input
-																		{...field}
-																		id="isAdmin"
-																		className="form-check-input"
-																		type="checkbox"
-																	/>
-																</label>
-															)}
-														</Field>
-													</span>
-												</label>
-											</div>
-											<div>
 												<label className="row" htmlFor="isDisabled">
 													<span className="col">
 														<T id="disabled" />
@@ -222,6 +213,13 @@ const UserModal = EasyModal.create(({ id, visible, remove }: Props) => {
 												</label>
 											</div>
 										</div>
+										<h4 className="py-2 mt-3">
+											<T id="npmos.rbac.user-roles" />
+										</h4>
+										<RolePicker selected={selectedRoles} onChange={setChosenRoles} />
+										<p className="form-hint mt-2">
+											<T id="npmos.rbac.user-roles.note" />
+										</p>
 									</div>
 								) : null}
 							</Modal.Body>

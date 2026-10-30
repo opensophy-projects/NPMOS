@@ -92,6 +92,24 @@ export interface PkiCert {
 	certificateId: number | null;
 	/** hosts that serve it (server certificates installed in NPMplus) */
 	hosts: string[];
+	/** hosts with mTLS it opens (client certificates) */
+	access: HostRef[];
+}
+
+export interface HostRef {
+	hostType: MtlsHostType;
+	hostId: number;
+	name: string;
+}
+
+/** a host with mTLS on */
+export interface ProtectedHost extends HostRef {
+	mode: "on" | "optional";
+	caIds: number[];
+	/** rules on fields of certificates narrow who passes */
+	rules: number;
+	/** the host is on and has its TLS certificate */
+	active: boolean;
 }
 
 export interface PkiTemplate {
@@ -118,6 +136,7 @@ export interface PkiOverview {
 	cas: PkiCa[];
 	certificates: PkiCert[];
 	settings: PkiSettings;
+	protected: ProtectedHost[];
 }
 
 export interface IssueData {
@@ -212,6 +231,13 @@ export const renewCert = (
 export const revokeCerts = (ids: number[], reason: string): Promise<{ revoked: number }> =>
 	api.post({ url: "/npmos/pki/certs/revoke", data: { ids, reason } });
 
+/** still valid certificates are revoked first */
+export const deleteCerts = (ids: number[]): Promise<{ deleted: number; revoked: number }> =>
+	api.post({ url: "/npmos/pki/certs/delete", data: { ids } });
+
+export const updateCert = (id: number, data: { notes: string }): Promise<PkiCert> =>
+	api.put({ url: `/npmos/pki/certs/${id}`, data });
+
 export const downloadCert = (
 	id: number,
 	format: "cert" | "chain" | "key" | "p12",
@@ -222,6 +248,18 @@ export const createLink = (
 	id: number,
 	data: { hours: number; password?: string; compatible?: boolean },
 ): Promise<{ link: OneTimeLink; password: string }> => api.post({ url: `/npmos/pki/certs/${id}/links`, data });
+
+export interface CertLink {
+	id: number;
+	createdOn: string;
+	expiresOn: string;
+	usedOn: string | null;
+	active: boolean;
+}
+
+export const getCertLinks = (id: number): Promise<CertLink[]> => api.get({ url: `/npmos/pki/certs/${id}/links` });
+
+export const deleteCertLink = (id: number) => api.del({ url: `/npmos/pki/links/${id}` });
 
 // ---- mTLS of hosts ----
 
@@ -267,6 +305,22 @@ export const useMtlsHosts = (options = {}) =>
 
 export const getMtlsHost = (type: MtlsHostType, id: number): Promise<MtlsHost> =>
 	api.get({ url: `/npmos/mtls/${type}/${id}` });
+
+/** mTLS on in one step: the CAs of before, or a trust domain of the host (created when missing) */
+export const enableMtlsHost = (type: MtlsHostType, id: number): Promise<MtlsHost> =>
+	api.post({ url: `/npmos/mtls/${type}/${id}/enable` });
+
+/** "proxy_host-5" (filters and links of the mTLS page) */
+export const hostKey = (ref: { hostType: MtlsHostType; hostId: number }) => `${ref.hostType}-${ref.hostId}`;
+
+/** CAs of NPMOS that can issue client certificates for a host: its trust domains, or those of its roots */
+export const issuersFor = (host: { caIds: number[] }, cas: PkiCa[]) => {
+	const now = Date.now();
+	const usable = (ca: PkiCa) => ca.kind === "intermediate" && ca.hasKey && new Date(ca.notAfter).getTime() > now;
+	const direct = cas.filter((ca) => host.caIds.includes(ca.id) && usable(ca));
+	if (direct.length) return direct;
+	return cas.filter((ca) => ca.parentId !== null && host.caIds.includes(ca.parentId) && usable(ca));
+};
 
 /** rules keep the field names of the API (common_name…): values of "field" are not converted */
 export const setMtlsHost = (type: MtlsHostType, id: number, data: MtlsBinding): Promise<MtlsHost> =>

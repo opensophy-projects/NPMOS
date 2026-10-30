@@ -3,7 +3,14 @@
 import * as api from "src/api/backend/base";
 
 export type ChannelType = "email" | "webhook" | "telegram";
-export type RuleType = "attack_spike" | "agent_down" | "policy_error" | "service_down" | "cert_expiry" | "host_problem";
+export type RuleType =
+	| "attack_spike"
+	| "agent_down"
+	| "policy_error"
+	| "service_down"
+	| "cert_expiry"
+	| "host_problem"
+	| "learning_queue";
 export type Language = "ru" | "en";
 
 export interface EmailConfig {

@@ -29,6 +29,25 @@ const bucketLabel = (iso: string, period: AnalyticsPeriod) =>
 			? intl.formatDate(iso, { day: "numeric", month: "short", hour: "2-digit" })
 			: intl.formatDate(iso, { day: "numeric", month: "short" });
 
+/** "12 % of all" */
+const share = (n: number, total: number) =>
+	total > 0
+		? t("npmos.analytics.traffic.share", {
+				p: intl.formatNumber(n / total, { style: "percent", maximumFractionDigits: 1 }),
+			})
+		: undefined;
+
+const formatBytes = (n: number) => {
+	const units = ["B", "KB", "MB", "GB", "TB"];
+	let i = 0;
+	let v = n;
+	while (v >= 1024 && i < units.length - 1) {
+		v /= 1024;
+		i++;
+	}
+	return `${intl.formatNumber(v, { maximumFractionDigits: i ? 1 : 0 })} ${units[i]}`;
+};
+
 function Panel({ title, children, wide }: { title: React.ReactNode; children: React.ReactNode; wide?: boolean }) {
 	return (
 		<div className={cn("card", styles.panel, wide && styles.wide)}>
@@ -64,7 +83,7 @@ function AnalyticsPage() {
 						<T id="npmos.analytics" />
 					</h1>
 					<p className={hostStyles.subtitle}>
-						<T id="npmos.analytics.subtitle" />
+						<T id="npmos.analytics.description" />
 					</p>
 				</div>
 			</div>
@@ -111,12 +130,91 @@ function AnalyticsPage() {
 				<Alert variant="danger">{error?.message || <T id="npmos.common.unknown-error" />}</Alert>
 			) : (
 				<>
+					<h2 className={styles.section}>
+						<T id="npmos.analytics.section.traffic" />
+					</h2>
 					<Tiles>
 						<Tile
-							value={data.kpi.requests === null ? "—" : formatNumber(data.kpi.requests)}
-							label={<T id="npmos.analytics.requests" />}
-							hint={data.kpi.requests === null ? <T id="npmos.analytics.requests.none" /> : undefined}
+							value={formatNumber(data.traffic.requests)}
+							label={<T id="npmos.analytics.traffic.requests" />}
+							hint={
+								<T
+									id="npmos.analytics.traffic.sent"
+									data={{ bytes: formatBytes(data.traffic.bytes) }}
+								/>
+							}
 						/>
+						<Tile
+							value={formatNumber(data.traffic.ok)}
+							label={<T id="npmos.analytics.traffic.ok" />}
+							hint={share(data.traffic.ok, data.traffic.requests)}
+						/>
+						<Tile
+							value={formatNumber(data.traffic.s4xx)}
+							label={<T id="npmos.analytics.traffic.4xx" />}
+							hint={share(data.traffic.s4xx, data.traffic.requests)}
+						/>
+						<Tile
+							value={formatNumber(data.traffic.s5xx)}
+							label={<T id="npmos.analytics.traffic.5xx" />}
+							hint={share(data.traffic.s5xx, data.traffic.requests)}
+						/>
+						<Tile
+							value={formatNumber(data.traffic.blocked)}
+							label={<T id="npmos.analytics.traffic.blocked" />}
+							hint={share(data.traffic.blocked, data.traffic.requests)}
+						/>
+					</Tiles>
+					<div className={styles.grid}>
+						<Panel title={<T id="npmos.analytics.traffic.timeline" />} wide>
+							<StackedBars
+								data={data.traffic.timeline.map((b) => ({
+									t: b.t,
+									passed: Math.max(0, b.requests - b.blocked),
+									blocked: b.blocked,
+								}))}
+								series={[
+									{
+										key: "passed",
+										label: t("npmos.analytics.traffic.passed"),
+										color: "var(--series-3)",
+									},
+									{
+										key: "blocked",
+										label: t("npmos.analytics.traffic.blocked"),
+										color: "var(--series-2)",
+									},
+								]}
+								xLabel={(b) => bucketLabel(b.t, period)}
+								tooltipTitle={(b) => intl.formatDate(b.t, { dateStyle: "medium", timeStyle: "short" })}
+								emptyText={t("npmos.analytics.traffic.none")}
+								ariaLabel={t("npmos.analytics.traffic.timeline")}
+							/>
+						</Panel>
+						<Panel title={<T id="npmos.analytics.traffic.hosts" />}>
+							<BarList
+								emptyText={t("npmos.analytics.traffic.none")}
+								items={data.traffic.hosts.map((h) => ({
+									key: h.host,
+									label: h.host,
+									value: h.requests,
+									sub:
+										h.errors || h.blocked
+											? t("npmos.analytics.traffic.host-sub", {
+													errors: formatNumber(h.errors),
+													blocked: formatNumber(h.blocked),
+												})
+											: undefined,
+									onClick: () => set("host", h.host, false),
+								}))}
+							/>
+						</Panel>
+					</div>
+
+					<h2 className={styles.section}>
+						<T id="npmos.analytics.section.attacks" />
+					</h2>
+					<Tiles>
 						<Tile value={formatNumber(data.kpi.attacks)} label={<T id="npmos.analytics.attacks" />} />
 						<Tile value={formatNumber(data.kpi.prevented)} label={<T id="npmos.analytics.prevented" />} />
 						<Tile value={formatNumber(data.kpi.detected)} label={<T id="npmos.analytics.detected" />} />

@@ -15,6 +15,9 @@ server {
   listen [::]:91 ssl bind reuseport deferred multipath so_keepalive=on default_server;
 
   server_name _;
+  # NPMOS: the interface is not inspected by open-appsec (start.sh uncomments this when the
+  # attachment is loaded): requests of the GUI never wait for the agent
+  #cp-nano-nginx-attachment off;
   ssl_certificate ;
   ssl_certificate_key ;
   #ssl_stapling on;
@@ -36,7 +39,8 @@ server {
   more_set_headers "Cross-Origin-Resource-Policy: same-origin";
   more_set_headers "Cross-Origin-Embedder-Policy: require-corp";
   more_set_headers "Content-Security-Policy: default-src 'none'; script-src 'unsafe-eval'; script-src-elem 'unsafe-inline'; style-src-elem 'unsafe-inline'; style-src-attr 'unsafe-inline'; connect-src 'self'; font-src 'self' data:; img-src data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests;";
-  more_set_headers "Permissions-Policy: accelerometer=(), ambient-light-sensor=(), aria-notify=(), attribution-reporting=(), autoplay=(), bluetooth=(), browsing-topics=(), camera=(), captured-surface-control=(), ch-ua-high-entropy-values=(), compute-pressure=(), cross-origin-isolated=(), deferred-fetch=(), deferred-fetch-minimal=(), display-capture=(), encrypted-media=(), fullscreen=(), gamepad=(), geolocation=(), gyroscope=(), hid=(), identity-credentials-get=(), idle-detection=(), local-fonts=(), local-network=(), local-network-access=(), loopback-network=(), magnetometer=(), microphone=(), midi=(), on-device-speech-recognition=(), otp-credentials=(), payment=(), picture-in-picture=(), private-state-token-issuance=(), private-state-token-redemption=(), publickey-credentials-create=(), publickey-credentials-get=(), screen-wake-lock=(), serial=(), storage-access=(), summarizer=(), usb=(), web-share=(), window-management=(), xr-spatial-tracking=()";
+  # NPMOS: without ambient-light-sensor, bluetooth and web-share (Chrome logs them as unrecognized)
+  more_set_headers "Permissions-Policy: accelerometer=(), aria-notify=(), attribution-reporting=(), autoplay=(), browsing-topics=(), camera=(), captured-surface-control=(), ch-ua-high-entropy-values=(), compute-pressure=(), cross-origin-isolated=(), deferred-fetch=(), deferred-fetch-minimal=(), display-capture=(), encrypted-media=(), fullscreen=(), gamepad=(), geolocation=(), gyroscope=(), hid=(), identity-credentials-get=(), idle-detection=(), local-fonts=(), local-network=(), local-network-access=(), loopback-network=(), magnetometer=(), microphone=(), midi=(), on-device-speech-recognition=(), otp-credentials=(), payment=(), picture-in-picture=(), private-state-token-issuance=(), private-state-token-redemption=(), publickey-credentials-create=(), publickey-credentials-get=(), screen-wake-lock=(), serial=(), storage-access=(), summarizer=(), usb=(), window-management=(), xr-spatial-tracking=()";
 
   # based on https://github.com/xavier-hernandez/goaccess-for-nginxproxymanager/blob/main/resources/nginx/nginx.conf
   location / {

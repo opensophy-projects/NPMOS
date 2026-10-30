@@ -1,7 +1,7 @@
 // CrowdSec → Hub: collections, parsers, scenarios and the rest of the hub snapshot on this node;
 // install and remove (CrowdSec restarts), upgrade to the snapshot, upload a new snapshot, or take
 // the index from the CrowdSec CDN when online hub updates are allowed.
-import { IconSearch, IconUpload } from "@tabler/icons-react";
+import { IconUpload } from "@tabler/icons-react";
 import cn from "classnames";
 import { useRef, useState } from "react";
 import { T } from "src/locale";
@@ -18,8 +18,8 @@ import {
 } from "../../crowdsec/api";
 import { t } from "../../crowdsec/labels";
 import { useCan } from "../../rbac/hooks";
-import hostStyles from "../Hosts/Hosts.module.css";
 import styles from "../Pki/Pki.module.css";
+import { SearchField } from "../../ui/SearchField";
 
 const STATUS_TONE: Record<string, string> = {
 	"up-to-date": "bg-green-lt",
@@ -65,15 +65,12 @@ export function HubTab({ onlineHub, refresh }: { onlineHub: boolean; refresh: ()
 	return (
 		<section className={cn("card", styles.card)}>
 			<div className={styles.filters}>
-				<label className={hostStyles.search}>
-					<IconSearch size={16} />
-					<input
-						value={q}
-						placeholder={t("npmos.crowdsec.hub.search")}
-						aria-label={t("npmos.crowdsec.hub.search")}
-						onChange={(e) => setQ(e.target.value)}
-					/>
-				</label>
+				<SearchField
+					variant="inset"
+					value={q}
+					onChange={(value) => setQ(value)}
+					placeholder={t("npmos.crowdsec.hub.search")}
+				/>
 				<select
 					className="form-select form-select-sm w-auto"
 					aria-label={t("npmos.crowdsec.hub.type")}

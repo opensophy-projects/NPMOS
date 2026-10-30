@@ -18,7 +18,9 @@ export const HUB_TYPES = [
 ] as const;
 export type HubType = (typeof HUB_TYPES)[number];
 /** durations the GUI offers; the API takes any number of m, h or d */
-export const DURATIONS = ["15m", "1h", "4h", "12h", "24h", "7d", "30d"] as const;
+// 3650d is "forever": CrowdSec decisions always have a duration
+export const DURATIONS = ["15m", "1h", "4h", "12h", "24h", "7d", "30d", "3650d"] as const;
+export const FOREVER = "3650d";
 
 export interface CrowdsecProfile {
 	name: string;
@@ -114,8 +116,6 @@ export interface CrowdsecOverview {
 		appsec: boolean;
 		openappsecBan: { enabled: boolean; events: number; minutes: number };
 	};
-	/** IP reputation in the WAF agent (WAF → Agent) */
-	agent: { enabled: boolean; mode: "prevent" | "detect" };
 	lapi: { healthy: boolean; error: string };
 	metrics: CrowdsecMetrics | null;
 	machines: Machine[];
@@ -200,6 +200,8 @@ export interface ApplyResult {
 	changed: string[];
 	installed: string[];
 	restarted: boolean;
+	/** applied by a reload (SIGHUP), CrowdSec kept running */
+	reloaded?: boolean;
 	healthy: boolean;
 	bouncerChanged?: boolean;
 }
@@ -256,7 +258,7 @@ export const useDecisions = (params: Parameters<typeof getDecisions>[0], options
 		...options,
 	});
 
-export const ban = (data: { values: string[]; type?: string; duration?: string; reason?: string }) =>
+export const ban = (data: { values: string[]; type?: string; duration?: string; reason?: string; replace?: boolean }) =>
 	api.post({ url: "/npmos/crowdsec/decisions", data }) as Promise<{ count: number }>;
 export const unban = (data: { ids?: number[]; values?: string[] }) =>
 	api.post({ url: "/npmos/crowdsec/decisions/delete", data }) as Promise<{ deleted: number }>;
@@ -357,3 +359,11 @@ export const useCrowdsecHosts = (options = {}) =>
 	});
 export const setHostBouncer = (hostType: string, hostId: number, bouncer: boolean) =>
 	api.put({ url: `/npmos/crowdsec/hosts/${hostType}/${hostId}`, data: { bouncer } });
+
+/** Agents → CrowdSec → Policy → Code */
+export const getSettingsCode = () => api.get({ url: "/npmos/crowdsec/settings/code" }) as Promise<{ content: string }>;
+export const putSettingsCode = (content: string, dryRun: boolean) =>
+	api.put({ url: "/npmos/crowdsec/settings/code", data: { content, dryRun } }) as Promise<{
+		valid: boolean;
+		error?: string;
+	}>;
