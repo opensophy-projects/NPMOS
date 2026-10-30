@@ -58,6 +58,7 @@ pnpm vite
 ## Документация
 
 - [Перенос с Nginx Proxy Manager, NPMplus и open-appsec-npm](docs/MIGRATION.md)
+- [Полное удаление NPMOS](docs/UNINSTALL.md)
 - [Как развернуть develop-версию и что проверить руками](docs/TESTING-DEVELOP.md)
 - [План разработки](docs/ROADMAP.md)
 - [Инвентаризация env-настроек](docs/ENV-INVENTORY.md)
