@@ -10,6 +10,7 @@ import { migrateUp } from "./migrate.js";
 import { bootstrap as bootstrapBlockPage } from "./npmos/block-page.js";
 import { bootstrap as bootstrapCrowdsec } from "./npmos/crowdsec/index.js";
 import { start as startEventIngest } from "./npmos/events/ingest.js";
+import { start as startLearning } from "./npmos/learning/index.js";
 import { start as startNotifications } from "./npmos/notifications/index.js";
 import { bootstrap as bootstrapPki } from "./npmos/pki/index.js";
 import { bootstrap as bootstrapWafAgent } from "./npmos/waf/agent-settings.js";
@@ -28,6 +29,7 @@ async function appStart() {
 			.then(bootstrapBlockPage)
 			.then(bootstrapCrowdsec)
 			.then(startEventIngest)
+			.then(startLearning)
 			.then(startNotifications)
 			.then(getCompiledSchema)
 			.then(() => {

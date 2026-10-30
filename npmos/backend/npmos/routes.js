@@ -19,6 +19,7 @@ import internalRbac from "./rbac/index.js";
 import internalServices from "./services.js";
 import internalSystem from "./system/index.js";
 import internalGeoip from "./geoip/index.js";
+import internalLearning from "./learning/index.js";
 import internalMigration from "./migration/index.js";
 import internalWafAgent from "./waf/agent-settings.js";
 import internalWafExpert from "./waf/expert.js";
@@ -75,7 +76,17 @@ router.param("version_id", (req, res, next, id) => {
 	next();
 });
 
-for (const name of ["role_id", "user_id", "channel_id", "rule_id", "ca_id", "cert_id", "link_id", "blocklist_id"]) {
+for (const name of [
+	"role_id",
+	"user_id",
+	"channel_id",
+	"rule_id",
+	"ca_id",
+	"cert_id",
+	"link_id",
+	"blocklist_id",
+	"label_id",
+]) {
 	router.param(name, (req, res, next, id) => {
 		if (!/^[1-9][0-9]{0,9}$/.test(id)) {
 			return res.status(400).send({ error: { code: 400, message: `Invalid ${name}` } });
@@ -608,7 +619,17 @@ const ruleSchema = (create) => ({
 	required: create ? ["name", "type", "channel_ids"] : [],
 	properties: {
 		name: { type: "string", minLength: 1, maxLength: 100 },
-		type: { enum: ["attack_spike", "agent_down", "policy_error", "service_down", "cert_expiry", "host_problem"] },
+		type: {
+			enum: [
+				"attack_spike",
+				"agent_down",
+				"policy_error",
+				"service_down",
+				"cert_expiry",
+				"host_problem",
+				"learning_queue",
+			],
+		},
 		enabled: { type: "boolean" },
 		params: { type: "object", maxProperties: 10 },
 		channel_ids: { type: "array", maxItems: 20, items: { type: "integer", minimum: 1 } },
@@ -2276,5 +2297,49 @@ router
 			return internalCrowdsec.setHost(res.locals.access, req.params.type, req.params.host_id, data.bouncer);
 		}),
 	);
+
+/**
+ * GET /api/npmos/learning/queue?period=24h|7d|30d&host=&reason=blocked|grey|detected&q=&limit=&offset=&suggestions=0
+ *   groups of events the agent is not sure about, and suggestions of the tuning service
+ * GET /api/npmos/learning/groups/:key — a group with its sources
+ */
+router
+	.route("/learning/queue")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((req, res) => internalLearning.queue(res.locals.access, req.query)));
+
+router
+	.route("/learning/groups/:key")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((req, res) => internalLearning.group(res.locals.access, String(req.params.key).slice(0, 64))));
+
+/**
+ * GET  /api/npmos/learning/labels?host=&decision=&active=1|0&limit=&offset= — history of labels
+ * POST /api/npmos/learning/labels — {key | suggestion, decision, scopes, exception?, ttl_days?, ban?, ban_duration?, note?}
+ * DELETE /api/npmos/learning/labels/:label_id — undo
+ */
+router
+	.route("/learning/labels")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((req, res) => internalLearning.labels(res.locals.access, req.query)))
+	.post(handle((req, res) => internalLearning.label(res.locals.access, req.body), 201));
+
+router
+	.route("/learning/labels/:label_id")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.delete(handle((req, res) => internalLearning.undo(res.locals.access, req.params.label_id)));
+
+/**
+ * GET /api/npmos/learning/hosts — readiness of learning per host with WAF, labels, false positives before/after
+ */
+router
+	.route("/learning/hosts")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_req, res) => internalLearning.hosts(res.locals.access)));
 
 export default router;

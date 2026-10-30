@@ -26,6 +26,8 @@ export const RULE_TYPES = {
 	service_down: { params: {}, severity: "critical" },
 	cert_expiry: { params: { days: int(1, 365, 14) }, severity: "warning" },
 	host_problem: { params: {}, severity: "warning" },
+	// groups of events in the queue of learning (Agents → open-appsec → Learning), last 24 h
+	learning_queue: { params: { threshold: int(1, 100000, 1) }, severity: "warning" },
 };
 
 /** parameters of a rule with defaults for what is missing or invalid */
@@ -91,6 +93,16 @@ const TEXT = {
 		ru: (v) => ({
 			title: `Хост ${v.name}: ошибка nginx`,
 			text: `nginx не принял конфигурацию ${v.name}: ${v.error}`,
+		}),
+	},
+	learning_queue: {
+		en: (v) => ({
+			title: `Learning: ${v.count} group(s) of events to label`,
+			text: `The WAF agent is not sure about ${v.count} group(s) of requests of the last 24 h (blocked, or with a medium score). Label them in Agents → open-appsec → Learning: what is legitimate stops being blocked, what is an attack stays out of learning.`,
+		}),
+		ru: (v) => ({
+			title: `Обучение: ${v.count} групп(ы) событий на разметку`,
+			text: `Агент WAF не уверен в ${v.count} групп(ах) запросов за последние 24 ч (заблокированы или со средней оценкой). Разметьте их в «Агенты → open-appsec → Обучение»: легитимное перестанет блокироваться, атаки не попадут в обучение.`,
 		}),
 	},
 };
@@ -262,6 +274,12 @@ const CHECKS = {
 			}
 		}
 		return alerts;
+	},
+
+	learning_queue: async (p) => {
+		const { queueSize } = await import("../learning/index.js");
+		const count = await queueSize("24h");
+		return count >= p.threshold ? [{ key: "learning", values: { count, threshold: p.threshold } }] : [];
 	},
 };
 
