@@ -143,3 +143,18 @@ test("objects of the examples of open-appsec pass the schema", async () => {
 		}
 	}
 });
+
+test("objects of a location replace those of its host, exceptions add up", async () => {
+	const { locationRule } = await import("./store.js");
+	const host = { triggers: ["log-all"], exceptions: ["office"], customResponse: "page" };
+	assert.deepEqual(locationRule(host, {}), host);
+	assert.deepEqual(locationRule(host, { triggers: ["quiet"], exceptions: ["api", "office"] }), {
+		triggers: ["quiet"],
+		exceptions: ["office", "api"],
+		customResponse: "page",
+	});
+	assert.deepEqual(locationRule({}, { exceptions: ["api"] }).exceptions, ["api"]);
+	assert.deepEqual(locationRule({ threatPreventionPractices: ["p"] }, { threatPreventionPractices: [] }), {
+		threatPreventionPractices: ["p"],
+	});
+});

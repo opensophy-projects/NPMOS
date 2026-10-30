@@ -19,6 +19,8 @@ type LocationChoice = "inherit" | "off" | WafMode;
 export interface WafFormLocation {
 	choice: LocationChoice;
 	minimumConfidence: WafConfidence;
+	/** own objects of the policy; null: those of the host */
+	objects: HostObjects;
 }
 
 export interface WafFormValues {
@@ -37,6 +39,7 @@ export const toWafForm = (data?: WafHost): WafFormValues => {
 		locations[l.path] = {
 			choice: l.inherit ? "inherit" : l.enabled ? l.mode : "off",
 			minimumConfidence: l.minimumConfidence,
+			objects: l.objects ?? null,
 		};
 	}
 	return {
@@ -65,6 +68,7 @@ export const fromWafForm = (values: WafFormValues, paths: string[]) => ({
 			enabled: l.choice !== "off",
 			mode: l.choice === "off" ? WAF_DEFAULTS.mode : l.choice,
 			minimumConfidence: l.minimumConfidence,
+			objects: l.choice === "off" ? null : l.objects,
 		};
 	}),
 });
@@ -176,7 +180,11 @@ export function WafFields() {
 						<T id="column.custom-locations" />
 					</h4>
 					{paths.map((path) => {
-						const l = waf.locations[path] || { choice: "inherit", minimumConfidence: "high" };
+						const l = waf.locations[path] || {
+							choice: "inherit",
+							minimumConfidence: "high",
+							objects: null,
+						};
 						const setLocation = (patch: Partial<WafFormLocation>) =>
 							set("locations", { ...waf.locations, [path]: { ...l, ...patch } });
 						const own = l.choice !== "inherit" && l.choice !== "off";
@@ -209,6 +217,13 @@ export function WafFields() {
 										onChange={(v) => setLocation({ minimumConfidence: v })}
 									/>
 								</div>
+								{own && (
+									<LocationObjects
+										value={l.objects}
+										host={waf.objects}
+										onChange={(objects) => setLocation({ objects })}
+									/>
+								)}
 							</div>
 						);
 					})}
@@ -285,6 +300,51 @@ function PolicyChoice({
 					<RefsEditor value={value} onChange={onChange} objects={data.objects} disabled={disabled} />
 				</div>
 			)}
+		</div>
+	);
+}
+
+/** own objects of a location (on top of those of its host: exceptions add up, the rest replaces) */
+function LocationObjects({
+	value,
+	host,
+	onChange,
+}: {
+	value: HostObjects;
+	host: HostObjects;
+	onChange: (value: HostObjects) => void;
+}) {
+	const can = useCan();
+	const { data } = useQuery<PolicyObjects, Error>({
+		queryKey: ["npmos-waf-policy-objects"],
+		queryFn: getPolicyObjects,
+		enabled: can("waf_policy", "view"),
+	});
+	if (!data) return null;
+	const toggle = (on: boolean) => {
+		if (!on) return onChange(null);
+		// they start from what the host uses (a template has no references here)
+		const source = host && !host.template ? host : data.policy;
+		const { template: _template, mode: _mode, ...refs } = source as Record<string, any>;
+		onChange(refs);
+	};
+	return (
+		<div className="col-12 mt-2">
+			<label className="form-check form-switch">
+				<input
+					type="checkbox"
+					className="form-check-input"
+					checked={value !== null}
+					onChange={(e) => toggle(e.target.checked)}
+				/>
+				<span className="form-check-label">
+					<T id="npmos.waf.location.objects" />
+				</span>
+				<span className="form-check-description">
+					<T id="npmos.waf.location.objects.hint" />
+				</span>
+			</label>
+			{value !== null && <RefsEditor value={value} onChange={onChange} objects={data.objects} />}
 		</div>
 	);
 }

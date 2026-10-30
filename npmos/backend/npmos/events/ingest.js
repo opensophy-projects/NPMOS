@@ -68,7 +68,8 @@ export const ingestOnce = async ({ dir = LOG_DIR, now = new Date() } = {}) => {
 		state.stored += events.length;
 	}
 	if (available) {
-		await dropCursors([...cursors.keys()].filter((key) => !keys.includes(key)));
+		// other sources keep their position here too (crowdsec:alerts, mtls:denied)
+		await dropCursors([...cursors.keys()].filter((key) => !keys.includes(key) && !/^(crowdsec|mtls):/.test(key)));
 	}
 	return { events, telemetry: telemetry.length };
 };
@@ -92,15 +93,7 @@ const round = async () => {
 		const { events } = await ingestOnce();
 		state.lastRun = new Date();
 		state.lastError = null;
-		if (events.length) {
-			for (const listener of state.listeners) {
-				try {
-					listener(events);
-				} catch (err) {
-					logger.error(`NPMOS events: listener failed: ${err.message}`);
-				}
-			}
-		}
+		emitEvents(events);
 	} catch (err) {
 		if (state.lastError !== err.message) logger.error(`NPMOS events: ${err.message}`);
 		state.lastError = err.message;
@@ -126,6 +119,18 @@ export const stop = () => {
 export const runMaintenance = async () => {
 	await maintenance();
 	state.lastMaintenance = Date.now();
+};
+
+/** new events stored by another source (CrowdSec alerts) */
+export const emitEvents = (events) => {
+	if (!events.length) return;
+	for (const listener of state.listeners) {
+		try {
+			listener(events);
+		} catch (err) {
+			logger.error(`NPMOS events: listener failed: ${err.message}`);
+		}
+	}
 };
 
 /** @param {(events: object[]) => void} listener */

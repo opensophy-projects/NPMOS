@@ -245,6 +245,8 @@ export default function (tokenString) {
 						scope: Token.get("scope"),
 						roles: userRoles,
 						permission_visibility: permissions.visibility,
+						// NPMOS: hosts given to the roles of the user (npmos/rbac/scope.js)
+						npmos_hosts: permissions.npmos?.hosts ?? {},
 						permission_proxy_hosts: permissions.proxy_hosts,
 						permission_redirection_hosts: permissions.redirection_hosts,
 						permission_dead_hosts: permissions.dead_hosts,

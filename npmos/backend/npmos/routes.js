@@ -5,13 +5,18 @@ import errs from "../lib/error.js";
 import jwtdecode from "../lib/express/jwt-decode.js";
 import validator from "../lib/validator/api.js";
 import { debug, express as logger } from "../logger.js";
+import internalCrowdsec from "./crowdsec/index.js";
 import internalAnalytics from "./events/analytics.js";
 import internalEvents from "./events/index.js";
 import internalHosts, { HOST_OBJECTS } from "./hosts.js";
 import internalNotifications from "./notifications/index.js";
+import internalPki from "./pki/index.js";
+import internalMtls, { usage as mtlsUsage, usedBy as mtlsUsedBy } from "./pki/mtls.js";
 import internalRbac from "./rbac/index.js";
 import internalServices from "./services.js";
 import internalSystem from "./system/index.js";
+import internalGeoip from "./geoip/index.js";
+import internalMigration from "./migration/index.js";
 import internalWafAgent from "./waf/agent-settings.js";
 import internalWafExpert from "./waf/expert.js";
 import internalWafHosts from "./waf/hosts.js";
@@ -66,7 +71,7 @@ router.param("version_id", (req, res, next, id) => {
 	next();
 });
 
-for (const name of ["role_id", "user_id", "channel_id", "rule_id"]) {
+for (const name of ["role_id", "user_id", "channel_id", "rule_id", "ca_id", "cert_id", "link_id", "blocklist_id"]) {
 	router.param(name, (req, res, next, id) => {
 		if (!/^[1-9][0-9]{0,9}$/.test(id)) {
 			return res.status(400).send({ error: { code: 400, message: `Invalid ${name}` } });
@@ -147,7 +152,20 @@ const roleSchema = {
 	properties: {
 		name: { type: "string", minLength: 1, maxLength: 100 },
 		description: { type: "string", maxLength: 500 },
-		scope: { enum: ["all", "own"] },
+		scope: { enum: ["all", "own", "hosts"] },
+		hosts: {
+			type: "array",
+			maxItems: 1000,
+			items: {
+				type: "object",
+				additionalProperties: false,
+				required: ["host_type", "host_id"],
+				properties: {
+					host_type: { enum: ["proxy_host", "redirection_host", "dead_host", "stream"] },
+					host_id: { type: "integer", minimum: 1 },
+				},
+			},
+		},
 		oidc_groups: { type: "array", maxItems: 50, items: { type: "string", maxLength: 200 } },
 		permissions: { type: "array", maxItems: 200, items: { type: "string", pattern: "^[a-z_]+:[a-z_]+$" } },
 	},
@@ -369,7 +387,7 @@ router
 
 /**
  * GET /api/npmos/waf/hosts/:host_id
- * PUT /api/npmos/waf/hosts/:host_id — {enabled, mode, minimum_confidence, locations?: [{path, inherit, ...}]}
+ * PUT /api/npmos/waf/hosts/:host_id — {enabled, mode, minimum_confidence, locations?: [{path, inherit, objects?, ...}]}
  */
 router
 	.route("/waf/hosts/:host_id")
@@ -396,6 +414,8 @@ router
 									path: { type: "string" },
 									inherit: { type: "boolean" },
 									...wafSettings.properties,
+									// own objects of the location; null: those of the host
+									objects: wafHostObjects,
 								},
 							},
 						},
@@ -679,6 +699,92 @@ router
 						},
 					},
 					req.body,
+				),
+			),
+		),
+	);
+
+/**
+ * GET    /api/npmos/system/geoip — the GeoIP database in use
+ * POST   /api/npmos/system/geoip — body: an .mmdb file, used instead of the one of CrowdSec
+ * DELETE /api/npmos/system/geoip — back to the database of CrowdSec
+ */
+router
+	.route("/system/geoip")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalGeoip.status(res.locals.access)))
+	.post(
+		express.raw({ type: () => true, limit: "200mb" }),
+		handle((req, res) => internalGeoip.upload(res.locals.access, Buffer.isBuffer(req.body) ? req.body : null)),
+	)
+	.delete(handle((_, res) => internalGeoip.remove(res.locals.access)));
+
+/**
+ * Migration from NPM / NPMplus / open-appsec-npm (npmos/migration)
+ * GET    /api/npmos/system/migration         — state and analysis
+ * POST   /api/npmos/system/migration/upload  — body: .tar.gz / .tar of the old /data, or database.sqlite
+ * POST   /api/npmos/system/migration/connect — the MySQL/MariaDB/Postgres database of the old installation
+ * POST   /api/npmos/system/migration/apply   — starts the import
+ * DELETE /api/npmos/system/migration         — removes the work files
+ */
+router
+	.route("/system/migration")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalMigration.status(res.locals.access)))
+	.delete(handle((_, res) => internalMigration.discard(res.locals.access)));
+
+router
+	.route("/system/migration/upload")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	// streamed to disk, no body parser
+	.post(handle((req, res) => internalMigration.upload(res.locals.access, req)));
+
+router
+	.route("/system/migration/connect")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) =>
+			internalMigration.connect(
+				res.locals.access,
+				await validator(
+					{
+						type: "object",
+						additionalProperties: false,
+						required: ["engine", "host", "user", "database"],
+						properties: {
+							engine: { type: "string", enum: ["mysql", "mariadb", "postgres"] },
+							host: { type: "string", minLength: 1, maxLength: 255 },
+							port: { type: "integer", minimum: 1, maximum: 65535 },
+							user: { type: "string", minLength: 1, maxLength: 255 },
+							password: { type: "string", maxLength: 1024 },
+							database: { type: "string", minLength: 1, maxLength: 255 },
+						},
+					},
+					req.body,
+				),
+			),
+		),
+	);
+
+router
+	.route("/system/migration/apply")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) =>
+			internalMigration.apply(
+				res.locals.access,
+				await validator(
+					{
+						type: "object",
+						additionalProperties: false,
+						properties: { history: { type: "boolean" }, custom_nginx: { type: "boolean" } },
+					},
+					req.body ?? {},
 				),
 			),
 		),
@@ -1024,5 +1130,898 @@ router
 			}
 		}
 	});
+
+// ---------------------------------------------------------------------------------------------
+// PKI and mTLS (phase 6)
+
+router.param("host_type", (_req, res, next, value) => {
+	if (!["proxy_host", "stream"].includes(value)) {
+		return res.status(400).send({ error: { code: 400, message: "host_type: proxy_host or stream" } });
+	}
+	next();
+});
+
+/** a file as JSON (the GUI saves it): {filename, content_type, data_base64} */
+const fileJson = ({ filename, type, data }) => ({
+	filename,
+	content_type: type,
+	data_base64: Buffer.from(data).toString("base64"),
+});
+
+const subjectSchema = {
+	type: "object",
+	additionalProperties: false,
+	properties: Object.fromEntries(
+		["common_name", "organization", "organizational_unit", "country", "state", "locality", "email"].map((k) => [
+			k,
+			{ type: "string", maxLength: 128 },
+		]),
+	),
+};
+
+const sansSchema = {
+	type: "object",
+	additionalProperties: false,
+	properties: Object.fromEntries(
+		["dns", "ip", "email"].map((k) => [
+			k,
+			{ type: "array", maxItems: 100, items: { type: "string", maxLength: 253 } },
+		]),
+	),
+};
+
+const p12Properties = {
+	password: { type: "string", maxLength: 128 },
+	compatible: { type: "boolean" },
+};
+
+/**
+ * GET /api/npmos/pki — CAs, certificates, settings; hosts of CAs (mTLS) and of server certificates
+ */
+router
+	.route("/pki")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(
+		handle(async (_, res) => {
+			const overview = await internalPki.overview(res.locals.access);
+			const used = await mtlsUsage();
+			for (const ca of overview.cas) ca.hosts = used.cas[ca.id] || [];
+			for (const cert of overview.certificates) {
+				cert.hosts = cert.certificate_id ? used.certificates[cert.certificate_id] || [] : [];
+			}
+			return overview;
+		}),
+	);
+
+/**
+ * PUT /api/npmos/pki/settings — {public_url, crl_days, client_days, server_days, key_type, p12_compatible, templates}
+ */
+router
+	.route("/pki/settings")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.put(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: [
+						"public_url",
+						"crl_days",
+						"client_days",
+						"server_days",
+						"key_type",
+						"p12_compatible",
+						"templates",
+					],
+					properties: {
+						public_url: { type: "string", maxLength: 255 },
+						crl_days: { type: "integer" },
+						client_days: { type: "integer" },
+						server_days: { type: "integer" },
+						key_type: { type: "string" },
+						p12_compatible: { type: "boolean" },
+						templates: {
+							type: "array",
+							maxItems: 100,
+							items: {
+								type: "object",
+								additionalProperties: false,
+								required: ["id", "name", "profile", "ca_id", "days", "key_type"],
+								properties: {
+									id: { type: "string" },
+									name: { type: "string" },
+									profile: { type: "string" },
+									ca_id: { anyOf: [{ type: "integer" }, { type: "null" }] },
+									days: { type: "integer" },
+									key_type: { type: "string" },
+									subject: subjectSchema,
+								},
+							},
+						},
+					},
+				},
+				req.body,
+			);
+			return internalPki.setSettings(res.locals.access, data);
+		}),
+	);
+
+/**
+ * POST /api/npmos/pki/cas — new CA: {kind: root|intermediate, name, parent_id?, subject, key_type?, days?}
+ */
+router
+	.route("/pki/cas")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["kind", "name", "subject"],
+					properties: {
+						kind: { type: "string", enum: ["root", "intermediate"] },
+						name: { type: "string", maxLength: 100 },
+						parent_id: { type: "integer" },
+						subject: subjectSchema,
+						key_type: { type: "string" },
+						days: { type: "integer" },
+					},
+				},
+				req.body,
+			);
+			return internalPki.createCa(res.locals.access, data);
+		}, 201),
+	);
+
+/**
+ * POST /api/npmos/pki/cas/import — {kind: root|external, name, cert_pem, key_pem?, key_password?, crl_pem?}
+ */
+router
+	.route("/pki/cas/import")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["kind", "name", "cert_pem"],
+					properties: {
+						kind: { type: "string", enum: ["root", "external"] },
+						name: { type: "string", maxLength: 100 },
+						cert_pem: { type: "string", maxLength: 1000000 },
+						key_pem: { type: "string", maxLength: 100000 },
+						key_password: { type: "string", maxLength: 1024 },
+						crl_pem: { type: "string", maxLength: 10000000 },
+					},
+				},
+				req.body,
+			);
+			return internalPki.importCa(res.locals.access, data);
+		}, 201),
+	);
+
+/**
+ * GET    /api/npmos/pki/cas/:ca_id
+ * PUT    /api/npmos/pki/cas/:ca_id — {name?, crl_pem? (external CAs)}
+ * DELETE /api/npmos/pki/cas/:ca_id
+ */
+router
+	.route("/pki/cas/:ca_id")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((req, res) => internalPki.getCa(res.locals.access, req.params.ca_id)))
+	.put(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					properties: {
+						name: { type: "string", maxLength: 100 },
+						crl_pem: { type: "string", maxLength: 10000000 },
+					},
+				},
+				req.body,
+			);
+			return internalPki.updateCa(res.locals.access, req.params.ca_id, data);
+		}),
+	)
+	.delete(handle((req, res) => internalPki.deleteCa(res.locals.access, req.params.ca_id, mtlsUsedBy)));
+
+/**
+ * POST /api/npmos/pki/cas/:ca_id/export — {format: cert|chain|crl|key, password? (key)}
+ */
+router
+	.route("/pki/cas/:ca_id/export")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["format"],
+					properties: { format: { type: "string" }, password: { type: "string", maxLength: 128 } },
+				},
+				req.body,
+			);
+			return fileJson(
+				await internalPki.exportCa(res.locals.access, req.params.ca_id, data.format, data.password),
+			);
+		}),
+	);
+
+const issueProperties = {
+	ca_id: { type: "integer" },
+	profile: { type: "string", enum: ["client", "server"] },
+	subject: subjectSchema,
+	sans: sansSchema,
+	days: { type: "integer" },
+	key_type: { type: "string" },
+	csr_pem: { type: "string", maxLength: 100000 },
+	template: { type: "string", maxLength: 100 },
+	notes: { type: "string", maxLength: 500 },
+	store_key: { type: "boolean" },
+	include_key_pem: { type: "boolean" },
+	link_hours: { type: "integer" },
+	install: { type: "boolean" },
+	...p12Properties,
+};
+
+/**
+ * POST /api/npmos/pki/certs — issue: {ca_id, profile, subject | csr_pem, sans?, days?, key_type?, template?,
+ *   notes?, store_key?, password?, compatible?, include_key_pem?, link_hours?, install?}
+ *   → {certificate, files: {cert_pem, chain_pem, p12_base64?, password?, key_pem?}, link?}
+ */
+router
+	.route("/pki/certs")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["ca_id", "profile"],
+					properties: issueProperties,
+				},
+				req.body,
+			);
+			return internalPki.issue(res.locals.access, data);
+		}, 201),
+	);
+
+/**
+ * POST /api/npmos/pki/certs/revoke — {ids, reason}
+ */
+router
+	.route("/pki/certs/revoke")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["ids", "reason"],
+					properties: {
+						ids: { type: "array", minItems: 1, maxItems: 1000, items: { type: "integer", minimum: 1 } },
+						reason: { type: "string" },
+					},
+				},
+				req.body,
+			);
+			return internalPki.revoke(res.locals.access, data.ids, data.reason);
+		}),
+	);
+
+/**
+ * POST /api/npmos/pki/certs/:cert_id/renew — {days?, key_type?, csr_pem?, revoke_old?, password?, ...}
+ */
+router
+	.route("/pki/certs/:cert_id/renew")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					properties: {
+						days: issueProperties.days,
+						key_type: issueProperties.key_type,
+						csr_pem: issueProperties.csr_pem,
+						store_key: issueProperties.store_key,
+						include_key_pem: issueProperties.include_key_pem,
+						link_hours: issueProperties.link_hours,
+						revoke_old: { type: "boolean" },
+						...p12Properties,
+					},
+				},
+				req.body,
+			);
+			return internalPki.renew(res.locals.access, req.params.cert_id, data);
+		}, 201),
+	);
+
+/**
+ * POST /api/npmos/pki/certs/:cert_id/download — {format: cert|chain|key|p12, password?, compatible?}
+ */
+router
+	.route("/pki/certs/:cert_id/download")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["format"],
+					properties: { format: { type: "string" }, ...p12Properties },
+				},
+				req.body,
+			);
+			return fileJson(await internalPki.download(res.locals.access, req.params.cert_id, data.format, data));
+		}),
+	);
+
+/**
+ * GET  /api/npmos/pki/certs/:cert_id/links — one-time links of a certificate
+ * POST /api/npmos/pki/certs/:cert_id/links — {hours, password?, compatible?} (kept key)
+ */
+router
+	.route("/pki/certs/:cert_id/links")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((req, res) => internalPki.links(res.locals.access, req.params.cert_id)))
+	.post(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["hours"],
+					properties: { hours: { type: "integer" }, ...p12Properties },
+				},
+				req.body,
+			);
+			return internalPki.createLink(res.locals.access, req.params.cert_id, data);
+		}, 201),
+	);
+
+/**
+ * DELETE /api/npmos/pki/links/:link_id
+ */
+router
+	.route("/pki/links/:link_id")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.delete(handle((req, res) => internalPki.deleteLink(res.locals.access, req.params.link_id)));
+
+/**
+ * GET /api/npmos/pki/public/crl/:ca_id.crl — CRL (DER), without login: the distribution point of
+ * certificates
+ */
+router.get("/pki/public/crl/:file", async (req, res, next) => {
+	try {
+		const match = /^([1-9][0-9]{0,9})\.crl$/.exec(req.params.file);
+		const der = match ? await internalPki.publicCrl(Number.parseInt(match[1], 10)) : null;
+		if (!der) return res.status(404).send({ error: { code: 404, message: "No such CRL" } });
+		res.set("Content-Type", "application/pkix-crl");
+		res.set("Cache-Control", "max-age=300");
+		res.send(der);
+	} catch (err) {
+		next(err);
+	}
+});
+
+/**
+ * POST /api/npmos/pki/public/ocsp/:ca_id — OCSP request (DER) → response, without login
+ * GET  /api/npmos/pki/public/ocsp/:ca_id/:request — the request in base64 (RFC 6960, appendix A)
+ */
+const ocspAnswer = async (res, caId, der) => {
+	const id = /^[1-9][0-9]{0,9}$/.test(caId) ? Number.parseInt(caId, 10) : 0;
+	const answer = id && der ? await internalPki.ocsp(id, der) : null;
+	if (!answer) return res.status(404).send({ error: { code: 404, message: "No such OCSP responder" } });
+	res.set("Content-Type", "application/ocsp-response");
+	res.set("Cache-Control", "max-age=60");
+	res.send(answer);
+};
+router.post("/pki/public/ocsp/:ca", express.raw({ type: () => true, limit: "16kb" }), async (req, res, next) => {
+	try {
+		await ocspAnswer(res, req.params.ca, Buffer.isBuffer(req.body) ? req.body : null);
+	} catch (err) {
+		next(err);
+	}
+});
+router.get("/pki/public/ocsp/:ca/:request", async (req, res, next) => {
+	try {
+		const b64 = decodeURIComponent(req.params.request).replace(/-/g, "+").replace(/_/g, "/");
+		await ocspAnswer(res, req.params.ca, /^[A-Za-z0-9+/=]{1,22000}$/.test(b64) ? Buffer.from(b64, "base64") : null);
+	} catch (err) {
+		next(err);
+	}
+});
+
+/**
+ * GET /api/npmos/pki/public/download/:token — one-time link, without login
+ */
+router.get("/pki/public/download/:token", async (req, res, next) => {
+	try {
+		const file = await internalPki.takeLink(req.params.token);
+		res.set("Cache-Control", "no-store");
+		if (!file) {
+			return res.status(410).send({ error: { code: 410, message: "The link was used or has expired" } });
+		}
+		res.set("Content-Type", "application/x-pkcs12");
+		res.attachment(file.filename);
+		res.send(file.data);
+	} catch (err) {
+		next(err);
+	}
+});
+
+/**
+ * GET /api/npmos/mtls — mTLS of hosts and streams: {proxy_host: {<id>: {...}}, stream: {...}}
+ */
+router
+	.route("/mtls")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalMtls.list(res.locals.access)));
+
+/**
+ * GET /api/npmos/mtls/:host_type/:host_id
+ * PUT /api/npmos/mtls/:host_type/:host_id — {enabled, ca_ids, mode, depth, send_ca_names, rules, required_paths, headers}
+ */
+router
+	.route("/mtls/:host_type/:host_id")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((req, res) => internalMtls.get(res.locals.access, req.params.host_type, req.params.host_id)))
+	.put(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["enabled", "ca_ids"],
+					properties: {
+						enabled: { type: "boolean" },
+						ca_ids: { type: "array", maxItems: 50, items: { type: "integer", minimum: 1 } },
+						mode: { type: "string" },
+						depth: { type: "integer" },
+						send_ca_names: { type: "boolean" },
+						rules: {
+							type: "array",
+							maxItems: 20,
+							items: {
+								type: "object",
+								additionalProperties: false,
+								required: ["field", "op", "values"],
+								properties: {
+									field: { type: "string" },
+									op: { type: "string" },
+									values: { type: "array", maxItems: 50, items: { type: "string", maxLength: 200 } },
+								},
+							},
+						},
+						required_paths: { type: "array", maxItems: 200, items: { type: "string" } },
+						headers: { type: "boolean" },
+					},
+				},
+				req.body,
+			);
+			return internalMtls.set(res.locals.access, req.params.host_type, req.params.host_id, data);
+		}),
+	);
+
+/**
+ * CrowdSec (docs/adr/0010-crowdsec.md)
+ * GET /api/npmos/crowdsec — overview: LAPI, metrics, machines, bouncers, decisions, hub
+ */
+router
+	.route("/crowdsec")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalCrowdsec.overview(res.locals.access)));
+
+/**
+ * GET /api/npmos/crowdsec/settings
+ * PUT /api/npmos/crowdsec/settings — {bouncer, sources, appsec, profiles, allowlist, openappsec_ban, log_level,
+ *     online_hub, apply?}: written to CrowdSec and nginx, CrowdSec restarts; a failed start is rolled back
+ */
+router
+	.route("/crowdsec/settings")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalCrowdsec.getSettings(res.locals.access)))
+	.put(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					required: [
+						"bouncer",
+						"sources",
+						"appsec",
+						"profiles",
+						"allowlist",
+						"openappsec_ban",
+						"log_level",
+						"online_hub",
+					],
+					properties: {
+						bouncer: { type: "object" },
+						sources: { type: "object" },
+						appsec: { type: "object" },
+						profiles: { type: "array" },
+						allowlist: { type: "object" },
+						openappsec_ban: { type: "object" },
+						log_level: { type: "string" },
+						online_hub: { type: "boolean" },
+						apply: { type: "boolean" },
+					},
+				},
+				req.body,
+			);
+			const { apply, pending: _p, per_host: _h, share_enabled: _s, ...settings } = data;
+			return internalCrowdsec.setSettings(res.locals.access, settings, apply !== false);
+		}),
+	);
+
+/**
+ * POST /api/npmos/crowdsec/apply — writes the files again and restarts CrowdSec
+ */
+router
+	.route("/crowdsec/apply")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(handle((_, res) => internalCrowdsec.apply(res.locals.access)));
+
+/**
+ * GET /api/npmos/crowdsec/alerts?ip=&scenario=&since=&limit=&active=&all=
+ */
+router
+	.route("/crowdsec/alerts")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(
+		handle((req, res) =>
+			internalCrowdsec.alerts(res.locals.access, {
+				ip: typeof req.query.ip === "string" ? req.query.ip : undefined,
+				scenario: typeof req.query.scenario === "string" ? req.query.scenario : undefined,
+				since:
+					typeof req.query.since === "string" && /^\d{1,6}[smhd]$/.test(req.query.since)
+						? req.query.since
+						: undefined,
+				limit: req.query.limit,
+				active: req.query.active === "true",
+				all: req.query.all === "true",
+			}),
+		),
+	);
+
+router
+	.route("/crowdsec/alerts/:alert_id")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(
+		handle((req, res) => {
+			if (!/^[1-9][0-9]{0,12}$/.test(req.params.alert_id)) throw new errs.ValidationError("Invalid alert id");
+			return internalCrowdsec.alert(res.locals.access, req.params.alert_id);
+		}),
+	);
+
+/**
+ * GET  /api/npmos/crowdsec/decisions?q=&type=&origin=&offset=&limit=
+ * POST /api/npmos/crowdsec/decisions — ban: {values, type?, duration?, reason?}
+ */
+router
+	.route("/crowdsec/decisions")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(
+		handle((req, res) =>
+			internalCrowdsec.decisions(res.locals.access, {
+				q: typeof req.query.q === "string" ? req.query.q : "",
+				type: typeof req.query.type === "string" ? req.query.type : "",
+				origin: typeof req.query.origin === "string" ? req.query.origin : "",
+				offset: req.query.offset,
+				limit: req.query.limit,
+			}),
+		),
+	)
+	.post(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["values"],
+					properties: {
+						values: {
+							type: "array",
+							minItems: 1,
+							maxItems: 10000,
+							items: { type: "string", maxLength: 64 },
+						},
+						type: { type: "string", enum: ["ban", "captcha"] },
+						duration: { type: "string", pattern: "^[1-9][0-9]{0,5}[mhd]$" },
+						reason: { type: "string", maxLength: 200 },
+					},
+				},
+				req.body,
+			);
+			return internalCrowdsec.ban(res.locals.access, data);
+		}, 201),
+	);
+
+/**
+ * POST /api/npmos/crowdsec/decisions/delete — unban: {ids?, values?}
+ */
+router
+	.route("/crowdsec/decisions/delete")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					properties: {
+						ids: { type: "array", maxItems: 10000, items: { type: "integer", minimum: 1 } },
+						values: { type: "array", maxItems: 10000, items: { type: "string", maxLength: 64 } },
+					},
+				},
+				req.body,
+			);
+			return internalCrowdsec.unban(res.locals.access, data);
+		}),
+	);
+
+/**
+ * GET /api/npmos/crowdsec/registry — machines and bouncers
+ * GET /api/npmos/crowdsec/metrics
+ */
+router
+	.route("/crowdsec/registry")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalCrowdsec.registry(res.locals.access)));
+
+/**
+ * DELETE /api/npmos/crowdsec/registry/:kind/:name — kind: machines or bouncers
+ */
+router
+	.route("/crowdsec/registry/:kind/:name")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.delete(
+		handle((req, res) => {
+			if (!["machines", "bouncers"].includes(req.params.kind))
+				throw new errs.ValidationError("machines or bouncers");
+			return internalCrowdsec.deleteRegistered(res.locals.access, req.params.kind, req.params.name);
+		}),
+	);
+
+router
+	.route("/crowdsec/metrics")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalCrowdsec.metrics(res.locals.access)));
+
+/**
+ * GET  /api/npmos/crowdsec/hub?type=&q=&installed=
+ * POST /api/npmos/crowdsec/hub — {type, name, action: install|remove}
+ */
+router
+	.route("/crowdsec/hub")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(
+		handle((req, res) =>
+			internalCrowdsec.hub(res.locals.access, {
+				type: typeof req.query.type === "string" ? req.query.type : "",
+				q: typeof req.query.q === "string" ? req.query.q : "",
+				installed: req.query.installed,
+			}),
+		),
+	)
+	.post(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["type", "name", "action"],
+					properties: {
+						type: { type: "string" },
+						name: { type: "string", pattern: "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$" },
+						action: { type: "string", enum: ["install", "remove"] },
+					},
+				},
+				req.body,
+			);
+			return internalCrowdsec.hubItem(res.locals.access, data);
+		}),
+	);
+
+/**
+ * POST /api/npmos/crowdsec/hub/upgrade — installed items to the version of the index
+ * POST /api/npmos/crowdsec/hub/online — index from the CrowdSec CDN (only if allowed in the settings)
+ * POST /api/npmos/crowdsec/hub/snapshot — body: .index.json or .tar.gz (.index.json + data/)
+ */
+router
+	.route("/crowdsec/hub/upgrade")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(handle((_, res) => internalCrowdsec.hubUpgrade(res.locals.access)));
+
+router
+	.route("/crowdsec/hub/online")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(handle((_, res) => internalCrowdsec.hubOnline(res.locals.access)));
+
+router
+	.route("/crowdsec/hub/snapshot")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		express.raw({ type: () => true, limit: "200mb" }),
+		handle((req, res) =>
+			internalCrowdsec.hubUpload(res.locals.access, Buffer.isBuffer(req.body) ? req.body : null),
+		),
+	);
+
+const blocklistProperties = {
+	name: { type: "string", maxLength: 64 },
+	enabled: { type: "boolean" },
+	source: { type: "string", enum: ["file", "url"] },
+	url: { type: "string", maxLength: 1000 },
+	token: { type: "string", maxLength: 500 },
+	insecure: { type: "boolean" },
+	content: { type: "string" },
+	decision: { type: "string", enum: ["ban", "captcha"] },
+	duration: { type: "string", pattern: "^[1-9][0-9]{0,5}[mhd]$" },
+	refresh_minutes: { type: "integer", minimum: 0, maximum: 43200 },
+};
+
+/** a file list as text/plain (up to 20 MB), its other fields in the query string */
+const blocklistBody = async (req) => {
+	if (typeof req.body === "string") {
+		const q = req.query;
+		return validator(
+			{ type: "object", additionalProperties: false, properties: blocklistProperties },
+			{
+				...(q.name !== undefined ? { name: String(q.name) } : {}),
+				...(q.enabled !== undefined ? { enabled: q.enabled === "true" } : {}),
+				source: "file",
+				content: req.body,
+				...(q.decision !== undefined ? { decision: String(q.decision) } : {}),
+				...(q.duration !== undefined ? { duration: String(q.duration) } : {}),
+			},
+		);
+	}
+	return validator({ type: "object", additionalProperties: false, properties: blocklistProperties }, req.body);
+};
+
+/**
+ * GET  /api/npmos/crowdsec/blocklists
+ * POST /api/npmos/crowdsec/blocklists — JSON, or text/plain (the list) with ?name=&decision=&duration=
+ */
+router
+	.route("/crowdsec/blocklists")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalCrowdsec.blocklists(res.locals.access)))
+	.post(
+		express.text({ type: "text/plain", limit: "20mb" }),
+		handle(async (req, res) => internalCrowdsec.createBlocklist(res.locals.access, await blocklistBody(req)), 201),
+	);
+
+/**
+ * PUT    /api/npmos/crowdsec/blocklists/:blocklist_id — JSON, or text/plain (the new list)
+ * DELETE /api/npmos/crowdsec/blocklists/:blocklist_id — also removes its decisions
+ */
+router
+	.route("/crowdsec/blocklists/:blocklist_id")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.put(
+		express.text({ type: "text/plain", limit: "20mb" }),
+		handle(async (req, res) =>
+			internalCrowdsec.updateBlocklist(res.locals.access, req.params.blocklist_id, await blocklistBody(req)),
+		),
+	)
+	.delete(handle((req, res) => internalCrowdsec.deleteBlocklist(res.locals.access, req.params.blocklist_id)));
+
+router
+	.route("/crowdsec/blocklists/:blocklist_id/sync")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(handle((req, res) => internalCrowdsec.syncBlocklist(res.locals.access, req.params.blocklist_id)));
+
+/**
+ * PUT /api/npmos/crowdsec/share — {enabled}: export of this node's decisions for other nodes;
+ *     answers the new token once
+ */
+router
+	.route("/crowdsec/share")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.put(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["enabled"],
+					properties: { enabled: { type: "boolean" } },
+				},
+				req.body,
+			);
+			return internalCrowdsec.setShare(res.locals.access, data.enabled);
+		}),
+	);
+
+/**
+ * GET /api/npmos/crowdsec/public/decisions — Authorization: Bearer <token of /crowdsec/share>, no
+ *     login: active decisions of this node, one IP or CIDR per line (a blocklist of another node)
+ */
+router.get("/crowdsec/public/decisions", async (req, res, next) => {
+	try {
+		const token = /^Bearer (\S+)$/.exec(req.headers.authorization || "")?.[1];
+		const text = await internalCrowdsec.exportDecisions(token);
+		res.set("Content-Type", "text/plain; charset=utf-8");
+		res.set("Cache-Control", "no-store");
+		res.send(text);
+	} catch (err) {
+		next(err);
+	}
+});
+
+/**
+ * GET /api/npmos/crowdsec/hosts — hosts left out by the bouncer, bans per host (24 h)
+ * PUT /api/npmos/crowdsec/hosts/:type/:host_id — {bouncer}; type: proxy_host, redirection_host, dead_host
+ */
+router
+	.route("/crowdsec/hosts")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalCrowdsec.hosts(res.locals.access)));
+
+router
+	.route("/crowdsec/hosts/:type/:host_id")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.put(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["bouncer"],
+					properties: { bouncer: { type: "boolean" } },
+				},
+				req.body,
+			);
+			return internalCrowdsec.setHost(res.locals.access, req.params.type, req.params.host_id, data.bouncer);
+		}),
+	);
 
 export default router;

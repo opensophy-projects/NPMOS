@@ -79,6 +79,8 @@ export interface WafLocationSettings extends WafSettings {
 	path: string;
 	/** no own settings: the location is protected like its host */
 	inherit: boolean;
+	/** own objects of the policy; null: those of the host */
+	objects?: HostObjects;
 }
 
 export interface WafHost extends WafSettings {
@@ -193,6 +195,8 @@ export interface Analytics {
 		prevented: number;
 		detected: number;
 		sources: number;
+		crowdsecAlerts: number;
+		crowdsecBans: number;
 		readiness: null;
 	};
 	timeline: { t: string; prevent: number; detect: number; other: number }[];

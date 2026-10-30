@@ -3,8 +3,11 @@ import {
 	IconBell,
 	IconBolt,
 	IconBoltOff,
+	IconCertificate,
 	IconDisc,
 	IconLock,
+	IconLockAccess,
+	IconShieldHalf,
 	IconServer,
 	IconSettings,
 	IconShield,
@@ -26,6 +29,7 @@ const NPMOS_NAMES: Record<string, string> = {
 	"local_policy.yaml (expert)": "npmos.audit.name.expert",
 	diagnostics: "npmos.audit.name.diagnostics",
 	"events.retention": "npmos.settings.events-retention",
+	pki: "npmos.pki",
 };
 
 const getEventValue = (event: AuditLog) => {
@@ -38,6 +42,9 @@ const getEventValue = (event: AuditLog) => {
 		case "role":
 		case "setting":
 		case "notification":
+		case "pki":
+		case "mtls":
+		case "crowdsec":
 			return NPMOS_NAMES[event.meta?.name]
 				? intl.formatMessage({ id: NPMOS_NAMES[event.meta.name] })
 				: event.meta?.name;
@@ -105,6 +112,15 @@ const getIcon = (row: AuditLog) => {
 			break;
 		case "notification":
 			ico = <IconBell size={16} className={c} />;
+			break;
+		case "pki":
+			ico = <IconCertificate size={16} className={c} />;
+			break;
+		case "mtls":
+			ico = <IconLockAccess size={16} className={c} />;
+			break;
+		case "crowdsec":
+			ico = <IconShieldHalf size={16} className={c} />;
 			break;
 	}
 

@@ -108,6 +108,14 @@ const usersOf = async (object, objects) => {
 	for (const host of hosts) {
 		if (refers(parse(host.objects))) users.push(`host:${host.proxy_host_id}`);
 	}
+	const locations = await db()("npmos_waf_location")
+		.join("proxy_host", "proxy_host.id", "npmos_waf_location.proxy_host_id")
+		.where("proxy_host.is_deleted", 0)
+		.whereNotNull("npmos_waf_location.objects")
+		.select("npmos_waf_location.proxy_host_id", "npmos_waf_location.path", "npmos_waf_location.objects");
+	for (const l of locations) {
+		if (refers(parse(l.objects))) users.push(`host:${l.proxy_host_id}${l.path}`);
+	}
 	if (object.kind === "source_identifiers") {
 		for (const o of objects) {
 			if (o.kind === "trusted_sources" && (o.spec.sourcesIdentifiers || []).includes(object.name)) {
@@ -202,6 +210,14 @@ const restore = async (state) => {
 			const objects = map(hosts.get(row.proxy_host_id) ?? null);
 			await trx("npmos_waf_host")
 				.where("proxy_host_id", row.proxy_host_id)
+				.update({ objects: objects ? JSON.stringify(objects) : null });
+		}
+		// versions before location objects have none
+		const locations = new Map((state.locations ?? []).map((l) => [`${l.proxy_host_id} ${l.path}`, l.objects]));
+		for (const row of await trx("npmos_waf_location").select("proxy_host_id", "path")) {
+			const objects = map(locations.get(`${row.proxy_host_id} ${row.path}`) ?? null);
+			await trx("npmos_waf_location")
+				.where({ proxy_host_id: row.proxy_host_id, path: row.path })
 				.update({ objects: objects ? JSON.stringify(objects) : null });
 		}
 	});

@@ -317,6 +317,7 @@ export {
 	buildPolicy,
 	CONFIDENCES,
 	getPolicyState,
+	importLegacy,
 	MODES,
 	readPolicyFile,
 	regenerateNow,

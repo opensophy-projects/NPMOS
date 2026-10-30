@@ -68,6 +68,21 @@ export const getDefaultPolicy = async (objects) => {
 	return saved ?? { mode: DEFAULT_POLICY.mode, ...idsOf(DEFAULT_POLICY, objects) };
 };
 
+/**
+ * Objects of a location: its own fields replace those of the host; exceptions add up (default
+ * policy, host, location).
+ */
+export const locationRule = (host, location) => {
+	const rule = { ...host, ...location };
+	// a location without practices is not left unprotected
+	if (!location.threatPreventionPractices?.length) rule.threatPreventionPractices = host.threatPreventionPractices;
+	if (rule.threatPreventionPractices === undefined) delete rule.threatPreventionPractices;
+	if (host.exceptions !== undefined || location.exceptions !== undefined) {
+		rule.exceptions = [...new Set([...(host.exceptions ?? []), ...(location.exceptions ?? [])])];
+	}
+	return rule;
+};
+
 const parseJson = (value) => (typeof value === "string" ? JSON.parse(value) : value) || [];
 
 /**
@@ -173,7 +188,7 @@ export const buildDoc = async (candidate = {}) => {
 				domains.map((domain) => `${domain}${location.path}`),
 				location.enabled ? location.mode : "inactive",
 				location.minimum_confidence,
-				own,
+				locationRule(own, resolveRule(parse(location.objects) || {}, byId)),
 			);
 		}
 	}
@@ -192,5 +207,8 @@ export const snapshot = async () => {
 			proxy_host_id: h.proxy_host_id,
 			objects: parse(h.objects) ?? null,
 		})),
+		locations: (await knex("npmos_waf_location").select("proxy_host_id", "path", "objects"))
+			.filter((l) => l.objects)
+			.map((l) => ({ proxy_host_id: l.proxy_host_id, path: l.path, objects: parse(l.objects) })),
 	};
 };

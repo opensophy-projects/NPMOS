@@ -180,24 +180,66 @@ const CHECKS = {
 
 	cert_expiry: async (p, now) => {
 		const until = new Date(now.getTime() + p.days * 86400000);
+		const daysLeft = (date) => Math.floor((new Date(date).getTime() - now.getTime()) / 86400000);
+		// messages at 30, 7 and 1 day left and when expired (within the days of the rule)
+		const stage = (days) => (days < 0 ? "expired" : String([1, 7, 30].find((s) => days <= s) ?? p.days));
 		const rows = await db()("certificate")
 			.where("is_deleted", 0)
 			.whereNotNull("expires_on")
 			.where("expires_on", "<=", until)
 			.select("id", "nice_name", "domain_names", "expires_on");
-		return rows.map((c) => {
+		const alerts = rows.map((c) => {
 			const domains = parseJson(c.domain_names);
-			const expires = new Date(c.expires_on);
+			const days = daysLeft(c.expires_on);
 			return {
 				key: `cert:${c.id}`,
 				values: {
 					name: c.nice_name || domains[0] || `#${c.id}`,
 					domains: Array.isArray(domains) ? domains.join(", ") : "",
-					expires: expires.toISOString().slice(0, 10),
-					days: Math.floor((expires.getTime() - now.getTime()) / 86400000),
+					expires: new Date(c.expires_on).toISOString().slice(0, 10),
+					days,
+					stage: stage(days),
 				},
 			};
 		});
+		// PKI and mTLS: certificates in use (not revoked or renewed) and CAs of NPMOS
+		const pki = await db()("npmos_pki_cert")
+			.whereNull("revoked_on")
+			.whereNull("replaced_by")
+			.whereNull("certificate_id")
+			.where("not_after", "<=", until)
+			.select("id", "common_name", "profile", "not_after");
+		for (const c of pki) {
+			const days = daysLeft(c.not_after);
+			if (days < -30) continue;
+			alerts.push({
+				key: `pki:${c.id}`,
+				values: {
+					name: c.common_name,
+					domains: c.profile === "client" ? "PKI, client" : "PKI, server",
+					expires: new Date(c.not_after).toISOString().slice(0, 10),
+					days,
+					stage: stage(days),
+				},
+			});
+		}
+		const cas = await db()("npmos_pki_ca")
+			.where("not_after", "<=", until)
+			.select("id", "name", "kind", "not_after");
+		for (const ca of cas) {
+			const days = daysLeft(ca.not_after);
+			alerts.push({
+				key: `pki-ca:${ca.id}`,
+				values: {
+					name: ca.name,
+					domains: `CA, ${ca.kind}`,
+					expires: new Date(ca.not_after).toISOString().slice(0, 10),
+					days,
+					stage: stage(days),
+				},
+			});
+		}
+		return alerts;
 	},
 
 	host_problem: async () => {

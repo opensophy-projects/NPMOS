@@ -335,6 +335,9 @@
 	"created-on": {
 		"defaultMessage": "Created: {date}"
 	},
+	"crowdsec": {
+		"defaultMessage": "CrowdSec"
+	},
 	"dashboard": {
 		"defaultMessage": "Dashboard"
 	},
@@ -551,6 +554,9 @@
 	"login.title": {
 		"defaultMessage": "Login to your account"
 	},
+	"mtls": {
+		"defaultMessage": "mTLS"
+	},
 	"mtls-certificate": {
 		"defaultMessage": "mTLS Certificate"
 	},
@@ -628,6 +634,12 @@
 	},
 	"npmos.analytics.countries": {
 		"defaultMessage": "Countries"
+	},
+	"npmos.analytics.crowdsec-alerts": {
+		"defaultMessage": "{count} CrowdSec alerts"
+	},
+	"npmos.analytics.crowdsec-bans": {
+		"defaultMessage": "CrowdSec bans"
 	},
 	"npmos.analytics.detected": {
 		"defaultMessage": "Detected only"
@@ -764,8 +776,860 @@
 	"npmos.common.warning": {
 		"defaultMessage": "Warning"
 	},
+	"npmos.crowdsec": {
+		"defaultMessage": "CrowdSec"
+	},
+	"npmos.crowdsec.actions": {
+		"defaultMessage": "Actions"
+	},
+	"npmos.crowdsec.activity": {
+		"defaultMessage": "Activity"
+	},
+	"npmos.crowdsec.agent.off": {
+		"defaultMessage": "The WAF agent does not use these decisions; switch it on in"
+	},
+	"npmos.crowdsec.agent.on": {
+		"defaultMessage": "The WAF agent also checks client IPs against these decisions (mode: {mode})."
+	},
+	"npmos.crowdsec.agent.open": {
+		"defaultMessage": "WAF → Agent"
+	},
+	"npmos.crowdsec.alerts.active": {
+		"defaultMessage": "Only with an active decision"
+	},
+	"npmos.crowdsec.alerts.none": {
+		"defaultMessage": "No alerts."
+	},
+	"npmos.crowdsec.alerts.search": {
+		"defaultMessage": "Scenario, IP, country or host"
+	},
+	"npmos.crowdsec.allowlist.expressions": {
+		"defaultMessage": "Expressions"
+	},
+	"npmos.crowdsec.allowlist.expressions.hint": {
+		"defaultMessage": "Conditions on events in the expression language of CrowdSec, one per line."
+	},
+	"npmos.crowdsec.allowlist.hint": {
+		"defaultMessage": "Events of these addresses never lead to a ban. Add the addresses of administrators: the bouncer also protects the NPMOS interface."
+	},
+	"npmos.crowdsec.allowlist.ips": {
+		"defaultMessage": "IP addresses and CIDR ranges"
+	},
+	"npmos.crowdsec.allowlist.ips.hint": {
+		"defaultMessage": "One per line; also left out of blocklists."
+	},
+	"npmos.crowdsec.allowlist.private": {
+		"defaultMessage": "Never ban private addresses"
+	},
+	"npmos.crowdsec.allowlist.private.hint": {
+		"defaultMessage": "10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, loopback and link-local (parser crowdsecurity/whitelists). Turn off only to test in a closed network."
+	},
+	"npmos.crowdsec.allowlist.title": {
+		"defaultMessage": "Allowlist"
+	},
+	"npmos.crowdsec.apply": {
+		"defaultMessage": "Apply now"
+	},
+	"npmos.crowdsec.appsec.configs": {
+		"defaultMessage": "AppSec configurations"
+	},
+	"npmos.crowdsec.appsec.configs.hint": {
+		"defaultMessage": "Names from the hub, one per line; they are installed when saving."
+	},
+	"npmos.crowdsec.appsec.enabled": {
+		"defaultMessage": "Check requests with AppSec"
+	},
+	"npmos.crowdsec.appsec.failure": {
+		"defaultMessage": "If AppSec does not answer"
+	},
+	"npmos.crowdsec.appsec.failure.deny": {
+		"defaultMessage": "Block the request"
+	},
+	"npmos.crowdsec.appsec.failure.passthrough": {
+		"defaultMessage": "Let the request through"
+	},
+	"npmos.crowdsec.appsec.hint": {
+		"defaultMessage": "The bouncer sends requests to the AppSec engine of CrowdSec, which blocks exploits of known vulnerabilities (virtual patching). Works with the bouncer of NPMOS."
+	},
+	"npmos.crowdsec.appsec.title": {
+		"defaultMessage": "CrowdSec AppSec"
+	},
+	"npmos.crowdsec.ban": {
+		"defaultMessage": "Ban"
+	},
+	"npmos.crowdsec.ban.do": {
+		"defaultMessage": "Ban ({count})"
+	},
+	"npmos.crowdsec.ban.done": {
+		"defaultMessage": "Banned: {count}"
+	},
+	"npmos.crowdsec.ban.reason": {
+		"defaultMessage": "Reason (for the audit log)"
+	},
+	"npmos.crowdsec.ban.title": {
+		"defaultMessage": "Ban addresses"
+	},
+	"npmos.crowdsec.ban.values": {
+		"defaultMessage": "IP addresses and CIDR ranges"
+	},
+	"npmos.crowdsec.ban.values.hint": {
+		"defaultMessage": "One per line, or separated by commas or spaces; up to 10,000."
+	},
+	"npmos.crowdsec.blocklist.add": {
+		"defaultMessage": "Add blocklist"
+	},
+	"npmos.crowdsec.blocklist.count": {
+		"defaultMessage": "Decisions"
+	},
+	"npmos.crowdsec.blocklist.delete": {
+		"defaultMessage": "Delete blocklist"
+	},
+	"npmos.crowdsec.blocklist.delete.text": {
+		"defaultMessage": "Delete the blocklist {name}? Its {count} decisions are removed."
+	},
+	"npmos.crowdsec.blocklist.duration.hint": {
+		"defaultMessage": "Longer than the time between downloads, so that the bans do not expire in between."
+	},
+	"npmos.crowdsec.blocklist.edit": {
+		"defaultMessage": "Edit blocklist"
+	},
+	"npmos.crowdsec.blocklist.enabled": {
+		"defaultMessage": "Ban the addresses of this list"
+	},
+	"npmos.crowdsec.blocklist.file": {
+		"defaultMessage": "File with the list"
+	},
+	"npmos.crowdsec.blocklist.file.lines": {
+		"defaultMessage": "File, {count} lines"
+	},
+	"npmos.crowdsec.blocklist.file.replace": {
+		"defaultMessage": "New file (empty: keep the list)"
+	},
+	"npmos.crowdsec.blocklist.format": {
+		"defaultMessage": "One IP or CIDR per line; comments after # or ; are skipped. Up to 20 MB and 200,000 addresses. Addresses of the allowlist are left out."
+	},
+	"npmos.crowdsec.blocklist.insecure": {
+		"defaultMessage": "Do not verify the TLS certificate"
+	},
+	"npmos.crowdsec.blocklist.insecure.hint": {
+		"defaultMessage": "Only for another NPMOS node with a self-signed certificate in a trusted network."
+	},
+	"npmos.crowdsec.blocklist.refresh": {
+		"defaultMessage": "Download again"
+	},
+	"npmos.crowdsec.blocklist.refresh.0": {
+		"defaultMessage": "Only by hand"
+	},
+	"npmos.crowdsec.blocklist.refresh.1440": {
+		"defaultMessage": "Every day"
+	},
+	"npmos.crowdsec.blocklist.refresh.15": {
+		"defaultMessage": "Every 15 minutes"
+	},
+	"npmos.crowdsec.blocklist.refresh.360": {
+		"defaultMessage": "Every 6 hours"
+	},
+	"npmos.crowdsec.blocklist.refresh.60": {
+		"defaultMessage": "Every hour"
+	},
+	"npmos.crowdsec.blocklist.saved": {
+		"defaultMessage": "Blocklist saved: {count} decisions"
+	},
+	"npmos.crowdsec.blocklist.source": {
+		"defaultMessage": "Source"
+	},
+	"npmos.crowdsec.blocklist.source.file": {
+		"defaultMessage": "File"
+	},
+	"npmos.crowdsec.blocklist.source.url": {
+		"defaultMessage": "URL"
+	},
+	"npmos.crowdsec.blocklist.sync": {
+		"defaultMessage": "Download now"
+	},
+	"npmos.crowdsec.blocklist.sync-failed": {
+		"defaultMessage": "Blocklist saved, but not downloaded: {error}"
+	},
+	"npmos.crowdsec.blocklist.synced": {
+		"defaultMessage": "Decisions: {count}, skipped lines: {invalid}"
+	},
+	"npmos.crowdsec.blocklist.synced-on": {
+		"defaultMessage": "Updated"
+	},
+	"npmos.crowdsec.blocklist.token": {
+		"defaultMessage": "Token (optional)"
+	},
+	"npmos.crowdsec.blocklist.too-large": {
+		"defaultMessage": "The file is larger than 20 MB"
+	},
+	"npmos.crowdsec.blocklist.url": {
+		"defaultMessage": "URL of the list"
+	},
+	"npmos.crowdsec.blocklist.url.hint": {
+		"defaultMessage": "Another NPMOS node: its address with /api/npmos/crowdsec/public/decisions and its token. NPMOS downloads it itself, only from here, with a 30 s timeout."
+	},
+	"npmos.crowdsec.blocklists.hint": {
+		"defaultMessage": "Lists of IPs and CIDRs banned on this node instead of the community blocklist of the CrowdSec cloud: a file, or a URL downloaded on a schedule (another NPMOS node or any list in the same format)."
+	},
+	"npmos.crowdsec.blocklists.none": {
+		"defaultMessage": "No blocklists."
+	},
+	"npmos.crowdsec.bouncer.admin": {
+		"defaultMessage": "Check the interface of NPMOS too"
+	},
+	"npmos.crowdsec.bouncer.admin.hint": {
+		"defaultMessage": "Off: a ban never locks administrators out of the GUI (port of the interface and of GoAccess). On: banned addresses cannot open it either; put the addresses of administrators in the allowlist first."
+	},
+	"npmos.crowdsec.bouncer.appsec": {
+		"defaultMessage": "WAF agent"
+	},
+	"npmos.crowdsec.bouncer.enabled": {
+		"defaultMessage": "Check requests in nginx"
+	},
+	"npmos.crowdsec.bouncer.exclude": {
+		"defaultMessage": "Paths not checked"
+	},
+	"npmos.crowdsec.bouncer.exclude.hint": {
+		"defaultMessage": "One path per line, for example health checks of a load balancer."
+	},
+	"npmos.crowdsec.bouncer.fallback": {
+		"defaultMessage": "Unknown decision type"
+	},
+	"npmos.crowdsec.bouncer.hint": {
+		"defaultMessage": "nginx of NPMOS checks every request against the decisions: a banned address gets the ban page, a captcha address the captcha. Instead of editing crowdsec.conf; its key is registered automatically."
+	},
+	"npmos.crowdsec.bouncer.hosts": {
+		"defaultMessage": "Single hosts are left out in the Hosts table (CrowdSec column)."
+	},
+	"npmos.crowdsec.bouncer.mode": {
+		"defaultMessage": "Mode"
+	},
+	"npmos.crowdsec.bouncer.mode.live": {
+		"defaultMessage": "Live"
+	},
+	"npmos.crowdsec.bouncer.mode.live.hint": {
+		"defaultMessage": "Asks the local API about each new address (cached for a second): bans work at once."
+	},
+	"npmos.crowdsec.bouncer.mode.stream": {
+		"defaultMessage": "Stream"
+	},
+	"npmos.crowdsec.bouncer.mode.stream.hint": {
+		"defaultMessage": "Downloads all decisions periodically: fewer requests to CrowdSec, bans work after the next download."
+	},
+	"npmos.crowdsec.bouncer.npmos": {
+		"defaultMessage": "nginx of NPMOS"
+	},
+	"npmos.crowdsec.bouncer.pull": {
+		"defaultMessage": "Last request"
+	},
+	"npmos.crowdsec.bouncer.revoked": {
+		"defaultMessage": "Revoked"
+	},
+	"npmos.crowdsec.bouncer.title": {
+		"defaultMessage": "Bouncer of NPMOS"
+	},
+	"npmos.crowdsec.bouncer.type": {
+		"defaultMessage": "Software"
+	},
+	"npmos.crowdsec.bouncer.update-frequency": {
+		"defaultMessage": "Download every, s"
+	},
+	"npmos.crowdsec.bouncers": {
+		"defaultMessage": "Bouncers"
+	},
+	"npmos.crowdsec.bouncers.delete": {
+		"defaultMessage": "Delete bouncer"
+	},
+	"npmos.crowdsec.bouncers.delete.text": {
+		"defaultMessage": "Delete the bouncer {name}? Its key stops working at once."
+	},
+	"npmos.crowdsec.bouncers.hint": {
+		"defaultMessage": "Components that enforce decisions. npmos is nginx of NPMOS, appsec the WAF agent (IP reputation); their keys come from npmos-init."
+	},
+	"npmos.crowdsec.capi": {
+		"defaultMessage": "The Central API of CrowdSec (signal sharing, community blocklist) is not used: local blocklists and the decisions of other NPMOS nodes replace it."
+	},
+	"npmos.crowdsec.captcha.needs-provider": {
+		"defaultMessage": "A captcha needs a captcha provider in the bouncer settings; without one the bouncer bans instead."
+	},
+	"npmos.crowdsec.captcha.provider": {
+		"defaultMessage": "Captcha provider"
+	},
+	"npmos.crowdsec.captcha.provider.hcaptcha": {
+		"defaultMessage": "hCaptcha"
+	},
+	"npmos.crowdsec.captcha.provider.none": {
+		"defaultMessage": "None"
+	},
+	"npmos.crowdsec.captcha.provider.recaptcha": {
+		"defaultMessage": "reCAPTCHA"
+	},
+	"npmos.crowdsec.captcha.provider.turnstile": {
+		"defaultMessage": "Turnstile"
+	},
+	"npmos.crowdsec.captcha.secret-key": {
+		"defaultMessage": "Secret key"
+	},
+	"npmos.crowdsec.captcha.site-key": {
+		"defaultMessage": "Site key"
+	},
+	"npmos.crowdsec.decision": {
+		"defaultMessage": "Decision"
+	},
+	"npmos.crowdsec.decision.all": {
+		"defaultMessage": "All decisions"
+	},
+	"npmos.crowdsec.decision.ban": {
+		"defaultMessage": "Ban"
+	},
+	"npmos.crowdsec.decision.captcha": {
+		"defaultMessage": "Captcha"
+	},
+	"npmos.crowdsec.decisions.none": {
+		"defaultMessage": "No active decisions."
+	},
+	"npmos.crowdsec.decisions.search": {
+		"defaultMessage": "IP, range or scenario"
+	},
+	"npmos.crowdsec.duration": {
+		"defaultMessage": "Duration"
+	},
+	"npmos.crowdsec.duration.12h": {
+		"defaultMessage": "12 hours"
+	},
+	"npmos.crowdsec.duration.15m": {
+		"defaultMessage": "15 minutes"
+	},
+	"npmos.crowdsec.duration.1h": {
+		"defaultMessage": "1 hour"
+	},
+	"npmos.crowdsec.duration.24h": {
+		"defaultMessage": "24 hours"
+	},
+	"npmos.crowdsec.duration.30d": {
+		"defaultMessage": "30 days"
+	},
+	"npmos.crowdsec.duration.4h": {
+		"defaultMessage": "4 hours"
+	},
+	"npmos.crowdsec.duration.7d": {
+		"defaultMessage": "7 days"
+	},
+	"npmos.crowdsec.events": {
+		"defaultMessage": "Events"
+	},
+	"npmos.crowdsec.host": {
+		"defaultMessage": "Host"
+	},
+	"npmos.crowdsec.hub.hint": {
+		"defaultMessage": "The hub snapshot of this node: nothing is downloaded from the internet. A new snapshot is uploaded here (.index.json of cscli hub update --with-content, or the archive of scripts/crowdsec-hub-snapshot.sh with data files). Installing or removing restarts CrowdSec."
+	},
+	"npmos.crowdsec.hub.index-updated": {
+		"defaultMessage": "Hub index updated: {count} items"
+	},
+	"npmos.crowdsec.hub.install": {
+		"defaultMessage": "Install"
+	},
+	"npmos.crowdsec.hub.install.done": {
+		"defaultMessage": "Installed or updated: {count}"
+	},
+	"npmos.crowdsec.hub.installed-only": {
+		"defaultMessage": "Installed only"
+	},
+	"npmos.crowdsec.hub.locked": {
+		"defaultMessage": "Needed by the settings of NPMOS or by an installed collection, or a local file"
+	},
+	"npmos.crowdsec.hub.more": {
+		"defaultMessage": "{count} more: narrow the search"
+	},
+	"npmos.crowdsec.hub.needed-by": {
+		"defaultMessage": "Part of: {names}"
+	},
+	"npmos.crowdsec.hub.online": {
+		"defaultMessage": "Update the index online"
+	},
+	"npmos.crowdsec.hub.remove": {
+		"defaultMessage": "Remove"
+	},
+	"npmos.crowdsec.hub.remove.done": {
+		"defaultMessage": "Removed: {count}"
+	},
+	"npmos.crowdsec.hub.required": {
+		"defaultMessage": "Needed by NPMOS"
+	},
+	"npmos.crowdsec.hub.search": {
+		"defaultMessage": "Name or description"
+	},
+	"npmos.crowdsec.hub.status.broken": {
+		"defaultMessage": "Broken link"
+	},
+	"npmos.crowdsec.hub.status.installed": {
+		"defaultMessage": "Installed"
+	},
+	"npmos.crowdsec.hub.status.local": {
+		"defaultMessage": "Local file"
+	},
+	"npmos.crowdsec.hub.status.not-installed": {
+		"defaultMessage": "Not installed"
+	},
+	"npmos.crowdsec.hub.status.outdated": {
+		"defaultMessage": "Outdated"
+	},
+	"npmos.crowdsec.hub.status.tainted": {
+		"defaultMessage": "Changed by hand"
+	},
+	"npmos.crowdsec.hub.status.up-to-date": {
+		"defaultMessage": "Up to date"
+	},
+	"npmos.crowdsec.hub.type": {
+		"defaultMessage": "Type"
+	},
+	"npmos.crowdsec.hub.type.all": {
+		"defaultMessage": "All types"
+	},
+	"npmos.crowdsec.hub.type.appsec-configs": {
+		"defaultMessage": "AppSec configurations"
+	},
+	"npmos.crowdsec.hub.type.appsec-rules": {
+		"defaultMessage": "AppSec rules"
+	},
+	"npmos.crowdsec.hub.type.collections": {
+		"defaultMessage": "Collections"
+	},
+	"npmos.crowdsec.hub.type.contexts": {
+		"defaultMessage": "Contexts"
+	},
+	"npmos.crowdsec.hub.type.parsers": {
+		"defaultMessage": "Parsers"
+	},
+	"npmos.crowdsec.hub.type.postoverflows": {
+		"defaultMessage": "Postoverflows"
+	},
+	"npmos.crowdsec.hub.type.scenarios": {
+		"defaultMessage": "Scenarios"
+	},
+	"npmos.crowdsec.hub.upgrade": {
+		"defaultMessage": "Upgrade outdated ({count})"
+	},
+	"npmos.crowdsec.hub.upgraded": {
+		"defaultMessage": "Upgraded: {count}"
+	},
+	"npmos.crowdsec.hub.upload": {
+		"defaultMessage": "Upload snapshot"
+	},
+	"npmos.crowdsec.hub.uploaded": {
+		"defaultMessage": "Hub snapshot loaded: {count} items, {data} data files"
+	},
+	"npmos.crowdsec.ip": {
+		"defaultMessage": "IP address"
+	},
+	"npmos.crowdsec.lapi.down": {
+		"defaultMessage": "Unavailable"
+	},
+	"npmos.crowdsec.lapi.down.text": {
+		"defaultMessage": "The local API of CrowdSec does not answer: {error}."
+	},
+	"npmos.crowdsec.lapi.ok": {
+		"defaultMessage": "Works"
+	},
+	"npmos.crowdsec.left": {
+		"defaultMessage": "Left"
+	},
+	"npmos.crowdsec.left.days": {
+		"defaultMessage": "{days} d"
+	},
+	"npmos.crowdsec.left.hours": {
+		"defaultMessage": "{hours} h {minutes} min"
+	},
+	"npmos.crowdsec.left.minutes": {
+		"defaultMessage": "{minutes} min"
+	},
+	"npmos.crowdsec.left.seconds": {
+		"defaultMessage": "{seconds} s"
+	},
+	"npmos.crowdsec.log-level": {
+		"defaultMessage": "Log level of CrowdSec"
+	},
+	"npmos.crowdsec.log-level.debug": {
+		"defaultMessage": "Debugging"
+	},
+	"npmos.crowdsec.log-level.error": {
+		"defaultMessage": "Errors"
+	},
+	"npmos.crowdsec.log-level.info": {
+		"defaultMessage": "Information"
+	},
+	"npmos.crowdsec.log-level.warning": {
+		"defaultMessage": "Warnings"
+	},
+	"npmos.crowdsec.machine.heartbeat": {
+		"defaultMessage": "Last heartbeat"
+	},
+	"npmos.crowdsec.machine.local": {
+		"defaultMessage": "CrowdSec agent"
+	},
+	"npmos.crowdsec.machine.npmos": {
+		"defaultMessage": "NPMOS"
+	},
+	"npmos.crowdsec.machine.pending": {
+		"defaultMessage": "Not validated"
+	},
+	"npmos.crowdsec.machine.push": {
+		"defaultMessage": "Last alert"
+	},
+	"npmos.crowdsec.machines": {
+		"defaultMessage": "Machines"
+	},
+	"npmos.crowdsec.machines.delete": {
+		"defaultMessage": "Delete machine"
+	},
+	"npmos.crowdsec.machines.delete.text": {
+		"defaultMessage": "Delete the machine {name}? It can no longer send alerts; its old alerts stay. A node that still runs registers again on its next start."
+	},
+	"npmos.crowdsec.machines.hint": {
+		"defaultMessage": "Agents that send alerts to the local API. localhost is the agent of CrowdSec itself, npmos-… is NPMOS (bans by hand, blocklists)."
+	},
+	"npmos.crowdsec.metrics.appsec": {
+		"defaultMessage": "AppSec: blocked / checked requests"
+	},
+	"npmos.crowdsec.metrics.decisions-of": {
+		"defaultMessage": "Decisions: {origin}"
+	},
+	"npmos.crowdsec.metrics.none": {
+		"defaultMessage": "No metrics: CrowdSec does not answer."
+	},
+	"npmos.crowdsec.metrics.overflows": {
+		"defaultMessage": "Scenarios that triggered"
+	},
+	"npmos.crowdsec.metrics.overflows.none": {
+		"defaultMessage": "No scenario has triggered since CrowdSec started."
+	},
+	"npmos.crowdsec.metrics.parsed": {
+		"defaultMessage": "Log lines parsed"
+	},
+	"npmos.crowdsec.metrics.sources": {
+		"defaultMessage": "Lines read by source"
+	},
+	"npmos.crowdsec.metrics.sources.none": {
+		"defaultMessage": "Nothing read yet."
+	},
+	"npmos.crowdsec.move-down": {
+		"defaultMessage": "Move down"
+	},
+	"npmos.crowdsec.move-up": {
+		"defaultMessage": "Move up"
+	},
+	"npmos.crowdsec.name": {
+		"defaultMessage": "Name"
+	},
+	"npmos.crowdsec.none-found": {
+		"defaultMessage": "Nothing found."
+	},
+	"npmos.crowdsec.online-hub": {
+		"defaultMessage": "Allow online hub updates"
+	},
+	"npmos.crowdsec.online-hub.hint": {
+		"defaultMessage": "The Hub tab can then download the index from the CrowdSec CDN, and installing an item downloads its missing data files (60 s timeout). Off: only uploaded snapshots."
+	},
+	"npmos.crowdsec.open-services": {
+		"defaultMessage": "Open Services"
+	},
+	"npmos.crowdsec.open-settings": {
+		"defaultMessage": "Change settings"
+	},
+	"npmos.crowdsec.openappsec-ban.enabled": {
+		"defaultMessage": "Ban after repeated blocked requests"
+	},
+	"npmos.crowdsec.openappsec-ban.events": {
+		"defaultMessage": "Blocked requests"
+	},
+	"npmos.crowdsec.openappsec-ban.hint": {
+		"defaultMessage": "open-appsec blocks single requests; this rule bans the address for repeated attacks, so that its next requests do not reach the WAF."
+	},
+	"npmos.crowdsec.openappsec-ban.minutes": {
+		"defaultMessage": "Within, minutes"
+	},
+	"npmos.crowdsec.openappsec-ban.profile": {
+		"defaultMessage": "The decision and its duration come from the first matching profile below."
+	},
+	"npmos.crowdsec.openappsec-ban.title": {
+		"defaultMessage": "Ban attackers blocked by the WAF"
+	},
+	"npmos.crowdsec.origin": {
+		"defaultMessage": "Origin"
+	},
+	"npmos.crowdsec.origin.CAPI": {
+		"defaultMessage": "Community blocklist"
+	},
+	"npmos.crowdsec.origin.all": {
+		"defaultMessage": "All origins"
+	},
+	"npmos.crowdsec.origin.appsec": {
+		"defaultMessage": "AppSec"
+	},
+	"npmos.crowdsec.origin.crowdsec": {
+		"defaultMessage": "Scenarios"
+	},
+	"npmos.crowdsec.origin.cscli": {
+		"defaultMessage": "By hand"
+	},
+	"npmos.crowdsec.origin.lists": {
+		"defaultMessage": "Blocklists"
+	},
+	"npmos.crowdsec.other.title": {
+		"defaultMessage": "Other"
+	},
+	"npmos.crowdsec.page": {
+		"defaultMessage": "{from}–{to} of {total}"
+	},
+	"npmos.crowdsec.page.next": {
+		"defaultMessage": "Next"
+	},
+	"npmos.crowdsec.page.prev": {
+		"defaultMessage": "Previous"
+	},
+	"npmos.crowdsec.profile.add": {
+		"defaultMessage": "Add profile"
+	},
+	"npmos.crowdsec.profile.done": {
+		"defaultMessage": "Done"
+	},
+	"npmos.crowdsec.profile.edit": {
+		"defaultMessage": "Edit profile"
+	},
+	"npmos.crowdsec.profile.enabled": {
+		"defaultMessage": "Profile enabled"
+	},
+	"npmos.crowdsec.profile.escalate": {
+		"defaultMessage": "Longer for each next ban"
+	},
+	"npmos.crowdsec.profile.escalate.hint": {
+		"defaultMessage": "Each next decision for the same address lasts {duration} longer."
+	},
+	"npmos.crowdsec.profile.escalates": {
+		"defaultMessage": "Escalates"
+	},
+	"npmos.crowdsec.profile.filter": {
+		"defaultMessage": "Expression (optional)"
+	},
+	"npmos.crowdsec.profile.filter.hint": {
+		"defaultMessage": "An extra condition in the expression language of CrowdSec. A wrong one is rejected when CrowdSec starts, and the previous settings come back."
+	},
+	"npmos.crowdsec.profile.name.format": {
+		"defaultMessage": "Lowercase letters, digits, _ and -"
+	},
+	"npmos.crowdsec.profile.name.taken": {
+		"defaultMessage": "Another profile has this name"
+	},
+	"npmos.crowdsec.profile.scenarios": {
+		"defaultMessage": "Only these scenarios (optional)"
+	},
+	"npmos.crowdsec.profile.scenarios.hint": {
+		"defaultMessage": "Names of scenarios, one per line; empty: all."
+	},
+	"npmos.crowdsec.profile.scope": {
+		"defaultMessage": "Alerts about"
+	},
+	"npmos.crowdsec.profile.takes": {
+		"defaultMessage": "Takes"
+	},
+	"npmos.crowdsec.profiles.hint": {
+		"defaultMessage": "What CrowdSec decides for an alert: the first enabled profile that takes it, from the top."
+	},
+	"npmos.crowdsec.profiles.none": {
+		"defaultMessage": "No enabled profile: alerts make no decisions."
+	},
+	"npmos.crowdsec.profiles.title": {
+		"defaultMessage": "Profiles"
+	},
+	"npmos.crowdsec.protection": {
+		"defaultMessage": "Protection"
+	},
+	"npmos.crowdsec.protection.agent": {
+		"defaultMessage": "IP reputation in the WAF agent"
+	},
+	"npmos.crowdsec.protection.appsec": {
+		"defaultMessage": "CrowdSec AppSec: virtual patching of known vulnerabilities"
+	},
+	"npmos.crowdsec.protection.bouncer": {
+		"defaultMessage": "Bouncer of NPMOS: bans and captchas in nginx"
+	},
+	"npmos.crowdsec.protection.nginx": {
+		"defaultMessage": "Reads the access and error logs of nginx"
+	},
+	"npmos.crowdsec.protection.openappsec": {
+		"defaultMessage": "Reads the security log of open-appsec"
+	},
+	"npmos.crowdsec.protection.openappsec-ban": {
+		"defaultMessage": "Ban after {events} requests blocked by open-appsec in {minutes} min"
+	},
+	"npmos.crowdsec.registry.deleted": {
+		"defaultMessage": "Deleted"
+	},
+	"npmos.crowdsec.scenario": {
+		"defaultMessage": "Scenario"
+	},
+	"npmos.crowdsec.scope.Ip": {
+		"defaultMessage": "An IP address"
+	},
+	"npmos.crowdsec.scope.Range": {
+		"defaultMessage": "A range"
+	},
+	"npmos.crowdsec.scope.any": {
+		"defaultMessage": "Anything"
+	},
+	"npmos.crowdsec.secret.kept": {
+		"defaultMessage": "Saved; empty keeps it"
+	},
+	"npmos.crowdsec.select-all": {
+		"defaultMessage": "Select all"
+	},
+	"npmos.crowdsec.settings.applied": {
+		"defaultMessage": "Settings applied, CrowdSec restarted"
+	},
+	"npmos.crowdsec.settings.pending": {
+		"defaultMessage": "The files of CrowdSec differ from the settings ({files}): they are applied at the next save or now."
+	},
+	"npmos.crowdsec.settings.restarting": {
+		"defaultMessage": "CrowdSec restarts with the new files; if it does not start, the previous ones come back."
+	},
+	"npmos.crowdsec.settings.save": {
+		"defaultMessage": "Save and apply"
+	},
+	"npmos.crowdsec.settings.saved": {
+		"defaultMessage": "Settings saved"
+	},
+	"npmos.crowdsec.share": {
+		"defaultMessage": "Decisions for other NPMOS nodes"
+	},
+	"npmos.crowdsec.share.disable": {
+		"defaultMessage": "Forbid"
+	},
+	"npmos.crowdsec.share.enable": {
+		"defaultMessage": "Allow and create a token"
+	},
+	"npmos.crowdsec.share.hint": {
+		"defaultMessage": "Other nodes add this address with the token as a URL blocklist and get the bans of this node (not those of its blocklists). No login, only the token; it is shown once."
+	},
+	"npmos.crowdsec.share.new-token": {
+		"defaultMessage": "New token"
+	},
+	"npmos.crowdsec.share.token": {
+		"defaultMessage": "Token for other nodes (copy it now, it is not shown again):"
+	},
+	"npmos.crowdsec.simulated": {
+		"defaultMessage": "Simulation"
+	},
+	"npmos.crowdsec.simulation.all": {
+		"defaultMessage": "Simulate all scenarios"
+	},
+	"npmos.crowdsec.simulation.all.hint": {
+		"defaultMessage": "Nobody is banned by scenarios, except the ones listed below. Manual bans and blocklists still apply."
+	},
+	"npmos.crowdsec.simulation.except": {
+		"defaultMessage": "Scenarios that still ban"
+	},
+	"npmos.crowdsec.simulation.hint": {
+		"defaultMessage": "A simulated scenario still raises alerts, but its decisions are not applied: check a new scenario on real traffic before it bans anyone."
+	},
+	"npmos.crowdsec.simulation.only": {
+		"defaultMessage": "Simulated scenarios"
+	},
+	"npmos.crowdsec.simulation.scenarios.hint": {
+		"defaultMessage": "One scenario per line, as in the hub (author/name). Their alerts are marked «Simulation» on the Alerts tab."
+	},
+	"npmos.crowdsec.simulation.title": {
+		"defaultMessage": "Simulation"
+	},
+	"npmos.crowdsec.source": {
+		"defaultMessage": "Source"
+	},
+	"npmos.crowdsec.sources.hint": {
+		"defaultMessage": "What CrowdSec reads to find attackers."
+	},
+	"npmos.crowdsec.sources.nginx": {
+		"defaultMessage": "Logs of nginx"
+	},
+	"npmos.crowdsec.sources.nginx.hint": {
+		"defaultMessage": "Access and error logs of all hosts: scanners, brute force of passwords, probing of known vulnerabilities (collection ZoeyVid/npmplus)."
+	},
+	"npmos.crowdsec.sources.openappsec": {
+		"defaultMessage": "Security log of open-appsec"
+	},
+	"npmos.crowdsec.sources.openappsec.hint": {
+		"defaultMessage": "Requests the WAF blocked; needed for the rule below."
+	},
+	"npmos.crowdsec.sources.title": {
+		"defaultMessage": "Sources of logs"
+	},
+	"npmos.crowdsec.status": {
+		"defaultMessage": "Status"
+	},
+	"npmos.crowdsec.subtitle": {
+		"defaultMessage": "Detects attackers in the logs of nginx and open-appsec and bans them. Runs locally: no CrowdSec console, no cloud."
+	},
+	"npmos.crowdsec.summary.alerts": {
+		"defaultMessage": "Alerts in 24 h"
+	},
+	"npmos.crowdsec.summary.bouncers": {
+		"defaultMessage": "Bouncers"
+	},
+	"npmos.crowdsec.summary.decisions": {
+		"defaultMessage": "Active decisions"
+	},
+	"npmos.crowdsec.summary.hub": {
+		"defaultMessage": "Hub items / outdated"
+	},
+	"npmos.crowdsec.summary.lapi": {
+		"defaultMessage": "Local API"
+	},
+	"npmos.crowdsec.summary.machines": {
+		"defaultMessage": "Machines"
+	},
+	"npmos.crowdsec.tab.alerts": {
+		"defaultMessage": "Alerts"
+	},
+	"npmos.crowdsec.tab.blocklists": {
+		"defaultMessage": "Blocklists"
+	},
+	"npmos.crowdsec.tab.decisions": {
+		"defaultMessage": "Decisions"
+	},
+	"npmos.crowdsec.tab.hub": {
+		"defaultMessage": "Hub"
+	},
+	"npmos.crowdsec.tab.overview": {
+		"defaultMessage": "Overview"
+	},
+	"npmos.crowdsec.tab.registry": {
+		"defaultMessage": "Machines and bouncers"
+	},
+	"npmos.crowdsec.tab.settings": {
+		"defaultMessage": "Settings"
+	},
+	"npmos.crowdsec.time": {
+		"defaultMessage": "Time"
+	},
+	"npmos.crowdsec.unban": {
+		"defaultMessage": "Unban"
+	},
+	"npmos.crowdsec.unban.done": {
+		"defaultMessage": "Decisions removed: {count}"
+	},
+	"npmos.crowdsec.unban.selected": {
+		"defaultMessage": "Unban selected ({count})"
+	},
+	"npmos.crowdsec.value": {
+		"defaultMessage": "Address"
+	},
+	"npmos.crowdsec.version": {
+		"defaultMessage": "Version"
+	},
 	"npmos.events.attack-type": {
 		"defaultMessage": "Attack type"
+	},
+	"npmos.events.ban-ip": {
+		"defaultMessage": "Ban IP in CrowdSec"
 	},
 	"npmos.events.confidence": {
 		"defaultMessage": "Confidence"
@@ -808,6 +1672,12 @@
 	},
 	"npmos.events.kind.all": {
 		"defaultMessage": "All"
+	},
+	"npmos.events.kind.crowdsec": {
+		"defaultMessage": "CrowdSec"
+	},
+	"npmos.events.kind.mtls": {
+		"defaultMessage": "mTLS"
 	},
 	"npmos.events.kind.security": {
 		"defaultMessage": "Attacks"
@@ -892,6 +1762,36 @@
 	},
 	"npmos.events.total-capped": {
 		"defaultMessage": "More than {total} events"
+	},
+	"npmos.geoip.built": {
+		"defaultMessage": "Built"
+	},
+	"npmos.geoip.hint": {
+		"defaultMessage": "Countries of attack sources come from a MaxMind DB file (.mmdb), without internet. The GeoLite2-City database of CrowdSec is used by default; upload a newer one (GeoLite2 or DB-IP, Country or City) downloaded on a machine with internet. Events stored before keep their country."
+	},
+	"npmos.geoip.none": {
+		"defaultMessage": "No GeoIP database: events have no countries."
+	},
+	"npmos.geoip.remove": {
+		"defaultMessage": "Use the database of CrowdSec"
+	},
+	"npmos.geoip.saved": {
+		"defaultMessage": "GeoIP database updated"
+	},
+	"npmos.geoip.source": {
+		"defaultMessage": "Database"
+	},
+	"npmos.geoip.source.crowdsec": {
+		"defaultMessage": "Of CrowdSec (comes with its image)"
+	},
+	"npmos.geoip.source.uploaded": {
+		"defaultMessage": "Uploaded"
+	},
+	"npmos.geoip.type": {
+		"defaultMessage": "Type"
+	},
+	"npmos.geoip.upload": {
+		"defaultMessage": "Upload .mmdb"
 	},
 	"npmos.glossary": {
 		"defaultMessage": "Glossary"
@@ -1031,11 +1931,38 @@
 	"npmos.hosts.copy-domain": {
 		"defaultMessage": "Copy domain"
 	},
+	"npmos.hosts.crowdsec.alerts": {
+		"defaultMessage": "Alerts of the host"
+	},
+	"npmos.hosts.crowdsec.bouncer-off": {
+		"defaultMessage": "Bouncer off"
+	},
+	"npmos.hosts.crowdsec.enable": {
+		"defaultMessage": "Turn the bouncer on"
+	},
+	"npmos.hosts.crowdsec.off": {
+		"defaultMessage": "Left out"
+	},
+	"npmos.hosts.crowdsec.off.hint": {
+		"defaultMessage": "The bouncer does not check requests to this host"
+	},
+	"npmos.hosts.crowdsec.on": {
+		"defaultMessage": "Checked"
+	},
+	"npmos.hosts.crowdsec.title": {
+		"defaultMessage": "Bans in 24 h: {bans}"
+	},
 	"npmos.hosts.done.access": {
 		"defaultMessage": "access saved"
 	},
 	"npmos.hosts.done.certificate": {
 		"defaultMessage": "certificate saved"
+	},
+	"npmos.hosts.done.crowdsec.off": {
+		"defaultMessage": "The bouncer leaves the host out"
+	},
+	"npmos.hosts.done.crowdsec.on": {
+		"defaultMessage": "The bouncer checks the host"
 	},
 	"npmos.hosts.done.deleted": {
 		"defaultMessage": "deleted"
@@ -1175,8 +2102,20 @@
 	"npmos.hosts.mtls.ca": {
 		"defaultMessage": "CA: {name}"
 	},
+	"npmos.hosts.mtls.cas": {
+		"defaultMessage": "Trusted: {names}"
+	},
+	"npmos.hosts.mtls.configure": {
+		"defaultMessage": "mTLS settings…"
+	},
+	"npmos.hosts.mtls.issue": {
+		"defaultMessage": "Issue a client certificate"
+	},
 	"npmos.hosts.mtls.needs-tls": {
 		"defaultMessage": "mTLS needs a TLS certificate on the host"
+	},
+	"npmos.hosts.mtls.new-domain": {
+		"defaultMessage": "Create a trust domain for the host"
 	},
 	"npmos.hosts.mtls.no-ca": {
 		"defaultMessage": "No CA yet: upload one in Certificates"
@@ -1385,6 +2324,297 @@
 	"npmos.hosts.waf.template.strict.hint": {
 		"defaultMessage": "Template: medium confidence, CSRF, error disclosure, open redirect, block page"
 	},
+	"npmos.migration.after": {
+		"defaultMessage": "Check the hosts: point DNS or the ports to NPMOS, then stop the old container. WAF and CrowdSec are configured per host in NPMOS."
+	},
+	"npmos.migration.apply": {
+		"defaultMessage": "Import"
+	},
+	"npmos.migration.archive": {
+		"defaultMessage": "Archive of the old installation"
+	},
+	"npmos.migration.archive.hint": {
+		"defaultMessage": "Stop the old container (so that the database is complete), then pack its /data directory and, for NPM, /etc/letsencrypt. Logs and generated nginx configs are skipped on reading. A database.sqlite file alone can be uploaded too, but then Let's Encrypt certificates have no files."
+	},
+	"npmos.migration.archive.npm": {
+		"defaultMessage": "Nginx Proxy Manager, open-appsec-npm (add the folder with local_policy.yaml to keep WAF rules):"
+	},
+	"npmos.migration.archive.npmplus": {
+		"defaultMessage": "NPMplus:"
+	},
+	"npmos.migration.blocking": {
+		"defaultMessage": "NPMOS already has records in: {list}. The migration goes into a new NPMOS only, so that numbers of hosts and certificates stay the same."
+	},
+	"npmos.migration.connect": {
+		"defaultMessage": "Connect and check"
+	},
+	"npmos.migration.custom-nginx": {
+		"defaultMessage": "Custom nginx snippets"
+	},
+	"npmos.migration.database": {
+		"defaultMessage": "Database over the network"
+	},
+	"npmos.migration.database.engine": {
+		"defaultMessage": "Engine"
+	},
+	"npmos.migration.database.hint": {
+		"defaultMessage": "For NPM with MySQL/MariaDB or PostgreSQL: NPMOS reads the database once and does not change it. The database must be reachable from the npmos container. Certificate files of Let's Encrypt come from an archive, uploaded on the next step."
+	},
+	"npmos.migration.database.host": {
+		"defaultMessage": "Host"
+	},
+	"npmos.migration.database.name": {
+		"defaultMessage": "Database"
+	},
+	"npmos.migration.database.password": {
+		"defaultMessage": "Password"
+	},
+	"npmos.migration.database.port": {
+		"defaultMessage": "Port"
+	},
+	"npmos.migration.database.user": {
+		"defaultMessage": "User"
+	},
+	"npmos.migration.discard": {
+		"defaultMessage": "Cancel"
+	},
+	"npmos.migration.done": {
+		"defaultMessage": "Imported: {hosts} hosts, {certificates} certificates, {users} users. Users log in with their old passwords."
+	},
+	"npmos.migration.failed": {
+		"defaultMessage": "The import failed, nothing was saved to the database: {message}"
+	},
+	"npmos.migration.failed-after": {
+		"defaultMessage": "The data is imported, but a later step failed: {message}. Check the hosts and regenerate the nginx configs (System → Services)."
+	},
+	"npmos.migration.files-hint": {
+		"defaultMessage": "The database is read. Upload an archive of /data and /etc/letsencrypt too, to move the certificate files and custom snippets."
+	},
+	"npmos.migration.finish": {
+		"defaultMessage": "Finish (remove work files)"
+	},
+	"npmos.migration.forbidden": {
+		"defaultMessage": "The migration needs the permissions to manage settings, users and roles."
+	},
+	"npmos.migration.found": {
+		"defaultMessage": "Found: {kind}, {applied} database migrations; {upgraded} more are applied to a copy to reach the schema of NPMOS."
+	},
+	"npmos.migration.hashed": {
+		"defaultMessage": "{count, plural, one {# access list password was} other {# access list passwords were}} hashed."
+	},
+	"npmos.migration.hint": {
+		"defaultMessage": "Moves an installation of Nginx Proxy Manager, NPMplus or open-appsec-npm into NPMOS: hosts, certificates (Let's Encrypt with their keys), access lists, users with their passwords and 2FA, permissions as roles, the default site, custom nginx snippets and the WAF rules of open-appsec-npm. The old installation is not changed. Import into a new NPMOS: hosts, certificates and access lists keep their numbers, so NPMOS must not have any yet."
+	},
+	"npmos.migration.importing": {
+		"defaultMessage": "Importing and generating nginx configs…"
+	},
+	"npmos.migration.kind.npm": {
+		"defaultMessage": "Nginx Proxy Manager"
+	},
+	"npmos.migration.kind.npmplus": {
+		"defaultMessage": "NPMplus"
+	},
+	"npmos.migration.kind.open-appsec-npm": {
+		"defaultMessage": "open-appsec-npm"
+	},
+	"npmos.migration.matched": {
+		"defaultMessage": "Already in NPMOS, kept as they are (password and roles of NPMOS): {list}"
+	},
+	"npmos.migration.option.custom-nginx": {
+		"defaultMessage": "Move custom nginx snippets (put back if nginx refuses them)"
+	},
+	"npmos.migration.option.history": {
+		"defaultMessage": "Move the audit log"
+	},
+	"npmos.migration.reading": {
+		"defaultMessage": "Reading the archive and checking the database…"
+	},
+	"npmos.migration.restart": {
+		"defaultMessage": "Some certificates use a DNS challenge: restart NPMOS (System → Services) so that certbot gets its DNS plugins and credentials before the next renewal."
+	},
+	"npmos.migration.table.access_list": {
+		"defaultMessage": "Access lists"
+	},
+	"npmos.migration.table.certificate": {
+		"defaultMessage": "Certificates"
+	},
+	"npmos.migration.table.dead_host": {
+		"defaultMessage": "404 hosts"
+	},
+	"npmos.migration.table.proxy_host": {
+		"defaultMessage": "Proxy hosts"
+	},
+	"npmos.migration.table.redirection_host": {
+		"defaultMessage": "Redirection hosts"
+	},
+	"npmos.migration.table.stream": {
+		"defaultMessage": "Streams"
+	},
+	"npmos.migration.upload": {
+		"defaultMessage": "Upload archive"
+	},
+	"npmos.migration.upload-files": {
+		"defaultMessage": "Upload files"
+	},
+	"npmos.migration.user.admin": {
+		"defaultMessage": "administrator"
+	},
+	"npmos.migration.user.exists": {
+		"defaultMessage": "already in NPMOS, kept"
+	},
+	"npmos.migration.user.new": {
+		"defaultMessage": "added"
+	},
+	"npmos.migration.users": {
+		"defaultMessage": "Users"
+	},
+	"npmos.migration.waf-rules": {
+		"defaultMessage": "WAF rules of open-appsec-npm"
+	},
+	"npmos.migration.warning.certbot_missing": {
+		"defaultMessage": "No certbot files for Let's Encrypt certificates {list}: add /etc/letsencrypt (NPM) or tls/certbot (NPMplus) to the archive, or renew them after the import."
+	},
+	"npmos.migration.warning.custom_cert": {
+		"defaultMessage": "Custom certificate {list} could not be written: {message}"
+	},
+	"npmos.migration.warning.custom_nginx_refused": {
+		"defaultMessage": "nginx did not accept the custom snippets {list}; the previous ones were put back. Error: {message}"
+	},
+	"npmos.migration.warning.hosts_offline": {
+		"defaultMessage": "Some hosts did not pass the nginx check and are offline:"
+	},
+	"npmos.migration.warning.newer_source": {
+		"defaultMessage": "The old installation is newer than NPMOS and ran database migrations NPMOS does not know: {list}. Their data is not moved."
+	},
+	"npmos.migration.warning.plain_passwords": {
+		"defaultMessage": "Access list passwords stored in plain text (NPM): {count}. They are hashed on import."
+	},
+	"npmos.migration.warning.waf_policy": {
+		"defaultMessage": "The WAF policy could not be generated: {message}"
+	},
+	"npmos.migration.what": {
+		"defaultMessage": "What is moved"
+	},
+	"npmos.mtls.advanced": {
+		"defaultMessage": "More settings"
+	},
+	"npmos.mtls.advanced.hide": {
+		"defaultMessage": "Hide settings"
+	},
+	"npmos.mtls.cas": {
+		"defaultMessage": "Trusted CAs"
+	},
+	"npmos.mtls.cas.hint": {
+		"defaultMessage": "A root admits all its trust domains, a trust domain only its own certificates."
+	},
+	"npmos.mtls.cas.stream-hint": {
+		"defaultMessage": "Streams cannot check the issuer: a trust domain admits certificates of every trust domain of its root."
+	},
+	"npmos.mtls.depth": {
+		"defaultMessage": "Chain depth"
+	},
+	"npmos.mtls.enabled": {
+		"defaultMessage": "Require client certificates"
+	},
+	"npmos.mtls.field.commonName": {
+		"defaultMessage": "Name (CN)"
+	},
+	"npmos.mtls.field.email": {
+		"defaultMessage": "Email"
+	},
+	"npmos.mtls.field.organization": {
+		"defaultMessage": "Organization (O)"
+	},
+	"npmos.mtls.field.organizationalUnit": {
+		"defaultMessage": "Unit (OU)"
+	},
+	"npmos.mtls.field.serial": {
+		"defaultMessage": "Serial number"
+	},
+	"npmos.mtls.headers": {
+		"defaultMessage": "Pass the certificate to the upstream"
+	},
+	"npmos.mtls.headers.hint": {
+		"defaultMessage": "Headers X-Client-Verify, X-Client-S-DN, X-Client-I-DN, X-Client-Serial, X-Client-Fingerprint; the same headers from clients are replaced."
+	},
+	"npmos.mtls.mode": {
+		"defaultMessage": "Where"
+	},
+	"npmos.mtls.mode.on": {
+		"defaultMessage": "Everywhere"
+	},
+	"npmos.mtls.mode.on.hint": {
+		"defaultMessage": "Without a valid certificate the host answers 403 with a page that explains what to do."
+	},
+	"npmos.mtls.mode.optional": {
+		"defaultMessage": "On chosen locations"
+	},
+	"npmos.mtls.mode.optional.hint": {
+		"defaultMessage": "The browser is asked for a certificate, but only the chosen locations require it (e.g. /admin)."
+	},
+	"npmos.mtls.new-domain": {
+		"defaultMessage": "Trust domain for this host"
+	},
+	"npmos.mtls.nginx-error": {
+		"defaultMessage": "nginx did not accept the configuration: {error}"
+	},
+	"npmos.mtls.no-cas": {
+		"defaultMessage": "No CAs yet: create a trust domain for this host."
+	},
+	"npmos.mtls.op.one_of": {
+		"defaultMessage": "one of"
+	},
+	"npmos.mtls.op.regex": {
+		"defaultMessage": "matches"
+	},
+	"npmos.mtls.replaces-upstream": {
+		"defaultMessage": "The host has an mTLS CA of NPMplus; these settings replace it while they are on."
+	},
+	"npmos.mtls.required-paths": {
+		"defaultMessage": "Require a certificate on"
+	},
+	"npmos.mtls.rule.add": {
+		"defaultMessage": "Add rule"
+	},
+	"npmos.mtls.rule.field": {
+		"defaultMessage": "Field"
+	},
+	"npmos.mtls.rule.list": {
+		"defaultMessage": "IT, Security"
+	},
+	"npmos.mtls.rule.op": {
+		"defaultMessage": "Condition"
+	},
+	"npmos.mtls.rule.regex": {
+		"defaultMessage": "^admin-[0-9]+$"
+	},
+	"npmos.mtls.rule.remove": {
+		"defaultMessage": "Remove rule"
+	},
+	"npmos.mtls.rule.values": {
+		"defaultMessage": "Values"
+	},
+	"npmos.mtls.rules": {
+		"defaultMessage": "Rules on the certificate"
+	},
+	"npmos.mtls.rules.hint": {
+		"defaultMessage": "All rules must match. Values in Latin letters; one of: comma-separated."
+	},
+	"npmos.mtls.rules.none": {
+		"defaultMessage": "No rules: every certificate of the trusted CAs is admitted."
+	},
+	"npmos.mtls.saved": {
+		"defaultMessage": "mTLS saved, nginx reloaded"
+	},
+	"npmos.mtls.send-ca-names": {
+		"defaultMessage": "Send the names of the CAs to clients"
+	},
+	"npmos.mtls.send-ca-names.hint": {
+		"defaultMessage": "Browsers then offer only suitable certificates. Off: the names of your CAs are not disclosed."
+	},
+	"npmos.mtls.title": {
+		"defaultMessage": "mTLS"
+	},
 	"npmos.nav.administration": {
 		"defaultMessage": "Administration"
 	},
@@ -1426,6 +2656,9 @@
 	},
 	"npmos.nav.theme-light": {
 		"defaultMessage": "Light theme"
+	},
+	"npmos.nav.tls": {
+		"defaultMessage": "TLS"
 	},
 	"npmos.nav.user-menu": {
 		"defaultMessage": "User menu"
@@ -1834,6 +3067,543 @@
 	},
 	"npmos.overview.waf.state": {
 		"defaultMessage": "Protection"
+	},
+	"npmos.pki": {
+		"defaultMessage": "PKI and mTLS"
+	},
+	"npmos.pki.actions": {
+		"defaultMessage": "Actions"
+	},
+	"npmos.pki.all-cas": {
+		"defaultMessage": "All trust domains"
+	},
+	"npmos.pki.ca.add": {
+		"defaultMessage": "Add CA"
+	},
+	"npmos.pki.ca.ascii": {
+		"defaultMessage": "Names of CAs are in Latin letters: nginx compares them in its rules."
+	},
+	"npmos.pki.ca.bundle": {
+		"defaultMessage": "Certificates of the CA (PEM, one or more)"
+	},
+	"npmos.pki.ca.bundle.hint": {
+		"defaultMessage": "The root and, if clients do not send them, the intermediate CAs."
+	},
+	"npmos.pki.ca.cert-pem": {
+		"defaultMessage": "Certificate of the CA (PEM)"
+	},
+	"npmos.pki.ca.certificates": {
+		"defaultMessage": "Certificates"
+	},
+	"npmos.pki.ca.counts": {
+		"defaultMessage": "{active} active, {revoked} revoked"
+	},
+	"npmos.pki.ca.create": {
+		"defaultMessage": "Create"
+	},
+	"npmos.pki.ca.create-root": {
+		"defaultMessage": "Create a root CA"
+	},
+	"npmos.pki.ca.crl": {
+		"defaultMessage": "Revocation list (CRL)"
+	},
+	"npmos.pki.ca.crl.hint": {
+		"defaultMessage": "Optional. Without a CRL of every external CA a host does not check revocation."
+	},
+	"npmos.pki.ca.crl.none": {
+		"defaultMessage": "none"
+	},
+	"npmos.pki.ca.crl.number": {
+		"defaultMessage": "CRL number {number}"
+	},
+	"npmos.pki.ca.crl.until": {
+		"defaultMessage": "until {time}"
+	},
+	"npmos.pki.ca.delete": {
+		"defaultMessage": "Delete CA"
+	},
+	"npmos.pki.ca.delete.text": {
+		"defaultMessage": "Delete {name}? Only a CA without certificates, trust domains and hosts can be deleted."
+	},
+	"npmos.pki.ca.edit": {
+		"defaultMessage": "Edit CA"
+	},
+	"npmos.pki.ca.export.cert": {
+		"defaultMessage": "Certificate (PEM)"
+	},
+	"npmos.pki.ca.export.chain": {
+		"defaultMessage": "Chain to the root (PEM)"
+	},
+	"npmos.pki.ca.export.crl": {
+		"defaultMessage": "CRL (PEM)"
+	},
+	"npmos.pki.ca.export.key": {
+		"defaultMessage": "Private key…"
+	},
+	"npmos.pki.ca.from-npmplus": {
+		"defaultMessage": "NPMplus"
+	},
+	"npmos.pki.ca.key-password": {
+		"defaultMessage": "Password of the key (if encrypted)"
+	},
+	"npmos.pki.ca.key-pem": {
+		"defaultMessage": "Private key (PEM)"
+	},
+	"npmos.pki.ca.kind.external": {
+		"defaultMessage": "external"
+	},
+	"npmos.pki.ca.kind.intermediate": {
+		"defaultMessage": "trust domain"
+	},
+	"npmos.pki.ca.kind.root": {
+		"defaultMessage": "root"
+	},
+	"npmos.pki.ca.mode.external": {
+		"defaultMessage": "External CA"
+	},
+	"npmos.pki.ca.mode.external.hint": {
+		"defaultMessage": "Certificates of another PKI, without a key: hosts accept its clients, NPMOS does not issue with it."
+	},
+	"npmos.pki.ca.mode.import": {
+		"defaultMessage": "Import a root"
+	},
+	"npmos.pki.ca.mode.import.hint": {
+		"defaultMessage": "A root CA you already have, with its private key: NPMOS issues trust domains under it."
+	},
+	"npmos.pki.ca.mode.intermediate": {
+		"defaultMessage": "Trust domain"
+	},
+	"npmos.pki.ca.mode.intermediate.hint": {
+		"defaultMessage": "An intermediate CA for a group of clients (office, partners, devices): it issues their certificates, and a host trusts only the domains it needs."
+	},
+	"npmos.pki.ca.mode.root": {
+		"defaultMessage": "Root CA"
+	},
+	"npmos.pki.ca.mode.root.hint": {
+		"defaultMessage": "The top of the PKI: 10 years, signs only trust domains. Export its key and keep it offline."
+	},
+	"npmos.pki.ca.name": {
+		"defaultMessage": "Name"
+	},
+	"npmos.pki.ca.new-domain": {
+		"defaultMessage": "New trust domain"
+	},
+	"npmos.pki.ca.no-root": {
+		"defaultMessage": "Create a root CA first."
+	},
+	"npmos.pki.ca.none": {
+		"defaultMessage": "No certificate authorities yet."
+	},
+	"npmos.pki.ca.parent": {
+		"defaultMessage": "Root CA"
+	},
+	"npmos.pki.copied": {
+		"defaultMessage": "Copied"
+	},
+	"npmos.pki.copy": {
+		"defaultMessage": "Copy"
+	},
+	"npmos.pki.csr": {
+		"defaultMessage": "Certificate signing request (PEM)"
+	},
+	"npmos.pki.days": {
+		"defaultMessage": "Validity, days"
+	},
+	"npmos.pki.days-left": {
+		"defaultMessage": "{days, plural, one {# day left} other {# days left}}"
+	},
+	"npmos.pki.days-value": {
+		"defaultMessage": "{days} days"
+	},
+	"npmos.pki.delivery": {
+		"defaultMessage": "How to hand it out"
+	},
+	"npmos.pki.done": {
+		"defaultMessage": "Done"
+	},
+	"npmos.pki.download": {
+		"defaultMessage": "Download"
+	},
+	"npmos.pki.download.cert": {
+		"defaultMessage": "Certificate (PEM)"
+	},
+	"npmos.pki.download.chain": {
+		"defaultMessage": "CA chain (PEM)"
+	},
+	"npmos.pki.download.fullchain": {
+		"defaultMessage": "Certificate with chain (PEM)"
+	},
+	"npmos.pki.download.key": {
+		"defaultMessage": "Private key (PEM)"
+	},
+	"npmos.pki.download.p12": {
+		"defaultMessage": "Download .p12"
+	},
+	"npmos.pki.expired-ago": {
+		"defaultMessage": "{days, plural, one {expired # day ago} other {expired # days ago}}"
+	},
+	"npmos.pki.expires": {
+		"defaultMessage": "Valid until"
+	},
+	"npmos.pki.include-key": {
+		"defaultMessage": "Also give the key as PEM (for servers and scripts)"
+	},
+	"npmos.pki.install": {
+		"defaultMessage": "Install as a certificate of NPMplus (TLS of hosts)"
+	},
+	"npmos.pki.installed": {
+		"defaultMessage": "The certificate is in Certificates → TLS; hosts with it were reloaded."
+	},
+	"npmos.pki.issue": {
+		"defaultMessage": "Issue certificate"
+	},
+	"npmos.pki.issue.do": {
+		"defaultMessage": "Issue"
+	},
+	"npmos.pki.issue.summary": {
+		"defaultMessage": "Issued by {ca}; the CRL of the trust domain is checked by hosts."
+	},
+	"npmos.pki.issued": {
+		"defaultMessage": "Issued: {name}, serial {serial}, valid until {until}."
+	},
+	"npmos.pki.issuer": {
+		"defaultMessage": "Trust domain (CA)"
+	},
+	"npmos.pki.key-not-kept": {
+		"defaultMessage": "NPMOS does not keep this key: download the .p12 now, it cannot be downloaded later."
+	},
+	"npmos.pki.key-source": {
+		"defaultMessage": "Key"
+	},
+	"npmos.pki.key-source.csr": {
+		"defaultMessage": "From a request (CSR)"
+	},
+	"npmos.pki.key-source.csr.hint": {
+		"defaultMessage": "The key stays on the device; the subject is taken from the request."
+	},
+	"npmos.pki.key-source.generate": {
+		"defaultMessage": "Generate here"
+	},
+	"npmos.pki.key-source.generate.hint": {
+		"defaultMessage": "NPMOS makes the key and hands it out once in a .p12 with a password."
+	},
+	"npmos.pki.key-type": {
+		"defaultMessage": "Key type"
+	},
+	"npmos.pki.key-type.ec-p256": {
+		"defaultMessage": "ECDSA P-256 (recommended)"
+	},
+	"npmos.pki.key-type.ec-p384": {
+		"defaultMessage": "ECDSA P-384"
+	},
+	"npmos.pki.key-type.rsa-2048": {
+		"defaultMessage": "RSA 2048 (old systems)"
+	},
+	"npmos.pki.key-type.rsa-3072": {
+		"defaultMessage": "RSA 3072"
+	},
+	"npmos.pki.key-type.rsa-4096": {
+		"defaultMessage": "RSA 4096"
+	},
+	"npmos.pki.link": {
+		"defaultMessage": "One-time link to the .p12"
+	},
+	"npmos.pki.link.create": {
+		"defaultMessage": "One-time link"
+	},
+	"npmos.pki.link.create-do": {
+		"defaultMessage": "Create link"
+	},
+	"npmos.pki.link.expires": {
+		"defaultMessage": "Opens once, until {time}."
+	},
+	"npmos.pki.link.hours": {
+		"defaultMessage": "{hours, plural, one {for # hour} other {for # hours}}"
+	},
+	"npmos.pki.link.lifetime": {
+		"defaultMessage": "The link works"
+	},
+	"npmos.pki.link.local": {
+		"defaultMessage": "The link uses the address of this GUI; set a public address of the PKI in Settings if clients cannot reach it."
+	},
+	"npmos.pki.link.none": {
+		"defaultMessage": "No link"
+	},
+	"npmos.pki.name": {
+		"defaultMessage": "Name"
+	},
+	"npmos.pki.no-issuer": {
+		"defaultMessage": "There is no trust domain with a key yet. Create a root CA and a trust domain on the Certificate authorities tab."
+	},
+	"npmos.pki.none": {
+		"defaultMessage": "No certificates yet."
+	},
+	"npmos.pki.none-found": {
+		"defaultMessage": "No certificates match the filters."
+	},
+	"npmos.pki.notes": {
+		"defaultMessage": "Note"
+	},
+	"npmos.pki.p12.compatible": {
+		"defaultMessage": ".p12 for any system (3DES)"
+	},
+	"npmos.pki.p12.compatible.hint": {
+		"defaultMessage": "Older macOS, iOS, Android and Windows do not import AES-256 containers. Turn off only when all clients are new."
+	},
+	"npmos.pki.p12.password": {
+		"defaultMessage": "Password of the .p12"
+	},
+	"npmos.pki.p12.password.generate": {
+		"defaultMessage": "Empty: generate"
+	},
+	"npmos.pki.p12.password.hint": {
+		"defaultMessage": "Give the password separately from the file (in person, by phone, by another messenger). NPMOS does not keep it."
+	},
+	"npmos.pki.profile": {
+		"defaultMessage": "Purpose"
+	},
+	"npmos.pki.profile.all": {
+		"defaultMessage": "Client and server"
+	},
+	"npmos.pki.profile.client": {
+		"defaultMessage": "Client"
+	},
+	"npmos.pki.profile.server": {
+		"defaultMessage": "Server"
+	},
+	"npmos.pki.reason.CACompromise": {
+		"defaultMessage": "CA compromised"
+	},
+	"npmos.pki.reason.affiliationChanged": {
+		"defaultMessage": "Left the organization or changed role"
+	},
+	"npmos.pki.reason.certificateHold": {
+		"defaultMessage": "Suspended"
+	},
+	"npmos.pki.reason.cessationOfOperation": {
+		"defaultMessage": "No longer used"
+	},
+	"npmos.pki.reason.keyCompromise": {
+		"defaultMessage": "Key compromised"
+	},
+	"npmos.pki.reason.superseded": {
+		"defaultMessage": "Replaced by a new certificate"
+	},
+	"npmos.pki.reason.unspecified": {
+		"defaultMessage": "Not specified"
+	},
+	"npmos.pki.renew": {
+		"defaultMessage": "Renew"
+	},
+	"npmos.pki.renew.do": {
+		"defaultMessage": "Renew"
+	},
+	"npmos.pki.revoke": {
+		"defaultMessage": "Revoke"
+	},
+	"npmos.pki.revoke-old": {
+		"defaultMessage": "Revoke the old certificate now (otherwise it works until it expires)"
+	},
+	"npmos.pki.revoke.do": {
+		"defaultMessage": "Revoke"
+	},
+	"npmos.pki.revoke.reason": {
+		"defaultMessage": "Reason"
+	},
+	"npmos.pki.revoke.selected": {
+		"defaultMessage": "Revoke ({count})"
+	},
+	"npmos.pki.revoke.text": {
+		"defaultMessage": "{count, plural, one {The certificate stops opening hosts within a minute. This cannot be undone.} other {# certificates stop opening hosts within a minute. This cannot be undone.}}"
+	},
+	"npmos.pki.revoked-count": {
+		"defaultMessage": "{count, plural, one {# certificate revoked} other {# certificates revoked}}"
+	},
+	"npmos.pki.sans.dns": {
+		"defaultMessage": "DNS names (one per line, *.example.com allowed)"
+	},
+	"npmos.pki.sans.email": {
+		"defaultMessage": "Emails in the certificate"
+	},
+	"npmos.pki.sans.email.hint": {
+		"defaultMessage": "Comma-separated; used by mail clients and some VPNs."
+	},
+	"npmos.pki.sans.ip": {
+		"defaultMessage": "IP addresses (one per line)"
+	},
+	"npmos.pki.search": {
+		"defaultMessage": "Name, serial, DNS, email, host"
+	},
+	"npmos.pki.secret.ca-key": {
+		"defaultMessage": "Export the key of the CA"
+	},
+	"npmos.pki.secret.ca-key.hint": {
+		"defaultMessage": "The key is encrypted with this password (PKCS#8, AES-256). Keep it offline: whoever has it can issue certificates your hosts trust."
+	},
+	"npmos.pki.secret.link": {
+		"defaultMessage": "One-time link"
+	},
+	"npmos.pki.secret.link.hint": {
+		"defaultMessage": "The link opens once; then the file is removed. Send the password separately."
+	},
+	"npmos.pki.secret.min": {
+		"defaultMessage": "{count} characters or more"
+	},
+	"npmos.pki.secret.p12": {
+		"defaultMessage": "Download .p12"
+	},
+	"npmos.pki.secret.p12.hint": {
+		"defaultMessage": "The .p12 is made from the key NPMOS keeps and protected with this password."
+	},
+	"npmos.pki.secret.password": {
+		"defaultMessage": "Password"
+	},
+	"npmos.pki.select-all": {
+		"defaultMessage": "Select all"
+	},
+	"npmos.pki.settings.clientDays": {
+		"defaultMessage": "Client certificates, days"
+	},
+	"npmos.pki.settings.crlDays": {
+		"defaultMessage": "CRL validity, days"
+	},
+	"npmos.pki.settings.public-url": {
+		"defaultMessage": "Public address of the PKI"
+	},
+	"npmos.pki.settings.public-url.hint": {
+		"defaultMessage": "At this address clients and servers get the CRL and ask the OCSP responder (both are written into certificates), and one-time links open — for example through a proxy host to the interface. Empty: certificates carry no CRL or OCSP address, links lead to the address of this interface."
+	},
+	"npmos.pki.settings.public-url.placeholder": {
+		"defaultMessage": "https://pki.example.com"
+	},
+	"npmos.pki.settings.saved": {
+		"defaultMessage": "PKI settings saved"
+	},
+	"npmos.pki.settings.serverDays": {
+		"defaultMessage": "Server certificates, days"
+	},
+	"npmos.pki.start": {
+		"defaultMessage": "Start with a root CA, then create a trust domain (intermediate CA) for each group of clients: office, partners, devices. Certificates are issued by trust domains."
+	},
+	"npmos.pki.start.domain": {
+		"defaultMessage": "Create a trust domain (intermediate CA) under the root: certificates are issued by trust domains, and a host trusts the domains it needs."
+	},
+	"npmos.pki.status": {
+		"defaultMessage": "Status"
+	},
+	"npmos.pki.status.active": {
+		"defaultMessage": "Active"
+	},
+	"npmos.pki.status.all": {
+		"defaultMessage": "Any status"
+	},
+	"npmos.pki.status.expired": {
+		"defaultMessage": "Expired"
+	},
+	"npmos.pki.status.expiring": {
+		"defaultMessage": "Expiring"
+	},
+	"npmos.pki.status.replaced": {
+		"defaultMessage": "Renewed"
+	},
+	"npmos.pki.status.revoked": {
+		"defaultMessage": "Revoked"
+	},
+	"npmos.pki.store-key": {
+		"defaultMessage": "Keep the key in NPMOS (encrypted)"
+	},
+	"npmos.pki.store-key.hint": {
+		"defaultMessage": "To download the .p12 again later. Without it the key is handed out only now."
+	},
+	"npmos.pki.subject.commonName": {
+		"defaultMessage": "Name (CN)"
+	},
+	"npmos.pki.subject.country": {
+		"defaultMessage": "Country (C, two letters)"
+	},
+	"npmos.pki.subject.email": {
+		"defaultMessage": "Email"
+	},
+	"npmos.pki.subject.less": {
+		"defaultMessage": "Fewer fields"
+	},
+	"npmos.pki.subject.locality": {
+		"defaultMessage": "City (L)"
+	},
+	"npmos.pki.subject.more": {
+		"defaultMessage": "More fields"
+	},
+	"npmos.pki.subject.organization": {
+		"defaultMessage": "Organization (O)"
+	},
+	"npmos.pki.subject.organizationalUnit": {
+		"defaultMessage": "Unit (OU)"
+	},
+	"npmos.pki.subject.state": {
+		"defaultMessage": "Region (ST)"
+	},
+	"npmos.pki.subtitle": {
+		"defaultMessage": "Own certificate authorities, client and server certificates, revocation and mTLS of hosts — without the Internet"
+	},
+	"npmos.pki.summary.active": {
+		"defaultMessage": "Active"
+	},
+	"npmos.pki.summary.cas": {
+		"defaultMessage": "Certificate authorities"
+	},
+	"npmos.pki.summary.expired": {
+		"defaultMessage": "Expired"
+	},
+	"npmos.pki.summary.expiring": {
+		"defaultMessage": "Expire within 30 days"
+	},
+	"npmos.pki.summary.hosts": {
+		"defaultMessage": "Hosts with mTLS"
+	},
+	"npmos.pki.summary.revoked": {
+		"defaultMessage": "Revoked"
+	},
+	"npmos.pki.tab.cas": {
+		"defaultMessage": "Certificate authorities"
+	},
+	"npmos.pki.tab.certificates": {
+		"defaultMessage": "Certificates"
+	},
+	"npmos.pki.tab.settings": {
+		"defaultMessage": "Settings"
+	},
+	"npmos.pki.tab.templates": {
+		"defaultMessage": "Templates"
+	},
+	"npmos.pki.template": {
+		"defaultMessage": "Template"
+	},
+	"npmos.pki.template.add": {
+		"defaultMessage": "Add template"
+	},
+	"npmos.pki.template.any-ca": {
+		"defaultMessage": "Any trust domain"
+	},
+	"npmos.pki.template.delete": {
+		"defaultMessage": "Delete template"
+	},
+	"npmos.pki.template.edit": {
+		"defaultMessage": "Edit template"
+	},
+	"npmos.pki.template.name": {
+		"defaultMessage": "Name"
+	},
+	"npmos.pki.template.none": {
+		"defaultMessage": "Without a template"
+	},
+	"npmos.pki.templates.hint": {
+		"defaultMessage": "A template fixes the trust domain, purpose, validity, key and the organization part of the subject; only the name is entered."
+	},
+	"npmos.pki.templates.none": {
+		"defaultMessage": "No templates."
+	},
+	"npmos.pki.used": {
+		"defaultMessage": "Where used"
 	},
 	"npmos.policy": {
 		"defaultMessage": "Policy"
@@ -2393,6 +4163,12 @@
 	"npmos.rbac.action.apply.desc": {
 		"defaultMessage": "Send the policy to the agent now"
 	},
+	"npmos.rbac.action.decide": {
+		"defaultMessage": "Ban"
+	},
+	"npmos.rbac.action.decide.desc": {
+		"defaultMessage": "Ban and unban addresses by hand, download blocklists"
+	},
 	"npmos.rbac.action.export_key": {
 		"defaultMessage": "Export keys"
 	},
@@ -2507,6 +4283,12 @@
 	"npmos.rbac.hint.waf_policy.manage": {
 		"defaultMessage": "Change policies, WAF modes of hosts and agent settings"
 	},
+	"npmos.rbac.hosts": {
+		"defaultMessage": "Hosts of the role ({count})"
+	},
+	"npmos.rbac.hosts.filter": {
+		"defaultMessage": "Find a host"
+	},
 	"npmos.rbac.name": {
 		"defaultMessage": "Name"
 	},
@@ -2583,7 +4365,7 @@
 		"defaultMessage": "CrowdSec"
 	},
 	"npmos.rbac.resource.crowdsec.desc": {
-		"defaultMessage": "Alerts, bans, scenarios (phase 7)"
+		"defaultMessage": "Alerts, bans, blocklists, hub and settings of CrowdSec"
 	},
 	"npmos.rbac.resource.dead_hosts": {
 		"defaultMessage": "404 hosts"
@@ -2677,6 +4459,12 @@
 	},
 	"npmos.rbac.scope.all.hint": {
 		"defaultMessage": "The permissions on hosts, access lists and certificates apply to all of them."
+	},
+	"npmos.rbac.scope.hosts": {
+		"defaultMessage": "Own and chosen hosts"
+	},
+	"npmos.rbac.scope.hosts.hint": {
+		"defaultMessage": "Members see the hosts they created and the hosts chosen below, with what the permissions allow. Only who sees all hosts can give this scope."
 	},
 	"npmos.rbac.scope.own": {
 		"defaultMessage": "Own hosts"
@@ -2960,11 +4748,17 @@
 	"npmos.system.group.general.hint": {
 		"defaultMessage": "Time zone and the certificate for unknown names."
 	},
+	"npmos.system.group.geoip": {
+		"defaultMessage": "GeoIP"
+	},
 	"npmos.system.group.logs": {
 		"defaultMessage": "Logs"
 	},
 	"npmos.system.group.logs.hint": {
 		"defaultMessage": "How long nginx logs and security events are kept."
+	},
+	"npmos.system.group.migration": {
+		"defaultMessage": "Migration"
 	},
 	"npmos.system.group.network": {
 		"defaultMessage": "Network"
@@ -3221,6 +5015,12 @@
 	"npmos.waf.location.inherit": {
 		"defaultMessage": "As the host"
 	},
+	"npmos.waf.location.objects": {
+		"defaultMessage": "Own objects of the policy"
+	},
+	"npmos.waf.location.objects.hint": {
+		"defaultMessage": "Practices, triggers, response and the rest for this location only; its exceptions come on top of those of the host."
+	},
 	"npmos.waf.location.off": {
 		"defaultMessage": "Off"
 	},
@@ -3332,6 +5132,15 @@
 	"object.empty": {
 		"defaultMessage": "There are no {objects}"
 	},
+	"object.event.applied": {
+		"defaultMessage": "Applied {object}"
+	},
+	"object.event.banned": {
+		"defaultMessage": "Banned {object}"
+	},
+	"object.event.captcha": {
+		"defaultMessage": "Captcha {object}"
+	},
 	"object.event.created": {
 		"defaultMessage": "Created {object}"
 	},
@@ -3347,14 +5156,29 @@
 	"object.event.exported": {
 		"defaultMessage": "Exported {object}"
 	},
+	"object.event.imported": {
+		"defaultMessage": "Imported {object}"
+	},
+	"object.event.installed": {
+		"defaultMessage": "Installed {object}"
+	},
 	"object.event.regenerated": {
 		"defaultMessage": "Regenerated {object}"
+	},
+	"object.event.removed": {
+		"defaultMessage": "Removed {object}"
 	},
 	"object.event.renewed": {
 		"defaultMessage": "Renewed {object}"
 	},
 	"object.event.restarted": {
 		"defaultMessage": "Restarted {object}"
+	},
+	"object.event.revoked": {
+		"defaultMessage": "Revoked {object}"
+	},
+	"object.event.unbanned": {
+		"defaultMessage": "Unbanned {object}"
 	},
 	"object.event.updated": {
 		"defaultMessage": "Updated {object}"
@@ -3400,6 +5224,9 @@
 	},
 	"permissions.visibility.user": {
 		"defaultMessage": "Created Items Only"
+	},
+	"pki": {
+		"defaultMessage": "PKI"
 	},
 	"proxy-host": {
 		"defaultMessage": "Proxy Host"

@@ -73,7 +73,7 @@ const score = (value) => {
 
 /**
  * Filters from query parameters.
- * from/to: ISO time (default: `period` before `to`, the last 24 h); kind: security (default) | system | all;
+ * from/to: ISO time (default: `period` before `to`, the last 24 h); kind: security (default) | system | crowdsec | mtls | all;
  * important: only critical/high; host, ip, action, severity, type: comma-separated, exact;
  * min_score/max_score; q: text in host, request, IP, sample, parameter, event name and type.
  */
@@ -84,7 +84,7 @@ export const parseFilters = (query, now = new Date()) => {
 		new Date(to.getTime() - (Object.hasOwn(PERIODS, query.period) ? PERIODS[query.period] : DAY)),
 	);
 	if (from > to) throw new errs.ValidationError("from is after to");
-	const kind = ["security", "system", "all"].includes(query.kind) ? query.kind : "security";
+	const kind = ["security", "system", "crowdsec", "mtls", "all"].includes(query.kind) ? query.kind : "security";
 	return {
 		from,
 		to,

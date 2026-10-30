@@ -1,6 +1,7 @@
 // Storage of security events: day partitions (Postgres), aggregates, retention.
 import db from "../../db.js";
 import { isMysql, isPostgres } from "../../lib/config.js";
+import { enrich } from "../geoip/index.js";
 import { dayOf, hourOf } from "./normalize.js";
 
 export const EVENT_TABLE = "npmos_security_event";
@@ -91,6 +92,8 @@ export const trafficAggregates = (rows) => {
  */
 export const store = async ({ events, telemetry, cursors }) => {
 	const knex = db();
+	// the agent knows no countries offline: the GeoIP database of NPMOS fills them in
+	await enrich(events);
 	for (const day of new Set(events.map((e) => dayOf(e.time)))) {
 		await ensurePartition(day, knex);
 	}

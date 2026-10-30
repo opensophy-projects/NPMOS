@@ -21,6 +21,8 @@ services:
       - ./test/smoke.sh:/smoke.sh:ro
       # phase 5: an example of open-appsec imported through WAF -> Policy
       - ../reference/openappsec/config/linux/v1beta2/example/local_policy.yaml:/reference/v1beta2-example.yaml:ro
+      # migration: a backup of Nginx Proxy Manager 2.16 (with WAF rules of open-appsec-npm)
+      - ./test/fixtures:/fixtures:ro
       - test-state:/state
     networks:
       - edge

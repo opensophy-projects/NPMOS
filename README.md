@@ -26,6 +26,8 @@ docker compose -f deploy/compose.yaml up -d
 
 Требования: Docker Engine 26+ и Compose 2.23+.
 
+Переезд с Nginx Proxy Manager, NPMplus или open-appsec-npm — в «Система → Настройки → Перенос»: хосты, сертификаты, списки доступа, пользователи и WAF-правила переносятся из архива старой установки ([подробнее](docs/MIGRATION.md)).
+
 Образы публикуются в Docker Hub `opensophy/npmos*` после слияния в ветку `work` (тег `develop`) и при выпуске версии (`X.Y.Z`, `latest`). Версии всех образов закреплены в `deploy/.env`.
 
 Собрать образы самому (первая сборка `npmos` и агента open-appsec занимает 30–60 минут):
@@ -55,6 +57,7 @@ pnpm vite
 
 ## Документация
 
+- [Перенос с Nginx Proxy Manager, NPMplus и open-appsec-npm](docs/MIGRATION.md)
 - [Как развернуть develop-версию и что проверить руками](docs/TESTING-DEVELOP.md)
 - [План разработки](docs/ROADMAP.md)
 - [Инвентаризация env-настроек](docs/ENV-INVENTORY.md)

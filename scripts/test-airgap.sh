@@ -62,6 +62,9 @@ if [[ " ${services[*]} " == *" crowdsec "* ]]; then
   echo "==> CrowdSec runs locally with the NPMOS bouncer pre-registered"
   "${compose[@]}" exec -T crowdsec cscli bouncers list -o raw | grep -q '^npmos,' || { echo "FAIL: bouncer npmos is not registered"; exit 1; }
   "${compose[@]}" exec -T crowdsec cscli bouncers list -o raw | grep -q '^appsec,' || { echo "FAIL: bouncer appsec is not registered"; exit 1; }
+  echo "==> NPMOS manages CrowdSec: its machine is registered, the hub index comes from NPMOS"
+  "${compose[@]}" exec -T crowdsec cscli machines list -o raw | grep -q '^npmos-' || { echo "FAIL: the machine of NPMOS is not registered"; exit 1; }
+  "${compose[@]}" exec -T crowdsec cscli hub update > /dev/null || { echo "FAIL: cscli hub update does not reach the hub of NPMOS"; exit 1; }
   if [[ " ${services[*]} " == *" appsec-agent "* ]]; then
     # smoke switched on "IP reputation from CrowdSec" in WAF -> Agent: the agent polls the local LAPI
     echo "==> the open-appsec agent pulls CrowdSec decisions from the local LAPI"

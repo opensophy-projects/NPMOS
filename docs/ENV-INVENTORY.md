@@ -79,16 +79,18 @@
 
 | Переменная | NPMOS | Класс | Фаза |
 |---|---|---|---|
-| `DISABLE_ONLINE_API` | **`true`** (без CAPI: никаких сигналов наружу и community blocklist) | GUI (CrowdSec → Онлайн-функции, по умолчанию выключено) | 7 |
-| `NO_HUB_UPGRADE` | `true` | NPMOS фиксирует; hub обновляется из GUI (загрузка снимка или онлайн по кнопке) | 7 |
-| `cscli.__hub_url_template__` (config.yaml) | `http://npmos/.npmos/crowdsec-hub/%s/%s` — источник hub это NPMOS, не CDN | NPMOS фиксирует; раздача снимков — фаза 7 | 0 ✅ |
+| `DISABLE_ONLINE_API` | **`true`** (без CAPI: никаких сигналов наружу и community blocklist) | NPMOS фиксирует: CAPI не включается, его заменяют локальные блок-листы и обмен решениями между узлами (CrowdSec → Блок-листы) | 7 ✅ |
+| `NO_HUB_UPGRADE` | `true` | NPMOS фиксирует; hub обновляется из GUI (CrowdSec → Hub: загрузка снимка, онлайн — только опцией) | 7 ✅ |
+| `cscli.__hub_url_template__` (config.yaml, config.yaml.local) | `http://npmos:7480/.npmos/crowdsec-hub/%s/%s` — индекс hub отдаёт NPMOS (внутренний порт, не публикуется), не CDN | NPMOS фиксирует | 7 ✅ |
 | `cscli.hub_branch` (config.yaml) | `master` (не спрашивать version.crowdsec.net) | NPMOS фиксирует | 0 ✅ |
 | Ключ bouncer `npmos` | файл `/run/secrets/bouncer_key_npmos` от `npmos-init` (штатный механизм образа) | Bootstrap (секрет) ✅ | 0 |
-| `COLLECTIONS`, `PARSERS`, `SCENARIOS`, `POSTOVERFLOWS` (+`DISABLE_*`) | не задаются; базовый набор во встроенном снимке hub | GUI (CrowdSec → Hub) | 7 |
+| Машина NPMOS (`crowdsec_machine_password`, `crowdsec_registration_token`) | секреты `npmos-init`; машина регистрируется через `auto_registration` | Bootstrap (секрет) ✅ | 7 |
+| `/data/crowdsec/crowdsec.conf` (Lua-баунсер NPMplus) | генерирует NPMOS | GUI (CrowdSec → Настройки → Баунсер NPMOS) | 7 ✅ |
+| `COLLECTIONS`, `PARSERS`, `SCENARIOS`, `POSTOVERFLOWS` (+`DISABLE_*`) | не задаются; базовый набор во встроенном снимке hub | GUI (CrowdSec → Hub) | 7 ✅ |
 | `ENROLL_KEY`, `ENROLL_INSTANCE_NAME`, `ENROLL_TAGS` | не задаются (без app.crowdsec.net) | NPMOS фиксирует | 0 ✅ |
 | `USE_WAL` | `true` | NPMOS фиксирует | — |
 | `TZ` | общий с NPMOS | GUI | 4 |
-| Источники логов (`acquis.d`), профили, белые списки, AppSec | файлы в томе `crowdsec-conf` | GUI (CrowdSec) | 7 |
+| Источники логов (`acquis.d`), профили, белые списки, AppSec, уровень журнала, `auto_registration` | файлы NPMOS в томе `crowdsec-conf` (`acquis.d/npmos.yaml`, `profiles.yaml`, `npmos-allowlist.yaml`, `npmos-openappsec-prevent.yaml`, `config.yaml.local`) | GUI (CrowdSec → Настройки) | 7 ✅ |
 
 ## Compose-уровень (нельзя изменить из GUI)
 
@@ -96,7 +98,7 @@
 
 - сети `edge`, `internal`, `control` (у последних двух нет выхода в интернет);
 - `ipc: shareable` у `npmos` и `ipc: service:npmos` у агента, tmpfs-том `appsec-shm`;
-- общие тома: `appsec-localconfig` (политика), `appsec-logs` (события, только чтение для NPMOS и CrowdSec), логи nginx для CrowdSec;
+- общие тома: `appsec-localconfig` (политика), `appsec-logs` (события, только чтение для NPMOS и CrowdSec), логи nginx для CrowdSec, `crowdsec-conf` и `crowdsec-data` в `npmos` (настройки CrowdSec из GUI, список машин и баунсеров);
 - метки `npmos.managed=true`, по которым `npmos-control` решает, чем можно управлять;
 - `socket-proxy`: только `CONTAINERS` и `ALLOW_RESTARTS`;
 - образы и версии (`deploy/.env`): `NPMOS_REGISTRY`, `NPMOS_VERSION`, `CROWDSEC_VERSION`, `POSTGRES_VERSION`, `SOCKET_PROXY_VERSION`.

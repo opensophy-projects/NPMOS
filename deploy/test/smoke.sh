@@ -288,7 +288,12 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
   wait_status "$SQLI" 403 "SQLi is not blocked with the v1beta2 policy"
   $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf/hosts/1" \
     -d '{"enabled": true, "mode": "prevent-learn", "minimum_confidence": "high", "objects": null}' > /dev/null
-  $CURL "$ADMIN/api/npmos/waf/policy" | grep -q '"format": *"v1beta1"' || fail "the policy is not back to v1beta1"
+  # the policy is generated again a moment after the host changes
+  for i in $(seq 1 30); do
+    $CURL "$ADMIN/api/npmos/waf/policy" | grep -q '"format": *"v1beta1"' && break
+    [ "$i" = 30 ] && fail "the policy is not back to v1beta1: $($CURL "$ADMIN/api/npmos/waf/policy" | head -c 400)"
+    sleep 1
+  done
 
   step "WAF -> Policy: the v1beta2 example of open-appsec is imported and applied by the agent"
   applied_at() { $CURL "$ADMIN/api/npmos/waf" | json | grep -o '"lastPolicyUpdate":"[^"]*"'; }
@@ -382,6 +387,23 @@ code=$(curl -sS -k -b $JAR -o /dev/null -w '%{http_code}' -X PUT -H 'Content-Typ
   "$ADMIN/api/npmos/rbac/users/1" -d '{"roles": []}')
 expect "$code" 400 "removing the last administrator"
 
+step "RBAC: a role of chosen hosts sees test.local, not another host of the administrator"
+other_id=$($CURL -H 'Content-Type: application/json' "$ADMIN/api/nginx/proxy-hosts" -d '{
+  "domain_names": ["other.local"], "forward_scheme": "http", "forward_host": "test-upstream", "forward_port": "80"
+}' | tr -d ' \n' | grep -o '"id":[0-9]*' | head -1 | grep -o '[0-9]*')
+scoped_role=$($CURL -H 'Content-Type: application/json' "$ADMIN/api/npmos/rbac/roles" -d '{"name": "test.local team",
+  "scope": "hosts", "hosts": [{"host_type": "proxy_host", "host_id": 1}], "permissions": ["proxy_hosts:view"]}' \
+  | tr -d ' \n' | grep -o '"id":[0-9]*' | head -1 | grep -o '[0-9]*')
+$CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/rbac/users/$analyst_id" \
+  -d "{\"roles\": [$scoped_role]}" > /dev/null
+seen=$(curl -sS -k -b $AJAR "$ADMIN/api/nginx/proxy-hosts" | tr -d ' \n')
+echo "$seen" | grep -q '"domain_names":\["test.local"\]' || fail "the role does not see its host: $seen"
+echo "$seen" | grep -q 'other.local' && fail "the role sees a host it was not given: $seen"
+expect "$(as_analyst "$ADMIN/api/nginx/proxy-hosts/$other_id")" 404 "the role opens a host it was not given"
+$CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/rbac/users/$analyst_id" \
+  -d "{\"roles\": [$analyst_role]}" > /dev/null
+$CURL -X DELETE "$ADMIN/api/nginx/proxy-hosts/$other_id" > /dev/null
+
 # --- phase 4 ---
 
 step "events: stored events are filtered and exported"
@@ -431,5 +453,236 @@ code=$(curl -sS -k -b $JAR -o /dev/null -w '%{http_code}' -X PUT -H 'Content-Typ
 expect "$code" 400 "a bad time zone"
 expect "$(as_analyst -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/system/settings" \
   -d '{"values": [{"env": "DISABLE_HTTP", "value": true}]}')" 403 "analyst changes system settings"
+
+# --- phase 6 ---
+
+# the first number "id" of a JSON answer
+json_id() { tr -d ' \n' | grep -o '"id":[0-9]*' | head -1 | grep -o '[0-9]*$'; }
+# a PEM field of a JSON answer as a file
+json_pem() { tr -d '\n' | sed -n "s/.*\"$1\": *\"\([^\"]*\)\".*/\1/p" | awk '{ gsub(/\\n/, "\n"); printf "%s", $0 }' > "$2"; }
+api_json() { $CURL -H 'Content-Type: application/json' "$@"; }
+HTTPS_MTLS="https://mtls.local"
+TLS_TO="--connect-to mtls.local:443:npmos:443"
+
+step "PKI: a root CA and a trust domain"
+root_id=$(api_json "$ADMIN/api/npmos/pki/cas" \
+  -d '{"kind": "root", "name": "Smoke Root", "subject": {"common_name": "Smoke Root", "organization": "NPMOS"}}' | json_id)
+[ -n "$root_id" ] || fail "root CA was not created"
+domain_id=$(api_json "$ADMIN/api/npmos/pki/cas" -d "{\"kind\": \"intermediate\", \"name\": \"Smoke Office\",
+  \"parent_id\": $root_id, \"subject\": {\"common_name\": \"Smoke Office\", \"organization\": \"NPMOS\"}}" | json_id)
+[ -n "$domain_id" ] || fail "trust domain was not created"
+other_id=$(api_json "$ADMIN/api/npmos/pki/cas" -d "{\"kind\": \"intermediate\", \"name\": \"Smoke Partners\",
+  \"parent_id\": $root_id, \"subject\": {\"common_name\": \"Smoke Partners\", \"organization\": \"NPMOS\"}}" | json_id)
+expect "$(as_analyst -X POST -H 'Content-Type: application/json' "$ADMIN/api/npmos/pki/cas" \
+  -d '{"kind": "root", "name": "x", "subject": {"common_name": "x"}}')" 403 "analyst creates a CA"
+
+step "PKI: a server certificate of the trust domain becomes a certificate of NPMplus"
+server=$(api_json "$ADMIN/api/npmos/pki/certs" -d "{\"ca_id\": $domain_id, \"profile\": \"server\",
+  \"subject\": {\"common_name\": \"mtls.local\"}, \"sans\": {\"dns\": [\"mtls.local\"]}, \"install\": true}")
+tls_id=$(echo "$server" | tr -d ' \n' | grep -o '"certificate_id":[0-9]*' | grep -o '[0-9]*$')
+[ -n "$tls_id" ] || fail "server certificate was not installed: $server"
+host_id=$(api_json "$ADMIN/api/nginx/proxy-hosts" -d "{\"domain_names\": [\"mtls.local\"], \"forward_scheme\": \"http\",
+  \"forward_host\": \"test-upstream\", \"forward_port\": \"80\", \"certificate_id\": $tls_id}" | json_id)
+[ -n "$host_id" ] || fail "proxy host mtls.local was not created"
+
+step "mTLS: the host requires a certificate of the trust domain with OU=IT"
+api_json -X PUT "$ADMIN/api/npmos/mtls/proxy_host/$host_id" -d "{\"enabled\": true, \"ca_ids\": [$domain_id],
+  \"rules\": [{\"field\": \"organizational_unit\", \"op\": \"one_of\", \"values\": [\"IT\"]}]}" \
+  | tr -d ' \n' | grep -q '"nginx_online":true' || fail "nginx did not take the mTLS of the host"
+
+# a client certificate as PEM files (the tester has no openssl to open a .p12)
+client() { # name, OU, CA id → /tmp/<name>.crt, /tmp/<name>.key
+  answer=$(api_json "$ADMIN/api/npmos/pki/certs" -d "{\"ca_id\": $3, \"profile\": \"client\",
+    \"subject\": {\"common_name\": \"$1\", \"organizational_unit\": \"$2\"}, \"include_key_pem\": true, \"link_hours\": 1}")
+  echo "$answer" | json_pem cert_pem "/tmp/$1.crt"
+  echo "$answer" | json_pem key_pem "/tmp/$1.key"
+  grep -q 'BEGIN CERTIFICATE' "/tmp/$1.crt" || fail "no certificate for $1: $answer"
+  echo "$answer"
+}
+alice=$(client alice IT "$domain_id")
+client bob Sales "$domain_id" > /dev/null
+client carol IT "$other_id" > /dev/null
+mtls() { curl -sS -k --max-time 10 $TLS_TO -o /dev/null -w '%{http_code}' "$@" "$HTTPS_MTLS/"; }
+
+for i in $(seq 1 15); do
+  [ "$(mtls --cert /tmp/alice.crt --key /tmp/alice.key)" = 200 ] && break
+  [ "$i" = 15 ] && fail "the host does not let alice in"
+  sleep 2
+done
+body=$(curl -sS -k --max-time 10 $TLS_TO --cert /tmp/alice.crt --key /tmp/alice.key -H 'X-Client-Verify: FAKE' "$HTTPS_MTLS/")
+echo "$body" | grep -q '^X-Client-Verify: SUCCESS' || fail "the upstream did not get X-Client-Verify: $body"
+echo "$body" | grep -q '^X-Client-S-Dn: CN=alice,OU=IT' || fail "the upstream did not get the subject: $body"
+echo "$body" | grep -q 'FAKE' && fail "a spoofed X-Client-Verify reached the upstream"
+expect "$(mtls)" 403 "no client certificate"
+
+step "mTLS: the refused request is a security event"
+for i in $(seq 1 15); do
+  $CURL "$ADMIN/api/npmos/events?kind=mtls&limit=5" | grep -q '"name": *"mTLS: no client certificate"' && break
+  [ "$i" = 15 ] && fail "no mTLS event: $($CURL "$ADMIN/api/npmos/events?kind=mtls&limit=5")"
+  sleep 2
+done
+curl -sS -k --max-time 10 $TLS_TO "$HTTPS_MTLS/" | grep -q 'client certificate is required' \
+  || fail "no explanation page without a certificate"
+expect "$(mtls --cert /tmp/bob.crt --key /tmp/bob.key)" 403 "a certificate with OU=Sales"
+expect "$(mtls --cert /tmp/carol.crt --key /tmp/carol.key)" 403 "a certificate of another trust domain"
+
+step "PKI: the one-time link opens once, the CRL is published"
+link=$(echo "$alice" | tr -d ' \n' | grep -o '"path":"[^"]*"' | cut -d'"' -f4)
+[ -n "$link" ] || fail "no one-time link"
+expect "$(curl -sS -k -o /dev/null -w '%{http_code}' "$ADMIN$link")" 200 "the one-time link"
+expect "$(curl -sS -k -o /dev/null -w '%{http_code}' "$ADMIN$link")" 410 "the one-time link again"
+expect "$(curl -sS -k -o /dev/null -w '%{http_code}' "$ADMIN/api/npmos/pki/public/crl/$domain_id.crl")" 200 "the CRL"
+
+step "PKI: a revoked certificate is refused within a minute"
+alice_id=$(echo "$alice" | tr -d ' \n' | grep -o '"certificate":{"id":[0-9]*' | grep -o '[0-9]*$')
+api_json "$ADMIN/api/npmos/pki/certs/revoke" -d "{\"ids\": [$alice_id], \"reason\": \"keyCompromise\"}" \
+  | grep -q '"revoked": *1' || fail "alice was not revoked"
+for i in $(seq 1 30); do
+  [ "$(mtls --cert /tmp/alice.crt --key /tmp/alice.key)" = 403 ] && break
+  [ "$i" = 30 ] && fail "the revoked certificate still opens the host after a minute"
+  sleep 2
+done
+
+# --- phase 7 ---
+
+page() { curl -s -o /dev/null -w '%{http_code}' --max-time 10 -H 'Host: test.local' "$HTTP$1"; }
+wait_page() { # path, code, message
+  for i in $(seq 1 15); do
+    [ "$(page "$1")" = "$2" ] && return 0
+    sleep 2
+  done
+  fail "$3: expected $2, got $(page "$1")"
+}
+# settings of CrowdSec: AppSec on/off, the filter of the only profile
+cs_settings() {
+  $CURL --max-time 300 -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/crowdsec/settings" -d "{
+  \"bouncer\": {\"enabled\": true, \"admin\": false, \"mode\": \"live\", \"fallback\": \"ban\", \"update_frequency\": 10,
+    \"exclude_locations\": [], \"captcha\": {\"provider\": \"\", \"site_key\": \"\", \"secret_key\": \"\"}},
+  \"sources\": {\"nginx\": true, \"openappsec\": true},
+  \"appsec\": {\"enabled\": $1, \"failure_action\": \"passthrough\", \"configs\": [\"crowdsecurity/appsec-default\"]},
+  \"profiles\": [{\"name\": \"ip\", \"enabled\": true, \"scope\": \"Ip\", \"scenarios\": [], \"filter\": \"$2\",
+    \"type\": \"ban\", \"duration\": \"4h\", \"escalate\": false}],
+  \"allowlist\": {\"ips\": [], \"expressions\": [], \"private\": false},
+  \"openappsec_ban\": {\"enabled\": true, \"events\": 3, \"minutes\": 10}, \"log_level\": \"info\", \"online_hub\": false}"
+}
+
+step "CrowdSec: the local API answers, NPMOS is a machine of its own"
+for i in $(seq 1 30); do
+  $CURL "$ADMIN/api/npmos/crowdsec" | tr -d ' \n' | grep -q '"lapi":{"healthy":true' && break
+  [ "$i" = 30 ] && fail "the local API of CrowdSec does not answer: $($CURL "$ADMIN/api/npmos/crowdsec")"
+  sleep 2
+done
+$CURL "$ADMIN/api/npmos/crowdsec/registry" | grep -q '"name": *"npmos-' || fail "NPMOS is not a machine of CrowdSec"
+
+# the closed network has private addresses only: they are not allowlisted here
+step "CrowdSec: settings from the GUI are applied, CrowdSec restarts (bouncer and AppSec on)"
+cs_settings true "" | tr -d ' \n' | grep -q '"restarted":true' || fail "the settings did not restart CrowdSec"
+
+step "CrowdSec: a broken profile is refused at the start of CrowdSec, the previous files come back"
+answer=$(cs_settings true "Alert.Broken(((" 2>&1 || true)
+echo "$answer" | grep -q 'previous ones are restored' || fail "a broken profile was not rolled back: $answer"
+$CURL "$ADMIN/api/npmos/crowdsec" | tr -d ' \n' | grep -q '"lapi":{"healthy":true' \
+  || fail "CrowdSec is not healthy after the rollback"
+$CURL "$ADMIN/api/npmos/crowdsec/settings" | grep -q '"filter": *""' || fail "the broken profile was kept"
+
+step "CrowdSec: a ban by hand blocks the tester on its hosts, not in the interface of NPMOS"
+api_json "$ADMIN/api/npmos/crowdsec/decisions" -d "{\"values\": [\"$client_ip\"], \"duration\": \"10m\", \"reason\": \"smoke\"}" \
+  | grep -q '"count": *1' || fail "the ban was not added"
+wait_page / 403 "test.local for a banned address"
+$CURL "$ADMIN/api/npmos/crowdsec/decisions?q=$client_ip" | grep -q '"scenario": *"npmos/manual"' \
+  || fail "the ban is not among the decisions"
+
+step "CrowdSec: a host left out by the bouncer lets the banned address in"
+api_json -X PUT "$ADMIN/api/npmos/crowdsec/hosts/proxy_host/1" -d '{"bouncer": false}' > /dev/null
+wait_page / 200 "test.local left out by the bouncer"
+api_json -X PUT "$ADMIN/api/npmos/crowdsec/hosts/proxy_host/1" -d '{"bouncer": true}' > /dev/null
+wait_page / 403 "test.local checked by the bouncer again"
+
+step "CrowdSec: unban lets the tester in"
+api_json "$ADMIN/api/npmos/crowdsec/decisions/delete" -d "{\"values\": [\"$client_ip\"]}" | grep -q '"deleted": *[1-9]' \
+  || fail "the ban was not removed"
+wait_page / 200 "test.local after the unban"
+
+step "CrowdSec: AppSec blocks a probe of /.env, its alert becomes a security event"
+wait_page /.env 403 "a probe of /.env with AppSec"
+for i in $(seq 1 45); do
+  $CURL "$ADMIN/api/npmos/events?kind=crowdsec&limit=5" | grep -q '"kind": *"crowdsec"' && break
+  [ "$i" = 45 ] && fail "no CrowdSec alert in the events: $($CURL "$ADMIN/api/npmos/events?kind=crowdsec&limit=5")"
+  sleep 2
+done
+api_json "$ADMIN/api/npmos/crowdsec/decisions/delete" -d "{\"values\": [\"$client_ip\"]}" > /dev/null || true
+
+if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
+  step "CrowdSec: three requests blocked by open-appsec ban the address"
+  # the WAF steps above leave test.local in detect-learn: the scenario counts blocked requests only
+  $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf/hosts/1" \
+    -d '{"enabled": true, "mode": "prevent-learn", "minimum_confidence": "high"}' > /dev/null
+  wait_status "$SQLI" 403 "SQLi is not blocked in prevent-learn again"
+  for i in $(seq 1 30); do
+    page "$SQLI" > /dev/null
+    $CURL "$ADMIN/api/npmos/crowdsec/decisions?q=$client_ip" | grep -q 'npmos/openappsec-prevent' && break
+    [ "$i" = 30 ] && fail "blocked requests of open-appsec did not ban: $($CURL "$ADMIN/api/npmos/crowdsec/alerts?limit=5")"
+    sleep 2
+  done
+  wait_page / 403 "test.local for an address banned for its attacks"
+  api_json "$ADMIN/api/npmos/crowdsec/decisions/delete" -d "{\"values\": [\"$client_ip\"]}" > /dev/null
+  wait_page / 200 "test.local after the unban"
+fi
+
+step "CrowdSec: a blocklist file becomes decisions, the allowlist and bad lines are left out"
+printf '# smoke\n203.0.113.10\n203.0.113.0/28 range\nnot-an-ip\n2001:db8::10\n' > /tmp/list.txt
+list=$($CURL -X POST -H 'Content-Type: text/plain' --data-binary @/tmp/list.txt \
+  "$ADMIN/api/npmos/crowdsec/blocklists?name=smoke&duration=1h")
+echo "$list" | tr -d ' \n' | grep -q '"count":3' || fail "the blocklist did not make 3 decisions: $list"
+$CURL "$ADMIN/api/npmos/crowdsec/decisions?origin=lists" | grep -q '"value": *"203.0.113.0/28"' \
+  || fail "the range of the blocklist is not banned"
+
+step "CrowdSec: other nodes take the decisions of this one with its token only"
+api_json "$ADMIN/api/npmos/crowdsec/decisions" -d '{"values": ["192.0.2.77"], "duration": "1h"}' > /dev/null
+token=$(api_json -X PUT "$ADMIN/api/npmos/crowdsec/share" -d '{"enabled": true}' | tr -d ' \n' \
+  | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
+[ -n "$token" ] || fail "no token for other nodes"
+expect "$(curl -sS -k -o /dev/null -w '%{http_code}' "$ADMIN/api/npmos/crowdsec/public/decisions")" 403 "the export without a token"
+export=$(curl -sS -k -H "Authorization: Bearer $token" "$ADMIN/api/npmos/crowdsec/public/decisions")
+echo "$export" | grep -q '^192.0.2.77$' || fail "the export has no decision by hand: $export"
+echo "$export" | grep -q '203.0.113.10' && fail "the export has the decisions of a blocklist"
+node=$(api_json "$ADMIN/api/npmos/crowdsec/blocklists" -d "{\"name\": \"node\", \"source\": \"url\",
+  \"url\": \"$ADMIN/api/npmos/crowdsec/public/decisions\", \"token\": \"$token\", \"insecure\": true, \"refresh_minutes\": 60}")
+echo "$node" | tr -d ' \n' | grep -q '"error":""' || fail "the decisions of another node were not taken: $node"
+
+step "CrowdSec: a hub item installs from the offline snapshot and is removed again"
+api_json --max-time 300 "$ADMIN/api/npmos/crowdsec/hub" \
+  -d '{"type": "collections", "name": "crowdsecurity/nextcloud", "action": "install"}' \
+  | grep -q 'scenarios/crowdsecurity/nextcloud-bf' || fail "the collection did not install with its scenario"
+$CURL "$ADMIN/api/npmos/crowdsec/hub?type=collections&q=nextcloud&installed=true" | grep -q '"status": *"up-to-date"' \
+  || fail "the installed collection is not up to date"
+api_json --max-time 300 "$ADMIN/api/npmos/crowdsec/hub" \
+  -d '{"type": "collections", "name": "crowdsecurity/nextcloud", "action": "remove"}' \
+  | grep -q 'collections/crowdsecurity/nextcloud' || fail "the collection was not removed"
+
+step "CrowdSec: the machines and bouncers of the stack cannot be deleted, an unknown one is not found"
+for target in machines/localhost bouncers/npmos bouncers/appsec; do
+  code=$(curl -sk -o /dev/null -w '%{http_code}' -b "$JAR" -X DELETE "$ADMIN/api/npmos/crowdsec/registry/$target")
+  [ "$code" = 400 ] || fail "$target of the stack was not protected: HTTP $code"
+done
+code=$(curl -sk -o /dev/null -w '%{http_code}' -b "$JAR" -X DELETE "$ADMIN/api/npmos/crowdsec/registry/machines/nope")
+[ "$code" = 404 ] || fail "deleting an unknown machine: HTTP $code"
+
+step "GeoIP: the database of CrowdSec gives countries offline, a file that is no database is refused"
+$CURL "$ADMIN/api/npmos/system/geoip" | grep -q '"type": *"GeoLite2' || fail "no GeoIP database: $($CURL "$ADMIN/api/npmos/system/geoip")"
+code=$(curl -sk -o /dev/null -w '%{http_code}' -b "$JAR" -X POST -H 'Content-Type: application/octet-stream' \
+  --data-binary 'not a database' "$ADMIN/api/npmos/system/geoip")
+[ "$code" = 400 ] || fail "a broken GeoIP database was accepted: HTTP $code"
+
+step "Migration: a backup of NPM is read and analyzed; the import waits for a new NPMOS"
+mig=$(curl -sS --max-time 120 -k -b $JAR -X POST -H 'Content-Type: application/octet-stream' \
+  --data-binary @/fixtures/npm-backup.tgz "$ADMIN/api/npmos/system/migration/upload")
+echo "$mig" | grep -q '"kind": *"open-appsec-npm"' || fail "the backup was not recognised: $mig"
+echo "$mig" | grep -q '"code": *"plain_passwords"' || fail "plain access list passwords not found: $mig"
+echo "$mig" | grep -q '"table": *"proxy_host"' || fail "the import is not blocked by existing hosts: $mig"
+code=$(curl -sk -o /dev/null -w '%{http_code}' -b "$JAR" -X POST -H 'Content-Type: application/json' -d '{}' \
+  "$ADMIN/api/npmos/system/migration/apply")
+[ "$code" = 400 ] || fail "the import into an NPMOS with hosts was not refused: HTTP $code"
+$CURL -X DELETE "$ADMIN/api/npmos/system/migration" | grep -q '"stage": *"idle"' || fail "the migration was not discarded"
 
 echo "OK: closed-network smoke passed"

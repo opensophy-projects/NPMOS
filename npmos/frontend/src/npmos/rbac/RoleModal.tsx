@@ -14,6 +14,7 @@ import { createRole, type Role, type RoleInput, type Scope, updateRole } from ".
 import { useCan, useRbacMe, useRbacModel, useRbacRefresh, useRoles } from "./hooks";
 import { actionHint, actionLabel, resourceHint, resourceLabel, roleName } from "./labels";
 import styles from "./RoleModal.module.css";
+import { HostPicker } from "./HostPicker";
 
 const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id }, values);
 
@@ -24,7 +25,7 @@ interface Props extends InnerModalProps {
 	from?: Role;
 }
 
-const EMPTY: RoleInput = { name: "", description: "", scope: "all", oidcGroups: [], permissions: [] };
+const EMPTY: RoleInput = { name: "", description: "", scope: "all", oidcGroups: [], permissions: [], hosts: [] };
 
 const RoleModal = EasyModal.create(({ role, from, visible, remove }: Props) => {
 	const { data: model } = useRbacModel();
@@ -42,6 +43,7 @@ const RoleModal = EasyModal.create(({ role, from, visible, remove }: Props) => {
 			scope: source.scope,
 			oidcGroups: role ? source.oidcGroups : [],
 			permissions: source.permissions,
+			hosts: source.hosts ?? [],
 		};
 	});
 	const [groupsText, setGroupsText] = useState(form.oidcGroups.join(", "));
@@ -199,7 +201,7 @@ const RoleModal = EasyModal.create(({ role, from, visible, remove }: Props) => {
 										<T id="npmos.rbac.scope" />
 									</span>
 									<div className={styles.segment} role="radiogroup">
-										{(["all", "own"] as Scope[]).map((scope) => (
+										{(["all", "own", "hosts"] as Scope[]).map((scope) => (
 											<label
 												key={scope}
 												className={cn(
@@ -211,7 +213,7 @@ const RoleModal = EasyModal.create(({ role, from, visible, remove }: Props) => {
 													type="radio"
 													name="scope"
 													checked={form.scope === scope}
-													disabled={readOnly || (scope === "all" && me?.scope !== "all")}
+													disabled={readOnly || (scope !== "own" && me?.scope !== "all")}
 													onChange={() => setForm({ ...form, scope })}
 												/>
 												<T id={`npmos.rbac.scope.${scope}`} />
@@ -222,6 +224,13 @@ const RoleModal = EasyModal.create(({ role, from, visible, remove }: Props) => {
 										<T id={`npmos.rbac.scope.${form.scope}.hint`} />
 									</small>
 								</div>
+								{form.scope === "hosts" && (
+									<HostPicker
+										value={form.hosts}
+										disabled={readOnly}
+										onChange={(hosts) => setForm({ ...form, hosts })}
+									/>
+								)}
 								<label className={styles.field}>
 									<span>
 										<T id="npmos.rbac.oidc-groups" />

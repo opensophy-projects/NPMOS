@@ -1,11 +1,13 @@
-// One security event of the open-appsec agent: the request, what the WAF matched (as the red zone
-// of the open-appsec-npm Security Log), how it scored, and the whole event as the agent wrote it.
+// One security event of the open-appsec agent or an alert of CrowdSec: the request, what the WAF
+// matched (as the red zone of the open-appsec-npm Security Log), how it scored, and the whole event
+// as the agent or CrowdSec wrote it. Its source can be banned in CrowdSec from here.
 import EasyModal, { type InnerModalProps } from "ez-modal-react";
 import Modal from "react-bootstrap/Modal";
 import { Button } from "src/components";
 import { intl, T } from "src/locale";
 import { showError } from "src/notifications";
 import type { SecurityEvent } from "../api";
+import { showBanModal } from "../crowdsec/BanModal";
 import { useEvent } from "../hooks";
 import { ActionBadge, EventTime, SeverityBadge } from "../pages/WafEvents/badges";
 import { getPolicyObjects } from "../policy/api";
@@ -149,6 +151,17 @@ const WafEventModal = EasyModal.create(({ visible, remove, event: summary, onFil
 				</pre>
 			</Modal.Body>
 			<Modal.Footer>
+				{event.sourceIp && can("crowdsec", "decide") && (
+					<Button
+						className="btn-outline-danger"
+						onClick={() => {
+							remove();
+							showBanModal({ values: [event.sourceIp], reason: event.incidentType || event.name });
+						}}
+					>
+						<T id="npmos.events.ban-ip" />
+					</Button>
+				)}
 				{event.kind === "security" && can("waf_policy", "manage") && (
 					<Button onClick={() => createException(event).then(remove)}>
 						<T id="npmos.events.create-exception" />

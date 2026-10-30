@@ -7,6 +7,7 @@
 import { mkdir, rename, writeFile } from "node:fs/promises";
 import db from "../db.js";
 import errs from "../lib/error.js";
+import { defaults as crowdsecDefaults, normalize as normalizeCrowdsec } from "./crowdsec/config.js";
 import { envLines, normalize as normalizeEnv } from "./system/env.js";
 
 const RUNTIME_ENV_FILE = "/data/npmos/runtime.env";
@@ -77,6 +78,46 @@ const DEFINITIONS = {
 				["customResponse", "sourceIdentifiers", "trustedSources"].every((k) => v[k] === undefined || id(v[k]))
 			);
 		},
+	},
+	// PKI and mTLS, see pki/index.js. public_url: address of NPMOS where clients and servers get CRLs
+	// and one-time links (empty: no CRL distribution point in certificates, links on the address of
+	// the GUI); templates of certificates
+	pki: {
+		default: () => ({
+			public_url: "",
+			crl_days: 30,
+			client_days: 365,
+			server_days: 397,
+			key_type: "ec-p256",
+			p12_compatible: true,
+			templates: [],
+		}),
+		validate: (v) =>
+			typeof v?.public_url === "string" &&
+			(v.public_url === "" || /^https?:\/\/[A-Za-z0-9.:[\]_-]+(\/[A-Za-z0-9._~/-]*)?$/.test(v.public_url)) &&
+			[v.crl_days, v.client_days, v.server_days].every((d) => Number.isInteger(d) && d >= 1 && d <= 3650) &&
+			v.crl_days <= 365 &&
+			typeof v.key_type === "string" &&
+			typeof v.p12_compatible === "boolean" &&
+			Array.isArray(v.templates) &&
+			v.templates.length <= 100,
+	},
+	// CrowdSec (CrowdSec → Settings), see crowdsec/config.js: generated into the config volume of
+	// CrowdSec and the bouncer of NPMOS
+	crowdsec: {
+		default: crowdsecDefaults,
+		validate: (v) => {
+			try {
+				return JSON.stringify(normalizeCrowdsec(v)) === JSON.stringify(v);
+			} catch {
+				return false;
+			}
+		},
+	},
+	// export of this node's decisions for other NPMOS nodes: sha256 of the bearer token, "" = off
+	"crowdsec.share": {
+		default: () => ({ token_hash: "" }),
+		validate: (v) => typeof v?.token_hash === "string" && /^([0-9a-f]{64})?$/.test(v.token_hash),
 	},
 	// OIDC groups → roles (Administration → Roles), see rbac/index.js
 	"rbac.oidc": {

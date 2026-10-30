@@ -40,6 +40,11 @@ import { setWafHost, WAF_DEFAULTS } from "../../api";
 import { useHostAttacks, useHostChanges, useUpstreamChecks, useWafHosts, useWafStatus } from "../../hooks";
 import { showConfirmModal } from "../../modals/ConfirmModal";
 import { showHostHistoryModal } from "../../modals/HostHistoryModal";
+import { setHostBouncer, useCrowdsecHosts } from "../../crowdsec/api";
+import { fromApiRule, getPki, type MtlsHostType, setMtlsHost, useMtlsHosts, usePki } from "../../pki/api";
+import { showCaModal } from "../../pki/CaModal";
+import { showIssueModal } from "../../pki/IssueModal";
+import { showMtlsModal } from "../../pki/MtlsModal";
 import { useCan } from "../../rbac/hooks";
 import { createHost, deleteHost, OBJECT, QUERY_KEY, toggleHost, updateHost } from "./api";
 import {
@@ -54,6 +59,7 @@ import {
 	TargetCell,
 	TlsCell,
 	WafCell,
+	CrowdsecCell,
 } from "./Cells";
 import styles from "./Hosts.module.css";
 import { Recommendations } from "./Recommendations";
@@ -136,9 +142,20 @@ const download = (name: string, content: string, type: string) => {
 	URL.revokeObjectURL(url);
 };
 
-const VIEW_VERSION = 3;
+/** host types of the CrowdSec API */
+const CROWDSEC_TYPE: Record<HostType, string> = {
+	proxy: "proxy_host",
+	redirect: "redirection_host",
+	dead: "dead_host",
+	stream: "stream",
+};
+const CROWDSEC_TYPE_BACK: Record<string, HostType> = Object.fromEntries(
+	Object.entries(CROWDSEC_TYPE).map(([k, v]) => [v, k as HostType]),
+);
+
+const VIEW_VERSION = 4;
 /** columns added after a version of the stored view: hidden in views saved before them */
-const NEW_COLUMNS: Record<number, Column[]> = { 2: ["changed"], 3: ["attacks"] };
+const NEW_COLUMNS: Record<number, Column[]> = { 2: ["changed"], 3: ["attacks"], 4: ["crowdsec"] };
 const viewKey = (userId?: number) => `npmos.hosts.view.${userId ?? 0}`;
 const loadView = (userId?: number): View => {
 	try {
@@ -173,12 +190,15 @@ function HostsPage() {
 	const dead = useDeadHosts(["owner", "certificate"], { enabled: can("dead", VIEW) });
 	const waf = useWafHosts({ enabled: can("proxy", VIEW) });
 	const rbac = useCan();
+	const mtlsHosts = useMtlsHosts({ enabled: can("proxy", VIEW) || can("stream", VIEW) });
+	const pki = usePki({ enabled: rbac("pki") });
 	const wafStatus = useWafStatus({ enabled: rbac("waf_policy") });
 	const certificates = useCertificates([], { enabled: hasPermission(CERTIFICATES, VIEW, perms, roles) });
 	const accessLists = useAccessLists([], { enabled: hasPermission(ACCESS_LISTS, VIEW, perms, roles) });
 	const changes = useHostChanges();
 	const upstreams = useUpstreamChecks({ enabled: can("proxy", VIEW) || can("stream", VIEW) });
 	const attacks = useHostAttacks({ enabled: rbac("analytics") });
+	const crowdsec = useCrowdsecHosts({ enabled: rbac("crowdsec") });
 	const attacksByHost = useMemo(
 		() => (attacks.data ? new Map(attacks.data.map((a) => [a.host, a])) : undefined),
 		[attacks.data],
@@ -240,10 +260,11 @@ function HostsPage() {
 				stream: stream.data,
 				dead: dead.data,
 				waf: waf.data,
+				mtls: mtlsHosts.data,
 				upstreams: upstreams.data,
 				changes: changes.data,
 			}),
-		[proxy.data, redirect.data, stream.data, dead.data, waf.data, upstreams.data, changes.data],
+		[proxy.data, redirect.data, stream.data, dead.data, waf.data, mtlsHosts.data, upstreams.data, changes.data],
 	);
 	const rows = useMemo(
 		() =>
@@ -280,7 +301,10 @@ function HostsPage() {
 			queryClient.invalidateQueries({ queryKey: [QUERY_KEY[type]] });
 		}
 		queryClient.invalidateQueries({ queryKey: ["npmos-waf-hosts"] });
+		queryClient.invalidateQueries({ queryKey: ["npmos-mtls-hosts"] });
+		queryClient.invalidateQueries({ queryKey: ["npmos-pki"] });
 		queryClient.invalidateQueries({ queryKey: ["npmos-host-changes"] });
+		queryClient.invalidateQueries({ queryKey: ["npmos-crowdsec-hosts"] });
 	};
 
 	/** runs changes of one or more hosts, reports the result, refreshes the lists */
@@ -323,6 +347,69 @@ function HostsPage() {
 			certificateId,
 			...(certificateId === "new" ? { sslForced: true, meta: settingsMeta(row) } : {}),
 		});
+
+	// mTLS of PKI and mTLS (proxy hosts and streams)
+	const mtlsType = (row: HostRow): MtlsHostType => (row.type === "proxy" ? "proxy_host" : "stream");
+	const changePkiMtls = async (row: HostRow, caIds: number[] | null, mode: MtlsState) => {
+		const current = mtlsHosts.data?.[row.type === "proxy" ? "proxyHost" : "stream"]?.[row.id];
+		const base = {
+			enabled: false,
+			caIds: [] as number[],
+			mode: "on" as const,
+			depth: 2,
+			sendCaNames: true,
+			requiredPaths: [] as string[],
+			headers: row.type === "proxy",
+			...current,
+			rules: (current?.rules ?? []).map((r) => fromApiRule(r as any)),
+		};
+		if (caIds === null) {
+			if (current?.enabled) await setMtlsHost(mtlsType(row), row.id, { ...base, enabled: false });
+			// the mTLS CA of NPMplus would take over: off as well
+			if (row.mtlsCaId) {
+				await updateHost(row.type, row.id, {
+					meta: { ...settingsMeta(row), npmplusMtlsCertificateId: 0, npmplusMtlsVerifyClientOptional: false },
+				});
+			}
+			return;
+		}
+		const saved = await setMtlsHost(mtlsType(row), row.id, {
+			...base,
+			enabled: true,
+			caIds,
+			mode: mode === "optional" ? "optional" : "on",
+		});
+		if (saved.nginx && !saved.nginx.nginxOnline) throw new Error(saved.nginx.nginxErr ?? "nginx");
+	};
+	const newDomain = async (row: HostRow) => {
+		try {
+			const data = await getPki();
+			const name = row.type === "stream" ? `stream${row.names[0]}` : row.names[0];
+			const domain = (rootId: number, fresh = data) =>
+				showCaModal({
+					data: fresh,
+					mode: "intermediate",
+					parentId: rootId,
+					name,
+					onDone: async (ca) => {
+						await run([row], (r) => changePkiMtls(r, [ca.id], "required"), t("npmos.hosts.done.mtls"));
+					},
+				});
+			const root = data.cas.find((ca) => ca.kind === "root" && ca.hasKey);
+			if (root) domain(root.id);
+			else
+				showCaModal({
+					data,
+					mode: "root",
+					name: "NPMOS Root CA",
+					onDone: async (ca) => {
+						domain(ca.id, await getPki());
+					},
+				});
+		} catch (err: any) {
+			showError(err.message);
+		}
+	};
 
 	const ctx: CellContext = {
 		canManage: (row) => can(row.type, MANAGE),
@@ -382,9 +469,55 @@ function HostsPage() {
 			return run([row], (r) => changeCertificate(r, certificateId), t("npmos.hosts.done.certificate"));
 		},
 		openCertificates: () => navigate("/certificates"),
+		pki: pki.data
+			? {
+					cas: pki.data.cas,
+					canManage: (row) => can(row.type, MANAGE) || rbac("pki", "manage"),
+					canIssue: rbac("pki", "issue"),
+					canCreateCa: rbac("pki", "manage"),
+					set: (row, caIds, mode) =>
+						run([row], (r) => changePkiMtls(r, caIds, mode), t("npmos.hosts.done.mtls")),
+					configure: (row) =>
+						showMtlsModal({ type: mtlsType(row), hostId: row.id, onDone: () => refresh([row.type]) }),
+					newDomain,
+					issue: (row) =>
+						pki.data &&
+						showIssueModal({
+							data: pki.data,
+							preset: {
+								caId: row.mtlsCaIds.find((id) =>
+									pki.data?.cas.some((ca) => ca.id === id && ca.kind === "intermediate" && ca.hasKey),
+								),
+								profile: "client",
+							},
+							onDone: () => refresh([row.type]),
+						}),
+				}
+			: undefined,
 		duplicate: (row) => EDIT[row.type](row.id, true),
 		history: (row) => showHostHistoryModal(OBJECT_TYPE[row.type], row.id, row.names.join(", ")),
 		attacks: attacksByHost,
+		crowdsec: crowdsec.data
+			? {
+					enabled: crowdsec.data.bouncerEnabled,
+					off: new Set(
+						crowdsec.data.hosts
+							.filter((h) => !h.bouncer)
+							.map((h) => `${CROWDSEC_TYPE_BACK[h.hostType] ?? h.hostType}-${h.hostId}`),
+					),
+					bans: crowdsec.data.bans,
+					canManage: rbac("crowdsec", "manage"),
+					set: (row, bouncer) =>
+						run(
+							[row],
+							(r) => setHostBouncer(CROWDSEC_TYPE[r.type], r.id, bouncer),
+							t(bouncer ? "npmos.hosts.done.crowdsec.on" : "npmos.hosts.done.crowdsec.off"),
+						),
+					open: (row) =>
+						navigate(`/crowdsec?${new URLSearchParams({ tab: "alerts", q: row.names[0] ?? "" })}`),
+					settings: () => navigate("/crowdsec?tab=settings"),
+				}
+			: undefined,
 		events: (row) =>
 			navigate(`/waf/events?${new URLSearchParams({ host: row.names.map((n) => n.toLowerCase()).join(",") })}`),
 	};
@@ -527,6 +660,8 @@ function HostsPage() {
 				return <ChangedCell row={row} ctx={ctx} />;
 			case "attacks":
 				return <AttacksCell row={row} ctx={ctx} />;
+			case "crowdsec":
+				return <CrowdsecCell row={row} ctx={ctx} />;
 		}
 	};
 

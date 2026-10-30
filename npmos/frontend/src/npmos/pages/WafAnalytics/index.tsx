@@ -121,6 +121,11 @@ function AnalyticsPage() {
 						<Tile value={formatNumber(data.kpi.prevented)} label={<T id="npmos.analytics.prevented" />} />
 						<Tile value={formatNumber(data.kpi.detected)} label={<T id="npmos.analytics.detected" />} />
 						<Tile value={formatNumber(data.kpi.sources)} label={<T id="npmos.analytics.sources" />} />
+						<Tile
+							value={formatNumber(data.kpi.crowdsecBans)}
+							label={<T id="npmos.analytics.crowdsec-bans" />}
+							hint={<T id="npmos.analytics.crowdsec-alerts" data={{ count: data.kpi.crowdsecAlerts }} />}
+						/>
 					</Tiles>
 
 					<div className={styles.grid}>

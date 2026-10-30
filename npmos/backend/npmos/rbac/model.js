@@ -19,7 +19,8 @@ export const RESOURCES = {
 	waf_events: ["view"],
 	waf_learning: ["view", "label"],
 	analytics: ["view"],
-	crowdsec: ["view", "manage"],
+	// decide: ban and unban by hand, sync blocklists; manage: settings, hub, blocklists
+	crowdsec: ["view", "decide", "manage"],
 	notifications: ["view", "manage"],
 	services: ["view", "manage"],
 	users: ["view", "manage"],
@@ -38,7 +39,8 @@ export const UPSTREAM_SECTIONS = [
 	"certificates",
 ];
 
-export const SCOPES = ["all", "own"];
+// own: hosts the user created; hosts: own hosts plus the hosts given to the role
+export const SCOPES = ["all", "own", "hosts"];
 
 export const ALL_PERMISSIONS = Object.entries(RESOURCES).flatMap(([resource, actions]) =>
 	actions.map((action) => `${resource}:${action}`),
@@ -125,16 +127,25 @@ export function normalize(permissions) {
  * Permissions of a user from the roles.
  * @param {boolean} admin  upstream "admin" flag (= Administrator)
  * @param {Array<{scope: string, permissions: string[]}>} roles
- * @returns {{admin: boolean, scope: "all"|"own", permissions: Set<string>}}
+ * @returns {{admin: boolean, scope: "all"|"own", permissions: Set<string>, hosts: Record<string, number[]>}}
  */
 export function effective(admin, roles) {
 	if (admin) {
-		return { admin: true, scope: "all", permissions: new Set(ALL_PERMISSIONS) };
+		return { admin: true, scope: "all", permissions: new Set(ALL_PERMISSIONS), hosts: {} };
 	}
 	const permissions = new Set(roles.flatMap((role) => normalize(role.permissions)));
 	// one role that sees all hosts is enough (roles add up)
 	const scope = roles.some((role) => role.scope === "all") ? "all" : "own";
-	return { admin: false, scope, permissions };
+	// hosts given to roles of scope "hosts", by table
+	const hosts = {};
+	if (scope !== "all") {
+		for (const role of roles.filter((r) => r.scope === "hosts")) {
+			for (const h of role.hosts ?? []) {
+				hosts[h.host_type] = [...new Set([...(hosts[h.host_type] ?? []), h.host_id])];
+			}
+		}
+	}
+	return { admin: false, scope, permissions, hosts };
 }
 
 /** the upstream user_permission row of these permissions */
@@ -209,6 +220,7 @@ export function decide(label, eff, context = {}) {
 export function missing(actor, permissions, scope = "own") {
 	if (actor.admin) return [];
 	const lacking = normalize(permissions).filter((p) => !actor.permissions.has(p));
-	if (scope === "all" && actor.scope !== "all") lacking.push("scope:all");
+	// a role that gives hosts of others is as strong as one that sees all
+	if ((scope === "all" || scope === "hosts") && actor.scope !== "all") lacking.push("scope:all");
 	return lacking;
 }

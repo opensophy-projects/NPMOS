@@ -28,10 +28,10 @@ echo "$HUB_ITEMS" | tr ';' '\n' | while read -r type items; do
 done
 
 # At runtime the hub source is NPMOS itself, never the public CDN: the official docker_start.sh
-# runs `cscli hub update` at every start once the index is older than 24h. Until NPMOS serves hub
-# snapshots there (phase 7, uploaded or fetched from the GUI), that update fails without leaving
-# the internal network.
-export HUB_RUNTIME_URL_TEMPLATE="${HUB_RUNTIME_URL_TEMPLATE:-http://npmos/.npmos/crowdsec-hub/%s/%s}"
+# runs `cscli hub update` at every start once the index is older than 24h. NPMOS serves the index
+# of the shared config volume on port 7480 (rootfs conf.d/npmos-crowdsec-hub.conf); new snapshots
+# are uploaded or fetched in CrowdSec → Hub.
+export HUB_RUNTIME_URL_TEMPLATE="${HUB_RUNTIME_URL_TEMPLATE:-http://npmos:7480/.npmos/crowdsec-hub/%s/%s}"
 yq e -i '.cscli.__hub_url_template__ = strenv(HUB_RUNTIME_URL_TEMPLATE)' /etc/crowdsec/config.yaml
 
 mkdir -p /seed

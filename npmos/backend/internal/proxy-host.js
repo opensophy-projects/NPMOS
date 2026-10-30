@@ -8,6 +8,8 @@ import internalCertificate from "./certificate.js";
 import internalHost from "./host.js";
 import internalNginx from "./nginx.js";
 import internalProxyHostAccessList from "./proxy-host-access-list.js";
+// NPMOS: host scope of the roles
+import { scopeHosts } from "../npmos/rbac/scope.js";
 
 const omissions = () => {
 	return ["is_deleted", "owner.is_deleted"];
@@ -275,9 +277,8 @@ const internalProxyHost = {
 					.allowGraph(proxyHostModel.defaultAllowGraph)
 					.first();
 
-				if (access_data.permission_visibility !== "all") {
-					query.andWhere("owner_user_id", access.token.getUserId(1));
-				}
+				// NPMOS: own hosts and the hosts of the roles (npmos/rbac/scope.js)
+				scopeHosts(query, access_data, "proxy_host", access.token.getUserId(1));
 
 				if (typeof thisData.expand !== "undefined" && thisData.expand !== null) {
 					query.withGraphFetched(`[${thisData.expand.join(", ")}]`);
@@ -491,9 +492,8 @@ const internalProxyHost = {
 			.allowGraph(proxyHostModel.defaultAllowGraph)
 			.orderBy(castJsonIfNeed("domain_names"), "ASC");
 
-		if (accessData.permission_visibility !== "all") {
-			query.andWhere("owner_user_id", access.token.getUserId(1));
-		}
+		// NPMOS: own hosts and the hosts of the roles (npmos/rbac/scope.js)
+		scopeHosts(query, accessData, "proxy_host", access.token.getUserId(1));
 
 		// Query is used for searching
 		if (typeof searchQuery === "string" && searchQuery.length > 0) {
@@ -526,12 +526,11 @@ const internalProxyHost = {
 	 * @param   {String}  visibility
 	 * @returns {Promise}
 	 */
-	getCount: (user_id, visibility) => {
+	getCount: (user_id, visibility, hosts) => {
 		const query = proxyHostModel.query().count("id as count").where("is_deleted", 0);
 
-		if (visibility !== "all") {
-			query.andWhere("owner_user_id", user_id);
-		}
+		// NPMOS: own hosts and the hosts of the roles
+		scopeHosts(query, { permission_visibility: visibility, npmos_hosts: hosts }, "proxy_host", user_id);
 
 		return query.first().then((row) => {
 			return Number.parseInt(row.count, 10);

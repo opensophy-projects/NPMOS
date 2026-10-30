@@ -8,6 +8,7 @@ import errs from "../../lib/error.js";
 import { hostObjects } from "./objects/api.js";
 import { listObjects } from "./objects/store.js";
 import { CONFIDENCES, MODES, scheduleRegenerate } from "./policy.js";
+import { scopeHosts } from "../rbac/scope.js";
 
 const DEFAULTS = { enabled: false, mode: "detect-learn", minimum_confidence: "high" };
 
@@ -56,9 +57,7 @@ const internalWafHosts = {
 			.join("proxy_host", "proxy_host.id", "npmos_waf_host.proxy_host_id")
 			.where("proxy_host.is_deleted", 0)
 			.select("npmos_waf_host.*");
-		if (accessData.permission_visibility !== "all") {
-			query.where("proxy_host.owner_user_id", access.token.getUserId(1));
-		}
+		scopeHosts(query, accessData, "proxy_host", access.token.getUserId(1));
 		const result = {};
 		for (const row of await query) {
 			result[row.proxy_host_id] = { ...toSettings(row), template: parseObjects(row.objects)?.template ?? null };
@@ -83,8 +82,8 @@ const internalWafHosts = {
 		const locations = parseJson(host.locations).map((location) => {
 			const own = locationRows.find((l) => l.path === location.path);
 			return own
-				? { path: location.path, inherit: false, ...toSettings(own) }
-				: { path: location.path, inherit: true, ...settings };
+				? { path: location.path, inherit: false, ...toSettings(own), objects: parseObjects(own.objects) }
+				: { path: location.path, inherit: true, ...settings, objects: null };
 		});
 		return { ...settings, objects: parseObjects(row?.objects), locations };
 	},
@@ -92,7 +91,7 @@ const internalWafHosts = {
 	/**
 	 * @param {Access} access
 	 * @param {number} id  proxy host id
-	 * @param {{enabled, mode, minimum_confidence, objects?, locations?: Array<{path, inherit?, enabled, mode, minimum_confidence}>}} data
+	 * @param {{enabled, mode, minimum_confidence, objects?, locations?: Array<{path, inherit?, enabled, mode, minimum_confidence, objects?}>}} data
 	 *   objects: {template} or references (see get); absent: unchanged
 	 */
 	set: async (access, id, data) => {
@@ -115,7 +114,12 @@ const internalWafHosts = {
 				validate(location, `WAF of location ${location.path}`);
 			}
 		}
-		const objects = data.objects === undefined ? undefined : hostObjects(data.objects, await listObjects());
+		const all = await listObjects();
+		const objects = data.objects === undefined ? undefined : hostObjects(data.objects, all);
+		// own objects of locations (null: those of the host)
+		const locationObjects = new Map(
+			(data.locations || []).filter((l) => !l.inherit).map((l) => [l.path, hostObjects(l.objects ?? null, all)]),
+		);
 
 		const now = new Date();
 		await db().transaction(async (trx) => {
@@ -129,7 +133,16 @@ const internalWafHosts = {
 				await trx("npmos_waf_location").where({ proxy_host_id: id }).delete();
 				const rows = data.locations
 					.filter((l) => !l.inherit)
-					.map((l) => ({ proxy_host_id: id, path: l.path, ...toSettings(l), modified_on: now }));
+					.map((l) => {
+						const own = locationObjects.get(l.path);
+						return {
+							proxy_host_id: id,
+							path: l.path,
+							...toSettings(l),
+							objects: own ? JSON.stringify(own) : null,
+							modified_on: now,
+						};
+					});
 				if (rows.length) {
 					await trx("npmos_waf_location").insert(rows);
 				}

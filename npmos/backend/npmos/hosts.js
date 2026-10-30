@@ -4,6 +4,7 @@
 import net from "node:net";
 import db from "../db.js";
 import errs from "../lib/error.js";
+import { scopeHosts } from "./rbac/scope.js";
 
 /** audit log object type → table and permission of upstream */
 export const HOST_OBJECTS = {
@@ -37,9 +38,7 @@ const visibleHosts = async (access, type, columns = ["id"]) => {
 		throw err;
 	}
 	const query = db()(table).select(columns).where("is_deleted", 0);
-	if (accessData.permission_visibility !== "all") {
-		query.where("owner_user_id", access.token.getUserId(1));
-	}
+	scopeHosts(query, accessData, table, access.token.getUserId(1));
 	return query;
 };
 
