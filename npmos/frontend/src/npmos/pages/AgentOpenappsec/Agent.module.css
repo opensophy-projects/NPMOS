@@ -43,12 +43,9 @@
 	font-size: 0.875rem;
 	text-align: left;
 }
-.navItem:hover {
-	background: var(--background-inset);
-}
+/* like the menu of the sidebar: the chosen item is accent text, without a raised background */
+.navItem:hover,
 .navOn {
-	background: var(--background-inset);
-	box-shadow: var(--shadow-inset);
 	color: var(--accent);
 }
 .navLabel {

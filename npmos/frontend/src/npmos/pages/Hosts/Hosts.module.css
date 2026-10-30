@@ -339,6 +339,15 @@
 .scroller {
 	overflow-x: auto;
 }
+/* the header and rows of a table follow the rounded inner panel of the card */
+.tableCard > .scroller:first-child {
+	border-top-left-radius: calc(var(--radius-lg) - 1px);
+	border-top-right-radius: calc(var(--radius-lg) - 1px);
+}
+.tableCard > .scroller:last-child {
+	border-bottom-left-radius: calc(var(--radius-lg) - 1px);
+	border-bottom-right-radius: calc(var(--radius-lg) - 1px);
+}
 .table {
 	margin: 0;
 	font-size: 0.875rem;

@@ -117,6 +117,11 @@
 	font-variant-numeric: tabular-nums;
 	white-space: nowrap;
 }
+/* a cell with a line of explanation under its number */
+:global(.table) td.wrap {
+	min-width: 9rem;
+	white-space: normal;
+}
 .actions {
 	display: flex;
 	justify-content: flex-end;

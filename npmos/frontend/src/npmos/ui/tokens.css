@@ -408,7 +408,13 @@ h3,
 .modal-content {
 	--tblr-modal-bg: var(--background);
 	--tblr-modal-border-color: var(--border);
+	/* the buttons sit on the same white surface, not on a grey strip */
+	--tblr-modal-footer-bg: var(--background);
 	border-radius: var(--radius-lg);
+}
+/* no line under the title of a modal: the fields follow it, and the tabs of a modal have their own line */
+.modal-header {
+	border-bottom: 0;
 }
 
 /* A modal is one surface: the cards upstream wraps around its tabs, sections and fields are flat, a line

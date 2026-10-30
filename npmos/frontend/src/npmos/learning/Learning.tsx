@@ -231,10 +231,12 @@ function LabelButtons({ onLabel }: { onLabel: (d: Decision) => void }) {
 					type="button"
 					className="btn btn-sm"
 					title={t(`npmos.learning.decision.${d}.text`)}
+					aria-label={t(`npmos.learning.decision.${d}`)}
 					onClick={() => onLabel(d)}
 				>
 					{DECISION_ICON[d]}
-					<T id={`npmos.learning.decision.${d}`} />
+					{/* the most frequent answer keeps its word, the others are icons with a hint: the row fits the card */}
+					{d === "benign" && <T id={`npmos.learning.decision.${d}`} />}
 				</button>
 			))}
 		</div>
@@ -395,7 +397,7 @@ function Queue({ label }: { label: boolean }) {
 														</div>
 													)}
 												</td>
-												<td className={styles.num}>
+												<td className={cn(styles.num, styles.wrap)}>
 													<div>{g.events.toLocaleString(intl.locale)}</div>
 													<div className={styles.muted}>
 														<T
