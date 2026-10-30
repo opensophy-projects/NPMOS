@@ -30,7 +30,7 @@ docker compose -f deploy/compose.yaml up -d
 
 Если `docker compose pull` падает с `TLS handshake timeout` (у некоторых провайдеров, в том числе в России, соединение Docker с Docker Hub обрывается, хотя `curl` до него доходит), пропишите зеркало Docker Hub — см. [TESTING-DEVELOP.md](docs/TESTING-DEVELOP.md#2-что-нужно-на-машине).
 
-Переезд с Nginx Proxy Manager, NPMplus или open-appsec-npm — в «Система → Настройки → Перенос»: хосты, сертификаты, списки доступа, пользователи и WAF-правила переносятся из архива старой установки ([подробнее](docs/MIGRATION.md)).
+Переезд с Nginx Proxy Manager, NPMplus или open-appsec-npm — в «Администрирование → Настройки → Перенос»: хосты, сертификаты, списки доступа, пользователи и WAF-правила переносятся из архива старой установки ([подробнее](docs/MIGRATION.md)).
 
 Образы публикуются в Docker Hub `opensophy/npmos*` после слияния в ветку `work` (тег `develop`) и при выпуске версии (`X.Y.Z`, `latest`). Версии всех образов закреплены в `deploy/.env`.
 

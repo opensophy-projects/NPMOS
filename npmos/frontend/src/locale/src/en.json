@@ -657,7 +657,7 @@
 		"defaultMessage": "Nothing in this period"
 	},
 	"npmos.analytics.note": {
-		"defaultMessage": "Short periods are counted from the events, the timeline of longer ones from the hourly statistics; both are kept as set in WAF → Events → Retention. Learning readiness per host comes with phase 8."
+		"defaultMessage": "Short periods are counted from the events, the timeline of longer ones from the hourly statistics; both are kept as set in Analytics → Events → Retention. Learning readiness per host comes with phase 8."
 	},
 	"npmos.analytics.prevented": {
 		"defaultMessage": "Blocked"
@@ -1812,10 +1812,10 @@
 		"defaultMessage": "Free certificates issued and renewed automatically. Needs access to the internet and a domain reachable from it; optional in NPMOS."
 	},
 	"npmos.glossary.advanced-model": {
-		"defaultMessage": "A larger detection model of open-appsec, uploaded as a file on WAF → Agent."
+		"defaultMessage": "A larger detection model of open-appsec, uploaded as a file on Agents → open-appsec agent."
 	},
 	"npmos.glossary.agent": {
-		"defaultMessage": "The open-appsec service that takes requests from nginx and decides whether to let them through. Its state is on WAF → Agent."
+		"defaultMessage": "The open-appsec service that takes requests from nginx and decides whether to let them through. Its state is on Agents → open-appsec agent."
 	},
 	"npmos.glossary.air-gap": {
 		"defaultMessage": "NPMOS works without the internet; going out (ACME, updates, hub) is an option you switch on."
@@ -1875,7 +1875,7 @@
 		"defaultMessage": "The WAF built into NPMOS: a machine-learning engine instead of signature lists. Works locally, without its cloud."
 	},
 	"npmos.glossary.policy": {
-		"defaultMessage": "The settings file of the agent. NPMOS generates it from the hosts; expert fragments are added on WAF → Policy (expert)."
+		"defaultMessage": "The settings file of the agent. NPMOS generates it from the hosts; expert fragments are added on Agents → Policy (expert)."
 	},
 	"npmos.glossary.prevent-learn": {
 		"defaultMessage": "The WAF blocks attacks (403) and keeps learning. Switch to it when Detect shows no false positives."
@@ -2202,7 +2202,7 @@
 		"defaultMessage": "WAF is switched off for the whole NPMOS"
 	},
 	"npmos.hosts.rec.waf-global-off.hint": {
-		"defaultMessage": "Modes set on {count, plural, one {# host} other {# hosts}} do not work until WAF is switched on in Security → WAF → Agent."
+		"defaultMessage": "Modes set on {count, plural, one {# host} other {# hosts}} do not work until WAF is switched on in Agents → open-appsec agent → Agent."
 	},
 	"npmos.hosts.rec.waf-off": {
 		"defaultMessage": "WAF is off on {count, plural, one {# public proxy host} other {# public proxy hosts}}"
@@ -2394,7 +2394,7 @@
 		"defaultMessage": "The import failed, nothing was saved to the database: {message}"
 	},
 	"npmos.migration.failed-after": {
-		"defaultMessage": "The data is imported, but a later step failed: {message}. Check the hosts and regenerate the nginx configs (System → Services)."
+		"defaultMessage": "The data is imported, but a later step failed: {message}. Check the hosts and regenerate the nginx configs (Overview → Services)."
 	},
 	"npmos.migration.files-hint": {
 		"defaultMessage": "The database is read. Upload an archive of /data and /etc/letsencrypt too, to move the certificate files and custom snippets."
@@ -2439,7 +2439,7 @@
 		"defaultMessage": "Reading the archive and checking the database…"
 	},
 	"npmos.migration.restart": {
-		"defaultMessage": "Some certificates use a DNS challenge: restart NPMOS (System → Services) so that certbot gets its DNS plugins and credentials before the next renewal."
+		"defaultMessage": "Some certificates use a DNS challenge: restart NPMOS (Overview → Services) so that certbot gets its DNS plugins and credentials before the next renewal."
 	},
 	"npmos.migration.table.access_list": {
 		"defaultMessage": "Access lists"
@@ -2627,6 +2627,12 @@
 	"npmos.nav.administration": {
 		"defaultMessage": "Administration"
 	},
+	"npmos.nav.agents": {
+		"defaultMessage": "Agents"
+	},
+	"npmos.nav.analytics": {
+		"defaultMessage": "Analytics"
+	},
 	"npmos.nav.close-menu": {
 		"defaultMessage": "Close menu"
 	},
@@ -2671,6 +2677,9 @@
 	},
 	"npmos.nav.user-menu": {
 		"defaultMessage": "User menu"
+	},
+	"npmos.nav.waf-policy": {
+		"defaultMessage": "WAF policy"
 	},
 	"npmos.notice.alert": {
 		"defaultMessage": "Problem"
@@ -2886,7 +2895,7 @@
 		"defaultMessage": "Service down"
 	},
 	"npmos.notifications.rule.service_down.hint": {
-		"defaultMessage": "A service of the stack (System → Services) is stopped, restarting or unhealthy."
+		"defaultMessage": "A service of the stack (Overview → Services) is stopped, restarting or unhealthy."
 	},
 	"npmos.notifications.rule.type": {
 		"defaultMessage": "What to watch"
@@ -2967,7 +2976,7 @@
 		"defaultMessage": "Last event"
 	},
 	"npmos.overview.analytics.note": {
-		"defaultMessage": "Stored events of the agent for the last 24 hours. Charts are in WAF → Analytics."
+		"defaultMessage": "Stored events of the agent for the last 24 hours. Charts are in Analytics."
 	},
 	"npmos.overview.analytics.prevented": {
 		"defaultMessage": "Of them blocked"
@@ -3930,7 +3939,7 @@
 		"defaultMessage": "Log trigger"
 	},
 	"npmos.policy.kind.log_trigger.hint": {
-		"defaultMessage": "Which events the agent logs and with which details (NPMOS reads them for WAF → Events)."
+		"defaultMessage": "Which events the agent logs and with which details (NPMOS reads them for Analytics → Events)."
 	},
 	"npmos.policy.kind.source_identifiers": {
 		"defaultMessage": "Source identifiers"
@@ -4860,7 +4869,7 @@
 		"defaultMessage": "Settings saved, the agent is restarting"
 	},
 	"npmos.waf.agent-unreachable": {
-		"defaultMessage": "The agent is not reachable. Check the appsec-agent service in System → Services."
+		"defaultMessage": "The agent is not reachable. Check the appsec-agent service in Overview → Services."
 	},
 	"npmos.waf.apply": {
 		"defaultMessage": "Apply now"
@@ -5010,7 +5019,7 @@
 		"defaultMessage": "As the default policy"
 	},
 	"npmos.waf.host-policy.hint": {
-		"defaultMessage": "Practices, rate limits, response and exceptions of this host (WAF → Policy). Exceptions of the default policy apply too."
+		"defaultMessage": "Practices, rate limits, response and exceptions of this host (Agents → WAF policy). Exceptions of the default policy apply too."
 	},
 	"npmos.waf.host-policy.template": {
 		"defaultMessage": "Template: {name}"

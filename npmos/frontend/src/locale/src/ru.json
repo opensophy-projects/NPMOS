@@ -657,7 +657,7 @@
 		"defaultMessage": "За этот период ничего нет"
 	},
 	"npmos.analytics.note": {
-		"defaultMessage": "Короткие периоды считаются по событиям, график длинных — по почасовой статистике; срок хранения задаётся в «WAF → События → Хранение». Готовность обучения по хостам появится в фазе 8."
+		"defaultMessage": "Короткие периоды считаются по событиям, график длинных — по почасовой статистике; срок хранения задаётся в «Аналитика → События → Хранение». Готовность обучения по хостам появится в фазе 8."
 	},
 	"npmos.analytics.prevented": {
 		"defaultMessage": "Заблокировано"
@@ -1812,10 +1812,10 @@
 		"defaultMessage": "Бесплатные сертификаты, которые выпускаются и продлеваются автоматически. Нужны выход в интернет и домен, доступный из него; в NPMOS это опция."
 	},
 	"npmos.glossary.advanced-model": {
-		"defaultMessage": "Расширенная модель обнаружения open-appsec, загружается файлом в «WAF → Агент»."
+		"defaultMessage": "Расширенная модель обнаружения open-appsec, загружается файлом в «Агенты → Агент open-appsec»."
 	},
 	"npmos.glossary.agent": {
-		"defaultMessage": "Сервис open-appsec, который получает запросы от nginx и решает, пропускать ли их. Его состояние — в «WAF → Агент»."
+		"defaultMessage": "Сервис open-appsec, который получает запросы от nginx и решает, пропускать ли их. Его состояние — в «Агенты → Агент open-appsec»."
 	},
 	"npmos.glossary.air-gap": {
 		"defaultMessage": "NPMOS работает без интернета; обращение наружу (ACME, обновления, хаб) — опция, которую вы включаете."
@@ -1875,7 +1875,7 @@
 		"defaultMessage": "WAF, встроенный в NPMOS: движок на машинном обучении вместо списков сигнатур. Работает локально, без своего облака."
 	},
 	"npmos.glossary.policy": {
-		"defaultMessage": "Файл настроек агента. NPMOS собирает его из хостов; экспертные фрагменты добавляются в «WAF → Политика (эксперт)»."
+		"defaultMessage": "Файл настроек агента. NPMOS собирает его из хостов; экспертные фрагменты добавляются в «Агенты → Политика (эксперт)»."
 	},
 	"npmos.glossary.prevent-learn": {
 		"defaultMessage": "WAF блокирует атаки (403) и продолжает учиться. Включайте, когда в режиме обнаружения нет ложных срабатываний."
@@ -2202,7 +2202,7 @@
 		"defaultMessage": "WAF выключен для всего NPMOS"
 	},
 	"npmos.hosts.rec.waf-global-off.hint": {
-		"defaultMessage": "Режимы на хостах не действуют, пока WAF не включён в «Безопасность → WAF → Агент»."
+		"defaultMessage": "Режимы на хостах не действуют, пока WAF не включён в «Агенты → Агент open-appsec»."
 	},
 	"npmos.hosts.rec.waf-off": {
 		"defaultMessage": "WAF выключен на публичных прокси-хостах: {count}"
@@ -2394,7 +2394,7 @@
 		"defaultMessage": "Перенос не удался, в базу ничего не записано: {message}"
 	},
 	"npmos.migration.failed-after": {
-		"defaultMessage": "Данные перенесены, но следующий шаг не удался: {message}. Проверьте хосты и пересоздайте конфиги nginx (Система → Сервисы)."
+		"defaultMessage": "Данные перенесены, но следующий шаг не удался: {message}. Проверьте хосты и пересоздайте конфиги nginx (Обзор → Сервисы)."
 	},
 	"npmos.migration.files-hint": {
 		"defaultMessage": "База прочитана. Загрузите ещё архив /data и /etc/letsencrypt, чтобы перенести файлы сертификатов и сниппеты."
@@ -2439,7 +2439,7 @@
 		"defaultMessage": "Читаю архив и проверяю базу…"
 	},
 	"npmos.migration.restart": {
-		"defaultMessage": "Часть сертификатов использует DNS-проверку: перезапустите NPMOS (Система → Сервисы), чтобы certbot получил DNS-плагины и учётные данные до следующего продления."
+		"defaultMessage": "Часть сертификатов использует DNS-проверку: перезапустите NPMOS (Обзор → Сервисы), чтобы certbot получил DNS-плагины и учётные данные до следующего продления."
 	},
 	"npmos.migration.table.access_list": {
 		"defaultMessage": "Списки доступа"
@@ -2627,6 +2627,12 @@
 	"npmos.nav.administration": {
 		"defaultMessage": "Администрирование"
 	},
+	"npmos.nav.agents": {
+		"defaultMessage": "Агенты"
+	},
+	"npmos.nav.analytics": {
+		"defaultMessage": "Аналитика"
+	},
 	"npmos.nav.close-menu": {
 		"defaultMessage": "Закрыть меню"
 	},
@@ -2671,6 +2677,9 @@
 	},
 	"npmos.nav.user-menu": {
 		"defaultMessage": "Меню пользователя"
+	},
+	"npmos.nav.waf-policy": {
+		"defaultMessage": "Политика WAF"
 	},
 	"npmos.notice.alert": {
 		"defaultMessage": "Проблема"
@@ -2886,7 +2895,7 @@
 		"defaultMessage": "Сервис не работает"
 	},
 	"npmos.notifications.rule.service_down.hint": {
-		"defaultMessage": "Сервис стека («Система → Сервисы») остановлен, перезапускается или нездоров."
+		"defaultMessage": "Сервис стека («Обзор → Сервисы») остановлен, перезапускается или нездоров."
 	},
 	"npmos.notifications.rule.type": {
 		"defaultMessage": "Что отслеживать"
@@ -2967,7 +2976,7 @@
 		"defaultMessage": "Последнее событие"
 	},
 	"npmos.overview.analytics.note": {
-		"defaultMessage": "Сохранённые события агента за последние 24 часа. Графики — в «WAF → Аналитика»."
+		"defaultMessage": "Сохранённые события агента за последние 24 часа. Графики — в «Аналитика»."
 	},
 	"npmos.overview.analytics.prevented": {
 		"defaultMessage": "Из них заблокировано"
@@ -3930,7 +3939,7 @@
 		"defaultMessage": "Журналирование"
 	},
 	"npmos.policy.kind.log_trigger.hint": {
-		"defaultMessage": "Какие события агент пишет в журнал и с какими подробностями (NPMOS читает их для WAF → События)."
+		"defaultMessage": "Какие события агент пишет в журнал и с какими подробностями (NPMOS читает их для Аналитика → События)."
 	},
 	"npmos.policy.kind.source_identifiers": {
 		"defaultMessage": "Идентификаторы источника"
@@ -5010,7 +5019,7 @@
 		"defaultMessage": "Как в политике по умолчанию"
 	},
 	"npmos.waf.host-policy.hint": {
-		"defaultMessage": "Практики, ограничения частоты, ответ и исключения этого хоста (WAF → Политика). Исключения политики по умолчанию действуют тоже."
+		"defaultMessage": "Практики, ограничения частоты, ответ и исключения этого хоста (Агенты → Политика WAF). Исключения политики по умолчанию действуют тоже."
 	},
 	"npmos.waf.host-policy.template": {
 		"defaultMessage": "Шаблон: {name}"

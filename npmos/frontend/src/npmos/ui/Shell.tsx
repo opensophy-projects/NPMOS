@@ -7,6 +7,7 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { intl, T } from "src/locale";
 import { useCloseLabels } from "./closeLabels";
+import { SectionTabs } from "./SectionTabs";
 import styles from "./Shell.module.css";
 import { Sidebar } from "./Sidebar";
 
@@ -113,6 +114,7 @@ export function Shell({ children }: { children: ReactNode }) {
 						<div className={styles.content}>
 							<div id={SCROLL_ID} className={styles.scroll}>
 								<div id={MAIN_ID} tabIndex={-1} className={styles.page}>
+									<SectionTabs />
 									{children}
 								</div>
 							</div>

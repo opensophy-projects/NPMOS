@@ -183,7 +183,7 @@ export function Sidebar({ onNavigate, hotkey }: Props) {
 			);
 		}
 		const to = item.to as string;
-		const current = isActivePath(to, pathname);
+		const current = item.tabs ? containsActive(item, pathname) : isActivePath(to, pathname);
 		return (
 			<a
 				key={item.id}
