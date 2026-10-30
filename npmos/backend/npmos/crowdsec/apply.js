@@ -1,6 +1,8 @@
-// Applies the settings of CrowdSec: generated files in the config volume, hub items they need, a
-// restart of the crowdsec container through npmos-control. If CrowdSec does not come up healthy,
-// the previous files are restored and it is restarted again (ADR-0010).
+// Applies the settings of CrowdSec: generated files in the config volume, hub items they need, then
+// a reload (SIGHUP: CrowdSec rereads acquisition, parsers, scenarios and profiles in seconds, the
+// LAPI and the bouncers keep working) or, for config.yaml.local or when the reload fails, a restart
+// of the crowdsec container through npmos-control. If CrowdSec does not come up healthy, the
+// previous files are restored and it is restarted again (ADR-0010).
 import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { global as logger } from "../../logger.js";
@@ -23,6 +25,9 @@ export const SERVICE = "crowdsec";
 const HEALTH_TIMEOUT_MS = Number(process.env.NPMOS_CROWDSEC_HEALTH_TIMEOUT_MS || 60000);
 // CrowdSec answers /health before its agent has loaded every parser; a broken file stops it later
 const SETTLE_MS = Number(process.env.NPMOS_CROWDSEC_SETTLE_MS || 4000);
+
+// files whose change a reload picks up; config.yaml.local (LAPI, AppSec listener...) needs a restart
+const RELOADED = ["acquis", "profiles", "allowlist", "scenario", "simulation"];
 
 /** files NPMOS owns in the config volume */
 export const FILES = {
@@ -80,10 +85,12 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
  * Waits for the LAPI after a restart; false if it does not answer in time or the container
  * restarts again (CrowdSec exits on a broken file and Docker starts it over)
  */
-export const waitHealthy = async (timeout = HEALTH_TIMEOUT_MS) => {
+const restarts = async () => (await control.getService(SERVICE).catch(() => ({}))).restartCount ?? null;
+
+export const waitHealthy = async (timeout = HEALTH_TIMEOUT_MS, since = null) => {
 	const until = Date.now() + timeout;
-	const restarts = async () => (await control.getService(SERVICE).catch(() => ({}))).restartCount ?? null;
-	const base = await restarts();
+	// since: the restart count before a reload (CrowdSec may exit on a broken file right away)
+	const base = since ?? (await restarts());
 	while (Date.now() < until) {
 		try {
 			await health();
@@ -110,13 +117,37 @@ const lastLogs = async () => {
 	}
 };
 
+/**
+ * SIGHUP and a check that CrowdSec took it: it did not exit and logged nothing fatal.
+ * false: the caller restarts instead (and rolls back if that fails too).
+ */
+const reload = async (actor) => {
+	try {
+		const base = await restarts();
+		const since = Math.floor(Date.now() / 1000);
+		await control.reloadService(SERVICE, actor);
+		await sleep(1000);
+		if (!(await waitHealthy(HEALTH_TIMEOUT_MS, base))) return false;
+		const lines = await control.getLogs(SERVICE, { tail: 300, since });
+		const fatal = (Array.isArray(lines) ? lines : []).filter((l) => /level=fatal/.test(String(l.line ?? l)));
+		if (fatal.length) {
+			logger.warn(`NPMOS CrowdSec: reload failed, restarting. ${fatalMessages(fatal).join(" | ")}`);
+			return false;
+		}
+		return true;
+	} catch (err) {
+		logger.warn(`NPMOS CrowdSec: reload not possible (${err.message}), restarting`);
+		return false;
+	}
+};
+
 let running = Promise.resolve();
 
 /**
  * Writes the files, installs the hub items they need and restarts CrowdSec when anything changed.
  * @param {object} settings  normalized (config.js)
  * @param {{actor?: number, force?: boolean, online?: boolean}} [options]
- * @returns {Promise<{changed: string[], installed: string[], restarted: boolean, healthy: boolean}>}
+ * @returns {Promise<{changed: string[], installed: string[], restarted: boolean, reloaded?: boolean, healthy: boolean}>}
  */
 export const apply = (settings, options = {}) => {
 	// one apply at a time: two restarts in a row would mix up the rollback
@@ -140,6 +171,10 @@ const applyNow = async (settings, { actor, force = false, online = false }) => {
 		return { changed, installed, restarted: false, healthy: true };
 	}
 	for (const [key, { new: content }] of Object.entries(diff)) await put(FILES[key], content);
+	if (!force && changed.every((key) => RELOADED.includes(key)) && (await reload(actor))) {
+		logger.info(`NPMOS CrowdSec: reloaded ${[...changed, ...installed].join(", ")}`);
+		return { changed, installed, restarted: false, reloaded: true, healthy: true };
+	}
 	await control.restartService(SERVICE, actor);
 	if (await waitHealthy()) {
 		logger.info(`NPMOS CrowdSec: applied ${[...changed, ...installed].join(", ") || "restart"}`);

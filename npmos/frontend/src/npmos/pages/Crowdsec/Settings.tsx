@@ -124,7 +124,15 @@ export function SettingsTab({ data, refresh }: { data: CrowdsecSettingsState; re
 				simulation: { ...s.simulation, scenarios: lines(simulated) },
 			});
 			setSecret("");
-			showSuccess(t(r.result?.restarted ? "npmos.crowdsec.settings.applied" : "npmos.crowdsec.settings.saved"));
+			showSuccess(
+				t(
+					r.result?.reloaded
+						? "npmos.crowdsec.settings.reloaded"
+						: r.result?.restarted
+							? "npmos.crowdsec.settings.applied"
+							: "npmos.crowdsec.settings.saved",
+				),
+			);
 		} catch (err: any) {
 			setError(err.message);
 		}

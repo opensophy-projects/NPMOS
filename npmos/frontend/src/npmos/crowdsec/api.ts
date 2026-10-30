@@ -200,6 +200,8 @@ export interface ApplyResult {
 	changed: string[];
 	installed: string[];
 	restarted: boolean;
+	/** applied by a reload (SIGHUP), CrowdSec kept running */
+	reloaded?: boolean;
 	healthy: boolean;
 	bouncerChanged?: boolean;
 }

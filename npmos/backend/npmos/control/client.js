@@ -56,6 +56,8 @@ const control = {
 	getLogs: (service, { tail = 200, since = 0 } = {}) =>
 		call("GET", `/v1/services/${encodeURIComponent(service)}/logs?tail=${tail}&since=${since}`),
 	restartService: (service, actor) => call("POST", `/v1/services/${encodeURIComponent(service)}/restart`, actor),
+	/** SIGHUP: the service rereads its configuration (CrowdSec only) */
+	reloadService: (service, actor) => call("POST", `/v1/services/${encodeURIComponent(service)}/reload`, actor),
 };
 
 export default control;

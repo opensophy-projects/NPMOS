@@ -1122,7 +1122,7 @@
 		"defaultMessage": "Host"
 	},
 	"npmos.crowdsec.hub.hint": {
-		"defaultMessage": "The hub snapshot of this node: nothing is downloaded from the internet. A new snapshot is uploaded here (.index.json of cscli hub update --with-content, or the archive of scripts/crowdsec-hub-snapshot.sh with data files). Installing or removing restarts CrowdSec."
+		"defaultMessage": "The hub snapshot of this node: nothing is downloaded from the internet. A new snapshot is uploaded here (.index.json of cscli hub update --with-content, or the archive of scripts/crowdsec-hub-snapshot.sh with data files). Installing or removing applies without a restart of CrowdSec."
 	},
 	"npmos.crowdsec.hub.index-updated": {
 		"defaultMessage": "Hub index updated: {count} items"
@@ -1490,8 +1490,11 @@
 	"npmos.crowdsec.settings.pending": {
 		"defaultMessage": "The files of CrowdSec differ from the settings ({files}): they are applied at the next save or now."
 	},
+	"npmos.crowdsec.settings.reloaded": {
+		"defaultMessage": "Settings applied: CrowdSec reread them without a restart"
+	},
 	"npmos.crowdsec.settings.restarting": {
-		"defaultMessage": "CrowdSec restarts with the new files; if it does not start, the previous ones come back."
+		"defaultMessage": "CrowdSec rereads the new files (a restart only for the main configuration); if it does not take them, the previous ones come back."
 	},
 	"npmos.crowdsec.settings.save": {
 		"defaultMessage": "Save and apply"

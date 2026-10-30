@@ -587,8 +587,16 @@ done
 $CURL "$ADMIN/api/npmos/crowdsec/registry" | grep -q '"name": *"npmos-' || fail "NPMOS is not a machine of CrowdSec"
 
 # the closed network has private addresses only: they are not allowlisted here
-step "CrowdSec: settings from the GUI are applied, CrowdSec restarts (bouncer and AppSec on)"
-cs_settings true "" | tr -d ' \n' | grep -q '"restarted":true' || fail "the settings did not restart CrowdSec"
+step "CrowdSec: settings from the GUI are applied (bouncer and AppSec on)"
+cs_settings true "" | tr -d ' \n' | grep -q '"\(restarted\|reloaded\)":true' || fail "the settings were not applied"
+
+# profiles, acquisition, allowlists and scenarios are reread on SIGHUP: no restart of the container
+step "CrowdSec: a change of a profile is applied by a reload, not a restart"
+cs_started() { $CURL "$ADMIN/api/npmos/services/crowdsec" | grep -o '"startedAt": *"[^"]*"'; }
+before=$(cs_started)
+cs_settings true "Alert.GetScope() == 'Ip'" | tr -d ' \n' | grep -q '"reloaded":true' \
+  || fail "the profile change was not applied by a reload"
+[ "$(cs_started)" = "$before" ] || fail "CrowdSec was restarted for a profile change"
 
 step "CrowdSec: a broken profile is refused at the start of CrowdSec, the previous files come back"
 answer=$(cs_settings true "Alert.Broken(((" 2>&1 || true)

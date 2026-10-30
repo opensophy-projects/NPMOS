@@ -1122,7 +1122,7 @@
 		"defaultMessage": "Хост"
 	},
 	"npmos.crowdsec.hub.hint": {
-		"defaultMessage": "Снимок hub на этом узле: из интернета ничего не скачивается. Новый снимок загружается здесь (.index.json от cscli hub update --with-content или архив scripts/crowdsec-hub-snapshot.sh с файлами данных). Установка и удаление перезапускают CrowdSec."
+		"defaultMessage": "Снимок hub на этом узле: из интернета ничего не скачивается. Новый снимок загружается здесь (.index.json от cscli hub update --with-content или архив scripts/crowdsec-hub-snapshot.sh с файлами данных). Установка и удаление применяются без перезапуска CrowdSec."
 	},
 	"npmos.crowdsec.hub.index-updated": {
 		"defaultMessage": "Индекс hub обновлён: элементов {count}"
@@ -1490,8 +1490,11 @@
 	"npmos.crowdsec.settings.pending": {
 		"defaultMessage": "Файлы CrowdSec не совпадают с настройками ({files}): они применятся при следующем сохранении или сейчас."
 	},
+	"npmos.crowdsec.settings.reloaded": {
+		"defaultMessage": "Настройки применены: CrowdSec перечитал их без перезапуска"
+	},
 	"npmos.crowdsec.settings.restarting": {
-		"defaultMessage": "CrowdSec перезапускается с новыми файлами; если он не запустится, вернутся прежние."
+		"defaultMessage": "CrowdSec перечитывает новые файлы (перезапуск — только для основной конфигурации); если он их не примет, вернутся прежние."
 	},
 	"npmos.crowdsec.settings.save": {
 		"defaultMessage": "Сохранить и применить"
