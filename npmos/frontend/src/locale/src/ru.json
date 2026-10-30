@@ -3296,6 +3296,30 @@
 	"npmos.notifications.param.window": {
 		"defaultMessage": "Окно, минут"
 	},
+	"npmos.notifications.preset.attacks": {
+		"defaultMessage": "Атаки"
+	},
+	"npmos.notifications.preset.attacks.text": {
+		"defaultMessage": "Всплески атак и молчащий агент WAF"
+	},
+	"npmos.notifications.preset.certificates": {
+		"defaultMessage": "Сертификаты"
+	},
+	"npmos.notifications.preset.certificates.text": {
+		"defaultMessage": "Сертификаты, которые скоро истекут"
+	},
+	"npmos.notifications.preset.failures": {
+		"defaultMessage": "Только сбои"
+	},
+	"npmos.notifications.preset.failures.text": {
+		"defaultMessage": "Сервисы, агенты, ошибки политики и хостов"
+	},
+	"npmos.notifications.preset.recommended": {
+		"defaultMessage": "Рекомендуемые"
+	},
+	"npmos.notifications.preset.recommended.text": {
+		"defaultMessage": "Сбои, сертификаты и всплески атак"
+	},
 	"npmos.notifications.repeat": {
 		"defaultMessage": "Напоминать каждые, минут"
 	},
@@ -3382,6 +3406,72 @@
 	},
 	"npmos.notifications.secret.keep": {
 		"defaultMessage": "Сохранён. Оставьте пустым, чтобы не менять."
+	},
+	"npmos.notifications.setup": {
+		"defaultMessage": "Быстрая настройка"
+	},
+	"npmos.notifications.setup.another": {
+		"defaultMessage": "Или добавьте ещё:"
+	},
+	"npmos.notifications.setup.back": {
+		"defaultMessage": "Назад"
+	},
+	"npmos.notifications.setup.create": {
+		"defaultMessage": "{count, plural, one {Создать # правило} few {Создать # правила} many {Создать # правил} other {Создать # правила}}"
+	},
+	"npmos.notifications.setup.done": {
+		"defaultMessage": "{count, plural, one {Создано # правило} few {Создано # правила} many {Создано # правил} other {Создано # правила}}"
+	},
+	"npmos.notifications.setup.exists": {
+		"defaultMessage": "уже настроено"
+	},
+	"npmos.notifications.setup.first": {
+		"defaultMessage": "Каналов пока нет. Добавьте:"
+	},
+	"npmos.notifications.setup.next": {
+		"defaultMessage": "Далее"
+	},
+	"npmos.notifications.setup.offline": {
+		"defaultMessage": "Без интернета работают только почтовый сервер вашей сети и webhook в ваши системы; Telegram нужен доступ к его API."
+	},
+	"npmos.notifications.setup.step1": {
+		"defaultMessage": "Куда слать"
+	},
+	"npmos.notifications.setup.step1.text": {
+		"defaultMessage": "Отметьте каналы, куда придут сообщения. Канал — это адрес: почтовый ящик, webhook вашей системы или чат Telegram."
+	},
+	"npmos.notifications.setup.step2": {
+		"defaultMessage": "О чём сообщать"
+	},
+	"npmos.notifications.setup.step2.text": {
+		"defaultMessage": "Выберите готовый набор или отметьте правила по одному. У каждого правила разумные настройки по умолчанию, их можно изменить потом."
+	},
+	"npmos.notifications.setup.step3": {
+		"defaultMessage": "Проверить и создать"
+	},
+	"npmos.notifications.setup.step3.text": {
+		"defaultMessage": "Будут созданы и включены правила:"
+	},
+	"npmos.notifications.setup.to": {
+		"defaultMessage": "Сообщения придут в: {channels}. Когда проблема уйдёт, тоже придёт сообщение."
+	},
+	"npmos.notifications.setup.why.agent_down": {
+		"defaultMessage": "Агент open-appsec не отвечает: хосты не проверяются."
+	},
+	"npmos.notifications.setup.why.attack_spike": {
+		"defaultMessage": "Много атак за короткое время: хост сканируют или атакуют."
+	},
+	"npmos.notifications.setup.why.cert_expiry": {
+		"defaultMessage": "Сертификат хоста истекает в ближайшие 14 дней."
+	},
+	"npmos.notifications.setup.why.host_problem": {
+		"defaultMessage": "nginx не принял конфигурацию хоста: хост не работает."
+	},
+	"npmos.notifications.setup.why.policy_error": {
+		"defaultMessage": "Изменённая политика WAF не применилась: агент работает по прежней."
+	},
+	"npmos.notifications.setup.why.service_down": {
+		"defaultMessage": "Контейнер NPMOS остановился или постоянно перезапускается."
 	},
 	"npmos.notifications.status.firing": {
 		"defaultMessage": "Проблема"

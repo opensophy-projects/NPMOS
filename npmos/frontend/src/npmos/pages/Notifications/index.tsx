@@ -1,7 +1,16 @@
 // System → Notifications (docs/ROADMAP.md, phase 4; ADR-11): channels (email, webhook, Telegram),
 // rules (attack spike, agent down, policy not applied, service down, certificates, nginx errors of
 // hosts) and the last deliveries.
-import { IconDots, IconMail, IconPencil, IconPlus, IconSend, IconTrash, IconWebhook } from "@tabler/icons-react";
+import {
+	IconDots,
+	IconMail,
+	IconPencil,
+	IconPlus,
+	IconSend,
+	IconTrash,
+	IconWand,
+	IconWebhook,
+} from "@tabler/icons-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import cn from "classnames";
 import Alert from "react-bootstrap/Alert";
@@ -24,6 +33,7 @@ import {
 } from "../../notifications/api";
 import { showChannelModal } from "../../notifications/ChannelModal";
 import { showRuleModal } from "../../notifications/RuleModal";
+import { showSetupModal } from "../../notifications/SetupModal";
 import { useCan } from "../../rbac/hooks";
 import { Dropdown } from "../../ui/Dropdown";
 import { dateTime } from "../../ui/time";
@@ -124,6 +134,12 @@ function NotificationsPage() {
 						<T id="npmos.notifications.subtitle" />
 					</p>
 				</div>
+				{manage && (
+					<button type="button" className="btn btn-primary" onClick={showSetupModal}>
+						<IconWand size={16} className="me-1" />
+						<T id="npmos.notifications.setup" />
+					</button>
+				)}
 			</div>
 
 			<section className={cn("card", styles.card)}>

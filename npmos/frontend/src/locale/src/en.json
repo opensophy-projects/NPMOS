@@ -3296,6 +3296,30 @@
 	"npmos.notifications.param.window": {
 		"defaultMessage": "Window, minutes"
 	},
+	"npmos.notifications.preset.attacks": {
+		"defaultMessage": "Attacks"
+	},
+	"npmos.notifications.preset.attacks.text": {
+		"defaultMessage": "Spikes of attacks and a silent WAF agent"
+	},
+	"npmos.notifications.preset.certificates": {
+		"defaultMessage": "Certificates"
+	},
+	"npmos.notifications.preset.certificates.text": {
+		"defaultMessage": "Certificates that expire soon"
+	},
+	"npmos.notifications.preset.failures": {
+		"defaultMessage": "Failures only"
+	},
+	"npmos.notifications.preset.failures.text": {
+		"defaultMessage": "Services, agents, policy and host errors"
+	},
+	"npmos.notifications.preset.recommended": {
+		"defaultMessage": "Recommended"
+	},
+	"npmos.notifications.preset.recommended.text": {
+		"defaultMessage": "Failures, certificates and attack spikes"
+	},
 	"npmos.notifications.repeat": {
 		"defaultMessage": "Remind every, minutes"
 	},
@@ -3382,6 +3406,72 @@
 	},
 	"npmos.notifications.secret.keep": {
 		"defaultMessage": "Stored. Leave empty to keep it."
+	},
+	"npmos.notifications.setup": {
+		"defaultMessage": "Quick setup"
+	},
+	"npmos.notifications.setup.another": {
+		"defaultMessage": "Or add another:"
+	},
+	"npmos.notifications.setup.back": {
+		"defaultMessage": "Back"
+	},
+	"npmos.notifications.setup.create": {
+		"defaultMessage": "{count, plural, one {Create # rule} other {Create # rules}}"
+	},
+	"npmos.notifications.setup.done": {
+		"defaultMessage": "{count, plural, one {# rule created} other {# rules created}}"
+	},
+	"npmos.notifications.setup.exists": {
+		"defaultMessage": "already set up"
+	},
+	"npmos.notifications.setup.first": {
+		"defaultMessage": "No channels yet. Add one:"
+	},
+	"npmos.notifications.setup.next": {
+		"defaultMessage": "Next"
+	},
+	"npmos.notifications.setup.offline": {
+		"defaultMessage": "Without internet only the mail server of your network and webhooks to your systems work; Telegram needs access to its API."
+	},
+	"npmos.notifications.setup.step1": {
+		"defaultMessage": "Where to send"
+	},
+	"npmos.notifications.setup.step1.text": {
+		"defaultMessage": "Tick the channels the messages go to. A channel is an address: a mailbox, a webhook of your system or a Telegram chat."
+	},
+	"npmos.notifications.setup.step2": {
+		"defaultMessage": "What to send"
+	},
+	"npmos.notifications.setup.step2.text": {
+		"defaultMessage": "Choose a preset or tick the rules one by one. Each rule has sensible defaults; you can change them later."
+	},
+	"npmos.notifications.setup.step3": {
+		"defaultMessage": "Check and create"
+	},
+	"npmos.notifications.setup.step3.text": {
+		"defaultMessage": "These rules are created and turned on:"
+	},
+	"npmos.notifications.setup.to": {
+		"defaultMessage": "Messages go to: {channels}. A message also comes when a problem is resolved."
+	},
+	"npmos.notifications.setup.why.agent_down": {
+		"defaultMessage": "The open-appsec agent does not answer: the hosts are not inspected."
+	},
+	"npmos.notifications.setup.why.attack_spike": {
+		"defaultMessage": "Many attacks in a short time: someone is scanning or attacking a host."
+	},
+	"npmos.notifications.setup.why.cert_expiry": {
+		"defaultMessage": "A certificate of a host expires within 14 days."
+	},
+	"npmos.notifications.setup.why.host_problem": {
+		"defaultMessage": "nginx refused the configuration of a host: it does not work."
+	},
+	"npmos.notifications.setup.why.policy_error": {
+		"defaultMessage": "A changed WAF policy did not apply: the agent keeps the previous one."
+	},
+	"npmos.notifications.setup.why.service_down": {
+		"defaultMessage": "A container of NPMOS stopped or keeps restarting."
 	},
 	"npmos.notifications.status.firing": {
 		"defaultMessage": "Problem"
