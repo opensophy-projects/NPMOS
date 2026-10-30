@@ -28,7 +28,7 @@ docker compose -f deploy/compose.yaml up -d
 
 По умолчанию NPMOS слушает только IPv4: так он запускается на любом хосте, в том числе с выключенным или неработающим IPv6. Чтобы nginx слушал и IPv6 (и видел настоящие IPv6-адреса клиентов), добавьте в `deploy/.env` строку `NPMOS_DISABLE_IPV6=false` и перезапустите стек; IPv6 на хосте должен работать.
 
-Если `docker compose pull` падает с `TLS handshake timeout`, а `curl -4 https://auth.docker.io/token` отвечает, у машины сломан IPv6 и Docker пытается скачивать по нему: отключите IPv6 в системе (`net.ipv6.conf.all.disable_ipv6=1`) или настройте зеркало Docker Hub (`registry-mirrors` в `/etc/docker/daemon.json`).
+Если `docker compose pull` падает с `TLS handshake timeout` (у некоторых провайдеров, в том числе в России, соединение Docker с Docker Hub обрывается, хотя `curl` до него доходит), пропишите зеркало Docker Hub — см. [TESTING-DEVELOP.md](docs/TESTING-DEVELOP.md#2-что-нужно-на-машине).
 
 Переезд с Nginx Proxy Manager, NPMplus или open-appsec-npm — в «Система → Настройки → Перенос»: хосты, сертификаты, списки доступа, пользователи и WAF-правила переносятся из архива старой установки ([подробнее](docs/MIGRATION.md)).
 

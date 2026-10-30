@@ -19,7 +19,16 @@
 - Свободные порты 80, 443 и 81. Другие порты задаются так: `NPMOS_HTTP_PORT=8080 NPMOS_HTTPS_PORT=8443 NPMOS_ADMIN_PORT=8181`.
 - Около 10 ГБ на диске для образов и томов.
 - По умолчанию NPMOS слушает только IPv4. Нужен IPv6 — `NPMOS_DISABLE_IPV6=false` в `deploy/.env` (или перед каждой командой `docker compose`); на хосте IPv6 должен работать.
-- `docker compose pull` падает с `TLS handshake timeout`, хотя `curl -4 https://auth.docker.io/token` отвечает: IPv6 на машине выдан, но не работает, а Docker качает по нему. Отключите IPv6 (`sudo sysctl -w net.ipv6.conf.all.disable_ipv6=1 net.ipv6.conf.default.disable_ipv6=1`, постоянно — файлом в `/etc/sysctl.d/`) или пропишите зеркало Docker Hub в `registry-mirrors` файла `/etc/docker/daemon.json`.
+- `docker compose pull` падает с `TLS handshake timeout` на `auth.docker.io`, хотя `curl https://auth.docker.io/token` отвечает: соединения Docker с Docker Hub обрываются по пути (так бывает у некоторых провайдеров, в том числе в России). Это не лимиты Docker Hub — при них приходит `429 Too Many Requests`. Решение — зеркало Docker Hub, все образы стека берутся с `docker.io`, так что зеркало покрывает их все:
+
+  ```bash
+  # если /etc/docker/daemon.json уже есть — добавьте ключ в него, а не заменяйте файл
+  echo '{"registry-mirrors": ["https://dockerhub.timeweb.cloud", "https://mirror.gcr.io"]}' | sudo tee /etc/docker/daemon.json
+  sudo systemctl restart docker
+  docker info | grep -A2 "Registry Mirrors"
+  ```
+
+  Зеркало — сторонний сервис; если ему не доверяете, пустите демон Docker через VPN или прокси (`Environment="HTTPS_PROXY=…"` в `/etc/systemd/system/docker.service.d/proxy.conf`).
 - Для варианта Б нужен интернет на время сборки: GitHub, Docker Hub, Alpine, npm. Сама установка интернета не требует.
 
 ## 3. Вариант А: образы из Docker Hub
