@@ -172,14 +172,15 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
     step "WAF -> Agent: $2"
     $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf/agent" -d "$1" \
       | grep -q '"restarting": *true' || fail "saving agent settings did not restart the agent"
+    # npmos restarts with the agent: the API is away for a while (connections are reset)
     for i in $(seq 1 60); do
-      agent=$($CURL "$ADMIN/api/npmos/waf/agent")
+      agent=$($CURL "$ADMIN/api/npmos/waf/agent" 2>/dev/null || true)
       echo "$agent" | grep -q '"restartRequired": *false' && break
       [ "$i" = 60 ] && fail "the agent did not apply its settings: $agent"
       sleep 2
     done
     for i in $(seq 1 60); do
-      $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true' && break
+      $CURL "$ADMIN/api/npmos/waf" 2>/dev/null | grep -q '"reachable": *true' && break
       [ "$i" = 60 ] && fail "the agent did not come back after the restart: $($CURL "$ADMIN/api/npmos/waf")"
       sleep 2
     done
