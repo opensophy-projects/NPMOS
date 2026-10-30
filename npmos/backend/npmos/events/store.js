@@ -48,6 +48,8 @@ const increment = (knex, table, column) =>
 const EVENT_KEYS = ["hour", "node_id", "host", "kind", "action", "severity", "incident_type"];
 const TRAFFIC_KEYS = ["hour", "node_id", "asset"];
 const TRAFFIC_COUNTERS = ["requests", "sources", "blocked", "threat_low", "threat_medium", "threat_high"];
+const REQUEST_KEYS = ["hour", "node_id", "host"];
+export const REQUEST_COUNTERS = ["requests", "s2xx", "s3xx", "s4xx", "s5xx", "blocked", "bytes"];
 
 /** rows of npmos_event_hourly for these events */
 export const eventAggregates = (events) => {
@@ -88,9 +90,10 @@ export const trafficAggregates = (rows) => {
 /**
  * Stores what one read of the log files gave, with the new positions, in one transaction: a
  * restart never loses or doubles events.
- * @param {{events: object[], telemetry: object[], cursors: object[]}} batch
+ * @param {{events: object[], telemetry: object[], cursors: object[], requests?: object[]}} batch  requests: rows
+ *   of npmos_request_hourly (counted from the access log of nginx)
  */
-export const store = async ({ events, telemetry, cursors }) => {
+export const store = async ({ events, telemetry, cursors, requests = [] }) => {
 	const knex = db();
 	// the agent knows no countries offline: the GeoIP database of NPMOS fills them in
 	await enrich(events);
@@ -112,6 +115,12 @@ export const store = async ({ events, telemetry, cursors }) => {
 				.insert(row)
 				.onConflict(TRAFFIC_KEYS)
 				.merge(Object.fromEntries(TRAFFIC_COUNTERS.map((c) => [c, increment(trx, "npmos_traffic_hourly", c)])));
+		}
+		for (const row of requests) {
+			await trx("npmos_request_hourly")
+				.insert(row)
+				.onConflict(REQUEST_KEYS)
+				.merge(Object.fromEntries(REQUEST_COUNTERS.map((c) => [c, increment(trx, "npmos_request_hourly", c)])));
 		}
 		for (const cursor of cursors) {
 			await trx("npmos_log_cursor")
@@ -169,7 +178,8 @@ export const applyRetention = async ({ days, aggregateDays }, now = new Date()) 
 	const aggregateCutoff = new Date(now.getTime() - aggregateDays * 24 * 3600 * 1000);
 	result.aggregates =
 		(await knex("npmos_event_hourly").where("hour", "<", aggregateCutoff).delete()) +
-		(await knex("npmos_traffic_hourly").where("hour", "<", aggregateCutoff).delete());
+		(await knex("npmos_traffic_hourly").where("hour", "<", aggregateCutoff).delete()) +
+		(await knex("npmos_request_hourly").where("hour", "<", aggregateCutoff).delete());
 	return result;
 };
 

@@ -644,6 +644,9 @@
 	"npmos.analytics.crowdsec-bans": {
 		"defaultMessage": "Банов CrowdSec"
 	},
+	"npmos.analytics.description": {
+		"defaultMessage": "Запросы к хостам и атаки, которые в них увидели агенты, по данным NPMOS. Нажмите на строку, чтобы открыть её события."
+	},
 	"npmos.analytics.detected": {
 		"defaultMessage": "Только обнаружено"
 	},
@@ -674,6 +677,12 @@
 	"npmos.analytics.requests.none": {
 		"defaultMessage": "Агент ещё не прислал статистику трафика"
 	},
+	"npmos.analytics.section.attacks": {
+		"defaultMessage": "Атаки"
+	},
+	"npmos.analytics.section.traffic": {
+		"defaultMessage": "Трафик хостов"
+	},
 	"npmos.analytics.series.detect": {
 		"defaultMessage": "Обнаружено (Detect)"
 	},
@@ -685,9 +694,6 @@
 	},
 	"npmos.analytics.sources": {
 		"defaultMessage": "Источников атак"
-	},
-	"npmos.analytics.subtitle": {
-		"defaultMessage": "Атаки на хосты под защитой WAF по событиям, которые хранит NPMOS. Нажмите на строку, чтобы открыть её события."
 	},
 	"npmos.analytics.timeline": {
 		"defaultMessage": "Атаки во времени"
@@ -703,6 +709,42 @@
 	},
 	"npmos.analytics.top-uris": {
 		"defaultMessage": "Самые атакуемые URI"
+	},
+	"npmos.analytics.traffic.4xx": {
+		"defaultMessage": "Ошибки клиента (4xx)"
+	},
+	"npmos.analytics.traffic.5xx": {
+		"defaultMessage": "Ошибки сервера (5xx)"
+	},
+	"npmos.analytics.traffic.blocked": {
+		"defaultMessage": "Отклонено"
+	},
+	"npmos.analytics.traffic.host-sub": {
+		"defaultMessage": "ошибок {errors}, отклонено {blocked}"
+	},
+	"npmos.analytics.traffic.hosts": {
+		"defaultMessage": "Запросы по хостам"
+	},
+	"npmos.analytics.traffic.none": {
+		"defaultMessage": "За этот период запросов нет"
+	},
+	"npmos.analytics.traffic.ok": {
+		"defaultMessage": "Обычные ответы (2xx, 3xx)"
+	},
+	"npmos.analytics.traffic.passed": {
+		"defaultMessage": "Пропущено"
+	},
+	"npmos.analytics.traffic.requests": {
+		"defaultMessage": "Запросов"
+	},
+	"npmos.analytics.traffic.sent": {
+		"defaultMessage": "отдано клиентам {bytes}"
+	},
+	"npmos.analytics.traffic.share": {
+		"defaultMessage": "{p} от всех"
+	},
+	"npmos.analytics.traffic.timeline": {
+		"defaultMessage": "Запросы во времени"
 	},
 	"npmos.audit.action.applied": {
 		"defaultMessage": "Применение"
@@ -1877,6 +1919,18 @@
 	"npmos.crowdsec.version": {
 		"defaultMessage": "Версия"
 	},
+	"npmos.events.agent": {
+		"defaultMessage": "Агент"
+	},
+	"npmos.events.agent.crowdsec": {
+		"defaultMessage": "CrowdSec"
+	},
+	"npmos.events.agent.mtls": {
+		"defaultMessage": "mTLS"
+	},
+	"npmos.events.agent.open-appsec": {
+		"defaultMessage": "open-appsec"
+	},
 	"npmos.events.attack-type": {
 		"defaultMessage": "Тип атаки"
 	},
@@ -1931,20 +1985,17 @@
 	"npmos.events.ingest-error": {
 		"defaultMessage": "События не сохраняются:"
 	},
+	"npmos.events.kind.agents": {
+		"defaultMessage": "Агенты"
+	},
 	"npmos.events.kind.all": {
 		"defaultMessage": "Все"
-	},
-	"npmos.events.kind.crowdsec": {
-		"defaultMessage": "CrowdSec"
 	},
 	"npmos.events.kind.mtls": {
 		"defaultMessage": "mTLS"
 	},
-	"npmos.events.kind.security": {
-		"defaultMessage": "Атаки"
-	},
 	"npmos.events.kind.system": {
-		"defaultMessage": "Сообщения агента"
+		"defaultMessage": "Сообщения open-appsec"
 	},
 	"npmos.events.newer": {
 		"defaultMessage": "Новее"
@@ -5307,7 +5358,7 @@
 		"defaultMessage": "Компонент агента"
 	},
 	"npmos.waf.events.description": {
-		"defaultMessage": "Журнал безопасности агента open-appsec: обнаруженные и заблокированные атаки и события самого агента"
+		"defaultMessage": "Что нашли агенты: атаки, которые обнаружил или заблокировал open-appsec, и алерты CrowdSec; в каждой строке указан агент. Отказы mTLS и сообщения агентов — на своих вкладках."
 	},
 	"npmos.waf.events.event": {
 		"defaultMessage": "Событие"

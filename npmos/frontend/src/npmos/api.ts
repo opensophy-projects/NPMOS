@@ -259,6 +259,19 @@ export interface Analytics {
 		readiness: null;
 	};
 	timeline: { t: string; prevent: number; detect: number; other: number }[];
+	/** all requests of the hosts, from the access log of nginx */
+	traffic: {
+		requests: number;
+		ok: number;
+		s2xx: number;
+		s3xx: number;
+		s4xx: number;
+		s5xx: number;
+		blocked: number;
+		bytes: number;
+		hosts: { host: string; requests: number; errors: number; blocked: number }[];
+		timeline: { t: string; requests: number; blocked: number }[];
+	};
 	actions: { action: string; events: number }[];
 	severities: { severity: string; events: number }[];
 	types: { type: string; events: number }[];

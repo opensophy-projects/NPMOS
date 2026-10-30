@@ -644,6 +644,9 @@
 	"npmos.analytics.crowdsec-bans": {
 		"defaultMessage": "CrowdSec bans"
 	},
+	"npmos.analytics.description": {
+		"defaultMessage": "Requests to the hosts and the attacks the agents saw in them, from the data NPMOS keeps. Click a row to open its events."
+	},
 	"npmos.analytics.detected": {
 		"defaultMessage": "Detected only"
 	},
@@ -674,6 +677,12 @@
 	"npmos.analytics.requests.none": {
 		"defaultMessage": "The agent has not reported traffic statistics yet"
 	},
+	"npmos.analytics.section.attacks": {
+		"defaultMessage": "Attacks"
+	},
+	"npmos.analytics.section.traffic": {
+		"defaultMessage": "Traffic of the hosts"
+	},
 	"npmos.analytics.series.detect": {
 		"defaultMessage": "Detected (Detect)"
 	},
@@ -685,9 +694,6 @@
 	},
 	"npmos.analytics.sources": {
 		"defaultMessage": "Attack sources"
-	},
-	"npmos.analytics.subtitle": {
-		"defaultMessage": "Attacks on the hosts protected by the WAF, from the events NPMOS stores. Click a line to see its events."
 	},
 	"npmos.analytics.timeline": {
 		"defaultMessage": "Attacks over time"
@@ -703,6 +709,42 @@
 	},
 	"npmos.analytics.top-uris": {
 		"defaultMessage": "Most attacked URIs"
+	},
+	"npmos.analytics.traffic.4xx": {
+		"defaultMessage": "Client errors (4xx)"
+	},
+	"npmos.analytics.traffic.5xx": {
+		"defaultMessage": "Server errors (5xx)"
+	},
+	"npmos.analytics.traffic.blocked": {
+		"defaultMessage": "Refused"
+	},
+	"npmos.analytics.traffic.host-sub": {
+		"defaultMessage": "errors {errors}, refused {blocked}"
+	},
+	"npmos.analytics.traffic.hosts": {
+		"defaultMessage": "Requests by host"
+	},
+	"npmos.analytics.traffic.none": {
+		"defaultMessage": "No requests in this period"
+	},
+	"npmos.analytics.traffic.ok": {
+		"defaultMessage": "Answered normally (2xx, 3xx)"
+	},
+	"npmos.analytics.traffic.passed": {
+		"defaultMessage": "Passed"
+	},
+	"npmos.analytics.traffic.requests": {
+		"defaultMessage": "Requests"
+	},
+	"npmos.analytics.traffic.sent": {
+		"defaultMessage": "{bytes} sent to clients"
+	},
+	"npmos.analytics.traffic.share": {
+		"defaultMessage": "{p} of all"
+	},
+	"npmos.analytics.traffic.timeline": {
+		"defaultMessage": "Requests over time"
 	},
 	"npmos.audit.action.applied": {
 		"defaultMessage": "Applied"
@@ -1877,6 +1919,18 @@
 	"npmos.crowdsec.version": {
 		"defaultMessage": "Version"
 	},
+	"npmos.events.agent": {
+		"defaultMessage": "Agent"
+	},
+	"npmos.events.agent.crowdsec": {
+		"defaultMessage": "CrowdSec"
+	},
+	"npmos.events.agent.mtls": {
+		"defaultMessage": "mTLS"
+	},
+	"npmos.events.agent.open-appsec": {
+		"defaultMessage": "open-appsec"
+	},
 	"npmos.events.attack-type": {
 		"defaultMessage": "Attack type"
 	},
@@ -1931,20 +1985,17 @@
 	"npmos.events.ingest-error": {
 		"defaultMessage": "Events are not being stored:"
 	},
+	"npmos.events.kind.agents": {
+		"defaultMessage": "Agents"
+	},
 	"npmos.events.kind.all": {
 		"defaultMessage": "All"
-	},
-	"npmos.events.kind.crowdsec": {
-		"defaultMessage": "CrowdSec"
 	},
 	"npmos.events.kind.mtls": {
 		"defaultMessage": "mTLS"
 	},
-	"npmos.events.kind.security": {
-		"defaultMessage": "Attacks"
-	},
 	"npmos.events.kind.system": {
-		"defaultMessage": "Agent notices"
+		"defaultMessage": "Messages of open-appsec"
 	},
 	"npmos.events.newer": {
 		"defaultMessage": "Newer"
@@ -5307,7 +5358,7 @@
 		"defaultMessage": "Agent component"
 	},
 	"npmos.waf.events.description": {
-		"defaultMessage": "Security log of the open-appsec agent: attacks it detected or blocked and its own events"
+		"defaultMessage": "What the agents found: attacks open-appsec detected or blocked and alerts of CrowdSec, each row names its agent; refusals of mTLS and messages of the agents on their own tabs."
 	},
 	"npmos.waf.events.event": {
 		"defaultMessage": "Event"

@@ -138,3 +138,8 @@
 	color: var(--foreground-muted);
 	font-size: 0.8125rem;
 }
+.agent {
+	color: var(--foreground-muted);
+	font-size: 0.8125rem;
+	white-space: nowrap;
+}

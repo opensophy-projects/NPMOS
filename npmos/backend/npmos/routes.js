@@ -812,7 +812,8 @@ router
 
 /**
  * GET /api/npmos/events — security events of the agent, newest first. Filters: from, to (ISO, default
- * the last 24 h), kind=security|system|all, important=true, host, ip, action, severity, type
+ * the last 24 h), kind=agents (open-appsec and CrowdSec, default)|security|crowdsec|mtls|system|all, agent
+ * (open-appsec, crowdsec, mtls), important=true, host, ip, action, severity, type
  * (comma-separated), min_score, max_score, q (text); limit (≤ 500), before (cursor: next of a page)
  */
 router

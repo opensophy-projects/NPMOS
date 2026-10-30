@@ -680,6 +680,9 @@ for i in $(seq 1 45); do
   [ "$i" = 45 ] && fail "no CrowdSec alert in the events: $($CURL "$ADMIN/api/npmos/events?kind=crowdsec&limit=5")"
   sleep 2
 done
+# the agents are one list, each row names its agent
+$CURL "$ADMIN/api/npmos/events?agent=crowdsec&limit=5" | grep -q '"kind": *"crowdsec"' \
+  || fail "the CrowdSec alert is not in the events of the agents"
 api_json "$ADMIN/api/npmos/crowdsec/decisions/delete" -d "{\"values\": [\"$client_ip\"]}" > /dev/null || true
 
 if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then

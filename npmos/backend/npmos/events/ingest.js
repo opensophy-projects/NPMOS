@@ -8,6 +8,7 @@ import { getSetting } from "../settings.js";
 import { classify, parseChunk } from "./normalize.js";
 import { applyRetention, dropCursors, ensureCurrentPartitions, loadCursors, oldestKeptDay, store } from "./store.js";
 import { scan } from "./tail.js";
+import { startRequests, stopRequests } from "./requests.js";
 
 const LOG_DIR = process.env.NPMOS_APPSEC_LOG_DIR || "/ext/appsec-logs";
 const INTERVAL_MS = 2000;
@@ -108,11 +109,14 @@ export const start = () => {
 	state.running = true;
 	state.timer = setTimeout(round, 0);
 	logger.info(`NPMOS events: reading the agent's security log in ${LOG_DIR}`);
+	// requests of the hosts from the access log of nginx (Analytics)
+	startRequests();
 };
 
 export const stop = () => {
 	state.running = false;
 	clearTimeout(state.timer);
+	stopRequests();
 };
 
 /** retention changed in the GUI: applied now */

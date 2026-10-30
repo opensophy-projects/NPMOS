@@ -21,6 +21,8 @@ import { ActionBadge, EventTime, SeverityBadge } from "./badges";
 import styles from "./Events.module.css";
 import {
 	ACTIONS,
+	AGENT_OF,
+	AGENTS,
 	activeCount,
 	type EventFilters,
 	filtersFromParams,
@@ -138,7 +140,7 @@ function FilterPanel({
 	types: string[];
 	hosts: string[];
 }) {
-	const toggle = (field: "action" | "severity", value: string) =>
+	const toggle = (field: "action" | "severity" | "agent", value: string) =>
 		onChange(
 			filters[field].includes(value) ? withoutValue(filters, field, value) : withValue(filters, field, value),
 		);
@@ -156,6 +158,7 @@ function FilterPanel({
 							onChange({
 								...filters,
 								important: false,
+								agent: [],
 								host: [],
 								ip: [],
 								action: [],
@@ -198,6 +201,26 @@ function FilterPanel({
 							</span>
 						</label>
 					</div>
+					{filters.kind === "agents" && (
+						<div className={styles.section}>
+							<div className={styles.sectionTitle}>
+								<T id="npmos.events.agent" />
+							</div>
+							<div className={styles.options}>
+								{AGENTS.map((a) => (
+									<label key={a}>
+										<input
+											type="checkbox"
+											className="form-check-input m-0"
+											checked={filters.agent.includes(a)}
+											onChange={() => toggle("agent", a)}
+										/>
+										<T id={`npmos.events.agent.${a}`} />
+									</label>
+								))}
+							</div>
+						</div>
+					)}
 					<div className={styles.section}>
 						<div className={styles.sectionTitle}>
 							<T id="npmos.waf.events.action" />
@@ -301,6 +324,7 @@ function FilterPanel({
 }
 
 const FIELD_LABEL: Record<ListField, string> = {
+	agent: "npmos.events.agent",
 	host: "npmos.waf.events.host",
 	ip: "npmos.waf.events.source-ip",
 	action: "npmos.waf.events.action",
@@ -323,7 +347,7 @@ function ActiveFilters({ filters, onChange }: { filters: EventFilters; onChange:
 			chips.push({
 				key: `${field}:${value}`,
 				label: t(FIELD_LABEL[field]),
-				value,
+				value: field === "agent" ? t(`npmos.events.agent.${value}`) : value,
 				remove: () => onChange(withoutValue(filters, field, value)),
 			});
 		}
@@ -361,6 +385,9 @@ function EventRow({ event, onFilter }: { event: SecurityEvent; onFilter: (field:
 		<tr className={styles.row} onClick={() => showWafEventModal(event, onFilter)}>
 			<td className={styles.time}>
 				<EventTime time={event.time} />
+			</td>
+			<td className={styles.agent}>
+				<T id={`npmos.events.agent.${AGENT_OF[event.kind] ?? "open-appsec"}`} />
 			</td>
 			<td>
 				<SeverityBadge severity={event.severity} />
@@ -563,6 +590,9 @@ function WafEventsPage() {
 											<T id="npmos.waf.events.time" />
 										</th>
 										<th>
+											<T id="npmos.events.agent" />
+										</th>
+										<th>
 											<T id="npmos.waf.events.severity" />
 										</th>
 										<th>
@@ -588,7 +618,7 @@ function WafEventsPage() {
 								<tbody>
 									{events.length === 0 ? (
 										<tr>
-											<td colSpan={8} className={hostStyles.empty}>
+											<td colSpan={9} className={hostStyles.empty}>
 												<T id="npmos.events.empty" />
 											</td>
 										</tr>

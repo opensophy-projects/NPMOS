@@ -192,3 +192,33 @@ test("analytics timeline: aligned buckets, actions split", async () => {
 		],
 	);
 });
+
+test("requests: a line of the access log of nginx, admin and health checks left out", async () => {
+	const { parseLine, requestAggregates } = await import("./requests.js");
+	const line = (host, status, extra = "Mozilla/5.0") =>
+		`[30/Oct/2026:08:36:30 +0300] ${host} 203.0.113.7 0.004 "GET / HTTP/2.0" ${status} 96 1224 - ${extra}`;
+	const a = parseLine(line("App.example.com:443", 200));
+	assert.equal(a.host, "app.example.com");
+	assert.equal(a.time.toISOString(), "2026-10-30T05:36:30.000Z");
+	assert.equal(a.bytes, 1224);
+	assert.equal(parseLine(line("127.0.0.1:81", 200)), null);
+	assert.equal(parseLine(line("app.example.com", 200, "NPMplus/healthcheck")), null);
+	assert.equal(parseLine("garbage"), null);
+	const rows = requestAggregates([
+		a,
+		parseLine(line("app.example.com", 403)),
+		parseLine(line("app.example.com", 502)),
+	]);
+	assert.equal(rows.length, 1);
+	assert.deepEqual(
+		{
+			requests: rows[0].requests,
+			s2xx: rows[0].s2xx,
+			s4xx: rows[0].s4xx,
+			s5xx: rows[0].s5xx,
+			blocked: rows[0].blocked,
+		},
+		{ requests: 3, s2xx: 1, s4xx: 1, s5xx: 1, blocked: 1 },
+	);
+	assert.equal(rows[0].hour.toISOString(), "2026-10-30T05:00:00.000Z");
+});

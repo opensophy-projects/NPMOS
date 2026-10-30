@@ -188,6 +188,53 @@ const internalAnalytics = {
 			.modify((b) => host && b.where("asset", host))
 			.first();
 
+		// all requests of the hosts, from the access log of nginx (hourly)
+		const requestRows = () =>
+			knex("npmos_request_hourly")
+				.where("hour", ">=", new Date(Math.floor(from.getTime() / HOUR) * HOUR))
+				.where("hour", "<=", to)
+				.modify((b) => host && b.where("host", host));
+		const [requestTotals, requestHosts, requestHours] = await Promise.all([
+			requestRows()
+				.sum({
+					requests: "requests",
+					s2xx: "s2xx",
+					s3xx: "s3xx",
+					s4xx: "s4xx",
+					s5xx: "s5xx",
+					blocked: "blocked",
+					bytes: "bytes",
+				})
+				.first(),
+			requestRows()
+				.select("host")
+				.sum({ requests: "requests", s4xx: "s4xx", s5xx: "s5xx", blocked: "blocked" })
+				.groupBy("host")
+				.orderBy("requests", "desc")
+				.limit(TOP),
+			requestRows().select({ time: "hour" }).sum({ requests: "requests", blocked: "blocked" }).groupBy("hour"),
+		]);
+		const num = (v) => Number(v ?? 0);
+		// requests per bucket: hours spread over buckets longer than an hour; a shorter bucket gets its hour
+		const requestTimeline = emptyTimeline(from, to, bucket).map((b) => ({ t: b.t, requests: 0, blocked: 0 }));
+		const firstBucket = requestTimeline.length ? Date.parse(requestTimeline[0].t) : 0;
+		for (const row of requestHours) {
+			const t = new Date(row.time).getTime();
+			const i = Math.floor((Math.max(t, firstBucket) - firstBucket) / bucket);
+			if (i < 0 || i >= requestTimeline.length) continue;
+			if (bucket >= HOUR) {
+				requestTimeline[i].requests += num(row.requests);
+				requestTimeline[i].blocked += num(row.blocked);
+			} else {
+				// 5-minute buckets of the last hour: the hourly count is shared out evenly
+				const parts = requestTimeline.filter((b) => Math.floor(Date.parse(b.t) / HOUR) * HOUR === t);
+				for (const b of parts) {
+					b.requests += num(row.requests) / parts.length;
+					b.blocked += num(row.blocked) / parts.length;
+				}
+			}
+		}
+
 		const total = byAction.reduce((n, r) => n + Number(r.events), 0);
 		const prevented = byAction.filter((r) => isPrevent(r.action)).reduce((n, r) => n + Number(r.events), 0);
 		return {
@@ -210,6 +257,28 @@ const internalAnalytics = {
 				crowdsec_bans: Number(crowdsec?.bans ?? 0),
 			},
 			timeline,
+			// all requests of the hosts (access log of nginx): counts, classes of answers, per host and in time
+			traffic: {
+				requests: num(requestTotals?.requests),
+				ok: num(requestTotals?.s2xx) + num(requestTotals?.s3xx),
+				s2xx: num(requestTotals?.s2xx),
+				s3xx: num(requestTotals?.s3xx),
+				s4xx: num(requestTotals?.s4xx),
+				s5xx: num(requestTotals?.s5xx),
+				blocked: num(requestTotals?.blocked),
+				bytes: num(requestTotals?.bytes),
+				hosts: requestHosts.map((r) => ({
+					host: r.host,
+					requests: num(r.requests),
+					errors: num(r.s4xx) + num(r.s5xx),
+					blocked: num(r.blocked),
+				})),
+				timeline: requestTimeline.map((b) => ({
+					t: b.t,
+					requests: Math.round(b.requests),
+					blocked: Math.round(b.blocked),
+				})),
+			},
 			actions: count(byAction, "action", "action"),
 			severities: count(bySeverity, "severity", "severity"),
 			types: count(byType, "incident_type", "type").slice(0, TOP),
