@@ -686,6 +686,9 @@
 	"npmos.agent.tab.agent": {
 		"defaultMessage": "Агент"
 	},
+	"npmos.agent.tab.learning": {
+		"defaultMessage": "Обучение"
+	},
 	"npmos.agent.tab.policies": {
 		"defaultMessage": "Политики"
 	},
@@ -851,6 +854,9 @@
 	"npmos.audit.action.installed": {
 		"defaultMessage": "Установка"
 	},
+	"npmos.audit.action.labeled": {
+		"defaultMessage": "Размечено"
+	},
 	"npmos.audit.action.regenerated": {
 		"defaultMessage": "Пересоздание"
 	},
@@ -868,6 +874,9 @@
 	},
 	"npmos.audit.action.unbanned": {
 		"defaultMessage": "Снятие бана"
+	},
+	"npmos.audit.action.unlabeled": {
+		"defaultMessage": "Разметка отменена"
 	},
 	"npmos.audit.action.updated": {
 		"defaultMessage": "Изменение"
@@ -2714,6 +2723,12 @@
 	"npmos.hosts.waf.prevent.hint": {
 		"defaultMessage": "Атаки блокируются (ответ 403)"
 	},
+	"npmos.hosts.waf.ready": {
+		"defaultMessage": "готов к блокировке"
+	},
+	"npmos.hosts.waf.ready.hint": {
+		"defaultMessage": "Модель хоста обучилась достаточно, чтобы блокировать атаки («Агенты → open-appsec → Обучение»). Переключите режим на блокировку в этом меню."
+	},
 	"npmos.hosts.waf.template.api.hint": {
 		"defaultMessage": "Шаблон: для API, нестандартные HTTP-методы блокируются"
 	},
@@ -2725,6 +2740,348 @@
 	},
 	"npmos.hosts.waf.template.strict.hint": {
 		"defaultMessage": "Шаблон: средняя уверенность, CSRF, раскрытие ошибок, редиректы, страница блокировки"
+	},
+	"npmos.learning.attacks": {
+		"defaultMessage": "Типы атак"
+	},
+	"npmos.learning.ban": {
+		"defaultMessage": "Забанить {count, plural, one {источник} few {# источника} many {# источников} other {# источника}} в CrowdSec"
+	},
+	"npmos.learning.ban.duration": {
+		"defaultMessage": "на"
+	},
+	"npmos.learning.decision": {
+		"defaultMessage": "Решение"
+	},
+	"npmos.learning.decision.benign": {
+		"defaultMessage": "Легитимно"
+	},
+	"npmos.learning.decision.benign.text": {
+		"defaultMessage": "Обычный трафик приложения: агент учится, что это не атака."
+	},
+	"npmos.learning.decision.dismiss": {
+		"defaultMessage": "Пропустить"
+	},
+	"npmos.learning.decision.dismiss.text": {
+		"defaultMessage": "Неясно или неважно: группа уходит из очереди, ничего не меняется."
+	},
+	"npmos.learning.decision.malicious": {
+		"defaultMessage": "Атака"
+	},
+	"npmos.learning.decision.malicious.text": {
+		"defaultMessage": "Настоящая атака: не попадает в обучение, модель никогда не примет её за норму."
+	},
+	"npmos.learning.description": {
+		"defaultMessage": "Разметьте то, в чём агент не уверен. Легитимный запрос перестанет блокироваться (сразу — через исключение, или после цикла обучения модели); атака не попадёт в обучение. Всё локально: агент читает разметку из общего хранилища стека."
+	},
+	"npmos.learning.done.benign": {
+		"defaultMessage": "Отмечено как легитимное"
+	},
+	"npmos.learning.done.dismiss": {
+		"defaultMessage": "Пропущено"
+	},
+	"npmos.learning.done.malicious": {
+		"defaultMessage": "Отмечено как атака"
+	},
+	"npmos.learning.duration.168h": {
+		"defaultMessage": "7 дней"
+	},
+	"npmos.learning.duration.1h": {
+		"defaultMessage": "1 час"
+	},
+	"npmos.learning.duration.24h": {
+		"defaultMessage": "1 день"
+	},
+	"npmos.learning.duration.4h": {
+		"defaultMessage": "4 часа"
+	},
+	"npmos.learning.duration.720h": {
+		"defaultMessage": "30 дней"
+	},
+	"npmos.learning.effect.banned": {
+		"defaultMessage": "забанено {count} на {duration}"
+	},
+	"npmos.learning.effect.dismiss": {
+		"defaultMessage": "убрано из очереди"
+	},
+	"npmos.learning.effect.error": {
+		"defaultMessage": "не передано: {error}"
+	},
+	"npmos.learning.effect.exception": {
+		"defaultMessage": "исключение в политике"
+	},
+	"npmos.learning.effect.exception.ended": {
+		"defaultMessage": "исключение снято"
+	},
+	"npmos.learning.effect.exception.until": {
+		"defaultMessage": "исключение до {date}"
+	},
+	"npmos.learning.effect.pending": {
+		"defaultMessage": "ожидает передачи агенту"
+	},
+	"npmos.learning.effect.synced": {
+		"defaultMessage": "передано агенту"
+	},
+	"npmos.learning.effect.tuning": {
+		"defaultMessage": "записано сервисом настройки"
+	},
+	"npmos.learning.effects": {
+		"defaultMessage": "Эффект"
+	},
+	"npmos.learning.effects.benign": {
+		"defaultMessage": "Агент получит разметку в течение 30 минут и учтёт её в следующих циклах обучения (часы). Чтобы перестать блокировать сразу, добавьте исключение для хоста на время, пока модель учится."
+	},
+	"npmos.learning.effects.malicious": {
+		"defaultMessage": "Агент получит разметку в течение 30 минут: эти запросы больше не учитываются в обучении. Сразу блокировать — по желанию."
+	},
+	"npmos.learning.effects.tuning": {
+		"defaultMessage": "Подсказка сервиса настройки open-appsec: решение для агента он записывает сам."
+	},
+	"npmos.learning.enforced": {
+		"defaultMessage": "агент применил {count}"
+	},
+	"npmos.learning.events": {
+		"defaultMessage": "События"
+	},
+	"npmos.learning.events.value": {
+		"defaultMessage": "{sources, plural, one {# источник} few {# источника} many {# источников} other {# источника}}{blocked, plural, =0 {} other {, заблокировано #}}"
+	},
+	"npmos.learning.exception.benign": {
+		"defaultMessage": "Сразу перестать блокировать"
+	},
+	"npmos.learning.exception.benign.text": {
+		"defaultMessage": "исключение (accept) для хоста в политике"
+	},
+	"npmos.learning.exception.malicious": {
+		"defaultMessage": "Сразу блокировать"
+	},
+	"npmos.learning.exception.malicious.text": {
+		"defaultMessage": "исключение (drop) для хоста в политике, до отмены"
+	},
+	"npmos.learning.false-positives": {
+		"defaultMessage": "Ложные срабатывания, 7 дн"
+	},
+	"npmos.learning.false-positives.value": {
+		"defaultMessage": "{before} до → {after} после"
+	},
+	"npmos.learning.history": {
+		"defaultMessage": "История разметки"
+	},
+	"npmos.learning.history.empty": {
+		"defaultMessage": "Разметки пока нет."
+	},
+	"npmos.learning.history.text": {
+		"defaultMessage": "Кто, что и когда разметил: локальный размеченный датасет. Отмена убирает разметку и её эффекты, группа возвращается в очередь."
+	},
+	"npmos.learning.host": {
+		"defaultMessage": "Хост"
+	},
+	"npmos.learning.hosts": {
+		"defaultMessage": "Хосты"
+	},
+	"npmos.learning.hosts.empty": {
+		"defaultMessage": "Ни на одном хосте не включён WAF."
+	},
+	"npmos.learning.hosts.text": {
+		"defaultMessage": "Насколько обучилась модель каждого хоста, что размечено, и события групп, отмеченных легитимными, за 7 дней до и после разметки."
+	},
+	"npmos.learning.indicators": {
+		"defaultMessage": "Индикаторы"
+	},
+	"npmos.learning.label.title": {
+		"defaultMessage": "Разметка группы событий"
+	},
+	"npmos.learning.labels": {
+		"defaultMessage": "Разметка"
+	},
+	"npmos.learning.labels.value": {
+		"defaultMessage": "легитимных {benign} · атак {malicious} · в очереди {queue}"
+	},
+	"npmos.learning.last": {
+		"defaultMessage": "Последнее"
+	},
+	"npmos.learning.mode": {
+		"defaultMessage": "Режим"
+	},
+	"npmos.learning.mode.detect-learn": {
+		"defaultMessage": "Обнаружение"
+	},
+	"npmos.learning.mode.prevent-learn": {
+		"defaultMessage": "Блокировка"
+	},
+	"npmos.learning.new": {
+		"defaultMessage": "новое"
+	},
+	"npmos.learning.note": {
+		"defaultMessage": "Комментарий (необязательно)"
+	},
+	"npmos.learning.parameter": {
+		"defaultMessage": "Параметр"
+	},
+	"npmos.learning.prevent": {
+		"defaultMessage": "Перевести в блокировку"
+	},
+	"npmos.learning.prevent.done": {
+		"defaultMessage": "{name}: включена блокировка"
+	},
+	"npmos.learning.queue": {
+		"defaultMessage": "Очередь разметки"
+	},
+	"npmos.learning.queue.empty": {
+		"defaultMessage": "Размечать нечего: за период нет заблокированных или сомнительных запросов."
+	},
+	"npmos.learning.queue.text": {
+		"defaultMessage": "События защищённых хостов, сгруппированные по хосту, URL, параметру и индикаторам: одна разметка — на всю группу."
+	},
+	"npmos.learning.queue.total": {
+		"defaultMessage": "{total, plural, one {# группа} few {# группы} many {# групп} other {# группы}}"
+	},
+	"npmos.learning.readiness": {
+		"defaultMessage": "Обучение"
+	},
+	"npmos.learning.readiness.graduate": {
+		"defaultMessage": "Выпускник"
+	},
+	"npmos.learning.readiness.high": {
+		"defaultMessage": "Средняя школа"
+	},
+	"npmos.learning.readiness.kindergarten": {
+		"defaultMessage": "Детский сад"
+	},
+	"npmos.learning.readiness.master": {
+		"defaultMessage": "Магистр"
+	},
+	"npmos.learning.readiness.none": {
+		"defaultMessage": "Нет данных"
+	},
+	"npmos.learning.readiness.phd": {
+		"defaultMessage": "Доктор наук"
+	},
+	"npmos.learning.readiness.primary": {
+		"defaultMessage": "Начальная школа"
+	},
+	"npmos.learning.ready": {
+		"defaultMessage": "Готов к блокировке"
+	},
+	"npmos.learning.reason": {
+		"defaultMessage": "Почему"
+	},
+	"npmos.learning.reason.blocked": {
+		"defaultMessage": "Заблокировано"
+	},
+	"npmos.learning.reason.blocked.text": {
+		"defaultMessage": "Запросы были отклонены: если они легитимны, это уже мешает пользователям."
+	},
+	"npmos.learning.reason.detected": {
+		"defaultMessage": "Обнаружено"
+	},
+	"npmos.learning.reason.detected.text": {
+		"defaultMessage": "Высокая оценка на хосте в режиме обнаружения: в режиме блокировки запрос был бы отклонён."
+	},
+	"npmos.learning.reason.grey": {
+		"defaultMessage": "Серая зона"
+	},
+	"npmos.learning.reason.grey.text": {
+		"defaultMessage": "Средняя оценка (3–6): блокируется или нет в зависимости от минимальной уверенности."
+	},
+	"npmos.learning.recommendation.keep_learning": {
+		"defaultMessage": "Продолжать обучение"
+	},
+	"npmos.learning.recommendation.prevent_critical": {
+		"defaultMessage": "Можно блокировать критичные атаки"
+	},
+	"npmos.learning.recommendation.prevent_high": {
+		"defaultMessage": "Можно блокировать атаки высокой и критичной важности"
+	},
+	"npmos.learning.recommendation.review": {
+		"defaultMessage": "Разметить подсказки"
+	},
+	"npmos.learning.recommendation.review_critical": {
+		"defaultMessage": "Разметить критичные подсказки"
+	},
+	"npmos.learning.recommendation.send_traffic": {
+		"defaultMessage": "Нужен трафик на хост"
+	},
+	"npmos.learning.scope.parameterName": {
+		"defaultMessage": "Имя параметра"
+	},
+	"npmos.learning.scope.parameterValue": {
+		"defaultMessage": "Значение параметра"
+	},
+	"npmos.learning.scope.source": {
+		"defaultMessage": "Источники"
+	},
+	"npmos.learning.scope.source.benign": {
+		"defaultMessage": "доверять им при обучении (офис, QA, мониторинг)"
+	},
+	"npmos.learning.scope.source.malicious": {
+		"defaultMessage": "не учитывать их запросы при обучении"
+	},
+	"npmos.learning.scope.url": {
+		"defaultMessage": "URL"
+	},
+	"npmos.learning.scopes": {
+		"defaultMessage": "На что распространяется"
+	},
+	"npmos.learning.scopes.text": {
+		"defaultMessage": "Агент учитывает каждый выбранный признак отдельно (это значение в любом месте хоста, этот параметр, этот URL, эти источники). Исключение срабатывает, только когда совпадают все."
+	},
+	"npmos.learning.score": {
+		"defaultMessage": "Оценка"
+	},
+	"npmos.learning.search": {
+		"defaultMessage": "URL, параметр, значение, индикатор"
+	},
+	"npmos.learning.severity": {
+		"defaultMessage": "Важность"
+	},
+	"npmos.learning.submit.benign": {
+		"defaultMessage": "Отметить легитимным"
+	},
+	"npmos.learning.submit.dismiss": {
+		"defaultMessage": "Пропустить"
+	},
+	"npmos.learning.submit.malicious": {
+		"defaultMessage": "Отметить атакой"
+	},
+	"npmos.learning.suggestions": {
+		"defaultMessage": "Подсказки сервиса настройки"
+	},
+	"npmos.learning.suggestions.text": {
+		"defaultMessage": "open-appsec находит их сам на нагруженных хостах (много разных источников)."
+	},
+	"npmos.learning.ttl": {
+		"defaultMessage": "Убрать исключение через"
+	},
+	"npmos.learning.ttl.days": {
+		"defaultMessage": "{days, plural, one {# день} few {# дня} many {# дней} other {# дня}}"
+	},
+	"npmos.learning.ttl.none": {
+		"defaultMessage": "никогда"
+	},
+	"npmos.learning.tuning-error": {
+		"defaultMessage": "Сервис настройки open-appsec не отвечает: {error}"
+	},
+	"npmos.learning.undo": {
+		"defaultMessage": "Отменить"
+	},
+	"npmos.learning.undo.done": {
+		"defaultMessage": "Разметка отменена"
+	},
+	"npmos.learning.undone": {
+		"defaultMessage": "отменил(а) {who} {when}"
+	},
+	"npmos.learning.url": {
+		"defaultMessage": "URL"
+	},
+	"npmos.learning.value": {
+		"defaultMessage": "Значение"
+	},
+	"npmos.learning.what": {
+		"defaultMessage": "Что"
+	},
+	"npmos.learning.when": {
+		"defaultMessage": "Когда"
 	},
 	"npmos.migration.after": {
 		"defaultMessage": "Проверьте хосты, направьте DNS или порты на NPMOS и после этого остановите старый контейнер. WAF и CrowdSec настраиваются для хостов уже в NPMOS."
@@ -3468,7 +3825,7 @@
 		"defaultMessage": "Атаки"
 	},
 	"npmos.notifications.preset.attacks.text": {
-		"defaultMessage": "Всплески атак и молчащий агент WAF"
+		"defaultMessage": "Всплески атак, молчащий агент WAF и события на разметку"
 	},
 	"npmos.notifications.preset.certificates": {
 		"defaultMessage": "Сертификаты"
@@ -3541,6 +3898,15 @@
 	},
 	"npmos.notifications.rule.host_problem.hint": {
 		"defaultMessage": "nginx не принял конфигурацию включённого хоста (как красная рекомендация в таблице хостов)."
+	},
+	"npmos.notifications.rule.learning_queue": {
+		"defaultMessage": "События на разметку"
+	},
+	"npmos.notifications.rule.learning_queue.hint": {
+		"defaultMessage": "Агент не уверен в группах запросов за последние 24 ч («Агенты → open-appsec → Обучение»)."
+	},
+	"npmos.notifications.rule.learning_queue.params": {
+		"defaultMessage": "от {threshold} групп"
 	},
 	"npmos.notifications.rule.new": {
 		"defaultMessage": "Новое правило"
@@ -3634,6 +4000,9 @@
 	},
 	"npmos.notifications.setup.why.host_problem": {
 		"defaultMessage": "nginx не принял конфигурацию хоста: хост не работает."
+	},
+	"npmos.notifications.setup.why.learning_queue": {
+		"defaultMessage": "У агента WAF есть сомнительные запросы на разметку: легитимные перестанут блокироваться."
 	},
 	"npmos.notifications.setup.why.policy_error": {
 		"defaultMessage": "Изменённая политика WAF не применилась: агент работает по прежней."

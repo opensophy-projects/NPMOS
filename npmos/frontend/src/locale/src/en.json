@@ -686,6 +686,9 @@
 	"npmos.agent.tab.agent": {
 		"defaultMessage": "Agent"
 	},
+	"npmos.agent.tab.learning": {
+		"defaultMessage": "Learning"
+	},
 	"npmos.agent.tab.policies": {
 		"defaultMessage": "Policies"
 	},
@@ -851,6 +854,9 @@
 	"npmos.audit.action.installed": {
 		"defaultMessage": "Installed"
 	},
+	"npmos.audit.action.labeled": {
+		"defaultMessage": "Labelled"
+	},
 	"npmos.audit.action.regenerated": {
 		"defaultMessage": "Regenerated"
 	},
@@ -868,6 +874,9 @@
 	},
 	"npmos.audit.action.unbanned": {
 		"defaultMessage": "Unbanned"
+	},
+	"npmos.audit.action.unlabeled": {
+		"defaultMessage": "Label undone"
 	},
 	"npmos.audit.action.updated": {
 		"defaultMessage": "Updated"
@@ -2714,6 +2723,12 @@
 	"npmos.hosts.waf.prevent.hint": {
 		"defaultMessage": "Attacks are blocked with 403"
 	},
+	"npmos.hosts.waf.ready": {
+		"defaultMessage": "ready to block"
+	},
+	"npmos.hosts.waf.ready.hint": {
+		"defaultMessage": "The model of the host has learnt enough to block attacks (Agents → open-appsec → Learning). Switch the mode to prevention in this menu."
+	},
 	"npmos.hosts.waf.template.api.hint": {
 		"defaultMessage": "Template: for APIs, non-standard HTTP methods are blocked"
 	},
@@ -2725,6 +2740,348 @@
 	},
 	"npmos.hosts.waf.template.strict.hint": {
 		"defaultMessage": "Template: medium confidence, CSRF, error disclosure, open redirect, block page"
+	},
+	"npmos.learning.attacks": {
+		"defaultMessage": "Attack types"
+	},
+	"npmos.learning.ban": {
+		"defaultMessage": "Ban {count, plural, one {the source} other {# sources}} in CrowdSec"
+	},
+	"npmos.learning.ban.duration": {
+		"defaultMessage": "for"
+	},
+	"npmos.learning.decision": {
+		"defaultMessage": "Decision"
+	},
+	"npmos.learning.decision.benign": {
+		"defaultMessage": "Legitimate"
+	},
+	"npmos.learning.decision.benign.text": {
+		"defaultMessage": "Normal traffic of the application: the agent learns it is not an attack."
+	},
+	"npmos.learning.decision.dismiss": {
+		"defaultMessage": "Skip"
+	},
+	"npmos.learning.decision.dismiss.text": {
+		"defaultMessage": "Not sure or not important: the group leaves the queue, nothing changes."
+	},
+	"npmos.learning.decision.malicious": {
+		"defaultMessage": "Attack"
+	},
+	"npmos.learning.decision.malicious.text": {
+		"defaultMessage": "A real attack: kept out of learning, so the model never takes it as normal."
+	},
+	"npmos.learning.description": {
+		"defaultMessage": "Label what the agent is not sure about. A legitimate request stops being blocked (at once with an exception, or after a learning cycle of the model); an attack stays out of learning. Everything is local: the agent reads the labels from the shared storage of the stack."
+	},
+	"npmos.learning.done.benign": {
+		"defaultMessage": "Marked legitimate"
+	},
+	"npmos.learning.done.dismiss": {
+		"defaultMessage": "Skipped"
+	},
+	"npmos.learning.done.malicious": {
+		"defaultMessage": "Marked as attack"
+	},
+	"npmos.learning.duration.168h": {
+		"defaultMessage": "7 days"
+	},
+	"npmos.learning.duration.1h": {
+		"defaultMessage": "1 hour"
+	},
+	"npmos.learning.duration.24h": {
+		"defaultMessage": "1 day"
+	},
+	"npmos.learning.duration.4h": {
+		"defaultMessage": "4 hours"
+	},
+	"npmos.learning.duration.720h": {
+		"defaultMessage": "30 days"
+	},
+	"npmos.learning.effect.banned": {
+		"defaultMessage": "{count} banned for {duration}"
+	},
+	"npmos.learning.effect.dismiss": {
+		"defaultMessage": "left out of the queue"
+	},
+	"npmos.learning.effect.error": {
+		"defaultMessage": "not written: {error}"
+	},
+	"npmos.learning.effect.exception": {
+		"defaultMessage": "exception in the policy"
+	},
+	"npmos.learning.effect.exception.ended": {
+		"defaultMessage": "exception ended"
+	},
+	"npmos.learning.effect.exception.until": {
+		"defaultMessage": "exception until {date}"
+	},
+	"npmos.learning.effect.pending": {
+		"defaultMessage": "waiting to be written"
+	},
+	"npmos.learning.effect.synced": {
+		"defaultMessage": "written for the agent"
+	},
+	"npmos.learning.effect.tuning": {
+		"defaultMessage": "written by the tuning service"
+	},
+	"npmos.learning.effects": {
+		"defaultMessage": "Effect"
+	},
+	"npmos.learning.effects.benign": {
+		"defaultMessage": "The agent takes the label within 30 minutes and learns from it over the next cycles (hours). To stop blocking at once, add an exception for the host until the model has learnt."
+	},
+	"npmos.learning.effects.malicious": {
+		"defaultMessage": "The agent takes the label within 30 minutes: these requests no longer count in learning. Blocking at once is optional."
+	},
+	"npmos.learning.effects.tuning": {
+		"defaultMessage": "A suggestion of the tuning service of open-appsec: it writes the decision for the agent itself."
+	},
+	"npmos.learning.enforced": {
+		"defaultMessage": "{count} taken by the agent"
+	},
+	"npmos.learning.events": {
+		"defaultMessage": "Events"
+	},
+	"npmos.learning.events.value": {
+		"defaultMessage": "{sources, plural, one {# source} other {# sources}}{blocked, plural, =0 {} other {, # blocked}}"
+	},
+	"npmos.learning.exception.benign": {
+		"defaultMessage": "Stop blocking at once"
+	},
+	"npmos.learning.exception.benign.text": {
+		"defaultMessage": "an exception (accept) for the host in the policy"
+	},
+	"npmos.learning.exception.malicious": {
+		"defaultMessage": "Block at once"
+	},
+	"npmos.learning.exception.malicious.text": {
+		"defaultMessage": "an exception (drop) for the host in the policy, until undone"
+	},
+	"npmos.learning.false-positives": {
+		"defaultMessage": "False positives, 7 d"
+	},
+	"npmos.learning.false-positives.value": {
+		"defaultMessage": "{before} before → {after} after"
+	},
+	"npmos.learning.history": {
+		"defaultMessage": "History"
+	},
+	"npmos.learning.history.empty": {
+		"defaultMessage": "No labels yet."
+	},
+	"npmos.learning.history.text": {
+		"defaultMessage": "Who labelled what and when: the local dataset. Undo takes back the label and its effects; the group comes back to the queue."
+	},
+	"npmos.learning.host": {
+		"defaultMessage": "Host"
+	},
+	"npmos.learning.hosts": {
+		"defaultMessage": "Hosts"
+	},
+	"npmos.learning.hosts.empty": {
+		"defaultMessage": "No host has the WAF on."
+	},
+	"npmos.learning.hosts.text": {
+		"defaultMessage": "How far the model of each host has learnt, what was labelled, and the events of groups marked legitimate in the 7 days before and after the label."
+	},
+	"npmos.learning.indicators": {
+		"defaultMessage": "Indicators"
+	},
+	"npmos.learning.label.title": {
+		"defaultMessage": "Label a group of events"
+	},
+	"npmos.learning.labels": {
+		"defaultMessage": "Labels"
+	},
+	"npmos.learning.labels.value": {
+		"defaultMessage": "{benign} legitimate · {malicious} attacks · {queue} in queue"
+	},
+	"npmos.learning.last": {
+		"defaultMessage": "Last"
+	},
+	"npmos.learning.mode": {
+		"defaultMessage": "Mode"
+	},
+	"npmos.learning.mode.detect-learn": {
+		"defaultMessage": "Detection"
+	},
+	"npmos.learning.mode.prevent-learn": {
+		"defaultMessage": "Prevention"
+	},
+	"npmos.learning.new": {
+		"defaultMessage": "new"
+	},
+	"npmos.learning.note": {
+		"defaultMessage": "Note (optional)"
+	},
+	"npmos.learning.parameter": {
+		"defaultMessage": "Parameter"
+	},
+	"npmos.learning.prevent": {
+		"defaultMessage": "Switch to prevention"
+	},
+	"npmos.learning.prevent.done": {
+		"defaultMessage": "{name}: prevention on"
+	},
+	"npmos.learning.queue": {
+		"defaultMessage": "Queue"
+	},
+	"npmos.learning.queue.empty": {
+		"defaultMessage": "Nothing to label: no blocked or doubtful requests in this period."
+	},
+	"npmos.learning.queue.text": {
+		"defaultMessage": "Events of protected hosts grouped by host, URL, parameter and indicators: one label covers a group."
+	},
+	"npmos.learning.queue.total": {
+		"defaultMessage": "{total, plural, one {# group} other {# groups}}"
+	},
+	"npmos.learning.readiness": {
+		"defaultMessage": "Learning"
+	},
+	"npmos.learning.readiness.graduate": {
+		"defaultMessage": "Graduate"
+	},
+	"npmos.learning.readiness.high": {
+		"defaultMessage": "High school"
+	},
+	"npmos.learning.readiness.kindergarten": {
+		"defaultMessage": "Kindergarten"
+	},
+	"npmos.learning.readiness.master": {
+		"defaultMessage": "Master"
+	},
+	"npmos.learning.readiness.none": {
+		"defaultMessage": "No data"
+	},
+	"npmos.learning.readiness.phd": {
+		"defaultMessage": "PhD"
+	},
+	"npmos.learning.readiness.primary": {
+		"defaultMessage": "Primary school"
+	},
+	"npmos.learning.ready": {
+		"defaultMessage": "Ready to block"
+	},
+	"npmos.learning.reason": {
+		"defaultMessage": "Why"
+	},
+	"npmos.learning.reason.blocked": {
+		"defaultMessage": "Blocked"
+	},
+	"npmos.learning.reason.blocked.text": {
+		"defaultMessage": "Requests were refused: if they are legitimate, users are affected now."
+	},
+	"npmos.learning.reason.detected": {
+		"defaultMessage": "Detected"
+	},
+	"npmos.learning.reason.detected.text": {
+		"defaultMessage": "High score on a host that only detects or learns: would be blocked in prevention."
+	},
+	"npmos.learning.reason.grey": {
+		"defaultMessage": "Grey zone"
+	},
+	"npmos.learning.reason.grey.text": {
+		"defaultMessage": "Medium score (3–6): blocked or not depending on the minimum confidence."
+	},
+	"npmos.learning.recommendation.keep_learning": {
+		"defaultMessage": "Keep learning"
+	},
+	"npmos.learning.recommendation.prevent_critical": {
+		"defaultMessage": "Ready to block critical attacks"
+	},
+	"npmos.learning.recommendation.prevent_high": {
+		"defaultMessage": "Ready to block high and critical attacks"
+	},
+	"npmos.learning.recommendation.review": {
+		"defaultMessage": "Label the suggestions"
+	},
+	"npmos.learning.recommendation.review_critical": {
+		"defaultMessage": "Label the critical suggestions"
+	},
+	"npmos.learning.recommendation.send_traffic": {
+		"defaultMessage": "Send traffic to the host"
+	},
+	"npmos.learning.scope.parameterName": {
+		"defaultMessage": "Name of the parameter"
+	},
+	"npmos.learning.scope.parameterValue": {
+		"defaultMessage": "Value of the parameter"
+	},
+	"npmos.learning.scope.source": {
+		"defaultMessage": "Sources"
+	},
+	"npmos.learning.scope.source.benign": {
+		"defaultMessage": "trust them while learning (office, QA, monitoring)"
+	},
+	"npmos.learning.scope.source.malicious": {
+		"defaultMessage": "keep their requests out of learning"
+	},
+	"npmos.learning.scope.url": {
+		"defaultMessage": "URL"
+	},
+	"npmos.learning.scopes": {
+		"defaultMessage": "Applies to"
+	},
+	"npmos.learning.scopes.text": {
+		"defaultMessage": "The agent takes each chosen item on its own (this value anywhere on the host, this parameter, this URL, these sources). The exception matches only when all of them match."
+	},
+	"npmos.learning.score": {
+		"defaultMessage": "Score"
+	},
+	"npmos.learning.search": {
+		"defaultMessage": "URL, parameter, value, indicator"
+	},
+	"npmos.learning.severity": {
+		"defaultMessage": "Severity"
+	},
+	"npmos.learning.submit.benign": {
+		"defaultMessage": "Mark legitimate"
+	},
+	"npmos.learning.submit.dismiss": {
+		"defaultMessage": "Skip"
+	},
+	"npmos.learning.submit.malicious": {
+		"defaultMessage": "Mark as attack"
+	},
+	"npmos.learning.suggestions": {
+		"defaultMessage": "Suggestions of the tuning service"
+	},
+	"npmos.learning.suggestions.text": {
+		"defaultMessage": "open-appsec finds them itself on busy hosts (many different sources)."
+	},
+	"npmos.learning.ttl": {
+		"defaultMessage": "Remove the exception after"
+	},
+	"npmos.learning.ttl.days": {
+		"defaultMessage": "{days, plural, one {# day} other {# days}}"
+	},
+	"npmos.learning.ttl.none": {
+		"defaultMessage": "never"
+	},
+	"npmos.learning.tuning-error": {
+		"defaultMessage": "The tuning service of open-appsec does not answer: {error}"
+	},
+	"npmos.learning.undo": {
+		"defaultMessage": "Undo"
+	},
+	"npmos.learning.undo.done": {
+		"defaultMessage": "Label undone"
+	},
+	"npmos.learning.undone": {
+		"defaultMessage": "undone by {who} {when}"
+	},
+	"npmos.learning.url": {
+		"defaultMessage": "URL"
+	},
+	"npmos.learning.value": {
+		"defaultMessage": "Value"
+	},
+	"npmos.learning.what": {
+		"defaultMessage": "What"
+	},
+	"npmos.learning.when": {
+		"defaultMessage": "When"
 	},
 	"npmos.migration.after": {
 		"defaultMessage": "Check the hosts: point DNS or the ports to NPMOS, then stop the old container. WAF and CrowdSec are configured per host in NPMOS."
@@ -3468,7 +3825,7 @@
 		"defaultMessage": "Attacks"
 	},
 	"npmos.notifications.preset.attacks.text": {
-		"defaultMessage": "Spikes of attacks and a silent WAF agent"
+		"defaultMessage": "Attack spikes, a silent WAF agent and events to label"
 	},
 	"npmos.notifications.preset.certificates": {
 		"defaultMessage": "Certificates"
@@ -3541,6 +3898,15 @@
 	},
 	"npmos.notifications.rule.host_problem.hint": {
 		"defaultMessage": "nginx did not take the configuration of an enabled host (as the red recommendation of the hosts table)."
+	},
+	"npmos.notifications.rule.learning_queue": {
+		"defaultMessage": "Events to label"
+	},
+	"npmos.notifications.rule.learning_queue.hint": {
+		"defaultMessage": "The agent is not sure about groups of requests of the last 24 h (Agents → open-appsec → Learning)."
+	},
+	"npmos.notifications.rule.learning_queue.params": {
+		"defaultMessage": "from {threshold} groups"
 	},
 	"npmos.notifications.rule.new": {
 		"defaultMessage": "New rule"
@@ -3634,6 +4000,9 @@
 	},
 	"npmos.notifications.setup.why.host_problem": {
 		"defaultMessage": "nginx refused the configuration of a host: it does not work."
+	},
+	"npmos.notifications.setup.why.learning_queue": {
+		"defaultMessage": "The WAF agent has doubtful requests to label: legitimate ones stop being blocked."
 	},
 	"npmos.notifications.setup.why.policy_error": {
 		"defaultMessage": "A changed WAF policy did not apply: the agent keeps the previous one."

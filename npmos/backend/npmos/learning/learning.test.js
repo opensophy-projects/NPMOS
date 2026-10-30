@@ -224,3 +224,29 @@ test("assets, statistics and suggestions of the tuning service", () => {
 	assert.equal(item.severity, "critical");
 	assert.deepEqual(item.metrics, [{ name: "requests", value: 3 }]);
 });
+
+test("groups by asset: domains and locations of a host are one host", () => {
+	const owners = new Map([
+		["shop.example", 3],
+		["www.shop.example", 3],
+		["shop.example/api", 3],
+	]);
+	const rows = [
+		row({ rule: "", asset: "shop.example" }),
+		row({ rule: "", asset: "www.shop.example", events: 1 }),
+		row({ rule: "", asset: "other.example" }),
+	];
+	const groups = groupsOf(rows, new Set(), new Date("2026-10-30T00:00:00Z"), (r) => owners.get(r.asset));
+	assert.equal(groups.length, 1);
+	assert.equal(groups[0].hostId, 3);
+	assert.equal(groups[0].events, 5);
+});
+
+test("scores of the agent: the scale 0..10, also when logged multiplied by 100", async () => {
+	const { scoreOf } = await import("../events/normalize.js");
+	assert.equal(scoreOf(1000), 10);
+	assert.equal(scoreOf(263), 2.63);
+	assert.equal(scoreOf(4.2), 4.2);
+	assert.equal(scoreOf("7"), 7);
+	assert.equal(scoreOf(null), null);
+});

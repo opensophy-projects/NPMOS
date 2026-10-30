@@ -23,13 +23,21 @@ const CHANNEL_ICON: Record<ChannelType, React.ReactNode> = {
 	telegram: <IconSend size={18} />,
 };
 
-const RULES: RuleType[] = ["service_down", "agent_down", "policy_error", "host_problem", "cert_expiry", "attack_spike"];
+const RULES: RuleType[] = [
+	"service_down",
+	"agent_down",
+	"policy_error",
+	"host_problem",
+	"cert_expiry",
+	"attack_spike",
+	"learning_queue",
+];
 
 /** presets: the rules each one ticks */
 export const PRESETS: Record<string, RuleType[]> = {
 	recommended: RULES,
 	failures: ["service_down", "agent_down", "policy_error", "host_problem"],
-	attacks: ["attack_spike", "agent_down"],
+	attacks: ["attack_spike", "agent_down", "learning_queue"],
 	certificates: ["cert_expiry"],
 };
 

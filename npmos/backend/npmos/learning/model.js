@@ -58,20 +58,26 @@ const num = (v) => (v === null || v === undefined || v === "" ? null : Number(v)
 const time = (v) => (v ? new Date(v).toISOString() : null);
 
 /**
- * Groups of the queue from rows grouped by rule, URI, parameter and indicators (one rule per domain of a host:
+ * Groups of the queue from rows grouped by asset, URI, parameter and indicators (one asset per domain of a host:
  * they are merged), without the groups already labelled.
- * @param {object[]} rows  {rule, uri, parameter, indicators, events, sources, score, blocked, first, last, host,
- *   incident_type, sample, event_id}
+ * @param {object[]} rows  {asset, rule, uri, parameter, indicators, events, sources, score, blocked, first, last,
+ *   host, incident_type, sample, event_id}
  * @param {Set<string>} labelled  keys of the groups with a label in force
  * @param {Date} now
+ * @param {(row: object) => number|undefined} hostOf  the proxy host of a row (default: by the rule name)
  */
-export const groupsOf = (rows, labelled = new Set(), now = new Date()) => {
+export const groupsOf = (
+	rows,
+	labelled = new Set(),
+	now = new Date(),
+	hostOf = (row) => ruleHost(row.rule)?.hostId,
+) => {
 	const groups = new Map();
 	for (const row of rows) {
-		const owner = ruleHost(row.rule);
-		if (!owner) continue;
+		const hostId = hostOf(row);
+		if (!hostId) continue;
 		const fields = {
-			hostId: owner.hostId,
+			hostId,
 			uri: row.uri || "",
 			parameter: row.parameter || "",
 			indicators: row.indicators || "",

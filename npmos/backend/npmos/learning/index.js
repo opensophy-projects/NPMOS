@@ -36,7 +36,6 @@ export const PERIODS = { "24h": DAY, "7d": 7 * DAY, "30d": 30 * DAY };
 const MAX_GROUPS = 3000;
 const SYNC_MS = 10 * 60 * 1000;
 const EXPIRY_MS = 60 * 1000;
-const RULE_PREFIX = "npm-managed-specific-rule-proxyhost-";
 
 const parseJson = (value, fallback) => {
 	if (typeof value !== "string") return value ?? fallback;
@@ -82,40 +81,37 @@ const wafHosts = async () => {
 
 const hostById = async (id) => (await wafHosts()).find((h) => h.id === id) ?? null;
 
-// the tenant of the agent: from its events, else the first one of the shared storage
+// the tenant of the agent, from its events: none when it runs local only (NPMOS_LOCAL_ONLY, no registration)
 let tenantCache = { value: "", at: 0 };
 export const getTenant = async () => {
-	if (tenantCache.value && Date.now() - tenantCache.at < 10 * 60 * 1000) return tenantCache.value;
+	if (Date.now() - tenantCache.at < 10 * 60 * 1000) return tenantCache.value;
 	let tenant = "";
 	if (isPostgres()) {
 		const row = await db()(EVENT_TABLE)
-			.whereRaw("raw->'eventSource'->>'tenantId' is not null")
+			.whereRaw("raw->'eventSource'->>'tenantId' <> ''")
 			.select(db().raw("raw->'eventSource'->>'tenantId' as tenant"))
 			.orderBy("time", "desc")
 			.first();
 		tenant = row?.tenant || "";
 	}
-	if (!tenant) {
-		try {
-			tenant = (await appsec.listTenants())[0] || "";
-		} catch {
-			// the shared storage is down: nothing to write to anyway
-		}
-	}
-	if (tenant) tenantCache = { value: tenant, at: Date.now() };
+	tenantCache = { value: tenant, at: Date.now() };
 	return tenant;
 };
 
 // ------------------------------------------------------------------ queue
 
-const groupRows = (from, hostId) => {
-	const q = db()(EVENT_TABLE)
+/**
+ * Rows of the queue: events of the assets of protected hosts (the agent names an asset after the host of its rule:
+ * a domain, or domain + path of a location), grouped by asset, URI, parameter and indicators.
+ */
+const groupRows = (from, assets) =>
+	db()(EVENT_TABLE)
 		.where("kind", "security")
 		.where("time", ">=", from)
-		.where("rule", "like", `${RULE_PREFIX}%`)
+		.whereIn("asset", assets.length ? assets : [""])
 		.where((w) => w.whereRaw("lower(action) = 'prevent'").orWhere("score", ">=", GREY_MIN))
-		.groupBy("rule", "uri", "parameter", "indicators")
-		.select("rule", "uri", "parameter", "indicators")
+		.groupBy("asset", "uri", "parameter", "indicators")
+		.select("asset", "uri", "parameter", "indicators")
 		.select(
 			db().raw("count(*) as events"),
 			db().raw("count(distinct source_ip) as sources"),
@@ -130,15 +126,25 @@ const groupRows = (from, hostId) => {
 		)
 		.orderBy("events", "desc")
 		.limit(MAX_GROUPS);
-	if (hostId)
-		q.where((w) =>
-			w
-				.where("rule", `${RULE_PREFIX}${hostId}`)
-				.orWhere("rule", "like", `${RULE_PREFIX}${hostId}-%`)
-				.orWhere("rule", "like", `${RULE_PREFIX}${hostId}.%`),
-		);
-	return q;
+
+/** asset → proxy host */
+const assetOwner = (hosts) => {
+	const owners = new Map();
+	for (const h of hosts) for (const a of h.assets) owners.set(a.toLowerCase(), h.id);
+	return (row) => owners.get(String(row.asset || "").toLowerCase());
 };
+
+/** groups of hosts (all with WAF, or one) in a period, labelled ones included or not */
+const findGroups = async (from, hosts, labelled = new Set()) =>
+	groupsOf(
+		await groupRows(
+			from,
+			hosts.flatMap((h) => h.assets),
+		),
+		labelled,
+		new Date(),
+		assetOwner(hosts),
+	);
 
 const activeKeys = async () =>
 	new Set(
@@ -148,25 +154,21 @@ const activeKeys = async () =>
 	);
 
 /** groups of the queue in a period (all hosts or one) */
-const queueGroups = async (period, hostId) => {
+const queueGroups = async (period, hostId, hosts = null) => {
 	const from = new Date(Date.now() - (PERIODS[period] ?? PERIODS["7d"]));
-	return groupsOf(await groupRows(from, hostId), await activeKeys());
+	const all = hosts ?? (await wafHosts());
+	return findGroups(from, hostId ? all.filter((h) => h.id === hostId) : all, await activeKeys());
 };
 
 /** sources of a group (for a ban or a source scope) */
-const groupSources = async (group, from) => {
+const groupSources = async (group, from, assets) => {
 	const rows = await db()(EVENT_TABLE)
 		.where("kind", "security")
 		.where("time", ">=", from)
 		.where("uri", group.uri)
 		.where("parameter", group.parameter)
 		.where("indicators", group.indicators)
-		.where((w) =>
-			w
-				.where("rule", `${RULE_PREFIX}${group.hostId}`)
-				.orWhere("rule", "like", `${RULE_PREFIX}${group.hostId}-%`)
-				.orWhere("rule", "like", `${RULE_PREFIX}${group.hostId}.%`),
-		)
+		.whereIn("asset", assets.length ? assets : [""])
 		.whereNot("source_ip", "")
 		.select("source_ip")
 		.count({ n: "*" })
@@ -179,7 +181,6 @@ const groupSources = async (group, from) => {
 /** suggestions of the tuning service for the assets of the hosts */
 const suggestions = async (hosts) => {
 	const tenant = await getTenant();
-	if (!tenant) return { items: [], error: null };
 	const items = [];
 	let error = null;
 	for (const host of hosts) {
@@ -222,8 +223,7 @@ export const syncDecisions = async (hostIds = null) => {
 		const labels = await activeLabels({ proxy_host_id: id, origin: "group" });
 		const ours = decisionEntries(labels);
 		let error = "";
-		if (!tenant) error = "the agent has not reported yet (no tenant)";
-		else if (host) {
+		if (host) {
 			for (const asset of host.assets) {
 				try {
 					const current = await appsec.getDecisions(tenant, asset);
@@ -334,7 +334,7 @@ const internalLearning = {
 		const hostId = Number.parseInt(query.host, 10) || null;
 		const hosts = await wafHosts();
 		const names = new Map(hosts.map((h) => [h.id, h.name]));
-		let groups = await queueGroups(period, hostId);
+		let groups = await queueGroups(period, hostId, hosts);
 		const counts = { blocked: 0, grey: 0, detected: 0 };
 		for (const g of groups) counts[g.reason]++;
 		if (["blocked", "grey", "detected"].includes(query.reason))
@@ -380,9 +380,11 @@ const internalLearning = {
 	group: async (access, key, period = "30d") => {
 		await access.can("waf_learning:view");
 		const from = new Date(Date.now() - (PERIODS[period] ?? PERIODS["30d"]));
-		const group = groupsOf(await groupRows(from)).find((g) => g.key === key);
+		const hosts = await wafHosts();
+		const group = (await findGroups(from, hosts)).find((g) => g.key === key);
 		if (!group) throw new errs.ItemNotFoundError(key);
-		return { ...group, scopes: defaultScopes(group), sources: await groupSources(group, from) };
+		const assets = hosts.find((h) => h.id === group.hostId)?.assets ?? [];
+		return { ...group, scopes: defaultScopes(group), sourceList: await groupSources(group, from, assets) };
 	},
 
 	/**
@@ -396,12 +398,13 @@ const internalLearning = {
 		const userId = access.token.getUserId(0);
 		const now = new Date();
 		if (data.suggestion) {
-			const s = data.suggestion;
+			// the API client of the GUI sends snake_case keys
+			const raw = data.suggestion;
+			const s = { ...raw, hostId: raw.host_id ?? raw.hostId, attackTypes: raw.attack_types ?? raw.attackTypes };
 			if (!["benign", "malicious", "dismiss"].includes(data.decision)) throw new errs.ValidationError("decision");
 			const host = await hostById(Number(s.hostId));
 			if (!host?.assets.includes(s.asset)) throw new errs.ValidationError("suggestion: unknown asset");
 			const tenant = await getTenant();
-			if (!tenant) throw new errs.ValidationError("The agent has not reported yet");
 			await appsec.postSuggestions(tenant, s.asset, [
 				{ id: String(s.id), decision: data.decision, eventType: s.type, eventTitle: String(s.title) },
 			]);
@@ -436,7 +439,7 @@ const internalLearning = {
 			return { id };
 		}
 
-		const group = groupsOf(await groupRows(new Date(now.getTime() - PERIODS["30d"]))).find(
+		const group = (await findGroups(new Date(now.getTime() - PERIODS["30d"]), await wafHosts())).find(
 			(g) => g.key === data.key,
 		);
 		if ((await activeKeys()).has(data.key)) throw new errs.ValidationError("The group is already labelled");
@@ -582,7 +585,6 @@ const internalLearning = {
 			const stats = [];
 			let enforced = 0;
 			for (const asset of host.assets) {
-				if (!tenant) break;
 				try {
 					const raw = await appsec.getStatistics(tenant, asset);
 					if (raw) stats.push(statsOf(raw));
@@ -605,12 +607,7 @@ const internalLearning = {
 						.where("uri", l.features.uri ?? "")
 						.where("parameter", l.features.parameter ?? "")
 						.where("indicators", l.features.indicators ?? "")
-						.where((w) =>
-							w
-								.where("rule", `${RULE_PREFIX}${host.id}`)
-								.orWhere("rule", "like", `${RULE_PREFIX}${host.id}-%`)
-								.orWhere("rule", "like", `${RULE_PREFIX}${host.id}.%`),
-						)
+						.whereIn("asset", host.assets.length ? host.assets : [""])
 						.count({ n: "*" })
 						.first();
 					return Number(r?.n ?? 0);
@@ -633,7 +630,7 @@ const internalLearning = {
 				},
 				enforced,
 				falsePositives: { before, after },
-				queue: (await queueGroups("7d", host.id)).length,
+				queue: (await queueGroups("7d", host.id, hosts)).length,
 				// ready to block: the tuning service says so (prevent critical or high) while the host only detects
 				readyToPrevent:
 					!!best &&
@@ -641,7 +638,7 @@ const internalLearning = {
 					!String(host.mode).startsWith("prevent"),
 			});
 		}
-		return { hosts: result, tenant: tenant || null, error };
+		return { hosts: result, error };
 	},
 };
 

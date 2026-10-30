@@ -1,6 +1,6 @@
 // Hosts: proxy, redirection, stream and 404 hosts in one table, as DNS records in Cloudflare
 // (docs/ROADMAP.md, phase 2). Data and the create/edit dialogs are those of NPMplus.
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import cn from "classnames";
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Alert from "react-bootstrap/Alert";
@@ -54,6 +54,7 @@ import {
 import { showAccessModal } from "../../pki/AccessModal";
 import { showHostCertsModal } from "../../pki/HostCertsModal";
 import { showMtlsModal } from "../../pki/MtlsModal";
+import { getLearningHosts } from "../../learning/api";
 import { useCan } from "../../rbac/hooks";
 import { createHost, deleteHost, OBJECT, QUERY_KEY, toggleHost, updateHost } from "./api";
 import {
@@ -202,6 +203,13 @@ function HostsPage() {
 	const mtlsHosts = useMtlsHosts({ enabled: can("proxy", VIEW) || can("stream", VIEW) });
 	const pki = usePki({ enabled: rbac("pki") });
 	const wafStatus = useWafStatus({ enabled: rbac("waf_policy") });
+	// readiness of learning: hosts the model says may block
+	const learning = useQuery({
+		queryKey: ["npmos-learning-hosts"],
+		queryFn: getLearningHosts,
+		enabled: rbac("waf_learning"),
+		staleTime: 60000,
+	});
 	const certificates = useCertificates([], { enabled: hasPermission(CERTIFICATES, VIEW, perms, roles) });
 	const accessLists = useAccessLists([], { enabled: hasPermission(ACCESS_LISTS, VIEW, perms, roles) });
 	const changes = useHostChanges();
@@ -418,6 +426,8 @@ function HostsPage() {
 			),
 		setWaf: (row, state) => run([row], (r) => changeWaf(r, state), t("npmos.hosts.done.waf")),
 		wafTemplate: (row) => waf.data?.[row.id]?.template ?? null,
+		wafReady: (row) =>
+			row.type === "proxy" && !!learning.data?.hosts.some((h) => h.id === row.id && h.readyToPrevent),
 		setWafTemplate: (row, template) =>
 			run(
 				[row],

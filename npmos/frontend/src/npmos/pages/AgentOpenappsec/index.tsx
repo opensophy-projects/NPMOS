@@ -1,7 +1,8 @@
 // Agents → open-appsec: one page for the agent, laid out like an editor. On the left what the policy is made
 // of: the base policy, the policies of the hosts, the building blocks (objects), the versions and the YAML
 // additions; on the right the chosen item, in the GUI or as code (the same thing, either way, checked before
-// it is applied). The second tab is the agent itself: on/off, state, settings.
+// it is applied). Learning: the queue of what the agent is not sure about, labels, readiness of the hosts. The last
+// tab is the agent itself: on/off, state, settings.
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import cn from "classnames";
 import { Form, Formik } from "formik";
@@ -16,6 +17,7 @@ import { showError, showSuccess } from "src/notifications";
 import { setWafHost } from "../../api";
 import { fromWafForm, toWafForm, WafFields } from "../../components/WafFields";
 import { useWafHost, useWafHosts } from "../../hooks";
+import { LearningTab } from "../../learning/Learning";
 import {
 	getHostCode,
 	getPolicyCode,
@@ -346,7 +348,10 @@ function PoliciesTab() {
 
 function AgentOpenappsecPage() {
 	const [params, setParams] = useSearchParams();
-	const tab = params.get("tab") === "agent" ? "agent" : "policies";
+	const can = useCan();
+	const tabs = ["policies", ...(can("waf_learning") ? ["learning"] : []), "agent"] as const;
+	const asked = params.get("tab") || "";
+	const tab = (tabs as readonly string[]).includes(asked) ? asked : "policies";
 	return (
 		<div className={hostStyles.page}>
 			<div className={hostStyles.head}>
@@ -360,7 +365,7 @@ function AgentOpenappsecPage() {
 				</div>
 			</div>
 			<ul className="nav nav-tabs">
-				{(["policies", "agent"] as const).map((x) => (
+				{tabs.map((x) => (
 					<li className="nav-item" key={x}>
 						<button
 							type="button"
@@ -372,7 +377,7 @@ function AgentOpenappsecPage() {
 					</li>
 				))}
 			</ul>
-			{tab === "policies" ? <PoliciesTab /> : <WafAgent />}
+			{tab === "policies" ? <PoliciesTab /> : tab === "learning" ? <LearningTab /> : <WafAgent />}
 		</div>
 	);
 }

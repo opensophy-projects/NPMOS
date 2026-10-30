@@ -20,7 +20,8 @@ const request = async (method, url, tenant, body) => {
 		response = await fetch(url, {
 			method,
 			headers: {
-				// both services refuse a request without a tenant and a trace id
+				// the shared storage refuses a request without a tenant header (see decisions below), the tuning service
+				// keeps the data of the agent under its tenant, empty when it runs local only
 				"X-Tenant-Id": tenant,
 				"X-Trace-Id": randomUUID(),
 				"X-Correlation-Id": randomUUID(),
@@ -45,30 +46,19 @@ const request = async (method, url, tenant, body) => {
 	}
 };
 
-/** path of decisions.data as the agent reads it: <tenant>/<asset>/tuning/decisions.data (TuningDecision.cc) */
+/**
+ * path of decisions.data as the agent reads it: <tenant>/<asset>/tuning/decisions.data (TuningDecision.cc, tenant + "/" +
+ * asset of WaapAssetState.cc); without a tenant /<asset>/…, the same file for the storage (root + path)
+ */
 const decisionsPath = (tenant, asset) =>
 	`${STORAGE_URL}/api/${tenant}/${asset}/tuning/decisions.data`.replace(/([^:])\/\/+/g, "$1/");
 
 /** @returns {Promise<{decisions: object[]}|null>}  null: no file yet */
-export const getDecisions = (tenant, asset) => request("GET", decisionsPath(tenant, asset), tenant);
+// an agent without a tenant reads /<asset>/… of the storage, which takes any tenant header
+export const getDecisions = (tenant, asset) => request("GET", decisionsPath(tenant, asset), tenant || "local");
 
-export const putDecisions = (tenant, asset, data) => request("PUT", decisionsPath(tenant, asset), tenant, data);
-
-/** tenants that have files in the shared storage (S3-like listing: <ListBucketResult><Contents><Key>) */
-export const listTenants = async () => {
-	let response;
-	try {
-		response = await fetch(`${STORAGE_URL}/api/?prefix=`, {
-			headers: { "X-Tenant-Id": "npmos", "X-Trace-Id": randomUUID() },
-			signal: AbortSignal.timeout(TIMEOUT_MS),
-		});
-	} catch (err) {
-		throw new AppsecError(`shared storage is unreachable: ${err.cause?.code || err.message}`);
-	}
-	if (!response.ok) return [];
-	const text = await response.text();
-	return [...new Set([...text.matchAll(/<Key>([^</]+)\//g)].map((m) => m[1]))];
-};
+export const putDecisions = (tenant, asset, data) =>
+	request("PUT", decisionsPath(tenant, asset), tenant || "local", data);
 
 const asset = (name) => encodeURIComponent(name);
 

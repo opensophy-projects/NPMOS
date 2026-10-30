@@ -70,6 +70,8 @@ const ruleParams = (r: Rule) => {
 			return t("npmos.notifications.rule.agent_down.params", { minutes: p.minutes });
 		case "cert_expiry":
 			return t("npmos.notifications.rule.cert_expiry.params", { days: p.days });
+		case "learning_queue":
+			return t("npmos.notifications.rule.learning_queue.params", { threshold: p.threshold });
 		default:
 			return "";
 	}
