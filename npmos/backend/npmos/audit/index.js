@@ -58,10 +58,10 @@ const applyFilters = (builder, f) => {
 		const pattern = like(f.q.toLowerCase());
 		const meta = isPostgres() ? "a.meta::text" : "a.meta";
 		// backslash escapes by default, except in SQLite
-		const escape = isSqlite() ? " escape '\\'" : "";
+		const escapeClause = isSqlite() ? " escape '\\'" : "";
 		builder.where((w) => {
 			for (const column of [meta, "a.action", "a.object_type", "u.name", "u.email"]) {
-				w.orWhereRaw(`lower(${column}) like ?${escape}`, [pattern]);
+				w.orWhereRaw(`lower(${column}) like ?${escapeClause}`, [pattern]);
 			}
 		});
 	}

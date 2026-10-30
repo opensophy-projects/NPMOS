@@ -89,7 +89,9 @@ export const parseFilters = (query, now = new Date()) => {
 	);
 	if (from > to) throw new errs.ValidationError("from is after to");
 	// "agents": what open-appsec and CrowdSec found, in one list (the default)
-	const kind = ["agents", "security", "system", "crowdsec", "mtls", "all"].includes(query.kind) ? query.kind : "agents";
+	const kind = ["agents", "security", "system", "crowdsec", "mtls", "all"].includes(query.kind)
+		? query.kind
+		: "agents";
 	return {
 		from,
 		to,

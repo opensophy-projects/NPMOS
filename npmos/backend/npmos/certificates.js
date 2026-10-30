@@ -65,9 +65,11 @@ const hostUsage = async () => {
 	for (const table of HOST_TABLES) {
 		for (const host of await db()(table).where({ is_deleted: 0 })) {
 			const entry = { type: table, id: host.id, name: hostName(table, host) };
-			if (host.certificate_id > 0) (byCert[host.certificate_id] ||= []).push(entry);
+			if (host.certificate_id > 0) {
+				byCert[host.certificate_id] = [...(byCert[host.certificate_id] || []), entry];
+			}
 			const mtls = Number(parse(host.meta)?.npmplus_mtls_certificate_id);
-			if (mtls > 0) (byMtlsCa[mtls] ||= []).push(entry);
+			if (mtls > 0) byMtlsCa[mtls] = [...(byMtlsCa[mtls] || []), entry];
 		}
 	}
 	return { byCert, byMtlsCa };
@@ -292,10 +294,11 @@ const time = (v, missing) => (v ? new Date(v).getTime() : missing);
 
 export const sortRows = (rows, sort) => {
 	const by = {
-		expires: (a, b) => time(a.not_after, Infinity) - time(b.not_after, Infinity),
-		"-expires": (a, b) => time(b.not_after, -Infinity) - time(a.not_after, -Infinity),
+		expires: (a, b) => time(a.not_after, Number.POSITIVE_INFINITY) - time(b.not_after, Number.POSITIVE_INFINITY),
+		"-expires": (a, b) => time(b.not_after, Number.NEGATIVE_INFINITY) - time(a.not_after, Number.NEGATIVE_INFINITY),
 		name: (a, b) => a.name.localeCompare(b.name),
-		"-created": (a, b) => time(b.created_on, -Infinity) - time(a.created_on, -Infinity),
+		"-created": (a, b) =>
+			time(b.created_on, Number.NEGATIVE_INFINITY) - time(a.created_on, Number.NEGATIVE_INFINITY),
 	}[sort];
 	return [...rows].sort((a, b) => by(a, b) || a.key.localeCompare(b.key));
 };
