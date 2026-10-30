@@ -533,6 +533,10 @@
 		background-color 150ms ease-out,
 		color 150ms ease-out;
 }
+/* icons keep their size next to long labels */
+.menuItem > svg {
+	flex: none;
+}
 .menuItem:disabled {
 	opacity: 0.5;
 	pointer-events: none;

@@ -205,6 +205,7 @@ const CHECKS = {
 		// PKI and mTLS: certificates in use (not revoked or renewed) and CAs of NPMOS
 		const pki = await db()("npmos_pki_cert")
 			.whereNull("revoked_on")
+			.whereNull("deleted_on")
 			.whereNull("replaced_by")
 			.whereNull("certificate_id")
 			.where("not_after", "<=", until)

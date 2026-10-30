@@ -11,7 +11,7 @@ import internalEvents from "./events/index.js";
 import internalHosts, { HOST_OBJECTS } from "./hosts.js";
 import internalNotifications from "./notifications/index.js";
 import internalPki from "./pki/index.js";
-import internalMtls, { usage as mtlsUsage, usedBy as mtlsUsedBy } from "./pki/mtls.js";
+import internalMtls, { protectedHosts, usage as mtlsUsage, usedBy as mtlsUsedBy } from "./pki/mtls.js";
 import internalRbac from "./rbac/index.js";
 import internalServices from "./services.js";
 import internalSystem from "./system/index.js";
@@ -1170,7 +1170,8 @@ const p12Properties = {
 };
 
 /**
- * GET /api/npmos/pki — CAs, certificates, settings; hosts of CAs (mTLS) and of server certificates
+ * GET /api/npmos/pki — CAs, certificates, settings; hosts of CAs (mTLS) and of server certificates;
+ *   protected: hosts with mTLS on; access of a certificate: the hosts it opens
  */
 router
 	.route("/pki")
@@ -1181,9 +1182,17 @@ router
 			const overview = await internalPki.overview(res.locals.access);
 			const used = await mtlsUsage();
 			for (const ca of overview.cas) ca.hosts = used.cas[ca.id] || [];
+			const hosts = await protectedHosts();
 			for (const cert of overview.certificates) {
 				cert.hosts = cert.certificate_id ? used.certificates[cert.certificate_id] || [] : [];
+				cert.access =
+					cert.profile === "client"
+						? hosts
+								.filter((h) => h.accepts.includes(cert.ca_id))
+								.map((h) => ({ host_type: h.host_type, host_id: h.host_id, name: h.name }))
+						: [];
 			}
+			overview.protected = hosts.map(({ accepts, ...h }) => h);
 			return overview;
 		}),
 	);
@@ -1420,6 +1429,52 @@ router
 	);
 
 /**
+ * POST /api/npmos/pki/certs/delete — {ids}: still valid ones are revoked, then hidden
+ */
+router
+	.route("/pki/certs/delete")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["ids"],
+					properties: {
+						ids: { type: "array", minItems: 1, maxItems: 1000, items: { type: "integer", minimum: 1 } },
+					},
+				},
+				req.body,
+			);
+			return internalPki.deleteCerts(res.locals.access, data.ids);
+		}),
+	);
+
+/**
+ * PUT /api/npmos/pki/certs/:cert_id — {notes}
+ */
+router
+	.route("/pki/certs/:cert_id")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.put(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["notes"],
+					properties: { notes: { type: "string", maxLength: 500 } },
+				},
+				req.body,
+			);
+			return internalPki.updateCert(res.locals.access, Number(req.params.cert_id), data);
+		}),
+	);
+
+/**
  * POST /api/npmos/pki/certs/:cert_id/renew — {days?, key_type?, csr_pem?, revoke_old?, password?, ...}
  */
 router
@@ -1620,6 +1675,18 @@ router
 			);
 			return internalMtls.set(res.locals.access, req.params.host_type, req.params.host_id, data);
 		}),
+	);
+
+/**
+ * POST /api/npmos/mtls/:host_type/:host_id/enable — mTLS on in one step: the CAs it had before, or
+ *   a trust domain of its own (created with the root when missing)
+ */
+router
+	.route("/mtls/:host_type/:host_id/enable")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle((req, res) => internalMtls.quick(res.locals.access, req.params.host_type, Number(req.params.host_id))),
 	);
 
 /**

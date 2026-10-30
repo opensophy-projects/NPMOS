@@ -556,6 +556,40 @@ for i in $(seq 1 30); do
   sleep 2
 done
 
+step "mTLS in one step: the switch of a host creates its trust domain, an access certificate opens it"
+quick_id=$(api_json "$ADMIN/api/nginx/proxy-hosts" -d "{\"domain_names\": [\"quick.local\"], \"forward_scheme\": \"http\",
+  \"forward_host\": \"test-upstream\", \"forward_port\": \"80\", \"certificate_id\": $tls_id}" | json_id)
+[ -n "$quick_id" ] || fail "proxy host quick.local was not created"
+quick=$(api_json -X POST "$ADMIN/api/npmos/mtls/proxy_host/$quick_id/enable" | tr -d ' \n')
+echo "$quick" | grep -q '"enabled":true' || fail "mTLS was not turned on: $quick"
+quick_ca=$(echo "$quick" | grep -o '"ca_ids":\[[0-9]*' | grep -o '[0-9]*$')
+$CURL "$ADMIN/api/npmos/pki/cas/$quick_ca" | grep -q '"host": *"proxy_host-'"$quick_id"'"' \
+  || fail "the trust domain of quick.local is not its own"
+dana=$(client dana IT "$quick_ca")
+quick_mtls() { curl -sS -k --max-time 10 --connect-to quick.local:443:npmos:443 -o /dev/null -w '%{http_code}' "$@" https://quick.local/; }
+for i in $(seq 1 15); do
+  [ "$(quick_mtls --cert /tmp/dana.crt --key /tmp/dana.key)" = 200 ] && break
+  [ "$i" = 15 ] && fail "the access certificate does not open quick.local"
+  sleep 2
+done
+expect "$(quick_mtls)" 403 "quick.local without a certificate"
+expect "$(quick_mtls --cert /tmp/carol.crt --key /tmp/carol.key)" 403 "quick.local with a certificate of another domain"
+expect "$(mtls --cert /tmp/dana.crt --key /tmp/dana.key)" 403 "mtls.local with the access certificate of quick.local"
+# dana is the only certificate of the trust domain of quick.local
+$CURL "$ADMIN/api/npmos/pki" | tr -d ' \n' | grep -q '{"host_type":"proxy_host","host_id":'"$quick_id"',"name":"quick.local"}' \
+  || fail "the certificate does not list quick.local as what it opens"
+
+step "mTLS: a deleted access certificate is revoked and gone from the list"
+dana_id=$(echo "$dana" | tr -d ' \n' | grep -o '"certificate":{"id":[0-9]*' | grep -o '[0-9]*$')
+api_json "$ADMIN/api/npmos/pki/certs/delete" -d "{\"ids\": [$dana_id]}" | tr -d ' \n' \
+  | grep -q '"deleted":1,"revoked":1' || fail "dana was not deleted"
+for i in $(seq 1 30); do
+  [ "$(quick_mtls --cert /tmp/dana.crt --key /tmp/dana.key)" = 403 ] && break
+  [ "$i" = 30 ] && fail "the deleted certificate still opens quick.local"
+  sleep 2
+done
+$CURL "$ADMIN/api/npmos/pki" | grep -q '"common_name": *"dana"' && fail "the deleted certificate is still listed"
+
 # --- phase 7 ---
 
 page() { curl -s -o /dev/null -w '%{http_code}' --max-time 10 -H 'Host: test.local' "$HTTP$1"; }

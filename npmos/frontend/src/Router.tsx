@@ -28,6 +28,7 @@ const Notifications = lazy(() => import("src/npmos/pages/Notifications"));
 const WafPolicy = lazy(() => import("src/npmos/pages/WafPolicy"));
 const WafExpert = lazy(() => import("src/npmos/pages/WafExpert"));
 const Pki = lazy(() => import("src/npmos/pages/Pki"));
+const Mtls = lazy(() => import("src/npmos/pages/Mtls"));
 const Crowdsec = lazy(() => import("src/npmos/pages/Crowdsec"));
 
 function Router() {
@@ -80,6 +81,7 @@ function Router() {
 						<Route path="/system/services" element={<Services />} />
 						<Route path="/system/notifications" element={<Notifications />} />
 						<Route path="/pki" element={<Pki />} />
+						<Route path="/mtls" element={<Mtls />} />
 						<Route path="/crowdsec" element={<Crowdsec />} />
 						<Route path="/waf/agent" element={<WafAgent />} />
 						<Route path="/waf/events" element={<WafEvents />} />

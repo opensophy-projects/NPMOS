@@ -193,7 +193,9 @@ export const syncUpstream = async () => {
 
 const caCounts = async () => {
 	const now = new Date();
-	const rows = await db()("npmos_pki_cert").select("ca_id", "revoked_on", "replaced_by", "not_after");
+	const rows = await db()("npmos_pki_cert")
+		.whereNull("deleted_on")
+		.select("ca_id", "revoked_on", "replaced_by", "not_after");
 	const counts = {};
 	for (const r of rows) {
 		const c = counts[r.ca_id] || { issued: 0, active: 0, revoked: 0 };
@@ -333,7 +335,7 @@ const toCert = (row, now = new Date()) => ({
 });
 
 const certRow = async (id) => {
-	const row = await db()("npmos_pki_cert").where({ id }).first();
+	const row = await db()("npmos_pki_cert").where({ id }).whereNull("deleted_on").first();
 	if (!row) throw new errs.ItemNotFoundError(id);
 	return row;
 };
@@ -413,7 +415,9 @@ const internalPki = {
 		const counts = await caCounts();
 		const cas = (await db()("npmos_pki_ca").orderBy("id")).map((row) => toCa(row, counts[row.id]));
 		const now = new Date();
-		const certificates = (await db()("npmos_pki_cert").orderBy("id", "desc")).map((row) => toCert(row, now));
+		const certificates = (await db()("npmos_pki_cert").whereNull("deleted_on").orderBy("id", "desc")).map((row) =>
+			toCert(row, now),
+		);
 		return {
 			cas,
 			certificates,
@@ -618,10 +622,23 @@ const internalPki = {
 		const children = await db()("npmos_pki_ca").where({ parent_id: id });
 		if (children.length)
 			throw new errs.ValidationError(`Intermediate CAs depend on it: ${children.map((c) => c.name).join(", ")}`);
-		const certs = await db()("npmos_pki_cert").where({ ca_id: id }).count("id as count").first();
+		const certs = await db()("npmos_pki_cert")
+			.where({ ca_id: id })
+			.whereNull("deleted_on")
+			.count("id as count")
+			.first();
 		if (Number(certs.count) > 0) throw new errs.ValidationError("The CA has issued certificates");
 		const hosts = await usedBy(id);
 		if (hosts.length) throw new errs.ValidationError(`Hosts trust it: ${hosts.join(", ")}`);
+		// deleted certificates were kept for the CRL of this CA only
+		const deleted = await db()("npmos_pki_cert").where({ ca_id: id }).select("id");
+		await db()("npmos_pki_link")
+			.whereIn(
+				"cert_id",
+				deleted.map((r) => r.id),
+			)
+			.delete();
+		await db()("npmos_pki_cert").where({ ca_id: id }).delete();
 		await db()("npmos_pki_ca").where({ id }).delete();
 		await audit(access, "deleted", "pki", id, { name: ca.name });
 		return true;
@@ -834,6 +851,48 @@ const internalPki = {
 			await audit(access, "revoked", "pki", row.id, { name: row.common_name, serial: row.serial, reason });
 		}
 		return { revoked: rows.length };
+	},
+
+	/**
+	 * Notes of a certificate (who or what it is for).
+	 * @param {Access} access
+	 */
+	updateCert: async (access, id, { notes }) => {
+		await access.can("pki:issue");
+		const row = await certRow(id);
+		await db()("npmos_pki_cert")
+			.where({ id })
+			.update({ notes: String(notes ?? "").slice(0, 500), modified_on: new Date() });
+		await audit(access, "updated", "pki", id, { name: row.common_name });
+		return toCert(await certRow(id));
+	},
+
+	/**
+	 * Deletes certificates from the lists. A certificate still valid is revoked first
+	 * (cessationOfOperation): its row stays hidden, so the CRL of its CA keeps listing it.
+	 * @param {Access} access
+	 * @param {number[]} ids
+	 */
+	deleteCerts: async (access, ids) => {
+		await access.can("pki:revoke");
+		const rows = await db()("npmos_pki_cert").whereIn("id", ids).whereNull("deleted_on");
+		if (!rows.length) return { deleted: 0 };
+		const now = new Date();
+		const valid = rows.filter((r) => !r.revoked_on && new Date(r.not_after) > now);
+		if (valid.length) {
+			await internalPki.revoke(
+				access,
+				valid.map((r) => r.id),
+				"cessationOfOperation",
+			);
+		}
+		const list = rows.map((r) => r.id);
+		await db()("npmos_pki_link").whereIn("cert_id", list).delete();
+		await db()("npmos_pki_cert").whereIn("id", list).update({ deleted_on: now, key_enc: null, modified_on: now });
+		for (const row of rows) {
+			await audit(access, "deleted", "pki", row.id, { name: row.common_name, serial: row.serial });
+		}
+		return { deleted: rows.length, revoked: valid.length };
 	},
 
 	/**

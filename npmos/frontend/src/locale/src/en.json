@@ -2120,14 +2120,20 @@
 	"npmos.hosts.mtls.configure": {
 		"defaultMessage": "mTLS settings…"
 	},
+	"npmos.hosts.mtls.details": {
+		"defaultMessage": "Details and certificates ({count})"
+	},
+	"npmos.hosts.mtls.download": {
+		"defaultMessage": "Download .p12: {name}"
+	},
+	"npmos.hosts.mtls.header": {
+		"defaultMessage": "{count, plural, =0 {No access certificates yet} one {# access certificate} other {# access certificates}}"
+	},
 	"npmos.hosts.mtls.issue": {
-		"defaultMessage": "Issue a client certificate"
+		"defaultMessage": "Issue access certificate…"
 	},
 	"npmos.hosts.mtls.needs-tls": {
 		"defaultMessage": "mTLS needs a TLS certificate on the host"
-	},
-	"npmos.hosts.mtls.new-domain": {
-		"defaultMessage": "Create a trust domain for the host"
 	},
 	"npmos.hosts.mtls.no-ca": {
 		"defaultMessage": "No CA yet: upload one in Certificates"
@@ -2146,6 +2152,15 @@
 	},
 	"npmos.hosts.mtls.required.hint": {
 		"defaultMessage": "Only clients with a certificate of the CA get through"
+	},
+	"npmos.hosts.mtls.turn-off": {
+		"defaultMessage": "Turn off mTLS"
+	},
+	"npmos.hosts.mtls.turn-on": {
+		"defaultMessage": "Turn on mTLS: only clients with an access certificate get through"
+	},
+	"npmos.hosts.mtls.upstream": {
+		"defaultMessage": "mTLS of NPMplus (Certificates → mTLS CA) is on for this host"
 	},
 	"npmos.hosts.no-access": {
 		"defaultMessage": "You have no access to hosts"
@@ -2507,11 +2522,59 @@
 	"npmos.migration.what": {
 		"defaultMessage": "What is moved"
 	},
+	"npmos.mtls.access.days": {
+		"defaultMessage": "Valid, days"
+	},
+	"npmos.mtls.access.email": {
+		"defaultMessage": "Email (optional)"
+	},
+	"npmos.mtls.access.issue": {
+		"defaultMessage": "Issue access certificate"
+	},
+	"npmos.mtls.access.issued": {
+		"defaultMessage": "{name} now opens {host}. Install the .p12 on the device with the password below."
+	},
+	"npmos.mtls.access.keep": {
+		"defaultMessage": "Keep the key in NPMOS to download the certificate again"
+	},
+	"npmos.mtls.access.keep.hint": {
+		"defaultMessage": "Encrypted. Without it the .p12 is handed out only now."
+	},
+	"npmos.mtls.access.link": {
+		"defaultMessage": "Also make a one-time download link (24 h)"
+	},
+	"npmos.mtls.access.name": {
+		"defaultMessage": "Name"
+	},
+	"npmos.mtls.access.name.hint": {
+		"defaultMessage": "Shown in the browser when it asks for a certificate, and in the rules and events of mTLS (CN)."
+	},
+	"npmos.mtls.access.name.placeholder": {
+		"defaultMessage": "ivanov-laptop"
+	},
+	"npmos.mtls.access.no-hosts": {
+		"defaultMessage": "Protect a host first: turn on its mTLS switch in Hosts or use “Protect a host”."
+	},
+	"npmos.mtls.access.no-issuer": {
+		"defaultMessage": "This host trusts only external CAs: NPMOS cannot issue certificates for it. Add a trust domain in its mTLS settings."
+	},
+	"npmos.mtls.access.rules": {
+		"defaultMessage": "The host has rules on fields of certificates: the name must match them."
+	},
+	"npmos.mtls.access.submit": {
+		"defaultMessage": "Issue"
+	},
+	"npmos.mtls.access.title": {
+		"defaultMessage": "New access certificate"
+	},
 	"npmos.mtls.advanced": {
 		"defaultMessage": "More settings"
 	},
 	"npmos.mtls.advanced.hide": {
 		"defaultMessage": "Hide settings"
+	},
+	"npmos.mtls.all-hosts": {
+		"defaultMessage": "All hosts"
 	},
 	"npmos.mtls.cas": {
 		"defaultMessage": "Trusted CAs"
@@ -2522,8 +2585,83 @@
 	"npmos.mtls.cas.stream-hint": {
 		"defaultMessage": "Streams cannot check the issuer: a trust domain admits certificates of every trust domain of its root."
 	},
+	"npmos.mtls.cert.access": {
+		"defaultMessage": "Opens"
+	},
+	"npmos.mtls.cert.created": {
+		"defaultMessage": "Issued"
+	},
+	"npmos.mtls.cert.details": {
+		"defaultMessage": "Certificate"
+	},
+	"npmos.mtls.cert.files": {
+		"defaultMessage": "Files"
+	},
+	"npmos.mtls.cert.fingerprint": {
+		"defaultMessage": "Fingerprint (SHA-256)"
+	},
+	"npmos.mtls.cert.issuer": {
+		"defaultMessage": "Issued by"
+	},
+	"npmos.mtls.cert.key": {
+		"defaultMessage": "Key"
+	},
+	"npmos.mtls.cert.key.kept": {
+		"defaultMessage": "kept in NPMOS (encrypted)"
+	},
+	"npmos.mtls.cert.key.not-kept": {
+		"defaultMessage": "not kept"
+	},
+	"npmos.mtls.cert.missing": {
+		"defaultMessage": "The certificate is not found (deleted?)."
+	},
+	"npmos.mtls.cert.no-access": {
+		"defaultMessage": "No protected host accepts it now."
+	},
+	"npmos.mtls.cert.no-key": {
+		"defaultMessage": "NPMOS did not keep the key: the .p12 cannot be downloaded again. Renew the certificate to get a new one."
+	},
+	"npmos.mtls.cert.revoked": {
+		"defaultMessage": "Revoked {time}: {reason}. It no longer opens any host."
+	},
+	"npmos.mtls.cert.serial": {
+		"defaultMessage": "Serial number"
+	},
+	"npmos.mtls.cert.valid": {
+		"defaultMessage": "Valid"
+	},
+	"npmos.mtls.certs": {
+		"defaultMessage": "Certificates"
+	},
+	"npmos.mtls.certs.none": {
+		"defaultMessage": "No access certificates yet."
+	},
+	"npmos.mtls.certs.title": {
+		"defaultMessage": "Access certificates"
+	},
+	"npmos.mtls.delete": {
+		"defaultMessage": "Delete"
+	},
+	"npmos.mtls.delete.confirm": {
+		"defaultMessage": "Delete this certificate from the list?"
+	},
+	"npmos.mtls.delete.confirm-valid": {
+		"defaultMessage": "The certificate is valid: it will be revoked and stop opening hosts. Delete it?"
+	},
+	"npmos.mtls.delete.selected": {
+		"defaultMessage": "Delete ({count})"
+	},
+	"npmos.mtls.delete.text": {
+		"defaultMessage": "{count, plural, one {The certificate is removed from the list.} other {# certificates are removed from the list.}} A valid certificate is revoked first, so it stops opening hosts within seconds."
+	},
+	"npmos.mtls.deleted": {
+		"defaultMessage": "{count, plural, one {Certificate deleted} other {# certificates deleted}}"
+	},
 	"npmos.mtls.depth": {
 		"defaultMessage": "Chain depth"
+	},
+	"npmos.mtls.details": {
+		"defaultMessage": "Details"
 	},
 	"npmos.mtls.enabled": {
 		"defaultMessage": "Require client certificates"
@@ -2549,6 +2687,51 @@
 	"npmos.mtls.headers.hint": {
 		"defaultMessage": "Headers X-Client-Verify, X-Client-S-DN, X-Client-I-DN, X-Client-Serial, X-Client-Fingerprint; the same headers from clients are replaced."
 	},
+	"npmos.mtls.host": {
+		"defaultMessage": "Host"
+	},
+	"npmos.mtls.host.certs": {
+		"defaultMessage": "Show its certificates"
+	},
+	"npmos.mtls.host.disable": {
+		"defaultMessage": "Turn off mTLS"
+	},
+	"npmos.mtls.host.disable.text": {
+		"defaultMessage": "{name} will admit clients without a certificate. Certificates and settings are kept and work again when mTLS is turned on."
+	},
+	"npmos.mtls.host.disabled": {
+		"defaultMessage": "mTLS of {name} is off"
+	},
+	"npmos.mtls.host.enabled": {
+		"defaultMessage": "{name} now requires an access certificate"
+	},
+	"npmos.mtls.host.inactive": {
+		"defaultMessage": "Not in force: the host is off or has no TLS certificate"
+	},
+	"npmos.mtls.host.settings": {
+		"defaultMessage": "mTLS settings…"
+	},
+	"npmos.mtls.hosts": {
+		"defaultMessage": "Protected hosts"
+	},
+	"npmos.mtls.hosts.none": {
+		"defaultMessage": "No host requires a client certificate."
+	},
+	"npmos.mtls.link.active": {
+		"defaultMessage": "Link active"
+	},
+	"npmos.mtls.link.delete": {
+		"defaultMessage": "Delete the link"
+	},
+	"npmos.mtls.link.expired": {
+		"defaultMessage": "Link expired"
+	},
+	"npmos.mtls.link.times": {
+		"defaultMessage": "{created} → {until}"
+	},
+	"npmos.mtls.link.used": {
+		"defaultMessage": "Link used"
+	},
 	"npmos.mtls.mode": {
 		"defaultMessage": "Where"
 	},
@@ -2573,11 +2756,29 @@
 	"npmos.mtls.no-cas": {
 		"defaultMessage": "No CAs yet: create a trust domain for this host."
 	},
+	"npmos.mtls.notes": {
+		"defaultMessage": "Note"
+	},
+	"npmos.mtls.notes.placeholder": {
+		"defaultMessage": "Who or what it is for: laptop of the accountant, CI runner…"
+	},
+	"npmos.mtls.notes.saved": {
+		"defaultMessage": "Note saved"
+	},
 	"npmos.mtls.op.one_of": {
 		"defaultMessage": "one of"
 	},
 	"npmos.mtls.op.regex": {
 		"defaultMessage": "matches"
+	},
+	"npmos.mtls.opens": {
+		"defaultMessage": "Opens"
+	},
+	"npmos.mtls.pki-hint": {
+		"defaultMessage": "CAs, templates, lifetimes and the public address for CRLs are in"
+	},
+	"npmos.mtls.protect": {
+		"defaultMessage": "Protect a host"
 	},
 	"npmos.mtls.replaces-upstream": {
 		"defaultMessage": "The host has an mTLS CA of NPMplus; these settings replace it while they are on."
@@ -2609,6 +2810,9 @@
 	"npmos.mtls.rules": {
 		"defaultMessage": "Rules on the certificate"
 	},
+	"npmos.mtls.rules.count": {
+		"defaultMessage": "{count, plural, one {# rule on fields} other {# rules on fields}}"
+	},
 	"npmos.mtls.rules.hint": {
 		"defaultMessage": "All rules must match. Values in Latin letters; one of: comma-separated."
 	},
@@ -2618,14 +2822,38 @@
 	"npmos.mtls.saved": {
 		"defaultMessage": "mTLS saved, nginx reloaded"
 	},
+	"npmos.mtls.search": {
+		"defaultMessage": "Name, email, note, serial, host"
+	},
 	"npmos.mtls.send-ca-names": {
 		"defaultMessage": "Send the names of the CAs to clients"
 	},
 	"npmos.mtls.send-ca-names.hint": {
 		"defaultMessage": "Browsers then offer only suitable certificates. Off: the names of your CAs are not disclosed."
 	},
+	"npmos.mtls.start": {
+		"defaultMessage": "No host is protected yet. Turn on the mTLS switch in the Hosts table or use “Protect a host”: NPMOS creates the CAs itself, then issue access certificates here."
+	},
+	"npmos.mtls.subtitle": {
+		"defaultMessage": "Hosts that admit only clients with an access certificate, and the certificates themselves"
+	},
+	"npmos.mtls.summary.active": {
+		"defaultMessage": "Valid certificates"
+	},
+	"npmos.mtls.summary.expiring": {
+		"defaultMessage": "Expire within 30 days"
+	},
+	"npmos.mtls.summary.hosts": {
+		"defaultMessage": "Protected hosts"
+	},
+	"npmos.mtls.summary.revoked": {
+		"defaultMessage": "Revoked"
+	},
 	"npmos.mtls.title": {
 		"defaultMessage": "mTLS"
+	},
+	"npmos.mtls.trust": {
+		"defaultMessage": "Trusted CAs"
 	},
 	"npmos.nav.administration": {
 		"defaultMessage": "Administration"
@@ -2647,6 +2875,9 @@
 	},
 	"npmos.nav.menu": {
 		"defaultMessage": "Navigation"
+	},
+	"npmos.nav.mtls": {
+		"defaultMessage": "mTLS"
 	},
 	"npmos.nav.nothing-found": {
 		"defaultMessage": "Nothing found"

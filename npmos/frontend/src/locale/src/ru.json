@@ -2120,14 +2120,20 @@
 	"npmos.hosts.mtls.configure": {
 		"defaultMessage": "Настройки mTLS…"
 	},
+	"npmos.hosts.mtls.details": {
+		"defaultMessage": "Подробности и сертификаты ({count})"
+	},
+	"npmos.hosts.mtls.download": {
+		"defaultMessage": "Скачать .p12: {name}"
+	},
+	"npmos.hosts.mtls.header": {
+		"defaultMessage": "{count, plural, =0 {Сертификатов доступа пока нет} one {# сертификат доступа} few {# сертификата доступа} other {# сертификатов доступа}}"
+	},
 	"npmos.hosts.mtls.issue": {
-		"defaultMessage": "Выпустить клиентский сертификат"
+		"defaultMessage": "Выдать сертификат доступа…"
 	},
 	"npmos.hosts.mtls.needs-tls": {
 		"defaultMessage": "Для mTLS нужен TLS-сертификат на хосте"
-	},
-	"npmos.hosts.mtls.new-domain": {
-		"defaultMessage": "Создать домен доверия для хоста"
 	},
 	"npmos.hosts.mtls.no-ca": {
 		"defaultMessage": "CA пока нет: загрузите его в «Сертификатах»"
@@ -2146,6 +2152,15 @@
 	},
 	"npmos.hosts.mtls.required.hint": {
 		"defaultMessage": "Пропускаются только клиенты с сертификатом этого CA"
+	},
+	"npmos.hosts.mtls.turn-off": {
+		"defaultMessage": "Выключить mTLS"
+	},
+	"npmos.hosts.mtls.turn-on": {
+		"defaultMessage": "Включить mTLS: пускать только клиентов с сертификатом доступа"
+	},
+	"npmos.hosts.mtls.upstream": {
+		"defaultMessage": "У хоста включён mTLS NPMplus (CA из «Сертификатов»)"
 	},
 	"npmos.hosts.no-access": {
 		"defaultMessage": "У вас нет доступа к хостам"
@@ -2507,11 +2522,59 @@
 	"npmos.migration.what": {
 		"defaultMessage": "Что будет перенесено"
 	},
+	"npmos.mtls.access.days": {
+		"defaultMessage": "Действует, дней"
+	},
+	"npmos.mtls.access.email": {
+		"defaultMessage": "Email (необязательно)"
+	},
+	"npmos.mtls.access.issue": {
+		"defaultMessage": "Выдать сертификат доступа"
+	},
+	"npmos.mtls.access.issued": {
+		"defaultMessage": "{name} теперь открывает {host}. Установите .p12 на устройство с паролем ниже."
+	},
+	"npmos.mtls.access.keep": {
+		"defaultMessage": "Хранить ключ в NPMOS, чтобы скачивать сертификат повторно"
+	},
+	"npmos.mtls.access.keep.hint": {
+		"defaultMessage": "Хранится зашифрованным. Без этого .p12 выдаётся только сейчас."
+	},
+	"npmos.mtls.access.link": {
+		"defaultMessage": "Создать и одноразовую ссылку на скачивание (24 ч)"
+	},
+	"npmos.mtls.access.name": {
+		"defaultMessage": "Имя"
+	},
+	"npmos.mtls.access.name.hint": {
+		"defaultMessage": "Показывается в браузере, когда он спрашивает сертификат, а также в правилах и событиях mTLS (CN)."
+	},
+	"npmos.mtls.access.name.placeholder": {
+		"defaultMessage": "ivanov-laptop"
+	},
+	"npmos.mtls.access.no-hosts": {
+		"defaultMessage": "Сначала защитите хост: включите его переключатель mTLS в «Хостах» или нажмите «Защитить хост»."
+	},
+	"npmos.mtls.access.no-issuer": {
+		"defaultMessage": "Этот хост доверяет только внешним CA: NPMOS не может выпускать для него сертификаты. Добавьте домен доверия в настройках mTLS хоста."
+	},
+	"npmos.mtls.access.rules": {
+		"defaultMessage": "У хоста есть правила по полям сертификата: имя должно им соответствовать."
+	},
+	"npmos.mtls.access.submit": {
+		"defaultMessage": "Выдать"
+	},
+	"npmos.mtls.access.title": {
+		"defaultMessage": "Новый сертификат доступа"
+	},
 	"npmos.mtls.advanced": {
 		"defaultMessage": "Дополнительно"
 	},
 	"npmos.mtls.advanced.hide": {
 		"defaultMessage": "Скрыть настройки"
+	},
+	"npmos.mtls.all-hosts": {
+		"defaultMessage": "Все хосты"
 	},
 	"npmos.mtls.cas": {
 		"defaultMessage": "Доверенные CA"
@@ -2522,8 +2585,83 @@
 	"npmos.mtls.cas.stream-hint": {
 		"defaultMessage": "Стримы не умеют проверять издателя: домен доверия пускает сертификаты всех доменов доверия своего корня."
 	},
+	"npmos.mtls.cert.access": {
+		"defaultMessage": "Открывает"
+	},
+	"npmos.mtls.cert.created": {
+		"defaultMessage": "Выдан"
+	},
+	"npmos.mtls.cert.details": {
+		"defaultMessage": "Сертификат"
+	},
+	"npmos.mtls.cert.files": {
+		"defaultMessage": "Файлы"
+	},
+	"npmos.mtls.cert.fingerprint": {
+		"defaultMessage": "Отпечаток (SHA-256)"
+	},
+	"npmos.mtls.cert.issuer": {
+		"defaultMessage": "Выпущен"
+	},
+	"npmos.mtls.cert.key": {
+		"defaultMessage": "Ключ"
+	},
+	"npmos.mtls.cert.key.kept": {
+		"defaultMessage": "хранится в NPMOS (зашифрован)"
+	},
+	"npmos.mtls.cert.key.not-kept": {
+		"defaultMessage": "не хранится"
+	},
+	"npmos.mtls.cert.missing": {
+		"defaultMessage": "Сертификат не найден (удалён?)."
+	},
+	"npmos.mtls.cert.no-access": {
+		"defaultMessage": "Сейчас его не принимает ни один защищённый хост."
+	},
+	"npmos.mtls.cert.no-key": {
+		"defaultMessage": "NPMOS не хранит ключ: .p12 повторно не скачать. Перевыпустите сертификат, чтобы получить новый."
+	},
+	"npmos.mtls.cert.revoked": {
+		"defaultMessage": "Отозван {time}: {reason}. Он больше не открывает хосты."
+	},
+	"npmos.mtls.cert.serial": {
+		"defaultMessage": "Серийный номер"
+	},
+	"npmos.mtls.cert.valid": {
+		"defaultMessage": "Действует"
+	},
+	"npmos.mtls.certs": {
+		"defaultMessage": "Сертификатов"
+	},
+	"npmos.mtls.certs.none": {
+		"defaultMessage": "Сертификатов доступа пока нет."
+	},
+	"npmos.mtls.certs.title": {
+		"defaultMessage": "Сертификаты доступа"
+	},
+	"npmos.mtls.delete": {
+		"defaultMessage": "Удалить"
+	},
+	"npmos.mtls.delete.confirm": {
+		"defaultMessage": "Удалить этот сертификат из списка?"
+	},
+	"npmos.mtls.delete.confirm-valid": {
+		"defaultMessage": "Сертификат действует: он будет отозван и перестанет открывать хосты. Удалить?"
+	},
+	"npmos.mtls.delete.selected": {
+		"defaultMessage": "Удалить ({count})"
+	},
+	"npmos.mtls.delete.text": {
+		"defaultMessage": "{count, plural, one {Сертификат будет удалён из списка.} few {# сертификата будут удалены из списка.} other {# сертификатов будут удалены из списка.}} Действующий сертификат сначала отзывается и через несколько секунд перестаёт открывать хосты."
+	},
+	"npmos.mtls.deleted": {
+		"defaultMessage": "{count, plural, one {Сертификат удалён} few {Удалено # сертификата} other {Удалено # сертификатов}}"
+	},
 	"npmos.mtls.depth": {
 		"defaultMessage": "Глубина цепочки"
+	},
+	"npmos.mtls.details": {
+		"defaultMessage": "Подробности"
 	},
 	"npmos.mtls.enabled": {
 		"defaultMessage": "Требовать клиентские сертификаты"
@@ -2549,6 +2687,51 @@
 	"npmos.mtls.headers.hint": {
 		"defaultMessage": "Заголовки X-Client-Verify, X-Client-S-DN, X-Client-I-DN, X-Client-Serial, X-Client-Fingerprint; такие же заголовки от клиентов заменяются."
 	},
+	"npmos.mtls.host": {
+		"defaultMessage": "Хост"
+	},
+	"npmos.mtls.host.certs": {
+		"defaultMessage": "Показать его сертификаты"
+	},
+	"npmos.mtls.host.disable": {
+		"defaultMessage": "Выключить mTLS"
+	},
+	"npmos.mtls.host.disable.text": {
+		"defaultMessage": "{name} будет пускать клиентов без сертификата. Сертификаты и настройки сохранятся и снова заработают, когда mTLS включат."
+	},
+	"npmos.mtls.host.disabled": {
+		"defaultMessage": "mTLS для {name} выключен"
+	},
+	"npmos.mtls.host.enabled": {
+		"defaultMessage": "{name} теперь требует сертификат доступа"
+	},
+	"npmos.mtls.host.inactive": {
+		"defaultMessage": "Не действует: хост выключен или без TLS-сертификата"
+	},
+	"npmos.mtls.host.settings": {
+		"defaultMessage": "Настройки mTLS…"
+	},
+	"npmos.mtls.hosts": {
+		"defaultMessage": "Защищённые хосты"
+	},
+	"npmos.mtls.hosts.none": {
+		"defaultMessage": "Ни один хост не требует клиентский сертификат."
+	},
+	"npmos.mtls.link.active": {
+		"defaultMessage": "Ссылка активна"
+	},
+	"npmos.mtls.link.delete": {
+		"defaultMessage": "Удалить ссылку"
+	},
+	"npmos.mtls.link.expired": {
+		"defaultMessage": "Ссылка истекла"
+	},
+	"npmos.mtls.link.times": {
+		"defaultMessage": "{created} → {until}"
+	},
+	"npmos.mtls.link.used": {
+		"defaultMessage": "Ссылка использована"
+	},
 	"npmos.mtls.mode": {
 		"defaultMessage": "Где требовать"
 	},
@@ -2573,11 +2756,29 @@
 	"npmos.mtls.no-cas": {
 		"defaultMessage": "CA пока нет: создайте домен доверия для этого хоста."
 	},
+	"npmos.mtls.notes": {
+		"defaultMessage": "Заметка"
+	},
+	"npmos.mtls.notes.placeholder": {
+		"defaultMessage": "Для кого или чего: ноутбук бухгалтера, CI-раннер…"
+	},
+	"npmos.mtls.notes.saved": {
+		"defaultMessage": "Заметка сохранена"
+	},
 	"npmos.mtls.op.one_of": {
 		"defaultMessage": "одно из"
 	},
 	"npmos.mtls.op.regex": {
 		"defaultMessage": "совпадает с"
+	},
+	"npmos.mtls.opens": {
+		"defaultMessage": "Открывает"
+	},
+	"npmos.mtls.pki-hint": {
+		"defaultMessage": "CA, шаблоны, сроки и публичный адрес для CRL — в разделе"
+	},
+	"npmos.mtls.protect": {
+		"defaultMessage": "Защитить хост"
 	},
 	"npmos.mtls.replaces-upstream": {
 		"defaultMessage": "У хоста выбран mTLS CA из NPMplus; пока эти настройки включены, они его заменяют."
@@ -2609,6 +2810,9 @@
 	"npmos.mtls.rules": {
 		"defaultMessage": "Правила по полям сертификата"
 	},
+	"npmos.mtls.rules.count": {
+		"defaultMessage": "{count, plural, one {# правило по полям} few {# правила по полям} other {# правил по полям}}"
+	},
 	"npmos.mtls.rules.hint": {
 		"defaultMessage": "Должны выполняться все правила. Значения — латиницей; «одно из» — через запятую."
 	},
@@ -2618,14 +2822,38 @@
 	"npmos.mtls.saved": {
 		"defaultMessage": "mTLS сохранён, nginx перезагружен"
 	},
+	"npmos.mtls.search": {
+		"defaultMessage": "Имя, email, заметка, серийный номер, хост"
+	},
 	"npmos.mtls.send-ca-names": {
 		"defaultMessage": "Сообщать клиентам имена CA"
 	},
 	"npmos.mtls.send-ca-names.hint": {
 		"defaultMessage": "Тогда браузер предлагает только подходящие сертификаты. Выключено — имена ваших CA не раскрываются."
 	},
+	"npmos.mtls.start": {
+		"defaultMessage": "Пока ни один хост не защищён. Включите переключатель mTLS в таблице «Хостов» или нажмите «Защитить хост»: NPMOS сам создаст CA, а сертификаты доступа выдаются здесь."
+	},
+	"npmos.mtls.subtitle": {
+		"defaultMessage": "Хосты, которые пускают только клиентов с сертификатом доступа, и сами сертификаты"
+	},
+	"npmos.mtls.summary.active": {
+		"defaultMessage": "Действующих сертификатов"
+	},
+	"npmos.mtls.summary.expiring": {
+		"defaultMessage": "Истекают за 30 дней"
+	},
+	"npmos.mtls.summary.hosts": {
+		"defaultMessage": "Защищённых хостов"
+	},
+	"npmos.mtls.summary.revoked": {
+		"defaultMessage": "Отозвано"
+	},
 	"npmos.mtls.title": {
 		"defaultMessage": "mTLS"
+	},
+	"npmos.mtls.trust": {
+		"defaultMessage": "Доверенные CA"
 	},
 	"npmos.nav.administration": {
 		"defaultMessage": "Администрирование"
@@ -2647,6 +2875,9 @@
 	},
 	"npmos.nav.menu": {
 		"defaultMessage": "Навигация"
+	},
+	"npmos.nav.mtls": {
+		"defaultMessage": "mTLS"
 	},
 	"npmos.nav.nothing-found": {
 		"defaultMessage": "Ничего не найдено"
