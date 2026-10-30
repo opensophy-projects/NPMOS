@@ -1,7 +1,6 @@
-// Sidebar of opensophy.com/docs (content/ContentSidebar): brand, user menu, search over the menu,
-// collapsible groups with a guide line, a hover highlight sliding between items and an accent
+// Sidebar of opensophy.com/docs (content/ContentSidebar): brand, user menu, collapsible groups with a guide line, a hover highlight sliding between items and an accent
 // line next to the active page; theme and language at the bottom.
-import { IconChevronRight, IconSearch } from "@tabler/icons-react";
+import { IconChevronRight } from "@tabler/icons-react";
 import cn from "classnames";
 import { type CSSProperties, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -9,7 +8,7 @@ import { useUser } from "src/hooks";
 import { intl, T } from "src/locale";
 import { useCan } from "../rbac/hooks";
 import { Brand, LocaleSwitch, ThemeToggle, UserMenu } from "./Controls";
-import { containsActive, filterItems, isActivePath, type NavItem, navigation, visibleItems } from "./menu";
+import { containsActive, isActivePath, type NavItem, navigation, visibleItems } from "./menu";
 import styles from "./Shell.module.css";
 
 /** how long the active line follows a group that opens or closes (the panel transition) */
@@ -26,29 +25,20 @@ const hidden: Indicator = { top: 0, height: 0, left: 0, visible: false };
 interface Props {
 	/** called after navigation (closes the mobile drawer) */
 	onNavigate?: () => void;
-	/** the search field gets Ctrl+K (only the desktop sidebar) */
-	hotkey?: boolean;
 }
 
-export function Sidebar({ onNavigate, hotkey }: Props) {
+export function Sidebar({ onNavigate }: Props) {
 	const { pathname } = useLocation();
 	const navigate = useNavigate();
 	const { data: me } = useUser("me");
-	const [query, setQuery] = useState("");
 	const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 	const [hover, setHover] = useState<Indicator>(hidden);
 	const [active, setActive] = useState<Indicator>(hidden);
 	const [follow, setFollow] = useState(false);
 	const nav = useRef<HTMLElement>(null);
-	const search = useRef<HTMLInputElement>(null);
 
-	const translate = useCallback((id: string) => intl.formatMessage({ id }), []);
 	const can = useCan();
-	const items = useMemo(
-		() => filterItems(visibleItems(navigation, me, can), query, translate),
-		[me, can, query, translate],
-	);
-	const searching = query.trim() !== "";
+	const items = useMemo(() => visibleItems(navigation, me, can), [me, can]);
 
 	// a group with the active page opens when the page changes (it can be closed afterwards)
 	useEffect(() => {
@@ -115,19 +105,6 @@ export function Sidebar({ onNavigate, hotkey }: Props) {
 		return () => window.removeEventListener("resize", measureActive);
 	}, [measureActive]);
 
-	useEffect(() => {
-		if (!hotkey) return;
-		const onKey = (e: KeyboardEvent) => {
-			if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
-				e.preventDefault();
-				search.current?.focus();
-				search.current?.select();
-			}
-		};
-		document.addEventListener("keydown", onKey);
-		return () => document.removeEventListener("keydown", onKey);
-	}, [hotkey]);
-
 	const showHover = (node: HTMLElement) => {
 		if (!nav.current) return;
 		const navRect = nav.current.getBoundingClientRect();
@@ -138,20 +115,10 @@ export function Sidebar({ onNavigate, hotkey }: Props) {
 
 	const go = (to: string) => {
 		navigate(to);
-		setQuery("");
 		onNavigate?.();
 	};
 
-	const firstLeaf = (list: NavItem[]): NavItem | undefined => {
-		for (const item of list) {
-			if (item.to) return item;
-			const leaf = item.items && firstLeaf(item.items);
-			if (leaf) return leaf;
-		}
-		return undefined;
-	};
-
-	const isOpen = (item: NavItem) => searching || (expanded[item.id] ?? containsActive(item, pathname));
+	const isOpen = (item: NavItem) => expanded[item.id] ?? containsActive(item, pathname);
 
 	const renderItem = (item: NavItem, depth: number) => {
 		const hoverHandlers = {
@@ -218,27 +185,6 @@ export function Sidebar({ onNavigate, hotkey }: Props) {
 
 			<div className={styles.controls}>
 				<UserMenu />
-				<label className={styles.field}>
-					<IconSearch size={16} style={{ flex: "none" }} />
-					<input
-						ref={search}
-						type="search"
-						className={styles.searchInput}
-						placeholder={intl.formatMessage({ id: "npmos.nav.search" })}
-						aria-label={intl.formatMessage({ id: "npmos.nav.search" })}
-						value={query}
-						onChange={(e) => setQuery(e.target.value)}
-						onKeyDown={(e) => {
-							if (e.key === "Escape") {
-								setQuery("");
-							} else if (e.key === "Enter") {
-								const leaf = firstLeaf(items);
-								if (leaf?.to) go(leaf.to);
-							}
-						}}
-					/>
-					{hotkey && <kbd className={styles.kbd}>Ctrl K</kbd>}
-				</label>
 			</div>
 
 			<div className={styles.navScroll}>
@@ -263,11 +209,6 @@ export function Sidebar({ onNavigate, hotkey }: Props) {
 					}
 				>
 					{items.map((item) => renderItem(item, 0))}
-					{!items.length && (
-						<div className={styles.empty}>
-							<T id="npmos.nav.nothing-found" />
-						</div>
-					)}
 				</nav>
 			</div>
 

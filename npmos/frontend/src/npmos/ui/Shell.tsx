@@ -108,7 +108,7 @@ export function Shell({ children }: { children: ReactNode }) {
 				<MobileDrawer />
 				<div className={styles.grid}>
 					<div className={styles.sidebarShell}>
-						<Sidebar hotkey />
+						<Sidebar />
 					</div>
 					<div className={styles.contentShell}>
 						<div className={styles.content}>

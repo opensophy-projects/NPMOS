@@ -125,26 +125,6 @@ export const visibleItems = (items: NavItem[], me: Me, can: (resource: string) =
 		return [item];
 	});
 
-/** Items whose label (or a parent's label) contains the query. */
-export const filterItems = (items: NavItem[], query: string, translate: (id: string) => string): NavItem[] => {
-	const q = query.trim().toLocaleLowerCase();
-	if (!q) return items;
-	return items.flatMap((item) => {
-		if (translate(item.label).toLocaleLowerCase().includes(q)) {
-			return [item];
-		}
-		// a page of a section is found by its own name too
-		if (item.tabs) {
-			return item.tabs.filter((tab) => translate(tab.label).toLocaleLowerCase().includes(q));
-		}
-		if (item.items) {
-			const children = filterItems(item.items, q, translate);
-			return children.length ? [{ ...item, items: children }] : [];
-		}
-		return [];
-	});
-};
-
 export const isActivePath = (to: string, pathname: string) =>
 	to === "/" ? pathname === "/" : pathname === to || pathname.startsWith(`${to}/`);
 

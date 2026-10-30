@@ -2912,9 +2912,6 @@
 	"npmos.nav.overview": {
 		"defaultMessage": "Обзор"
 	},
-	"npmos.nav.search": {
-		"defaultMessage": "Поиск по меню…"
-	},
 	"npmos.nav.security": {
 		"defaultMessage": "Безопасность"
 	},
