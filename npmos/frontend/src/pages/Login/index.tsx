@@ -144,6 +144,7 @@ function LoginForm() {
 												{...field}
 												ref={emailRef}
 												type="email"
+												autoComplete="username"
 												required
 												className={`form-control ${form.errors.email && form.touched.email ? " is-invalid" : ""}`}
 												placeholder={intl.formatMessage({ id: "email-address" })}

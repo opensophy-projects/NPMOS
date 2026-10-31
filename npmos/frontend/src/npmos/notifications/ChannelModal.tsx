@@ -133,194 +133,203 @@ const ChannelModal = EasyModal.create(({ type, channel, visible, remove }: Props
 				</Modal.Title>
 			</Modal.Header>
 			<Modal.Body>
-				{error && <Alert variant="danger">{error}</Alert>}
-				{type === "telegram" && (
-					<Alert variant="warning">
-						<T id="npmos.notifications.telegram.internet" />
-					</Alert>
-				)}
-				<Field label="npmos.notifications.name">
-					<input
-						className="form-control"
-						value={name}
-						maxLength={100}
-						onChange={(e) => setName(e.target.value)}
-					/>
-				</Field>
-				{type === "email" && (
-					<>
-						<div className="row">
-							<div className="col-md-6">
-								<Field label="npmos.notifications.email.host">
-									<input
-										className="form-control"
-										value={email.host}
-										placeholder={EXAMPLE.host}
-										onChange={(e) => set({ host: e.target.value.trim() })}
-									/>
-								</Field>
+				{/* NPMOS: a form wrapper so the browser does not warn about password fields outside a form */}
+				<form autoComplete="off" onSubmit={(e) => e.preventDefault()}>
+					{error && <Alert variant="danger">{error}</Alert>}
+					{type === "telegram" && (
+						<Alert variant="warning">
+							<T id="npmos.notifications.telegram.internet" />
+						</Alert>
+					)}
+					<Field label="npmos.notifications.name">
+						<input
+							className="form-control"
+							value={name}
+							maxLength={100}
+							onChange={(e) => setName(e.target.value)}
+						/>
+					</Field>
+					{type === "email" && (
+						<>
+							<div className="row">
+								<div className="col-md-6">
+									<Field label="npmos.notifications.email.host">
+										<input
+											className="form-control"
+											value={email.host}
+											placeholder={EXAMPLE.host}
+											onChange={(e) => set({ host: e.target.value.trim() })}
+										/>
+									</Field>
+								</div>
+								<div className="col-md-2">
+									<Field label="npmos.notifications.email.port">
+										<input
+											type="number"
+											className="form-control"
+											value={email.port}
+											min={1}
+											max={65535}
+											onChange={(e) => set({ port: Number.parseInt(e.target.value, 10) || 0 })}
+										/>
+									</Field>
+								</div>
+								<div className="col-md-4">
+									<Field label="npmos.notifications.email.security">
+										<select
+											className="form-select"
+											value={email.security}
+											onChange={(e) => {
+												const security = e.target.value as EmailConfig["security"];
+												set({
+													security,
+													port: security === "tls" ? 465 : security === "starttls" ? 587 : 25,
+												});
+											}}
+										>
+											{(["starttls", "tls", "none"] as const).map((s) => (
+												<option key={s} value={s}>
+													{t(`npmos.notifications.email.security.${s}`)}
+												</option>
+											))}
+										</select>
+									</Field>
+								</div>
 							</div>
-							<div className="col-md-2">
-								<Field label="npmos.notifications.email.port">
-									<input
-										type="number"
-										className="form-control"
-										value={email.port}
-										min={1}
-										max={65535}
-										onChange={(e) => set({ port: Number.parseInt(e.target.value, 10) || 0 })}
-									/>
-								</Field>
-							</div>
-							<div className="col-md-4">
-								<Field label="npmos.notifications.email.security">
-									<select
-										className="form-select"
-										value={email.security}
-										onChange={(e) => {
-											const security = e.target.value as EmailConfig["security"];
-											set({
-												security,
-												port: security === "tls" ? 465 : security === "starttls" ? 587 : 25,
-											});
-										}}
+							<div className="row">
+								<div className="col-md-6">
+									<Field label="npmos.notifications.email.username">
+										<input
+											className="form-control"
+											value={email.username}
+											autoComplete="off"
+											onChange={(e) => set({ username: e.target.value })}
+										/>
+									</Field>
+								</div>
+								<div className="col-md-6">
+									<Field
+										label={secretLabel}
+										hint={hasSecret ? "npmos.notifications.secret.keep" : undefined}
 									>
-										{(["starttls", "tls", "none"] as const).map((s) => (
-											<option key={s} value={s}>
-												{t(`npmos.notifications.email.security.${s}`)}
-											</option>
-										))}
-									</select>
-								</Field>
+										<input
+											type="password"
+											className="form-control"
+											value={secret}
+											autoComplete="new-password"
+											placeholder={hasSecret ? "••••••••" : ""}
+											onChange={(e) => setSecret(e.target.value)}
+										/>
+									</Field>
+								</div>
 							</div>
-						</div>
-						<div className="row">
-							<div className="col-md-6">
-								<Field label="npmos.notifications.email.username">
-									<input
-										className="form-control"
-										value={email.username}
-										autoComplete="off"
-										onChange={(e) => set({ username: e.target.value })}
-									/>
-								</Field>
-							</div>
-							<div className="col-md-6">
-								<Field
-									label={secretLabel}
-									hint={hasSecret ? "npmos.notifications.secret.keep" : undefined}
-								>
-									<input
-										type="password"
-										className="form-control"
-										value={secret}
-										autoComplete="new-password"
-										placeholder={hasSecret ? "••••••••" : ""}
-										onChange={(e) => setSecret(e.target.value)}
-									/>
-								</Field>
-							</div>
-						</div>
-						<Field label="npmos.notifications.email.from">
-							<input
-								className="form-control"
-								value={email.from}
-								placeholder={EXAMPLE.from}
-								onChange={(e) => set({ from: e.target.value.trim() })}
-							/>
-						</Field>
-						<Field label="npmos.notifications.email.to" hint="npmos.notifications.email.to.hint">
-							<input
-								className="form-control"
-								value={to}
-								placeholder={EXAMPLE.to}
-								onChange={(e) => setTo(e.target.value)}
-							/>
-						</Field>
-						{email.security !== "none" && (
-							<label className="form-check mb-3">
+							<Field label="npmos.notifications.email.from">
 								<input
-									type="checkbox"
-									className="form-check-input"
-									checked={email.verifyTls}
-									onChange={(e) => set({ verifyTls: e.target.checked })}
+									className="form-control"
+									value={email.from}
+									placeholder={EXAMPLE.from}
+									onChange={(e) => set({ from: e.target.value.trim() })}
 								/>
-								<span className="form-check-label">
-									<T id="npmos.notifications.email.verify-tls" />
-								</span>
-							</label>
-						)}
-					</>
-				)}
-				{type === "webhook" && (
-					<>
-						<Field label="npmos.notifications.webhook.url">
-							<input
-								className="form-control"
-								value={webhook.url}
-								placeholder={EXAMPLE.url}
-								onChange={(e) => set({ url: e.target.value.trim() })}
-							/>
-						</Field>
-						<Field
-							label={secretLabel}
-							hint={
-								hasSecret
-									? "npmos.notifications.secret.keep"
-									: "npmos.notifications.webhook.secret.hint"
-							}
+							</Field>
+							<Field label="npmos.notifications.email.to" hint="npmos.notifications.email.to.hint">
+								<input
+									className="form-control"
+									value={to}
+									placeholder={EXAMPLE.to}
+									onChange={(e) => setTo(e.target.value)}
+								/>
+							</Field>
+							{email.security !== "none" && (
+								<label className="form-check mb-3">
+									<input
+										type="checkbox"
+										className="form-check-input"
+										checked={email.verifyTls}
+										onChange={(e) => set({ verifyTls: e.target.checked })}
+									/>
+									<span className="form-check-label">
+										<T id="npmos.notifications.email.verify-tls" />
+									</span>
+								</label>
+							)}
+						</>
+					)}
+					{type === "webhook" && (
+						<>
+							<Field label="npmos.notifications.webhook.url">
+								<input
+									className="form-control"
+									value={webhook.url}
+									placeholder={EXAMPLE.url}
+									onChange={(e) => set({ url: e.target.value.trim() })}
+								/>
+							</Field>
+							<Field
+								label={secretLabel}
+								hint={
+									hasSecret
+										? "npmos.notifications.secret.keep"
+										: "npmos.notifications.webhook.secret.hint"
+								}
+							>
+								<input
+									type="password"
+									className="form-control"
+									value={secret}
+									autoComplete="new-password"
+									placeholder={hasSecret ? "••••••••" : ""}
+									onChange={(e) => setSecret(e.target.value)}
+								/>
+							</Field>
+						</>
+					)}
+					{type === "telegram" && (
+						<>
+							<Field label={secretLabel} hint={hasSecret ? "npmos.notifications.secret.keep" : undefined}>
+								<input
+									type="password"
+									className="form-control"
+									value={secret}
+									autoComplete="new-password"
+									placeholder={hasSecret ? "••••••••" : EXAMPLE.token}
+									onChange={(e) => setSecret(e.target.value.trim())}
+								/>
+							</Field>
+							<Field
+								label="npmos.notifications.telegram.chat"
+								hint="npmos.notifications.telegram.chat.hint"
+							>
+								<input
+									className="form-control"
+									value={telegram.chatId}
+									placeholder={EXAMPLE.chat}
+									onChange={(e) => set({ chatId: e.target.value.trim() })}
+								/>
+							</Field>
+							<Field
+								label="npmos.notifications.telegram.api"
+								hint="npmos.notifications.telegram.api.hint"
+							>
+								<input
+									className="form-control"
+									value={telegram.apiUrl}
+									placeholder={EXAMPLE.api}
+									onChange={(e) => set({ apiUrl: e.target.value.trim() })}
+								/>
+							</Field>
+						</>
+					)}
+					<Field label="npmos.notifications.language">
+						<select
+							className="form-select"
+							value={config.language}
+							onChange={(e) => set({ language: e.target.value as Language })}
 						>
-							<input
-								type="password"
-								className="form-control"
-								value={secret}
-								autoComplete="new-password"
-								placeholder={hasSecret ? "••••••••" : ""}
-								onChange={(e) => setSecret(e.target.value)}
-							/>
-						</Field>
-					</>
-				)}
-				{type === "telegram" && (
-					<>
-						<Field label={secretLabel} hint={hasSecret ? "npmos.notifications.secret.keep" : undefined}>
-							<input
-								type="password"
-								className="form-control"
-								value={secret}
-								autoComplete="new-password"
-								placeholder={hasSecret ? "••••••••" : EXAMPLE.token}
-								onChange={(e) => setSecret(e.target.value.trim())}
-							/>
-						</Field>
-						<Field label="npmos.notifications.telegram.chat" hint="npmos.notifications.telegram.chat.hint">
-							<input
-								className="form-control"
-								value={telegram.chatId}
-								placeholder={EXAMPLE.chat}
-								onChange={(e) => set({ chatId: e.target.value.trim() })}
-							/>
-						</Field>
-						<Field label="npmos.notifications.telegram.api" hint="npmos.notifications.telegram.api.hint">
-							<input
-								className="form-control"
-								value={telegram.apiUrl}
-								placeholder={EXAMPLE.api}
-								onChange={(e) => set({ apiUrl: e.target.value.trim() })}
-							/>
-						</Field>
-					</>
-				)}
-				<Field label="npmos.notifications.language">
-					<select
-						className="form-select"
-						value={config.language}
-						onChange={(e) => set({ language: e.target.value as Language })}
-					>
-						<option value="ru">{t("npmos.notifications.language.ru")}</option>
-						<option value="en">{t("npmos.notifications.language.en")}</option>
-					</select>
-				</Field>
+							<option value="ru">{t("npmos.notifications.language.ru")}</option>
+							<option value="en">{t("npmos.notifications.language.en")}</option>
+						</select>
+					</Field>
+				</form>
 			</Modal.Body>
 			<Modal.Footer>
 				<Button onClick={remove}>

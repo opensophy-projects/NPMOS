@@ -117,6 +117,7 @@ export default function Setup() {
 												<input
 													id="email"
 													type="email"
+													autoComplete="username"
 													className={`form-control ${form.errors.email && form.touched.email ? "is-invalid" : ""}`}
 													placeholder={intl.formatMessage({ id: "email-address" })}
 													{...field}

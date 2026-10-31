@@ -228,7 +228,6 @@
 		oklch(from var(--accent) l c h / 0.68) 82%,
 		transparent
 	);
-	filter: drop-shadow(0 0 6px oklch(from var(--accent) l c h / 0.38));
 	opacity: var(--active-opacity, 0);
 	pointer-events: none;
 	transform: translate(var(--active-left, 0), var(--active-top, 0));
