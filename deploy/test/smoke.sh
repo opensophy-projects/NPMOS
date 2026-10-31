@@ -124,7 +124,7 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
     $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf" -d "{\"enabled\": $1, \"apply\": true}" \
       | grep -q '"restarting": *true' || fail "WAF switch did not restart npmos"
     # npmos-control answers first, then restarts npmos and the agent in its namespaces
-    sleep 5
+    sleep 7
     wait_api
     for i in $(seq 1 30); do
       $CURL "$ADMIN/api/npmos/waf" | grep -q "\"active\": *$1" && break
