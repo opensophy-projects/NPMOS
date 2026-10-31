@@ -88,8 +88,7 @@
 	align-items: flex-start;
 	justify-content: space-between;
 	gap: 0.75rem 1rem;
-	padding: 1rem 1.25rem;
-	border-bottom: 1px solid var(--border);
+	padding: 1rem 1.25rem 0;
 }
 .paneTitle {
 	margin: 0;
@@ -104,15 +103,6 @@
 }
 .paneBody {
 	padding: 1rem 1.25rem 1.25rem;
-}
-/* the cards of the policy pages sit flat inside the pane */
-.paneBody :global(.card) {
-	padding: 0;
-	background: transparent;
-	box-shadow: none;
-}
-.paneBody :global(.card)::before {
-	content: none;
 }
 .toggle {
 	display: inline-flex;
@@ -135,4 +125,28 @@
 	background: var(--background);
 	color: var(--foreground);
 	box-shadow: 0 0 0 1px var(--border-strong);
+}
+/* The pages shown in the pane (base policy, objects, versions, expert) are made of cards of their own: inside the
+   pane they are flat sections, not cards in a card with a second hairline frame */
+.paneBody :global(.card) {
+	--tblr-card-bg: transparent;
+	isolation: auto;
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
+}
+.paneBody :global(.card)::before {
+	content: none;
+}
+.paneBody :global(.card) + :global(.card) {
+	margin-top: 1.5rem;
+}
+.paneBody :global(.card) > :global(.card-header),
+.paneBody :global(.card) > :global(.card-body),
+.paneBody :global(.card) > :global(.card-footer) {
+	padding-inline: 0;
+	border: 0;
+	background: transparent;
 }

@@ -3,6 +3,7 @@
 // reads it too and logrotate rotates it. The position is the cursor "nginx:access" in npmos_log_cursor.
 import { createHash } from "node:crypto";
 import { open } from "node:fs/promises";
+import db from "../../db.js";
 import { global as logger } from "../../logger.js";
 import { loadCursors, REQUEST_COUNTERS, store } from "./store.js";
 
@@ -30,7 +31,8 @@ const parseTime = (text) => {
 
 /**
  * A line of the log: [time] host[:port] ip request_time "request" status body_bytes bytes_sent referer agent.
- * The admin interface (port 81) and the health check of the container are not requests of the hosts.
+ * The admin interface (port 81) and the health check of the container are not requests of the hosts; nor are the
+ * requests of a proxy host that opens the interface by a domain (left out by pollOnce).
  * @returns {{time: Date, host: string, status: number, bytes: number}|null}
  */
 export const parseLine = (line) => {
@@ -41,6 +43,29 @@ export const parseLine = (line) => {
 	const host = m[2].toLowerCase().replace(/:(80|443)$/, "");
 	if (/:81$/.test(host) || line.endsWith(" NPMplus/healthcheck")) return null;
 	return { time, host: host.slice(0, 255), status: Number(m[3]), bytes: Number(m[4]) };
+};
+
+/** a proxy host that forwards to the interface of NPMOS itself (port 81 of this container) */
+export const isInterfaceHost = ({ forward_host: host, forward_port: port }) =>
+	Number(port) === 81 && ["127.0.0.1", "localhost", "::1", "[::1]"].includes(String(host || "").toLowerCase());
+
+/**
+ * Domains of the proxy hosts that open the interface of NPMOS by a domain: its pages poll the API every few
+ * seconds while open, which is not traffic of a site (tens of thousands of "requests" a day per open tab).
+ */
+const interfaceDomains = async () => {
+	const rows = await db()("proxy_host").where("is_deleted", 0).select("domain_names", "forward_host", "forward_port");
+	const domains = new Set();
+	for (const row of rows.filter(isInterfaceHost)) {
+		let names = row.domain_names;
+		try {
+			names = typeof names === "string" ? JSON.parse(names) : names;
+		} catch {
+			names = [];
+		}
+		for (const name of names || []) domains.add(String(name).toLowerCase());
+	}
+	return domains;
 };
 
 /** rows of npmos_request_hourly for parsed lines */
@@ -87,7 +112,13 @@ export const pollOnce = async ({ file = LOG_FILE } = {}) => {
 		await handle.read(buf, 0, length, offset);
 		const end = buf.lastIndexOf(0x0a);
 		if (end < 0) return 0;
-		const lines = buf.subarray(0, end).toString("utf8").split("\n").map(parseLine).filter(Boolean);
+		const skip = await interfaceDomains();
+		const lines = buf
+			.subarray(0, end)
+			.toString("utf8")
+			.split("\n")
+			.map(parseLine)
+			.filter((l) => l && !skip.has(l.host));
 		offset += end + 1;
 		await store({
 			events: [],

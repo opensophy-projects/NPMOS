@@ -478,6 +478,8 @@ if [ "$LOGROTATE" = "true" ]; then
     sed -i "s|rotate [0-9]\+|rotate $LOGROTATIONS|g" /etc/logrotate
     sed -i "s|access_log off; # http|access_log /data/nginx/logs/access.log alog;|g" /usr/local/nginx/conf/nginx.conf
     sed -i "s|access_log off; # stream|access_log /data/nginx/logs/stream.log slog;|g" /usr/local/nginx/conf/nginx.conf
+    # NPMOS: the interface with its port in the log (alog_admin), so that Analytics leaves it out
+    sed -i "s|access_log off; # admin|access_log /data/nginx/logs/access.log alog_admin;|g" /usr/local/nginx/conf/conf.d/npmplus.conf
     sed -i "s|#error_log|error_log|g" /usr/local/nginx/conf/nginx.conf
 
     if [ ! -L /data/nginx/access.log ] && [ ! -f /data/nginx/logs/access.log ]; then mv -vn /data/nginx/access.log* /data/nginx/logs; fi

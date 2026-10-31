@@ -114,17 +114,26 @@ done
 $CURL "$ADMIN/api/npmos/waf/policy" | grep -q 'mode: prevent-learn' || fail "the rule is not in prevent-learn"
 
 if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
-  step "WAF: switch open-appsec on in the GUI (npmos restarts with the nginx attachment)"
-  $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf" -d '{"enabled": true, "apply": true}' \
-    | grep -q '"restarting": *true' || fail "WAF switch did not restart npmos"
-  # npmos-control answers first, then restarts npmos and the agent in its namespaces
-  sleep 5
-  wait_api
-  for i in $(seq 1 30); do
-    $CURL "$ADMIN/api/npmos/waf" | grep -q '"active": *true' && break
-    [ "$i" = 30 ] && fail "attachment is not active: $($CURL "$ADMIN/api/npmos/waf")"
-    sleep 2
-  done
+  step "WAF: open-appsec is on after a clean install (the nginx attachment is loaded by default)"
+  $CURL "$ADMIN/api/npmos/waf" | grep -q '"active": *true' \
+    || fail "attachment is not active by default: $($CURL "$ADMIN/api/npmos/waf")"
+
+  # the switch of the GUI: off, then on again; each restarts npmos with or without the attachment
+  waf_switch() {
+    step "WAF: switch open-appsec $2 in the GUI (npmos restarts)"
+    $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf" -d "{\"enabled\": $1, \"apply\": true}" \
+      | grep -q '"restarting": *true' || fail "WAF switch did not restart npmos"
+    # npmos-control answers first, then restarts npmos and the agent in its namespaces
+    sleep 5
+    wait_api
+    for i in $(seq 1 30); do
+      $CURL "$ADMIN/api/npmos/waf" | grep -q "\"active\": *$1" && break
+      [ "$i" = 30 ] && fail "attachment is not active=$1: $($CURL "$ADMIN/api/npmos/waf")"
+      sleep 2
+    done
+  }
+  waf_switch false off
+  waf_switch true on
 
   step "WAF: the open-appsec agent applies its policy without internet (local-only mode)"
   for i in $(seq 1 90); do
