@@ -14,7 +14,7 @@ import internalEvents from "./events/index.js";
 import internalHosts, { HOST_OBJECTS } from "./hosts.js";
 import internalNotifications from "./notifications/index.js";
 import internalPki from "./pki/index.js";
-import internalMtls, { protectedHosts, usage as mtlsUsage, usedBy as mtlsUsedBy } from "./pki/mtls.js";
+import internalMtls, { detachCas, protectedHosts, usage as mtlsUsage, usedBy as mtlsUsedBy } from "./pki/mtls.js";
 import internalRbac from "./rbac/index.js";
 import internalServices from "./services.js";
 import internalSystem from "./system/index.js";
@@ -1499,7 +1499,7 @@ router
 /**
  * GET    /api/npmos/pki/cas/:ca_id
  * PUT    /api/npmos/pki/cas/:ca_id — {name?, crl_pem? (external CAs)}
- * DELETE /api/npmos/pki/cas/:ca_id
+ * DELETE /api/npmos/pki/cas/:ca_id[?cascade=true] — with cascade: its intermediate CAs and certificates too
  */
 router
 	.route("/pki/cas/:ca_id")
@@ -1522,7 +1522,14 @@ router
 			return internalPki.updateCa(res.locals.access, req.params.ca_id, data);
 		}),
 	)
-	.delete(handle((req, res) => internalPki.deleteCa(res.locals.access, req.params.ca_id, mtlsUsedBy)));
+	.delete(
+		handle((req, res) =>
+			internalPki.deleteCa(res.locals.access, req.params.ca_id, mtlsUsedBy, {
+				cascade: req.query.cascade === "true",
+				detach: detachCas,
+			}),
+		),
+	);
 
 /**
  * POST /api/npmos/pki/cas/:ca_id/export — {format: cert|chain|crl|key, password? (key)}

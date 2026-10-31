@@ -459,21 +459,37 @@ function CasTab({ data, refresh }: { data: PkiOverview; refresh: () => void }) {
 					{
 						key: "delete",
 						label: <span className="text-danger">{t("npmos.pki.ca.delete")}</span>,
-						onSelect: () =>
+						onSelect: () => {
+							// a root with trust domains or a CA with certificates goes together with them
+							const domains = data.cas.filter((c) => c.parentId === ca.id);
+							const certs = [ca, ...domains].reduce((sum, c) => sum + c.issued, 0);
+							const cascade = domains.length > 0 || certs > 0;
 							showConfirmModal({
 								tTitle: "npmos.pki.ca.delete",
 								tConfirm: "npmos.pki.ca.delete",
 								danger: true,
 								children: (
 									<p>
-										<T id="npmos.pki.ca.delete.text" data={{ name: ca.name }} />
+										{cascade ? (
+											<T
+												id="npmos.pki.ca.delete.cascade"
+												data={{
+													name: ca.name,
+													domains: domains.map((c) => c.name).join(", ") || "—",
+													certs,
+												}}
+											/>
+										) : (
+											<T id="npmos.pki.ca.delete.text" data={{ name: ca.name }} />
+										)}
 									</p>
 								),
 								onConfirm: async () => {
-									await deleteCa(ca.id);
+									await deleteCa(ca.id, cascade);
 									refresh();
 								},
-							}),
+							});
+						},
 					},
 				]
 			: []),

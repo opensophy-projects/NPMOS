@@ -654,6 +654,19 @@ audit=$($CURL "$ADMIN/api/npmos/audit?action=revoked&limit=1" | tr -d ' \n')
 echo "$audit" | grep -q '"action":"revoked"' || fail "no revoked entry in the audit log: $audit"
 echo "$audit" | grep -q '"total":[1-9]' || fail "the audit log has no total: $audit"
 
+step "PKI: a root with a trust domain and a certificate is deleted together with them (cascade)"
+cascade_root=$(api_json "$ADMIN/api/npmos/pki/cas" \
+  -d '{"kind": "root", "name": "Smoke Cascade", "subject": {"common_name": "Smoke Cascade"}}' | json_id)
+cascade_domain=$(api_json "$ADMIN/api/npmos/pki/cas" -d "{\"kind\": \"intermediate\", \"name\": \"Smoke Cascade Domain\",
+  \"parent_id\": $cascade_root, \"subject\": {\"common_name\": \"Smoke Cascade Domain\"}}" | json_id)
+[ -n "$cascade_domain" ] || fail "the cascade trust domain was not created"
+api_json "$ADMIN/api/npmos/pki/certs" -d "{\"ca_id\": $cascade_domain, \"profile\": \"client\",
+  \"subject\": {\"common_name\": \"cascade\"}}" > /dev/null
+expect "$(curl -sS -k -b "$JAR" -o /dev/null -w '%{http_code}' -X DELETE "$ADMIN/api/npmos/pki/cas/$cascade_root")" 400 \
+  "a root with a trust domain deleted without cascade"
+$CURL -X DELETE "$ADMIN/api/npmos/pki/cas/$cascade_root?cascade=true" | grep -q true || fail "cascade delete failed"
+if $CURL "$ADMIN/api/npmos/pki" | grep -q 'Smoke Cascade'; then fail "the cascade left a CA behind"; fi
+
 # --- phase 7 ---
 
 page() { curl -s -o /dev/null -w '%{http_code}' --max-time 10 -H 'Host: test.local' "$HTTP$1"; }

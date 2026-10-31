@@ -4283,6 +4283,9 @@
 	"npmos.pki.ca.delete.text": {
 		"defaultMessage": "Delete {name}? Only a CA without certificates, trust domains and hosts can be deleted."
 	},
+	"npmos.pki.ca.delete.cascade": {
+		"defaultMessage": "Together with {name} its trust domains ({domains}) and every certificate they issued ({certs}) are deleted. Hosts stop trusting them; a host that trusts only these CAs keeps mTLS, so turn it off there first."
+	},
 	"npmos.pki.ca.edit": {
 		"defaultMessage": "Edit CA"
 	},

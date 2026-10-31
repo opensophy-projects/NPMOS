@@ -4283,6 +4283,9 @@
 	"npmos.pki.ca.delete.text": {
 		"defaultMessage": "Удалить {name}? Удалить можно только CA без сертификатов, доменов доверия и хостов."
 	},
+	"npmos.pki.ca.delete.cascade": {
+		"defaultMessage": "Вместе с {name} удалятся его домены доверия ({domains}) и все выпущенные ими сертификаты ({certs}). Хосты перестанут им доверять; если хост доверяет только этим CA, сначала выключите на нём mTLS."
+	},
 	"npmos.pki.ca.edit": {
 		"defaultMessage": "Изменить CA"
 	},

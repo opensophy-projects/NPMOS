@@ -211,7 +211,8 @@ export const importCa = (data: {
 export const updateCa = (id: number, data: { name?: string; crlPem?: string }): Promise<PkiCa> =>
 	api.put({ url: `/npmos/pki/cas/${id}`, data });
 
-export const deleteCa = (id: number) => api.del({ url: `/npmos/pki/cas/${id}` });
+export const deleteCa = (id: number, cascade = false) =>
+	api.del({ url: `/npmos/pki/cas/${id}${cascade ? "?cascade=true" : ""}` });
 
 export const exportCa = (
 	id: number,

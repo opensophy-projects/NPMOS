@@ -172,6 +172,37 @@ const refreshFor = async (caIds) => {
 
 onCrlChange(refreshFor);
 
+/**
+ * CAs are deleted (with their intermediate CAs): hosts stop trusting them. A host with mTLS on that would trust
+ * no CA left is not opened silently: with check=true its name is returned and nothing changes.
+ * @param {number[]} caIds
+ * @returns {Promise<string[]>} names of the hosts that would trust nothing (check), or of the changed hosts
+ */
+export const detachCas = async (caIds, check = false) => {
+	const gone = new Set(caIds);
+	const rows = await db()("npmos_mtls_host");
+	const names = [];
+	for (const row of rows) {
+		const ids = parse(row.ca_ids) || [];
+		if (!ids.some((id) => gone.has(id))) continue;
+		const left = ids.filter((id) => !gone.has(id));
+		const host = await db()(row.host_type).where({ id: row.host_id, is_deleted: 0 }).first();
+		const name = host ? hostName(row.host_type, host) : `${row.host_type} #${row.host_id}`;
+		if (check) {
+			if (row.enabled && host && !left.length) names.push(name);
+			continue;
+		}
+		await db()("npmos_mtls_host")
+			.where({ id: row.id })
+			.update({ ca_ids: JSON.stringify(left), enabled: row.enabled && left.length > 0, modified_on: new Date() });
+		if (host) {
+			await reconfigure(row.host_type, row.host_id);
+			names.push(name);
+		}
+	}
+	return names;
+};
+
 /** names of hosts that trust a CA (directly or through its root or intermediate) */
 export const usedBy = async (caId) => {
 	const cas = await db()("npmos_pki_ca");

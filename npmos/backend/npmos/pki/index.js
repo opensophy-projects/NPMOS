@@ -609,15 +609,56 @@ const internalPki = {
 	},
 
 	/**
-	 * Deletes a CA without certificates, intermediate CAs and hosts.
+	 * Deletes a CA without certificates, intermediate CAs and hosts; with cascade, together with its intermediate
+	 * CAs and every certificate they issued, and the hosts stop trusting them (mtls.detachCas).
 	 * @param {Access} access
 	 * @param {(caId: number) => Promise<string[]>} usedBy  names of hosts that trust the CA
+	 * @param {{cascade?: boolean, detach?: (ids: number[], check?: boolean) => Promise<string[]>}} [options]
 	 */
-	deleteCa: async (access, id, usedBy) => {
+	deleteCa: async (access, id, usedBy, { cascade = false, detach } = {}) => {
 		await access.can("pki:manage");
 		const ca = await caRow(id);
 		if (ca.upstream_certificate_id) {
 			throw new errs.ValidationError("This CA comes from Certificates of NPMplus, delete it there");
+		}
+		if (cascade) {
+			const all = await db()("npmos_pki_ca");
+			const ids = [ca.id];
+			for (let i = 0; i < ids.length; i++) {
+				for (const child of all.filter((c) => c.parent_id === ids[i])) ids.push(child.id);
+			}
+			if (all.some((c) => ids.includes(c.id) && c.upstream_certificate_id)) {
+				throw new errs.ValidationError(
+					"An intermediate CA comes from Certificates of NPMplus, delete it there",
+				);
+			}
+			const alone = detach ? await detach(ids, true) : [];
+			if (alone.length) {
+				throw new errs.ValidationError(
+					`Hosts trust only these CAs, turn mTLS off there first: ${alone.join(", ")}`,
+				);
+			}
+			const certs = await db()("npmos_pki_cert").whereIn("ca_id", ids).select("id");
+			await db().transaction(async (trx) => {
+				await trx("npmos_pki_link")
+					.whereIn(
+						"cert_id",
+						certs.map((r) => r.id),
+					)
+					.delete();
+				await trx("npmos_pki_cert").whereIn("ca_id", ids).delete();
+				// children first: parent_id points up
+				for (const caId of [...ids].reverse()) await trx("npmos_pki_ca").where({ id: caId }).delete();
+			});
+			const hosts = detach ? await detach(ids) : [];
+			await audit(access, "deleted", "pki", id, {
+				name: ca.name,
+				cascade: true,
+				cas: all.filter((c) => ids.includes(c.id)).map((c) => c.name),
+				certificates: certs.length,
+				hosts,
+			});
+			return true;
 		}
 		const children = await db()("npmos_pki_ca").where({ parent_id: id });
 		if (children.length)
