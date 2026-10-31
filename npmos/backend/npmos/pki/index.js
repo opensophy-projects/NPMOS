@@ -771,6 +771,23 @@ const internalPki = {
 	issue: async (access, data, { replaces } = {}) => {
 		await access.can("pki:issue");
 		if (data.store_key) await access.can("pki:export_key");
+		if (data.own_ca) {
+			// a CA of its own for one person under a root: deleting that CA cuts the person off (hosts with
+			// revocation by OCSP check the whole chain, nothing is reloaded)
+			await access.can("pki:manage");
+			const root = await caRow(data.ca_id);
+			if (root.kind !== "root" || !root.key_enc)
+				throw new PkiError("A CA of its own is made under a root of NPMOS");
+			const name = String(data.subject?.common_name || "").trim();
+			if (!name) throw new PkiError("The certificate needs a common name (CN)");
+			const own = await internalPki.createCa(access, {
+				kind: "intermediate",
+				name: `user: ${name}`.slice(0, 100),
+				parent_id: root.id,
+				subject: { common_name: `user ${name}`.slice(0, 64) },
+			});
+			return internalPki.issue(access, { ...data, own_ca: false, ca_id: own.id }, { replaces });
+		}
 		return guard(async () => {
 			const s = await settings();
 			const ca = await caRow(data.ca_id);

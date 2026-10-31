@@ -3281,6 +3281,12 @@
 	"npmos.mtls.access.keep.hint": {
 		"defaultMessage": "Хранится зашифрованным. Без этого .p12 выдаётся только сейчас."
 	},
+	"npmos.mtls.access.own-ca": {
+		"defaultMessage": "Отдельный CA для этого человека"
+	},
+	"npmos.mtls.access.own-ca.hint": {
+		"defaultMessage": "NPMOS создаст CA этого человека под {root} и выпустит сертификат от него. Удаление этого CA отключает человека; на хосте с проверкой отзыва по OCSP — в течение минуты и без перезагрузки nginx."
+	},
 	"npmos.mtls.access.link": {
 		"defaultMessage": "Создать и одноразовую ссылку на скачивание (24 ч)"
 	},

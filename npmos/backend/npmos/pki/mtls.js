@@ -99,9 +99,18 @@ export const prepareHost = async (hostType, host) => {
 		const row = await db()("npmos_mtls_host").where({ host_type: hostType, host_id: host.id }).first();
 		const binding = toBinding(row);
 		if (!binding.enabled || !binding.ca_ids.length || !(host.certificate_id > 0)) return;
-		const set = trustSet(binding.ca_ids, await db()("npmos_pki_ca"));
+		const cas = await db()("npmos_pki_ca");
+		const set = trustSet(binding.ca_ids, cas);
 		if (!set.ids.length) return;
 		const ocsp = binding.revocation === "ocsp" && hostType === "proxy_host";
+		// a host that trusts a root accepts every CA under it, also the ones made later (a CA per person)
+		const rootTrusted = binding.ca_ids.some((id) => cas.find((ca) => ca.id === id)?.kind === "root");
+		// every CA of the chain is answered for by NPMOS: the whole chain is checked (a deleted CA of a person
+		// is refused); otherwise only the certificate of the client
+		const ownChain = set.ids.every((id) => {
+			const ca = cas.find((c) => c.id === id);
+			return ca && ca.kind !== "external" && !!ca.key_enc;
+		});
 		// with OCSP nginx asks NPMOS about every new connection: no CRL file, nothing to reload on a revocation
 		await writeFiles(hostType, host.id, ocsp ? { ...set, crls: "" } : set);
 		const f = files(hostType, host.id);
@@ -112,7 +121,8 @@ export const prepareHost = async (hostType, host) => {
 			ca_file: f.ca,
 			crl_file: set.crls && !ocsp ? f.crl : "",
 			ocsp_url: ocsp ? OCSP_RESPONDER : "",
-			issuers: set.issuers?.length ? `^(?:${set.issuers.map(escapeRe).join("|")})$` : "",
+			ocsp_mode: ownChain ? "on" : "leaf",
+			issuers: set.issuers?.length && !rootTrusted ? `^(?:${set.issuers.map(escapeRe).join("|")})$` : "",
 			rules: binding.rules.map(ruleRegex),
 			headers: binding.headers,
 			root_required: binding.mode === "optional" && binding.required_paths.includes("/"),
@@ -353,6 +363,9 @@ const validate = (data, hostType, host, cas) => {
 	if (hostType === "stream" && b.revocation !== "crl") {
 		throw new errs.ValidationError("Streams check revocation by the CRL only");
 	}
+	if (b.revocation === "ocsp" && b.ca_ids.some((id) => cas.find((ca) => ca.id === id)?.kind === "external")) {
+		throw new errs.ValidationError("OCSP needs CAs of NPMOS: NPMOS has no key of an external CA to answer for it");
+	}
 	if (hostType === "stream") {
 		if (b.mode !== "on" || b.rules.length || b.required_paths.length) {
 			throw new errs.ValidationError("Streams support mode on without rules and locations");
@@ -432,7 +445,7 @@ const internalMtls = {
 			await access.can(`${permission(hostType)}:get`, id);
 		}
 		const host = await getHost(hostType, id);
-		const binding = validate(data, hostType, host, await db()("npmos_pki_ca").select("id"));
+		const binding = validate(data, hostType, host, await db()("npmos_pki_ca").select("id", "kind"));
 		const values = {
 			modified_on: new Date(),
 			enabled: binding.enabled,

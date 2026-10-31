@@ -3281,6 +3281,12 @@
 	"npmos.mtls.access.keep.hint": {
 		"defaultMessage": "Encrypted. Without it the .p12 is handed out only now."
 	},
+	"npmos.mtls.access.own-ca": {
+		"defaultMessage": "A CA of its own for this person"
+	},
+	"npmos.mtls.access.own-ca.hint": {
+		"defaultMessage": "NPMOS makes a CA for this person under {root} and issues the certificate with it. Deleting that CA cuts the person off; on a host with revocation by OCSP within a minute and without a reload of nginx."
+	},
 	"npmos.mtls.access.link": {
 		"defaultMessage": "Also make a one-time download link (24 h)"
 	},

@@ -45,6 +45,11 @@ const AccessModal = EasyModal.create(({ visible, remove, data, host, onDone }: P
 	const issuers = chosen ? issuersFor(chosen, data.cas) : [];
 	// the issuing CA must be accepted by the host: its trust domain, or a domain of its root
 	const issuer = issuers[0];
+	// a root the host trusts: a person can get a CA of their own under it (deleting it cuts them off)
+	const root = chosen
+		? data.cas.find((ca) => chosen.caIds.includes(ca.id) && ca.kind === "root" && ca.hasKey)
+		: undefined;
+	const [ownCa, setOwnCa] = useState(false);
 
 	const submit = async () => {
 		if (!issuer) return;
@@ -52,7 +57,7 @@ const AccessModal = EasyModal.create(({ visible, remove, data, host, onDone }: P
 		setError(null);
 		try {
 			const issued = await issueCert({
-				caId: issuer.id,
+				...(ownCa && root ? { caId: root.id, ownCa: true } : { caId: issuer.id }),
 				profile: "client",
 				subject: { commonName: name.trim(), ...(email.trim() ? { email: email.trim() } : {}) },
 				...(email.trim() ? { sans: { dns: [], ip: [], email: [email.trim()] } } : {}),
@@ -193,6 +198,22 @@ const AccessModal = EasyModal.create(({ visible, remove, data, host, onDone }: P
 								onChange={(e) => setPassword(e.target.value)}
 							/>
 						</div>
+						{root && can("pki", "manage") && (
+							<label className="form-check">
+								<input
+									type="checkbox"
+									className="form-check-input"
+									checked={ownCa}
+									onChange={(e) => setOwnCa(e.target.checked)}
+								/>
+								<span className="form-check-label">
+									<T id="npmos.mtls.access.own-ca" />
+								</span>
+								<span className="form-hint d-block">
+									<T id="npmos.mtls.access.own-ca.hint" data={{ root: root.name }} />
+								</span>
+							</label>
+						)}
 						<label className="form-check">
 							<input
 								type="checkbox"

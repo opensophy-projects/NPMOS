@@ -1574,6 +1574,8 @@ const issueProperties = {
 	// short-lived certificates renewed by NPMOS: validity in hours, "link" (people) or "token" (services)
 	hours: { type: "integer" },
 	auto_renew: { type: "string", enum: ["", "link", "token"] },
+	// ca_id is a root: a CA of its own is made under it for this certificate (one per person)
+	own_ca: { type: "boolean" },
 	...p12Properties,
 };
 

@@ -159,6 +159,8 @@ export interface IssueData {
 	hours?: number;
 	/** renewed by NPMOS: "link" (people, a one-time link of the next .p12) or "token" (services) */
 	autoRenew?: "" | "link" | "token";
+	/** caId is a root: a CA of its own is made under it for this certificate */
+	ownCa?: boolean;
 }
 
 export interface OneTimeLink {
