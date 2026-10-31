@@ -124,7 +124,14 @@ function WafCard({ status }: { status: WafStatus }) {
 	const submit = async (enabled: boolean) => {
 		const result = await setWafEnabled(enabled, true);
 		setRestarting(!!result.restarting);
-		queryClient.invalidateQueries({ queryKey: ["npmos-waf"] });
+		// NPMOS: when the switch restarts npmos (to load/unload the attachment module) an immediate refetch
+		// hits the dropped connection and the browser logs ERR_CONNECTION_RESET. Wait for the new process
+		// to answer before refreshing; the "restarting" banner covers the gap.
+		if (result.restarting) {
+			setTimeout(() => queryClient.invalidateQueries({ queryKey: ["npmos-waf"] }), 6000);
+		} else {
+			queryClient.invalidateQueries({ queryKey: ["npmos-waf"] });
+		}
 	};
 
 	const change = (enabled: boolean) =>
