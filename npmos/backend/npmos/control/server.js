@@ -22,6 +22,8 @@ const DOCKER_HOST = process.env.NPMOS_DOCKER_HOST || "http://socket-proxy:2375";
 const TOKEN_FILE = process.env.NPMOS_CONTROL_TOKEN_FILE || "/run/secrets/control_token";
 const DOCKER_TIMEOUT_MS = 15000;
 const MAX_LOG_LINES = 5000;
+// npmos is restarted this long after npmos-control has answered (see the restart route)
+const RESTART_GRACE_MS = 2000;
 const MANAGED_LABEL = "npmos.managed";
 const PROJECT_LABEL = "com.docker.compose.project";
 const SERVICE_LABEL = "com.docker.compose.service";
@@ -249,6 +251,9 @@ const server = http.createServer(async (req, res) => {
 		}
 		send(res, req.method === "POST" ? 202 : 200, result);
 		if (after) {
+			// the backend still has to pass this answer on to its own client through nginx: a restart right
+			// away can cut that answer (curl: unexpected eof), so give it a moment
+			await new Promise((resolve) => setTimeout(resolve, RESTART_GRACE_MS));
 			after().then(
 				() => audit({ ...entry, result: "restarted" }),
 				(err) => audit({ ...entry, result: "failed", error: err.message }),

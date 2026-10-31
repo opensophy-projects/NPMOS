@@ -83,6 +83,9 @@ const IssueModal = EasyModal.create(({ visible, remove, data, preset, renew, onD
 	const [install, setInstall] = useState(renew ? !!renew.certificateId : true);
 	const [revokeOld, setRevokeOld] = useState(false);
 	const [notes, setNotes] = useState("");
+	// short-lived client certificates renewed by NPMOS (not for renewals of a certificate by hand)
+	const [autoRenew, setAutoRenew] = useState<"" | "link" | "token">("");
+	const [hours, setHours] = useState(24);
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [result, setResult] = useState<IssueResult | null>(null);
@@ -136,6 +139,7 @@ const IssueModal = EasyModal.create(({ visible, remove, data, preset, renew, onD
 						? { csrPem: csr }
 						: { subject, keyType, install: profile === "server" && install }),
 					...delivery,
+					...(profile === "client" && autoRenew ? { autoRenew, hours } : {}),
 				};
 				setResult(await issueCert(payload));
 			}
@@ -340,6 +344,45 @@ const IssueModal = EasyModal.create(({ visible, remove, data, preset, renew, onD
 								)}
 							</div>
 						)}
+						{!renew && profile === "client" && (
+							<div className="mb-3">
+								<span className="form-label d-block">
+									<T id="npmos.pki.auto-renew" />
+								</span>
+								<div className="btn-group">
+									{(["", "link", "token"] as const).map((m) => (
+										<button
+											key={m || "none"}
+											type="button"
+											className={`btn ${autoRenew === m ? "btn-primary" : ""}`}
+											disabled={m === "link" && source === "csr"}
+											onClick={() => setAutoRenew(m)}
+										>
+											<T id={`npmos.pki.auto-renew.${m || "none"}`} />
+										</button>
+									))}
+								</div>
+								<div className="form-hint">
+									<T id={`npmos.pki.auto-renew.${autoRenew || "none"}.hint`} />
+								</div>
+								{autoRenew && (
+									<div className="d-flex align-items-center gap-2 mt-2">
+										<label className="form-label mb-0" htmlFor="pki-hours">
+											<T id="npmos.pki.hours" />
+										</label>
+										<input
+											id="pki-hours"
+											type="number"
+											min={1}
+											max={8760}
+											className="form-control w-auto"
+											value={hours}
+											onChange={(e) => setHours(Number(e.target.value))}
+										/>
+									</div>
+								)}
+							</div>
+						)}
 						<div className="row">
 							<div className="col-md-6 mb-3">
 								<label className="form-label" htmlFor="pki-days">
@@ -351,6 +394,7 @@ const IssueModal = EasyModal.create(({ visible, remove, data, preset, renew, onD
 									min={1}
 									max={3650}
 									className="form-control"
+									disabled={!!autoRenew && profile === "client" && !renew}
 									value={days}
 									onChange={(e) => setDays(Number(e.target.value))}
 								/>

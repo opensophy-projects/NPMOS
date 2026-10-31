@@ -378,6 +378,7 @@ function HostsPage() {
 			requiredPaths: [] as string[],
 			headers: row.type === "proxy",
 			...current,
+			revocation: current?.revocation ?? ("crl" as const),
 			rules: (current?.rules ?? []).map((r) => fromApiRule(r as any)),
 		};
 		if (caIds === null) {

@@ -125,13 +125,29 @@ export const readCsr = async (csrPem) =>
 		return { keyType, rsa: key.asymmetricKeyType === "rsa" };
 	});
 
+/** YYYYMMDDHHMMSSZ of a date, for -not_after */
+const generalTime = (date) => `${new Date(date).toISOString().replace(/[-:T]/g, "").slice(0, 14)}Z`;
+
 /**
  * Signs a request with a CA. The subject is the one of the request (x509 -subj of openssl 3.0
  * mangles UTF-8), extensions are only ours (none is copied from the request).
  * @param {{csrPem: string, caCertPem: string, caKeyPem: string, profile: "intermediate"|"client"|"server",
- *   sans?: object, days: number, serial: string, crlUrl?: string, rsa?: boolean}} p
+ *   sans?: object, days: number, notAfter?: Date, serial: string, crlUrl?: string, rsa?: boolean}} p
+ *   notAfter overrides days: certificates valid for hours
  */
-export const sign = async ({ csrPem, caCertPem, caKeyPem, profile, sans, days, serial, crlUrl, ocspUrl, rsa }) =>
+export const sign = async ({
+	csrPem,
+	caCertPem,
+	caKeyPem,
+	profile,
+	sans,
+	days,
+	notAfter,
+	serial,
+	crlUrl,
+	ocspUrl,
+	rsa,
+}) =>
 	withTmp(async (tmp) => {
 		const csr = await tmp.write("req.csr", csrPem);
 		const caCert = await tmp.write("ca.pem", caCertPem);
@@ -155,6 +171,7 @@ export const sign = async ({ csrPem, caCertPem, caKeyPem, profile, sans, days, s
 				`0x${serial}`,
 				"-days",
 				String(days),
+				...(notAfter ? ["-not_after", generalTime(notAfter)] : []),
 				"-sha256",
 			])
 		).toString();
@@ -191,16 +208,29 @@ export const makeCrl = async ({ caCertPem, caKeyPem, revoked, crlNumber, days })
 	});
 
 /**
- * OCSP response (DER) to a request (DER), signed by the CA itself; valid for `hours`.
- * @param {{caCertPem: string, caKeyPem: string, certs: Array, requestDer: Buffer, hours?: number}} p
+ * OCSP response (DER) to a request (DER), valid for `hours`. Signed by the delegated responder of the CA
+ * (signerCertPem/signerKeyPem, profile "ocsp"; its certificate goes in the response), or by the CA itself.
+ * nginx (AWS-LC) accepts only the first for client certificates (ssl_ocsp).
+ * @param {{caCertPem: string, caKeyPem: string, signerCertPem?: string, signerKeyPem?: string, certs: Array,
+ *   requestDer: Buffer, hours?: number}} p
  */
-export const ocspRespond = async ({ caCertPem, caKeyPem, certs, requestDer, hours = 1 }) =>
+export const ocspRespond = async ({
+	caCertPem,
+	caKeyPem,
+	signerCertPem,
+	signerKeyPem,
+	certs,
+	requestDer,
+	hours = 1,
+	minutes = hours * 60,
+}) =>
 	withTmp(async (tmp) => {
 		const index = await tmp.write("index.txt", ocspIndex(certs));
 		// subjects in the index are placeholders: they repeat
 		await tmp.write("index.txt.attr", "unique_subject = no\n");
 		const caCert = await tmp.write("ca.pem", caCertPem);
-		const caKey = await tmp.write("ca.key", caKeyPem);
+		const signer = signerCertPem ? await tmp.write("signer.pem", signerCertPem) : caCert;
+		const signerKey = await tmp.write("signer.key", signerKeyPem || caKeyPem);
 		const req = await tmp.write("req.der", requestDer);
 		const out = tmp.path("resp.der");
 		await openssl([
@@ -210,17 +240,43 @@ export const ocspRespond = async ({ caCertPem, caKeyPem, certs, requestDer, hour
 			"-CA",
 			caCert,
 			"-rsigner",
-			caCert,
+			signer,
 			"-rkey",
-			caKey,
+			signerKey,
 			"-reqin",
 			req,
 			"-respout",
 			out,
 			"-nmin",
-			String(hours * 60),
+			String(minutes),
 		]);
 		return readFile(out);
+	});
+
+/** "Issuer Key Hash" of the first certificate an OCSP request asks about (hex, upper case), or null */
+export const ocspRequestIssuer = async (requestDer) =>
+	withTmp(async (tmp) => {
+		const req = await tmp.write("req.der", requestDer);
+		const text = (await openssl(["ocsp", "-reqin", req, "-req_text", "-noverify"])).toString();
+		return /Issuer Key Hash:\s*([0-9A-Fa-f]+)/.exec(text)?.[1].toUpperCase() ?? null;
+	});
+
+/** SHA-1 of the public key of a certificate, as OCSP requests name an issuer (hex, upper case) */
+export const ocspKeyHash = async (certPem) =>
+	withTmp(async (tmp) => {
+		const cert = await tmp.write("cert.pem", certPem);
+		const text = (await openssl(["x509", "-in", cert, "-noout", "-ocspid"])).toString();
+		return /Public key OCSP hash:\s*([0-9A-Fa-f]+)/.exec(text)?.[1].toUpperCase() ?? null;
+	});
+
+/** the request names the same subject as the certificate (a renewal by a client keeps its identity) */
+export const sameSubject = async (csrPem, certPem) =>
+	withTmp(async (tmp) => {
+		const csr = await tmp.write("req.csr", csrPem);
+		const cert = await tmp.write("cert.pem", certPem);
+		const a = (await openssl(["req", "-in", csr, "-noout", "-subject", "-nameopt", "RFC2253"])).toString();
+		const b = (await openssl(["x509", "-in", cert, "-noout", "-subject", "-nameopt", "RFC2253"])).toString();
+		return a.replace(/^subject=/, "").trim() === b.replace(/^subject=/, "").trim();
 	});
 
 /** CRL in DER (for publication) */

@@ -74,6 +74,29 @@ const ocspUrl = (s, caId) =>
 /** OCSP answers by request, for a minute: clients and nginx ask again and again */
 const ocspCache = new Map();
 const OCSP_CACHE_MS = 60 * 1000;
+/** delegated OCSP responders of the CAs (caId → {certPem, keyPem, until}), made on use, in memory */
+const ocspSigners = new Map();
+const OCSP_SIGNER_DAYS = 7;
+/** caId → {pem, value}: the key hash of a CA as OCSP requests name it */
+const caKeyHashes = new Map();
+
+/** the responder of a CA, renewed a day before it expires */
+const ocspSigner = async (ca, caKeyPem) => {
+	const known = ocspSigners.get(ca.id);
+	if (known && known.caPem === ca.cert_pem && known.until > Date.now() + 86400000) return known;
+	const keyPem = generateKey("ec-p256");
+	const certPem = await ops.sign({
+		csrPem: await ops.makeCsr({ keyPem, subject: { common_name: `OCSP responder ${ca.id}` } }),
+		caCertPem: ca.cert_pem,
+		caKeyPem,
+		profile: "ocsp",
+		days: OCSP_SIGNER_DAYS,
+		serial: randomSerial(),
+	});
+	const signer = { certPem, keyPem, caPem: ca.cert_pem, until: Date.now() + OCSP_SIGNER_DAYS * 86400000 };
+	ocspSigners.set(ca.id, signer);
+	return signer;
+};
 
 const daysUntil = (date, from = new Date()) => Math.floor((new Date(date).getTime() - from.getTime()) / 86400000);
 
@@ -332,6 +355,8 @@ const toCert = (row, now = new Date()) => ({
 	has_key: !!row.key_enc,
 	owner_user_id: row.owner_user_id,
 	certificate_id: row.certificate_id,
+	auto_renew: row.auto_renew || "",
+	renew_hours: row.renew_hours ?? null,
 });
 
 const certRow = async (id) => {
@@ -401,6 +426,19 @@ const normalizeTemplate = (t, cas) => {
 
 const audit = (access, action, objectType, id, meta) =>
 	internalAuditLog.add(access, { action, object_type: objectType, object_id: id, meta });
+
+/** NPMOS itself: automatic renewals (no user) */
+const SYSTEM = { can: async () => true, token: { getUserId: () => 0 } };
+/** auto_renew of a certificate: "" none, "link" (people: next .p12 by a one-time link), "token" (services) */
+export const AUTO_RENEW = ["", "link", "token"];
+const RENEW_HOURS = { min: 1, max: 8760 };
+const tokenHash = (token) => createHash("sha256").update(String(token)).digest("hex");
+/** a renewal starts when a third of the validity (at most a day) is left */
+const renewDue = (row, now = Date.now()) => {
+	const start = new Date(row.not_before).getTime();
+	const end = new Date(row.not_after).getTime();
+	return now >= end - Math.min((end - start) / 3, 86400000);
+};
 
 // ---------------------------------------------------------------------------------------------
 
@@ -609,15 +647,58 @@ const internalPki = {
 	},
 
 	/**
-	 * Deletes a CA without certificates, intermediate CAs and hosts.
+	 * Deletes a CA without certificates, intermediate CAs and hosts; with cascade, together with its intermediate
+	 * CAs and every certificate they issued, and the hosts stop trusting them (mtls.detachCas).
 	 * @param {Access} access
 	 * @param {(caId: number) => Promise<string[]>} usedBy  names of hosts that trust the CA
+	 * @param {{cascade?: boolean, disableHosts?: boolean, detach?: (ids: number[], check?: boolean) => Promise<string[]>}}
+	 *   [options]  disableHosts: hosts that trust only these CAs get mTLS off instead of blocking the delete
 	 */
-	deleteCa: async (access, id, usedBy) => {
+	deleteCa: async (access, id, usedBy, { cascade = false, disableHosts = false, detach } = {}) => {
 		await access.can("pki:manage");
 		const ca = await caRow(id);
 		if (ca.upstream_certificate_id) {
 			throw new errs.ValidationError("This CA comes from Certificates of NPMplus, delete it there");
+		}
+		if (cascade) {
+			const all = await db()("npmos_pki_ca");
+			const ids = [ca.id];
+			for (let i = 0; i < ids.length; i++) {
+				for (const child of all.filter((c) => c.parent_id === ids[i])) ids.push(child.id);
+			}
+			if (all.some((c) => ids.includes(c.id) && c.upstream_certificate_id)) {
+				throw new errs.ValidationError(
+					"An intermediate CA comes from Certificates of NPMplus, delete it there",
+				);
+			}
+			const alone = detach && !disableHosts ? await detach(ids, true) : [];
+			if (alone.length) {
+				throw new errs.ValidationError(
+					`Hosts trust only these CAs, turn mTLS off there first: ${alone.join(", ")}`,
+				);
+			}
+			// hosts first: if this fails, no host refers to a deleted CA
+			const hosts = detach ? await detach(ids) : [];
+			const certs = await db()("npmos_pki_cert").whereIn("ca_id", ids).select("id");
+			await db().transaction(async (trx) => {
+				await trx("npmos_pki_link")
+					.whereIn(
+						"cert_id",
+						certs.map((r) => r.id),
+					)
+					.delete();
+				await trx("npmos_pki_cert").whereIn("ca_id", ids).delete();
+				// children first: parent_id points up
+				for (const caId of [...ids].reverse()) await trx("npmos_pki_ca").where({ id: caId }).delete();
+			});
+			await audit(access, "deleted", "pki", id, {
+				name: ca.name,
+				cascade: true,
+				cas: all.filter((c) => ids.includes(c.id)).map((c) => c.name),
+				certificates: certs.length,
+				hosts,
+			});
+			return true;
 		}
 		const children = await db()("npmos_pki_ca").where({ parent_id: id });
 		if (children.length)
@@ -690,6 +771,23 @@ const internalPki = {
 	issue: async (access, data, { replaces } = {}) => {
 		await access.can("pki:issue");
 		if (data.store_key) await access.can("pki:export_key");
+		if (data.own_ca) {
+			// a CA of its own for one person under a root: deleting that CA cuts the person off (hosts with
+			// revocation by OCSP check the whole chain, nothing is reloaded)
+			await access.can("pki:manage");
+			const root = await caRow(data.ca_id);
+			if (root.kind !== "root" || !root.key_enc)
+				throw new PkiError("A CA of its own is made under a root of NPMOS");
+			const name = String(data.subject?.common_name || "").trim();
+			if (!name) throw new PkiError("The certificate needs a common name (CN)");
+			const own = await internalPki.createCa(access, {
+				kind: "intermediate",
+				name: `user: ${name}`.slice(0, 100),
+				parent_id: root.id,
+				subject: { common_name: `user ${name}`.slice(0, 64) },
+			});
+			return internalPki.issue(access, { ...data, own_ca: false, ca_id: own.id }, { replaces });
+		}
 		return guard(async () => {
 			const s = await settings();
 			const ca = await caRow(data.ca_id);
@@ -707,6 +805,23 @@ const internalPki = {
 				clampDays(data.days, data.profile === "server" ? s.server_days : s.client_days, 3650),
 				daysUntil(ca.not_after),
 			);
+			const autoRenew = data.auto_renew || "";
+			if (!AUTO_RENEW.includes(autoRenew)) throw new PkiError(`auto_renew: ${AUTO_RENEW.join(", ")}`);
+			if (autoRenew && data.profile !== "client")
+				throw new PkiError("Only client certificates are renewed automatically");
+			if (autoRenew === "link" && data.csr_pem?.trim()) {
+				throw new PkiError("Renewal by a link needs a key generated by NPMOS");
+			}
+			let hours = null;
+			if (data.hours !== undefined && data.hours !== null) {
+				if (!Number.isInteger(data.hours) || data.hours < RENEW_HOURS.min || data.hours > RENEW_HOURS.max) {
+					throw new PkiError(`hours: ${RENEW_HOURS.min} to ${RENEW_HOURS.max}`);
+				}
+				hours = data.hours;
+			}
+			const notAfter = hours
+				? new Date(Math.min(Date.now() + hours * 3600000, new Date(ca.not_after).getTime()))
+				: undefined;
 			let keyPem = null;
 			let csrPem;
 			let rsa;
@@ -726,6 +841,7 @@ const internalPki = {
 				profile: data.profile,
 				sans,
 				days,
+				notAfter,
 				serial: randomSerial(),
 				crlUrl: crlUrl(s, ca.id),
 				ocspUrl: ocspUrl(s, ca.id),
@@ -756,6 +872,17 @@ const internalPki = {
 				})
 				.returning("id");
 			const id = typeof inserted === "object" ? inserted.id : inserted;
+			let renewToken = null;
+			if (autoRenew) {
+				renewToken = autoRenew === "token" ? randomBytes(32).toString("base64url") : null;
+				await db()("npmos_pki_cert")
+					.where({ id })
+					.update({
+						auto_renew: autoRenew,
+						renew_hours: hours ?? days * 24,
+						renew_token_hash: renewToken ? tokenHash(renewToken) : null,
+					});
+			}
 			const row = await certRow(id);
 			const chain = await chainPem(ca);
 			const files = { cert_pem: certPem, chain_pem: chain };
@@ -763,6 +890,12 @@ const internalPki = {
 			if (keyPem) {
 				const password = data.password || randomPassword();
 				if (password.length < 4) throw new PkiError("The password of the .p12 is 4 characters or more");
+				// the next .p12 of a renewal by link keeps the password: the person knows it already
+				if (autoRenew === "link") {
+					await db()("npmos_pki_cert")
+						.where({ id })
+						.update({ renew_password_enc: encrypt(password) });
+				}
 				const p12 = await p12For(row, keyPem, password, data.compatible ?? s.p12_compatible);
 				files.p12_base64 = p12.toString("base64");
 				files.password = password;
@@ -782,7 +915,7 @@ const internalPki = {
 				ca: ca.name,
 				profile: row.profile,
 			});
-			return { certificate: toCert(await certRow(id)), files, link };
+			return { certificate: toCert(await certRow(id)), files, link, renew_token: renewToken };
 		});
 	},
 
@@ -809,6 +942,10 @@ const internalPki = {
 				key_type: data.key_type || old.key_type,
 				template: old.template,
 				notes: old.notes,
+				// an automatic renewal carries on with the same kind and validity
+				...(old.auto_renew && data.hours === undefined && data.days === undefined
+					? { auto_renew: data.auto_renew ?? old.auto_renew, hours: old.renew_hours }
+					: {}),
 			},
 			{ replaces: old },
 		);
@@ -981,9 +1118,9 @@ const internalPki = {
 	 * @param {number} caId
 	 * @param {Buffer} requestDer
 	 */
-	ocsp: async (caId, requestDer) => {
+	ocsp: async (caId, requestDer, { minutes = 60 } = {}) => {
 		if (!requestDer?.length || requestDer.length > 16 * 1024) return null;
-		const key = `${caId}:${createHash("sha256").update(requestDer).digest("hex")}`;
+		const key = `${caId}:${minutes}:${createHash("sha256").update(requestDer).digest("hex")}`;
 		const cached = ocspCache.get(key);
 		if (cached && cached.until > Date.now()) return cached.der;
 		const ca = await db()("npmos_pki_ca").where({ id: caId }).first();
@@ -993,15 +1130,106 @@ const internalPki = {
 			.where({ ca_id: caId })
 			.select("serial", "not_after", "revoked_on", "revoke_reason");
 		const children = await db()("npmos_pki_ca").where({ parent_id: caId }).select("serial", "not_after");
+		const caKeyPem = decrypt(ca.key_enc);
+		const signer = await ocspSigner(ca, caKeyPem);
 		const der = await ops.ocspRespond({
 			caCertPem: ca.cert_pem,
-			caKeyPem: decrypt(ca.key_enc),
+			caKeyPem,
+			signerCertPem: signer.certPem,
+			signerKeyPem: signer.keyPem,
 			certs: [...certs, ...children].filter((c) => c.serial),
 			requestDer,
+			minutes,
 		});
 		if (ocspCache.size > 1000) ocspCache.clear();
 		ocspCache.set(key, { der, until: Date.now() + OCSP_CACHE_MS });
 		return der;
+	},
+
+	/**
+	 * Without login: the OCSP responder nginx asks about client certificates of hosts with revocation by OCSP
+	 * (ssl_ocsp leaf). The CA is the one whose key the request names, the answer is valid for a minute: a revoked
+	 * certificate is refused within a minute, without a reload of nginx.
+	 * @param {Buffer} requestDer
+	 */
+	ocspAuto: async (requestDer) => {
+		if (!requestDer?.length || requestDer.length > 16 * 1024) return null;
+		const issuer = await ops.ocspRequestIssuer(requestDer).catch(() => null);
+		if (!issuer) return null;
+		for (const ca of await db()("npmos_pki_ca").whereNot({ kind: "external" }).whereNotNull("key_enc")) {
+			let hash = caKeyHashes.get(ca.id);
+			if (hash?.pem !== ca.cert_pem) {
+				hash = { pem: ca.cert_pem, value: await ops.ocspKeyHash(ca.cert_pem) };
+				caKeyHashes.set(ca.id, hash);
+			}
+			if (hash.value === issuer) return internalPki.ocsp(ca.id, requestDer, { minutes: 1 });
+		}
+		return null;
+	},
+
+	/**
+	 * Without login: a service renews its certificate with its renewal token (auto_renew "token"). The old
+	 * certificate is revoked as superseded, the token is replaced (the answer has the new one). With csr_pem the
+	 * service keeps its key (the request must name the same subject), otherwise NPMOS generates one and returns it.
+	 * @param {string} token
+	 * @param {{csr_pem?: string}} data
+	 */
+	renewByToken: async (token, data = {}) => {
+		if (typeof token !== "string" || token.length < 20 || token.length > 200) return null;
+		const old = await db()("npmos_pki_cert")
+			.where({ renew_token_hash: tokenHash(token), auto_renew: "token" })
+			.whereNull("revoked_on")
+			.whereNull("replaced_by")
+			.whereNull("deleted_on")
+			.first();
+		if (!old || new Date(old.not_after) <= new Date()) return null;
+		if (data.csr_pem?.trim() && !(await ops.sameSubject(data.csr_pem, old.cert_pem))) {
+			throw new errs.ValidationError("The request must name the subject of the certificate");
+		}
+		// the token works once: a second renewal with it finds nothing
+		await db()("npmos_pki_cert").where({ id: old.id }).update({ renew_token_hash: null });
+		const result = await internalPki.renew(SYSTEM, old.id, {
+			csr_pem: data.csr_pem,
+			include_key_pem: !data.csr_pem,
+			revoke_old: true,
+		});
+		return {
+			cert_pem: result.files.cert_pem,
+			chain_pem: result.files.chain_pem,
+			key_pem: result.files.key_pem,
+			not_after: result.certificate.not_after,
+			renew_token: result.renew_token,
+		};
+	},
+
+	/**
+	 * People with auto_renew "link": the next certificate is issued before the end of the current one (same
+	 * password of the .p12), with a one-time link; the notification rule pki_reissued sends the link. The current
+	 * certificate stays valid until it expires.
+	 */
+	autoReissue: async (now = new Date()) => {
+		const rows = await db()("npmos_pki_cert")
+			.where({ auto_renew: "link" })
+			.whereNull("revoked_on")
+			.whereNull("replaced_by")
+			.whereNull("deleted_on")
+			.where("not_after", ">", now);
+		let renewed = 0;
+		for (const row of rows.filter((r) => renewDue(r, now.getTime()))) {
+			try {
+				const password = row.renew_password_enc ? decrypt(row.renew_password_enc) : undefined;
+				const result = await internalPki.renew(SYSTEM, row.id, { password, link_hours: 72 });
+				if (result.link?.path) {
+					await db()("npmos_pki_cert")
+						.where({ id: result.certificate.id })
+						.update({ renew_link_enc: encrypt(result.link.path) });
+				}
+				renewed++;
+			} catch (err) {
+				logger.error(`NPMOS PKI: automatic renewal of ${row.common_name}: ${err.message}`);
+			}
+		}
+		return renewed;
 	},
 
 	/** links of a certificate (not their tokens) */
@@ -1069,6 +1297,11 @@ export const bootstrap = async () => {
 		6 * 3600 * 1000,
 	);
 	timer.unref();
+	// short-lived certificates: renewals by link are checked every few minutes
+	const renewals = setInterval(() => {
+		internalPki.autoReissue().catch((err) => logger.error(`NPMOS PKI: ${err.message}`));
+	}, 5 * 60000);
+	renewals.unref();
 	startDenials();
 };
 

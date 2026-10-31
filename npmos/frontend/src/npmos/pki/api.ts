@@ -155,6 +155,12 @@ export interface IssueData {
 	includeKeyPem?: boolean;
 	linkHours?: number;
 	install?: boolean;
+	/** short-lived: validity in hours instead of days */
+	hours?: number;
+	/** renewed by NPMOS: "link" (people, a one-time link of the next .p12) or "token" (services) */
+	autoRenew?: "" | "link" | "token";
+	/** caId is a root: a CA of its own is made under it for this certificate */
+	ownCa?: boolean;
 }
 
 export interface OneTimeLink {
@@ -174,6 +180,8 @@ export interface IssueResult {
 		filename?: string;
 	};
 	link: OneTimeLink | null;
+	/** auto renewal by token: shown once, the service renews with it */
+	renewToken?: string | null;
 }
 
 export interface FileResult {
@@ -211,7 +219,10 @@ export const importCa = (data: {
 export const updateCa = (id: number, data: { name?: string; crlPem?: string }): Promise<PkiCa> =>
 	api.put({ url: `/npmos/pki/cas/${id}`, data });
 
-export const deleteCa = (id: number) => api.del({ url: `/npmos/pki/cas/${id}` });
+export const deleteCa = (id: number, cascade = false, disableHosts = false) =>
+	api.del({
+		url: `/npmos/pki/cas/${id}${cascade ? `?cascade=true${disableHosts ? "&disable_hosts=true" : ""}` : ""}`,
+	});
 
 export const exportCa = (
 	id: number,
@@ -282,6 +293,8 @@ export interface MtlsBinding {
 	rules: MtlsRule[];
 	requiredPaths: string[];
 	headers: boolean;
+	/** crl: nginx reads the CRL (reloads on a revocation); ocsp: nginx asks NPMOS, no reload */
+	revocation: "crl" | "ocsp";
 }
 
 export interface MtlsHost extends MtlsBinding {

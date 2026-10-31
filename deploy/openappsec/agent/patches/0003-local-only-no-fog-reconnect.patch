@@ -1,0 +1,17 @@
+--- a/components/security_apps/orchestration/orchestration_comp.cc
++++ b/components/security_apps/orchestration/orchestration_comp.cc
+@@ -2183,6 +2183,14 @@
+             return true;
+         }
+ 
++        // NPMOS: local-only hybrid mode (NPMOS_LOCAL_ONLY=true) has no Fog. After every policy update the agent
++        // connected to the Fog address, failed, and reported the applied policy as failed with no version.
++        const char *npmos_local_only = getenv("NPMOS_LOCAL_ONLY");
++        if (npmos_local_only != nullptr && string(npmos_local_only) == "true") {
++            dbgDebug(D_ORCHESTRATOR) << "NPMOS local-only mode: no Fog connection";
++            return true;
++        }
++
+         if (fog_addr.empty()) return false; // Fog address could not be empty on online update mode
+ 
+         auto fog_params = parseURLParams(fog_addr);

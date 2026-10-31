@@ -124,7 +124,7 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
     $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf" -d "{\"enabled\": $1, \"apply\": true}" \
       | grep -q '"restarting": *true' || fail "WAF switch did not restart npmos"
     # npmos-control answers first, then restarts npmos and the agent in its namespaces
-    sleep 5
+    sleep 7
     wait_api
     for i in $(seq 1 30); do
       $CURL "$ADMIN/api/npmos/waf" | grep -q "\"active\": *$1" && break
@@ -607,6 +607,37 @@ for i in $(seq 1 30); do
   sleep 2
 done
 
+step "mTLS: revocation by OCSP refuses a revoked certificate within a minute and a half, nginx is not reloaded"
+api_json -X PUT "$ADMIN/api/npmos/mtls/proxy_host/$host_id" -d "{\"enabled\": true, \"ca_ids\": [$domain_id],
+  \"rules\": [{\"field\": \"organizational_unit\", \"op\": \"one_of\", \"values\": [\"IT\"]}], \"revocation\": \"ocsp\"}" \
+  | tr -d ' \n' | grep -q '"revocation":"ocsp"' || fail "the host did not take revocation by OCSP"
+erin=$(client erin IT "$domain_id")
+for i in $(seq 1 15); do
+  [ "$(mtls --cert /tmp/erin.crt --key /tmp/erin.key)" = 200 ] && break
+  [ "$i" = 15 ] && fail "OCSP: the host does not let erin in"
+  sleep 2
+done
+erin_id=$(echo "$erin" | tr -d ' \n' | grep -o '"certificate":{"id":[0-9]*' | grep -o '[0-9]*$')
+api_json "$ADMIN/api/npmos/pki/certs/revoke" -d "{\"ids\": [$erin_id], \"reason\": \"keyCompromise\"}" \
+  | grep -q '"revoked": *1' || fail "erin was not revoked"
+for i in $(seq 1 45); do
+  [ "$(mtls --cert /tmp/erin.crt --key /tmp/erin.key)" = 403 ] && break
+  [ "$i" = 45 ] && fail "OCSP: the revoked certificate still opens the host"
+  sleep 2
+done
+
+step "PKI: a service renews its short-lived certificate with its token, the token works once"
+svc=$(api_json "$ADMIN/api/npmos/pki/certs" -d "{\"ca_id\": $domain_id, \"profile\": \"client\",
+  \"subject\": {\"common_name\": \"smoke-svc\"}, \"auto_renew\": \"token\", \"hours\": 2}" | tr -d ' \n')
+svc_token=$(echo "$svc" | grep -o '"renew_token":"[^"]*"' | cut -d'"' -f4)
+[ -n "$svc_token" ] || fail "no renewal token: $svc"
+renewed=$(curl -sS -k --max-time 30 -X POST "$ADMIN/api/npmos/pki/public/renew" -H "Authorization: Bearer $svc_token" \
+  -H 'Content-Type: application/json' -d '{}' | tr -d ' \n')
+echo "$renewed" | grep -q 'BEGINCERTIFICATE' || fail "the service was not renewed: $renewed"
+echo "$renewed" | grep -q '"renew_token":"[^"]' || fail "no new token after the renewal: $renewed"
+expect "$(curl -sS -k -o /dev/null -w '%{http_code}' -X POST "$ADMIN/api/npmos/pki/public/renew" \
+  -H "Authorization: Bearer $svc_token" -H 'Content-Type: application/json' -d '{}')" 401 "the used renewal token"
+
 step "mTLS in one step: the switch of a host creates its trust domain, an access certificate opens it"
 quick_id=$(api_json "$ADMIN/api/nginx/proxy-hosts" -d "{\"domain_names\": [\"quick.local\"], \"forward_scheme\": \"http\",
   \"forward_host\": \"test-upstream\", \"forward_port\": \"80\", \"certificate_id\": $tls_id}" | json_id)
@@ -653,6 +684,19 @@ step "Audit log: pages from the server and the action filter"
 audit=$($CURL "$ADMIN/api/npmos/audit?action=revoked&limit=1" | tr -d ' \n')
 echo "$audit" | grep -q '"action":"revoked"' || fail "no revoked entry in the audit log: $audit"
 echo "$audit" | grep -q '"total":[1-9]' || fail "the audit log has no total: $audit"
+
+step "PKI: a root with a trust domain and a certificate is deleted together with them (cascade)"
+cascade_root=$(api_json "$ADMIN/api/npmos/pki/cas" \
+  -d '{"kind": "root", "name": "Smoke Cascade", "subject": {"common_name": "Smoke Cascade"}}' | json_id)
+cascade_domain=$(api_json "$ADMIN/api/npmos/pki/cas" -d "{\"kind\": \"intermediate\", \"name\": \"Smoke Cascade Domain\",
+  \"parent_id\": $cascade_root, \"subject\": {\"common_name\": \"Smoke Cascade Domain\"}}" | json_id)
+[ -n "$cascade_domain" ] || fail "the cascade trust domain was not created"
+api_json "$ADMIN/api/npmos/pki/certs" -d "{\"ca_id\": $cascade_domain, \"profile\": \"client\",
+  \"subject\": {\"common_name\": \"cascade\"}}" > /dev/null
+expect "$(curl -sS -k -b "$JAR" -o /dev/null -w '%{http_code}' -X DELETE "$ADMIN/api/npmos/pki/cas/$cascade_root")" 400 \
+  "a root with a trust domain deleted without cascade"
+$CURL -X DELETE "$ADMIN/api/npmos/pki/cas/$cascade_root?cascade=true" | grep -q true || fail "cascade delete failed"
+if $CURL "$ADMIN/api/npmos/pki" | grep -q 'Smoke Cascade'; then fail "the cascade left a CA behind"; fi
 
 # --- phase 7 ---
 

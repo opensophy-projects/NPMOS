@@ -26,6 +26,10 @@ const DIR = process.env.NPMOS_MTLS_DIR || "/data/npmos/pki/nginx";
 
 export const HOST_TYPES = ["proxy_host", "stream"];
 export const MODES = ["on", "optional"];
+/** how revocation is checked: crl (the CRL files, nginx reloads when one changes) or ocsp (asks NPMOS, no reload) */
+export const REVOCATIONS = ["crl", "ocsp"];
+/** the OCSP responder of NPMOS for nginx itself (conf.d/npmos-ocsp.conf) */
+const OCSP_RESPONDER = process.env.NPMOS_OCSP_RESPONDER || "http://127.0.0.1:7089/api/npmos/pki/public/ocsp/auto";
 export { RULE_FIELDS, RULE_OPS, ruleRegex, trustSet };
 export const DEFAULTS = {
 	enabled: false,
@@ -36,6 +40,7 @@ export const DEFAULTS = {
 	rules: [],
 	required_paths: [],
 	headers: true,
+	revocation: "crl",
 };
 
 const parse = (value) => (typeof value === "string" ? JSON.parse(value) : value);
@@ -78,6 +83,7 @@ const toBinding = (row) =>
 				rules: parse(row.rules) || [],
 				required_paths: parse(row.required_paths) || [],
 				headers: !!row.headers,
+				revocation: REVOCATIONS.includes(row.revocation) ? row.revocation : "crl",
 			}
 		: { ...DEFAULTS };
 
@@ -93,17 +99,30 @@ export const prepareHost = async (hostType, host) => {
 		const row = await db()("npmos_mtls_host").where({ host_type: hostType, host_id: host.id }).first();
 		const binding = toBinding(row);
 		if (!binding.enabled || !binding.ca_ids.length || !(host.certificate_id > 0)) return;
-		const set = trustSet(binding.ca_ids, await db()("npmos_pki_ca"));
+		const cas = await db()("npmos_pki_ca");
+		const set = trustSet(binding.ca_ids, cas);
 		if (!set.ids.length) return;
-		await writeFiles(hostType, host.id, set);
+		const ocsp = binding.revocation === "ocsp" && hostType === "proxy_host";
+		// a host that trusts a root accepts every CA under it, also the ones made later (a CA per person)
+		const rootTrusted = binding.ca_ids.some((id) => cas.find((ca) => ca.id === id)?.kind === "root");
+		// every CA of the chain is answered for by NPMOS: the whole chain is checked (a deleted CA of a person
+		// is refused); otherwise only the certificate of the client
+		const ownChain = set.ids.every((id) => {
+			const ca = cas.find((c) => c.id === id);
+			return ca && ca.kind !== "external" && !!ca.key_enc;
+		});
+		// with OCSP nginx asks NPMOS about every new connection: no CRL file, nothing to reload on a revocation
+		await writeFiles(hostType, host.id, ocsp ? { ...set, crls: "" } : set);
 		const f = files(hostType, host.id);
 		host.npmos_mtls = {
 			mode: hostType === "stream" ? "on" : binding.mode,
 			depth: binding.depth,
 			send_ca_names: binding.send_ca_names,
 			ca_file: f.ca,
-			crl_file: set.crls ? f.crl : "",
-			issuers: set.issuers?.length ? `^(?:${set.issuers.map(escapeRe).join("|")})$` : "",
+			crl_file: set.crls && !ocsp ? f.crl : "",
+			ocsp_url: ocsp ? OCSP_RESPONDER : "",
+			ocsp_mode: ownChain ? "on" : "leaf",
+			issuers: set.issuers?.length && !rootTrusted ? `^(?:${set.issuers.map(escapeRe).join("|")})$` : "",
 			rules: binding.rules.map(ruleRegex),
 			headers: binding.headers,
 			root_required: binding.mode === "optional" && binding.required_paths.includes("/"),
@@ -154,6 +173,8 @@ const refreshFor = async (caIds) => {
 	const rows = await db()("npmos_mtls_host").where({ enabled: true });
 	let changed = false;
 	for (const row of rows) {
+		// revocation by OCSP: the answers of NPMOS change, nginx needs nothing
+		if (row.revocation === "ocsp" && row.host_type === "proxy_host") continue;
 		const set = trustSet(parse(row.ca_ids) || [], cas);
 		if (!set.ids.some((id) => caIds.includes(id))) continue;
 		const hadCrl = await readFile(files(row.host_type, row.host_id).crl, "utf8").then(
@@ -171,6 +192,37 @@ const refreshFor = async (caIds) => {
 };
 
 onCrlChange(refreshFor);
+
+/**
+ * CAs are deleted (with their intermediate CAs): hosts stop trusting them. A host with mTLS on that would trust
+ * no CA left is not opened silently: with check=true its name is returned and nothing changes.
+ * @param {number[]} caIds
+ * @returns {Promise<string[]>} names of the hosts that would trust nothing (check), or of the changed hosts
+ */
+export const detachCas = async (caIds, check = false) => {
+	const gone = new Set(caIds);
+	const rows = await db()("npmos_mtls_host");
+	const names = [];
+	for (const row of rows) {
+		const ids = parse(row.ca_ids) || [];
+		if (!ids.some((id) => gone.has(id))) continue;
+		const left = ids.filter((id) => !gone.has(id));
+		const host = await db()(row.host_type).where({ id: row.host_id, is_deleted: 0 }).first();
+		const name = host ? hostName(row.host_type, host) : `${row.host_type} #${row.host_id}`;
+		if (check) {
+			if (row.enabled && host && !left.length) names.push(name);
+			continue;
+		}
+		await db()("npmos_mtls_host")
+			.where({ host_type: row.host_type, host_id: row.host_id })
+			.update({ ca_ids: JSON.stringify(left), enabled: row.enabled && left.length > 0, modified_on: new Date() });
+		if (host) {
+			await reconfigure(row.host_type, row.host_id);
+			names.push(name);
+		}
+	}
+	return names;
+};
 
 /** names of hosts that trust a CA (directly or through its root or intermediate) */
 export const usedBy = async (caId) => {
@@ -307,6 +359,13 @@ const validate = (data, hostType, host, cas) => {
 			values: rule.field === "serial" && rule.op === "one_of" ? values.map((v) => v.toUpperCase()) : values,
 		};
 	});
+	if (!REVOCATIONS.includes(b.revocation)) throw new errs.ValidationError(`revocation: ${REVOCATIONS.join(", ")}`);
+	if (hostType === "stream" && b.revocation !== "crl") {
+		throw new errs.ValidationError("Streams check revocation by the CRL only");
+	}
+	if (b.revocation === "ocsp" && b.ca_ids.some((id) => cas.find((ca) => ca.id === id)?.kind === "external")) {
+		throw new errs.ValidationError("OCSP needs CAs of NPMOS: NPMOS has no key of an external CA to answer for it");
+	}
 	if (hostType === "stream") {
 		if (b.mode !== "on" || b.rules.length || b.required_paths.length) {
 			throw new errs.ValidationError("Streams support mode on without rules and locations");
@@ -386,7 +445,7 @@ const internalMtls = {
 			await access.can(`${permission(hostType)}:get`, id);
 		}
 		const host = await getHost(hostType, id);
-		const binding = validate(data, hostType, host, await db()("npmos_pki_ca").select("id"));
+		const binding = validate(data, hostType, host, await db()("npmos_pki_ca").select("id", "kind"));
 		const values = {
 			modified_on: new Date(),
 			enabled: binding.enabled,
@@ -397,6 +456,7 @@ const internalMtls = {
 			rules: JSON.stringify(binding.rules),
 			required_paths: JSON.stringify(binding.required_paths),
 			headers: binding.headers,
+			revocation: binding.revocation,
 		};
 		await db()("npmos_mtls_host")
 			.insert({ host_type: hostType, host_id: id, ...values })

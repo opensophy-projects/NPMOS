@@ -32,6 +32,8 @@ const AccessModal = EasyModal.create(({ visible, remove, data, host, onDone }: P
 	const [email, setEmail] = useState("");
 	const [days, setDays] = useState(data.settings.clientDays);
 	const [notes, setNotes] = useState("");
+	// empty: NPMOS generates the password of the .p12 and shows it once
+	const [password, setPassword] = useState("");
 	const keepAllowed = can("pki", "export_key");
 	const [keep, setKeep] = useState(keepAllowed);
 	const [link, setLink] = useState(false);
@@ -43,6 +45,11 @@ const AccessModal = EasyModal.create(({ visible, remove, data, host, onDone }: P
 	const issuers = chosen ? issuersFor(chosen, data.cas) : [];
 	// the issuing CA must be accepted by the host: its trust domain, or a domain of its root
 	const issuer = issuers[0];
+	// a root the host trusts: a person can get a CA of their own under it (deleting it cuts them off)
+	const root = chosen
+		? data.cas.find((ca) => chosen.caIds.includes(ca.id) && ca.kind === "root" && ca.hasKey)
+		: undefined;
+	const [ownCa, setOwnCa] = useState(false);
 
 	const submit = async () => {
 		if (!issuer) return;
@@ -50,13 +57,14 @@ const AccessModal = EasyModal.create(({ visible, remove, data, host, onDone }: P
 		setError(null);
 		try {
 			const issued = await issueCert({
-				caId: issuer.id,
+				...(ownCa && root ? { caId: root.id, ownCa: true } : { caId: issuer.id }),
 				profile: "client",
 				subject: { commonName: name.trim(), ...(email.trim() ? { email: email.trim() } : {}) },
 				...(email.trim() ? { sans: { dns: [], ip: [], email: [email.trim()] } } : {}),
 				days,
 				notes: notes.trim(),
 				storeKey: keep && keepAllowed,
+				password: password || undefined,
 				linkHours: link ? 24 : undefined,
 			});
 			setResult(issued);
@@ -177,6 +185,35 @@ const AccessModal = EasyModal.create(({ visible, remove, data, host, onDone }: P
 								onChange={(e) => setNotes(e.target.value)}
 							/>
 						</div>
+						<div className="mb-3">
+							<label className="form-label" htmlFor="mtls-access-password">
+								<T id="npmos.pki.p12.password" />
+							</label>
+							<input
+								id="mtls-access-password"
+								className="form-control"
+								autoComplete="new-password"
+								placeholder={t("npmos.pki.p12.password.generate")}
+								value={password}
+								onChange={(e) => setPassword(e.target.value)}
+							/>
+						</div>
+						{root && can("pki", "manage") && (
+							<label className="form-check">
+								<input
+									type="checkbox"
+									className="form-check-input"
+									checked={ownCa}
+									onChange={(e) => setOwnCa(e.target.checked)}
+								/>
+								<span className="form-check-label">
+									<T id="npmos.mtls.access.own-ca" />
+								</span>
+								<span className="form-hint d-block">
+									<T id="npmos.mtls.access.own-ca.hint" data={{ root: root.name }} />
+								</span>
+							</label>
+						)}
 						<label className="form-check">
 							<input
 								type="checkbox"
@@ -219,7 +256,9 @@ const AccessModal = EasyModal.create(({ visible, remove, data, host, onDone }: P
 						<Button
 							actionType="primary"
 							isLoading={busy}
-							disabled={!issuer || !name.trim() || days < 1}
+							disabled={
+								!issuer || !name.trim() || days < 1 || (password.length > 0 && password.length < 4)
+							}
 							onClick={submit}
 						>
 							<T id="npmos.mtls.access.submit" />

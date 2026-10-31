@@ -14,7 +14,7 @@ import internalEvents from "./events/index.js";
 import internalHosts, { HOST_OBJECTS } from "./hosts.js";
 import internalNotifications from "./notifications/index.js";
 import internalPki from "./pki/index.js";
-import internalMtls, { protectedHosts, usage as mtlsUsage, usedBy as mtlsUsedBy } from "./pki/mtls.js";
+import internalMtls, { detachCas, protectedHosts, usage as mtlsUsage, usedBy as mtlsUsedBy } from "./pki/mtls.js";
 import internalRbac from "./rbac/index.js";
 import internalServices from "./services.js";
 import internalSystem from "./system/index.js";
@@ -1499,7 +1499,8 @@ router
 /**
  * GET    /api/npmos/pki/cas/:ca_id
  * PUT    /api/npmos/pki/cas/:ca_id — {name?, crl_pem? (external CAs)}
- * DELETE /api/npmos/pki/cas/:ca_id
+ * DELETE /api/npmos/pki/cas/:ca_id[?cascade=true[&disable_hosts=true]] — with cascade: its intermediate CAs and
+ *   certificates too; with disable_hosts, mTLS goes off on hosts that trust only them
  */
 router
 	.route("/pki/cas/:ca_id")
@@ -1522,7 +1523,15 @@ router
 			return internalPki.updateCa(res.locals.access, req.params.ca_id, data);
 		}),
 	)
-	.delete(handle((req, res) => internalPki.deleteCa(res.locals.access, req.params.ca_id, mtlsUsedBy)));
+	.delete(
+		handle((req, res) =>
+			internalPki.deleteCa(res.locals.access, req.params.ca_id, mtlsUsedBy, {
+				cascade: req.query.cascade === "true",
+				disableHosts: req.query.disable_hosts === "true",
+				detach: detachCas,
+			}),
+		),
+	);
 
 /**
  * POST /api/npmos/pki/cas/:ca_id/export — {format: cert|chain|crl|key, password? (key)}
@@ -1562,13 +1571,18 @@ const issueProperties = {
 	include_key_pem: { type: "boolean" },
 	link_hours: { type: "integer" },
 	install: { type: "boolean" },
+	// short-lived certificates renewed by NPMOS: validity in hours, "link" (people) or "token" (services)
+	hours: { type: "integer" },
+	auto_renew: { type: "string", enum: ["", "link", "token"] },
+	// ca_id is a root: a CA of its own is made under it for this certificate (one per person)
+	own_ca: { type: "boolean" },
 	...p12Properties,
 };
 
 /**
  * POST /api/npmos/pki/certs — issue: {ca_id, profile, subject | csr_pem, sans?, days?, key_type?, template?,
- *   notes?, store_key?, password?, compatible?, include_key_pem?, link_hours?, install?}
- *   → {certificate, files: {cert_pem, chain_pem, p12_base64?, password?, key_pem?}, link?}
+ *   notes?, store_key?, password?, compatible?, include_key_pem?, link_hours?, install?, hours?, auto_renew?}
+ *   → {certificate, files: {cert_pem, chain_pem, p12_base64?, password?, key_pem?}, link?, renew_token?}
  */
 router
 	.route("/pki/certs")
@@ -1765,10 +1779,17 @@ router.get("/pki/public/crl/:file", async (req, res, next) => {
 /**
  * POST /api/npmos/pki/public/ocsp/:ca_id — OCSP request (DER) → response, without login
  * GET  /api/npmos/pki/public/ocsp/:ca_id/:request — the request in base64 (RFC 6960, appendix A)
+ * ca_id "auto": the CA named by the request, answers valid for a minute (nginx, mTLS with revocation by OCSP)
  */
 const ocspAnswer = async (res, caId, der) => {
 	const id = /^[1-9][0-9]{0,9}$/.test(caId) ? Number.parseInt(caId, 10) : 0;
-	const answer = id && der ? await internalPki.ocsp(id, der) : null;
+	const answer = !der
+		? null
+		: caId === "auto"
+			? await internalPki.ocspAuto(der)
+			: id
+				? await internalPki.ocsp(id, der)
+				: null;
 	if (!answer) return res.status(404).send({ error: { code: 404, message: "No such OCSP responder" } });
 	res.set("Content-Type", "application/ocsp-response");
 	res.set("Cache-Control", "max-age=60");
@@ -1785,6 +1806,25 @@ router.get("/pki/public/ocsp/:ca/:request", async (req, res, next) => {
 	try {
 		const b64 = decodeURIComponent(req.params.request).replace(/-/g, "+").replace(/_/g, "/");
 		await ocspAnswer(res, req.params.ca, /^[A-Za-z0-9+/=]{1,22000}$/.test(b64) ? Buffer.from(b64, "base64") : null);
+	} catch (err) {
+		next(err);
+	}
+});
+
+/**
+ * POST /api/npmos/pki/public/renew — without login: a service renews its short-lived certificate.
+ *   Authorization: Bearer <renewal token>; {csr_pem?} → {cert_pem, chain_pem, key_pem?, not_after, renew_token}
+ */
+router.post("/pki/public/renew", express.json({ limit: "64kb" }), async (req, res, next) => {
+	try {
+		const token = /^Bearer\s+(\S+)$/i.exec(req.get("authorization") || "")?.[1];
+		const csr = typeof req.body?.csr_pem === "string" ? req.body.csr_pem : undefined;
+		const answer = await internalPki.renewByToken(token, { csr_pem: csr });
+		res.set("Cache-Control", "no-store");
+		if (!answer) {
+			return res.status(401).send({ error: { code: 401, message: "Unknown, used or expired renewal token" } });
+		}
+		res.send(answer);
 	} catch (err) {
 		next(err);
 	}
@@ -1819,7 +1859,8 @@ router
 
 /**
  * GET /api/npmos/mtls/:host_type/:host_id
- * PUT /api/npmos/mtls/:host_type/:host_id — {enabled, ca_ids, mode, depth, send_ca_names, rules, required_paths, headers}
+ * PUT /api/npmos/mtls/:host_type/:host_id — {enabled, ca_ids, mode, depth, send_ca_names, rules, required_paths, headers,
+ *   revocation: crl|ocsp}
  */
 router
 	.route("/mtls/:host_type/:host_id")
@@ -1854,6 +1895,7 @@ router
 							},
 						},
 						required_paths: { type: "array", maxItems: 200, items: { type: "string" } },
+						revocation: { type: "string", enum: ["crl", "ocsp"] },
 						headers: { type: "boolean" },
 					},
 				},

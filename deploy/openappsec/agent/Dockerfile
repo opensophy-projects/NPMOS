@@ -16,7 +16,7 @@ ARG OPENAPPSEC_REF
 ADD --keep-git-dir=true https://github.com/openappsec/openappsec.git#${OPENAPPSEC_REF} /src
 WORKDIR /src
 # NPMOS patches (see each file): local-only hybrid mode without Fog registration; rate limits for
-# hosts of the local policy (no scheme)
+# hosts of the local policy (no scheme); no Fog reconnection after a policy update in local-only mode
 COPY patches/ /patches/
 RUN git apply --verbose /patches/*.patch
 # Request headers every browser sends (Sec-Fetch-*, Priority, client hints) are not in the list of clean

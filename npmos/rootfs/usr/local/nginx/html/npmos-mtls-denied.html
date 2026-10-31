@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<!-- NPMOS: page of a request refused by mTLS (PKI and mTLS), see backend/templates/_npmos_mtls.conf -->
+<!-- NPMOS: page of a request refused by mTLS (PKI and mTLS), see backend/templates/_npmos_mtls.conf.
+     The look of the block page of NPMOS (backend/npmos/block-page.js). -->
 <html>
   <head>
     <title>Client certificate required</title>
@@ -7,51 +8,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex" />
     <style>
-      body {
-        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-        margin: 0;
-        padding: 16px;
-        background: #fff;
-        color: #111;
-      }
-      main {
-        max-width: 560px;
-        margin: 10vh auto 0;
-        padding: 2rem;
-        border-radius: 1rem;
-        background: rgb(243 244 246);
-      }
-      h1 {
-        font-size: 24px;
-        margin-top: 0;
-      }
-      p,
-      li {
-        font-size: 16px;
-        line-height: 1.5;
-      }
-      section + section {
-        margin-top: 2rem;
-        padding-top: 1rem;
-        border-top: 1px solid rgb(209 213 219);
-      }
+      :root { color-scheme: light dark; --accent: #e11d48; }
+      body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 16px; box-sizing: border-box;
+        font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: #f6f6f7; color: #18181b; }
+      main { max-width: 34rem; width: 100%; padding: 2rem; box-sizing: border-box; border-radius: 16px; background: #fff;
+        box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.06); border-top: 4px solid var(--accent); }
+      .code { color: var(--accent); font-weight: 600; letter-spacing: .04em; font-size: .8125rem; }
+      h1 { margin: .25rem 0 1rem; font-size: 1.5rem; font-weight: 600; }
+      p, li { margin: 0 0 .75rem; line-height: 1.55; color: #3f3f46; }
+      ul { margin: 0; padding-left: 1.25rem; }
+      section + section { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid #e4e4e7; }
+      section + section .code { display: none; }
       @media (prefers-color-scheme: dark) {
-        body {
-          background: rgb(17 24 39);
-          color: #fff;
-        }
-        main {
-          background: rgb(31 41 55);
-        }
-        section + section {
-          border-color: rgb(75 85 99);
-        }
+        body { background: #0f0f11; color: #f4f4f5; }
+        main { background: #18181b; box-shadow: none; }
+        p, li { color: #d4d4d8; }
+        section + section { border-color: #27272a; }
       }
     </style>
   </head>
   <body>
     <main>
       <section lang="en">
+        <div class="code">Error 403 · mTLS</div>
         <h1>A client certificate is required</h1>
         <p>This site only accepts devices with a certificate issued by its administrator. Your browser sent none, or a certificate that is not accepted (another authority, expired or revoked).</p>
         <ul>
@@ -61,6 +40,7 @@
         </ul>
       </section>
       <section lang="ru">
+        <div class="code">Ошибка 403 · mTLS</div>
         <h1>Нужен клиентский сертификат</h1>
         <p>Сайт пускает только устройства с сертификатом, который выдал администратор. Браузер не отправил сертификат или отправил неподходящий (другой центр сертификации, истёк или отозван).</p>
         <ul>

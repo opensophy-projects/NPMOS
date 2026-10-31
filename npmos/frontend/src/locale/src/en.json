@@ -3281,6 +3281,12 @@
 	"npmos.mtls.access.keep.hint": {
 		"defaultMessage": "Encrypted. Without it the .p12 is handed out only now."
 	},
+	"npmos.mtls.access.own-ca": {
+		"defaultMessage": "A CA of its own for this person"
+	},
+	"npmos.mtls.access.own-ca.hint": {
+		"defaultMessage": "NPMOS makes a CA for this person under {root} and issues the certificate with it. Deleting that CA cuts the person off; on a host with revocation by OCSP within a minute and without a reload of nginx."
+	},
 	"npmos.mtls.access.link": {
 		"defaultMessage": "Also make a one-time download link (24 h)"
 	},
@@ -3550,6 +3556,21 @@
 	},
 	"npmos.mtls.required-paths": {
 		"defaultMessage": "Require a certificate on"
+	},
+	"npmos.mtls.revocation": {
+		"defaultMessage": "Revocation check"
+	},
+	"npmos.mtls.revocation.crl": {
+		"defaultMessage": "CRL"
+	},
+	"npmos.mtls.revocation.crl.hint": {
+		"defaultMessage": "nginx reads the list of revoked certificates. A revocation applies the new list with a graceful reload of nginx: open connections are not cut."
+	},
+	"npmos.mtls.revocation.ocsp": {
+		"defaultMessage": "OCSP"
+	},
+	"npmos.mtls.revocation.ocsp.hint": {
+		"defaultMessage": "nginx asks NPMOS about the certificate on every new connection, nothing is reloaded: a revoked certificate is refused within a minute. While NPMOS restarts, new connections with a certificate are refused."
 	},
 	"npmos.mtls.rule.add": {
 		"defaultMessage": "Add rule"
@@ -3923,6 +3944,15 @@
 	"npmos.notifications.rule.no-channels": {
 		"defaultMessage": "no channels"
 	},
+	"npmos.notifications.rule.pki_reissued": {
+		"defaultMessage": "Certificate renewed automatically"
+	},
+	"npmos.notifications.rule.pki_reissued.hint": {
+		"defaultMessage": "A short-lived client certificate renewed by NPMOS: the message has the one-time link of the new .p12."
+	},
+	"npmos.notifications.rule.pki_reissued.params": {
+		"defaultMessage": "each renewal"
+	},
 	"npmos.notifications.rule.policy_error": {
 		"defaultMessage": "WAF policy not applied"
 	},
@@ -4235,6 +4265,27 @@
 	"npmos.pki.all-cas": {
 		"defaultMessage": "All trust domains"
 	},
+	"npmos.pki.auto-renew": {
+		"defaultMessage": "Automatic renewal"
+	},
+	"npmos.pki.auto-renew.link": {
+		"defaultMessage": "People: link"
+	},
+	"npmos.pki.auto-renew.link.hint": {
+		"defaultMessage": "A short-lived certificate: before it ends NPMOS issues the next one (same .p12 password) and the rule «Certificate renewed automatically» sends its one-time link. A browser cannot renew by itself: the person installs the new .p12."
+	},
+	"npmos.pki.auto-renew.none": {
+		"defaultMessage": "Off"
+	},
+	"npmos.pki.auto-renew.none.hint": {
+		"defaultMessage": "An ordinary certificate valid for the days below."
+	},
+	"npmos.pki.auto-renew.token": {
+		"defaultMessage": "Services: token"
+	},
+	"npmos.pki.auto-renew.token.hint": {
+		"defaultMessage": "Like Istio: a service renews its short-lived certificate itself with a token (POST /api/npmos/pki/public/renew), the old one is revoked and the token replaced."
+	},
 	"npmos.pki.ca.add": {
 		"defaultMessage": "Add CA"
 	},
@@ -4279,6 +4330,15 @@
 	},
 	"npmos.pki.ca.delete": {
 		"defaultMessage": "Delete CA"
+	},
+	"npmos.pki.ca.delete.cascade": {
+		"defaultMessage": "Together with {name} its trust domains ({domains}) and every certificate they issued ({certs}) are deleted. Hosts stop trusting them; a host that trusts only these CAs keeps mTLS, so turn it off there first."
+	},
+	"npmos.pki.ca.delete.hosts": {
+		"defaultMessage": "Hosts that trust it lose it; where it is the only CA, mTLS is turned off and the host opens without a certificate:"
+	},
+	"npmos.pki.ca.delete.hosts-confirm": {
+		"defaultMessage": "Turn off mTLS on these hosts and delete"
 	},
 	"npmos.pki.ca.delete.text": {
 		"defaultMessage": "Delete {name}? Only a CA without certificates, trust domains and hosts can be deleted."
@@ -4402,6 +4462,9 @@
 	},
 	"npmos.pki.expires": {
 		"defaultMessage": "Valid until"
+	},
+	"npmos.pki.hours": {
+		"defaultMessage": "Valid, hours"
 	},
 	"npmos.pki.include-key": {
 		"defaultMessage": "Also give the key as PEM (for servers and scripts)"
@@ -4552,6 +4615,12 @@
 	},
 	"npmos.pki.renew": {
 		"defaultMessage": "Renew"
+	},
+	"npmos.pki.renew-token": {
+		"defaultMessage": "Renewal token"
+	},
+	"npmos.pki.renew-token.hint": {
+		"defaultMessage": "Shown once. Each renewal returns a new certificate, key and token; the old certificate is revoked. With csr_pem in the body the service keeps its key."
 	},
 	"npmos.pki.renew.do": {
 		"defaultMessage": "Renew"
