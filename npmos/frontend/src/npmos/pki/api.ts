@@ -211,8 +211,10 @@ export const importCa = (data: {
 export const updateCa = (id: number, data: { name?: string; crlPem?: string }): Promise<PkiCa> =>
 	api.put({ url: `/npmos/pki/cas/${id}`, data });
 
-export const deleteCa = (id: number, cascade = false) =>
-	api.del({ url: `/npmos/pki/cas/${id}${cascade ? "?cascade=true" : ""}` });
+export const deleteCa = (id: number, cascade = false, disableHosts = false) =>
+	api.del({
+		url: `/npmos/pki/cas/${id}${cascade ? `?cascade=true${disableHosts ? "&disable_hosts=true" : ""}` : ""}`,
+	});
 
 export const exportCa = (
 	id: number,
@@ -283,6 +285,8 @@ export interface MtlsBinding {
 	rules: MtlsRule[];
 	requiredPaths: string[];
 	headers: boolean;
+	/** crl: nginx reads the CRL (reloads on a revocation); ocsp: nginx asks NPMOS, no reload */
+	revocation: "crl" | "ocsp";
 }
 
 export interface MtlsHost extends MtlsBinding {

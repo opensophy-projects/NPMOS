@@ -1499,7 +1499,8 @@ router
 /**
  * GET    /api/npmos/pki/cas/:ca_id
  * PUT    /api/npmos/pki/cas/:ca_id — {name?, crl_pem? (external CAs)}
- * DELETE /api/npmos/pki/cas/:ca_id[?cascade=true] — with cascade: its intermediate CAs and certificates too
+ * DELETE /api/npmos/pki/cas/:ca_id[?cascade=true[&disable_hosts=true]] — with cascade: its intermediate CAs and
+ *   certificates too; with disable_hosts, mTLS goes off on hosts that trust only them
  */
 router
 	.route("/pki/cas/:ca_id")
@@ -1526,6 +1527,7 @@ router
 		handle((req, res) =>
 			internalPki.deleteCa(res.locals.access, req.params.ca_id, mtlsUsedBy, {
 				cascade: req.query.cascade === "true",
+				disableHosts: req.query.disable_hosts === "true",
 				detach: detachCas,
 			}),
 		),
@@ -1772,10 +1774,17 @@ router.get("/pki/public/crl/:file", async (req, res, next) => {
 /**
  * POST /api/npmos/pki/public/ocsp/:ca_id — OCSP request (DER) → response, without login
  * GET  /api/npmos/pki/public/ocsp/:ca_id/:request — the request in base64 (RFC 6960, appendix A)
+ * ca_id "auto": the CA named by the request, answers valid for a minute (nginx, mTLS with revocation by OCSP)
  */
 const ocspAnswer = async (res, caId, der) => {
 	const id = /^[1-9][0-9]{0,9}$/.test(caId) ? Number.parseInt(caId, 10) : 0;
-	const answer = id && der ? await internalPki.ocsp(id, der) : null;
+	const answer = !der
+		? null
+		: caId === "auto"
+			? await internalPki.ocspAuto(der)
+			: id
+				? await internalPki.ocsp(id, der)
+				: null;
 	if (!answer) return res.status(404).send({ error: { code: 404, message: "No such OCSP responder" } });
 	res.set("Content-Type", "application/ocsp-response");
 	res.set("Cache-Control", "max-age=60");
@@ -1826,7 +1835,8 @@ router
 
 /**
  * GET /api/npmos/mtls/:host_type/:host_id
- * PUT /api/npmos/mtls/:host_type/:host_id — {enabled, ca_ids, mode, depth, send_ca_names, rules, required_paths, headers}
+ * PUT /api/npmos/mtls/:host_type/:host_id — {enabled, ca_ids, mode, depth, send_ca_names, rules, required_paths, headers,
+ *   revocation: crl|ocsp}
  */
 router
 	.route("/mtls/:host_type/:host_id")
@@ -1861,6 +1871,7 @@ router
 							},
 						},
 						required_paths: { type: "array", maxItems: 200, items: { type: "string" } },
+						revocation: { type: "string", enum: ["crl", "ocsp"] },
 						headers: { type: "boolean" },
 					},
 				},

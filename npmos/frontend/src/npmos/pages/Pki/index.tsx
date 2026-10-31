@@ -463,29 +463,45 @@ function CasTab({ data, refresh }: { data: PkiOverview; refresh: () => void }) {
 							// a root with trust domains or a CA with certificates goes together with them
 							const domains = data.cas.filter((c) => c.parentId === ca.id);
 							const certs = [ca, ...domains].reduce((sum, c) => sum + c.issued, 0);
-							const cascade = domains.length > 0 || certs > 0;
+							// hosts with mTLS that trust it or its domains: shown, and their mTLS goes with it
+							const hosts = [...new Set([ca, ...domains].flatMap((c) => c.hosts))];
+							const cascade = domains.length > 0 || certs > 0 || hosts.length > 0;
 							showConfirmModal({
 								tTitle: "npmos.pki.ca.delete",
-								tConfirm: "npmos.pki.ca.delete",
+								tConfirm: hosts.length ? "npmos.pki.ca.delete.hosts-confirm" : "npmos.pki.ca.delete",
 								danger: true,
 								children: (
-									<p>
-										{cascade ? (
-											<T
-												id="npmos.pki.ca.delete.cascade"
-												data={{
-													name: ca.name,
-													domains: domains.map((c) => c.name).join(", ") || "—",
-													certs,
-												}}
-											/>
-										) : (
-											<T id="npmos.pki.ca.delete.text" data={{ name: ca.name }} />
+									<>
+										<p>
+											{cascade ? (
+												<T
+													id="npmos.pki.ca.delete.cascade"
+													data={{
+														name: ca.name,
+														domains: domains.map((c) => c.name).join(", ") || "—",
+														certs,
+													}}
+												/>
+											) : (
+												<T id="npmos.pki.ca.delete.text" data={{ name: ca.name }} />
+											)}
+										</p>
+										{hosts.length > 0 && (
+											<>
+												<p className="mb-1">
+													<T id="npmos.pki.ca.delete.hosts" />
+												</p>
+												<ul className="mb-0">
+													{hosts.map((h) => (
+														<li key={h}>{h}</li>
+													))}
+												</ul>
+											</>
 										)}
-									</p>
+									</>
 								),
 								onConfirm: async () => {
-									await deleteCa(ca.id, cascade);
+									await deleteCa(ca.id, cascade, hosts.length > 0);
 									refresh();
 								},
 							});

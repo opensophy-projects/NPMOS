@@ -607,6 +607,25 @@ for i in $(seq 1 30); do
   sleep 2
 done
 
+step "mTLS: revocation by OCSP refuses a revoked certificate within a minute and a half, nginx is not reloaded"
+api_json -X PUT "$ADMIN/api/npmos/mtls/proxy_host/$host_id" -d "{\"enabled\": true, \"ca_ids\": [$domain_id],
+  \"rules\": [{\"field\": \"organizational_unit\", \"op\": \"one_of\", \"values\": [\"IT\"]}], \"revocation\": \"ocsp\"}" \
+  | tr -d ' \n' | grep -q '"revocation":"ocsp"' || fail "the host did not take revocation by OCSP"
+erin=$(client erin IT "$domain_id")
+for i in $(seq 1 15); do
+  [ "$(mtls --cert /tmp/erin.crt --key /tmp/erin.key)" = 200 ] && break
+  [ "$i" = 15 ] && fail "OCSP: the host does not let erin in"
+  sleep 2
+done
+erin_id=$(echo "$erin" | tr -d ' \n' | grep -o '"certificate":{"id":[0-9]*' | grep -o '[0-9]*$')
+api_json "$ADMIN/api/npmos/pki/certs/revoke" -d "{\"ids\": [$erin_id], \"reason\": \"keyCompromise\"}" \
+  | grep -q '"revoked": *1' || fail "erin was not revoked"
+for i in $(seq 1 45); do
+  [ "$(mtls --cert /tmp/erin.crt --key /tmp/erin.key)" = 403 ] && break
+  [ "$i" = 45 ] && fail "OCSP: the revoked certificate still opens the host"
+  sleep 2
+done
+
 step "mTLS in one step: the switch of a host creates its trust domain, an access certificate opens it"
 quick_id=$(api_json "$ADMIN/api/nginx/proxy-hosts" -d "{\"domain_names\": [\"quick.local\"], \"forward_scheme\": \"http\",
   \"forward_host\": \"test-upstream\", \"forward_port\": \"80\", \"certificate_id\": $tls_id}" | json_id)

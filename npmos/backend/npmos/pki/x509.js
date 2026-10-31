@@ -145,6 +145,11 @@ export const extConfig = (profile, { sans, crlUrl, ocspUrl, rsa = false } = {}) 
 	} else if (profile === "intermediate") {
 		lines.push("basicConstraints = critical, CA:TRUE, pathlen:0", "keyUsage = critical, keyCertSign, cRLSign");
 		lines.push("subjectKeyIdentifier = hash", "authorityKeyIdentifier = keyid:always");
+	} else if (profile === "ocsp") {
+		// delegated OCSP responder of the CA (RFC 6960 4.2.2.2): its responses are not checked for revocation
+		lines.push("basicConstraints = critical, CA:FALSE", "keyUsage = critical, digitalSignature");
+		lines.push("extendedKeyUsage = OCSPSigning", "noCheck = ignored");
+		lines.push("subjectKeyIdentifier = hash", "authorityKeyIdentifier = keyid:always");
 	} else {
 		lines.push("basicConstraints = critical, CA:FALSE");
 		lines.push(`keyUsage = critical, digitalSignature${rsa ? ", keyEncipherment" : ""}`);

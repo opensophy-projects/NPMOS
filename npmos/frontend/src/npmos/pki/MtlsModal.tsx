@@ -72,6 +72,7 @@ function MtlsForm({
 		rules: host.rules.map((r) => fromApiRule(r as any)),
 		requiredPaths: host.requiredPaths,
 		headers: host.headers,
+		revocation: host.revocation ?? "crl",
 	});
 	const [advanced, setAdvanced] = useState(false);
 	const [busy, setBusy] = useState(false);
@@ -316,6 +317,29 @@ function MtlsForm({
 						)}
 						<div className="form-hint">
 							<T id="npmos.mtls.rules.hint" />
+						</div>
+					</div>
+				)}
+
+				{proxy && (
+					<div className="mb-3">
+						<span className="form-label d-block">
+							<T id="npmos.mtls.revocation" />
+						</span>
+						<div className="btn-group">
+							{(["crl", "ocsp"] as const).map((r) => (
+								<button
+									key={r}
+									type="button"
+									className={`btn ${value.revocation === r ? "btn-primary" : ""}`}
+									onClick={() => setValue({ ...value, revocation: r })}
+								>
+									<T id={`npmos.mtls.revocation.${r}`} />
+								</button>
+							))}
+						</div>
+						<div className="form-hint">
+							<T id={`npmos.mtls.revocation.${value.revocation}.hint`} />
 						</div>
 					</div>
 				)}

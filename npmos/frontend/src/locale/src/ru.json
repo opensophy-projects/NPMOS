@@ -3551,6 +3551,21 @@
 	"npmos.mtls.required-paths": {
 		"defaultMessage": "Требовать сертификат на"
 	},
+	"npmos.mtls.revocation": {
+		"defaultMessage": "Проверка отзыва"
+	},
+	"npmos.mtls.revocation.crl": {
+		"defaultMessage": "CRL"
+	},
+	"npmos.mtls.revocation.ocsp": {
+		"defaultMessage": "OCSP"
+	},
+	"npmos.mtls.revocation.crl.hint": {
+		"defaultMessage": "nginx читает список отозванных сертификатов. При отзыве новый список применяется мягким перечитыванием nginx: открытые соединения не обрываются."
+	},
+	"npmos.mtls.revocation.ocsp.hint": {
+		"defaultMessage": "nginx спрашивает NPMOS о сертификате при каждом новом подключении, ничего не перезагружается: отозванный сертификат перестаёт пускать в течение минуты. Пока NPMOS перезапускается, новые подключения с сертификатом не проходят."
+	},
 	"npmos.mtls.rule.add": {
 		"defaultMessage": "Добавить правило"
 	},
@@ -4285,6 +4300,12 @@
 	},
 	"npmos.pki.ca.delete.cascade": {
 		"defaultMessage": "Вместе с {name} удалятся его домены доверия ({domains}) и все выпущенные ими сертификаты ({certs}). Хосты перестанут им доверять; если хост доверяет только этим CA, сначала выключите на нём mTLS."
+	},
+	"npmos.pki.ca.delete.hosts": {
+		"defaultMessage": "Хосты, которые ему доверяют, перестанут это делать; где это единственный CA, mTLS выключится и хост будет открываться без сертификата:"
+	},
+	"npmos.pki.ca.delete.hosts-confirm": {
+		"defaultMessage": "Отключить mTLS на хостах и удалить"
 	},
 	"npmos.pki.ca.edit": {
 		"defaultMessage": "Изменить CA"

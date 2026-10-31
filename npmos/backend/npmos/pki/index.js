@@ -74,6 +74,29 @@ const ocspUrl = (s, caId) =>
 /** OCSP answers by request, for a minute: clients and nginx ask again and again */
 const ocspCache = new Map();
 const OCSP_CACHE_MS = 60 * 1000;
+/** delegated OCSP responders of the CAs (caId → {certPem, keyPem, until}), made on use, in memory */
+const ocspSigners = new Map();
+const OCSP_SIGNER_DAYS = 7;
+/** caId → {pem, value}: the key hash of a CA as OCSP requests name it */
+const caKeyHashes = new Map();
+
+/** the responder of a CA, renewed a day before it expires */
+const ocspSigner = async (ca, caKeyPem) => {
+	const known = ocspSigners.get(ca.id);
+	if (known && known.caPem === ca.cert_pem && known.until > Date.now() + 86400000) return known;
+	const keyPem = generateKey("ec-p256");
+	const certPem = await ops.sign({
+		csrPem: await ops.makeCsr({ keyPem, subject: { common_name: `OCSP responder ${ca.id}` } }),
+		caCertPem: ca.cert_pem,
+		caKeyPem,
+		profile: "ocsp",
+		days: OCSP_SIGNER_DAYS,
+		serial: randomSerial(),
+	});
+	const signer = { certPem, keyPem, caPem: ca.cert_pem, until: Date.now() + OCSP_SIGNER_DAYS * 86400000 };
+	ocspSigners.set(ca.id, signer);
+	return signer;
+};
 
 const daysUntil = (date, from = new Date()) => Math.floor((new Date(date).getTime() - from.getTime()) / 86400000);
 
@@ -613,9 +636,10 @@ const internalPki = {
 	 * CAs and every certificate they issued, and the hosts stop trusting them (mtls.detachCas).
 	 * @param {Access} access
 	 * @param {(caId: number) => Promise<string[]>} usedBy  names of hosts that trust the CA
-	 * @param {{cascade?: boolean, detach?: (ids: number[], check?: boolean) => Promise<string[]>}} [options]
+	 * @param {{cascade?: boolean, disableHosts?: boolean, detach?: (ids: number[], check?: boolean) => Promise<string[]>}}
+	 *   [options]  disableHosts: hosts that trust only these CAs get mTLS off instead of blocking the delete
 	 */
-	deleteCa: async (access, id, usedBy, { cascade = false, detach } = {}) => {
+	deleteCa: async (access, id, usedBy, { cascade = false, disableHosts = false, detach } = {}) => {
 		await access.can("pki:manage");
 		const ca = await caRow(id);
 		if (ca.upstream_certificate_id) {
@@ -632,12 +656,14 @@ const internalPki = {
 					"An intermediate CA comes from Certificates of NPMplus, delete it there",
 				);
 			}
-			const alone = detach ? await detach(ids, true) : [];
+			const alone = detach && !disableHosts ? await detach(ids, true) : [];
 			if (alone.length) {
 				throw new errs.ValidationError(
 					`Hosts trust only these CAs, turn mTLS off there first: ${alone.join(", ")}`,
 				);
 			}
+			// hosts first: if this fails, no host refers to a deleted CA
+			const hosts = detach ? await detach(ids) : [];
 			const certs = await db()("npmos_pki_cert").whereIn("ca_id", ids).select("id");
 			await db().transaction(async (trx) => {
 				await trx("npmos_pki_link")
@@ -650,7 +676,6 @@ const internalPki = {
 				// children first: parent_id points up
 				for (const caId of [...ids].reverse()) await trx("npmos_pki_ca").where({ id: caId }).delete();
 			});
-			const hosts = detach ? await detach(ids) : [];
 			await audit(access, "deleted", "pki", id, {
 				name: ca.name,
 				cascade: true,
@@ -1022,9 +1047,9 @@ const internalPki = {
 	 * @param {number} caId
 	 * @param {Buffer} requestDer
 	 */
-	ocsp: async (caId, requestDer) => {
+	ocsp: async (caId, requestDer, { minutes = 60 } = {}) => {
 		if (!requestDer?.length || requestDer.length > 16 * 1024) return null;
-		const key = `${caId}:${createHash("sha256").update(requestDer).digest("hex")}`;
+		const key = `${caId}:${minutes}:${createHash("sha256").update(requestDer).digest("hex")}`;
 		const cached = ocspCache.get(key);
 		if (cached && cached.until > Date.now()) return cached.der;
 		const ca = await db()("npmos_pki_ca").where({ id: caId }).first();
@@ -1034,15 +1059,41 @@ const internalPki = {
 			.where({ ca_id: caId })
 			.select("serial", "not_after", "revoked_on", "revoke_reason");
 		const children = await db()("npmos_pki_ca").where({ parent_id: caId }).select("serial", "not_after");
+		const caKeyPem = decrypt(ca.key_enc);
+		const signer = await ocspSigner(ca, caKeyPem);
 		const der = await ops.ocspRespond({
 			caCertPem: ca.cert_pem,
-			caKeyPem: decrypt(ca.key_enc),
+			caKeyPem,
+			signerCertPem: signer.certPem,
+			signerKeyPem: signer.keyPem,
 			certs: [...certs, ...children].filter((c) => c.serial),
 			requestDer,
+			minutes,
 		});
 		if (ocspCache.size > 1000) ocspCache.clear();
 		ocspCache.set(key, { der, until: Date.now() + OCSP_CACHE_MS });
 		return der;
+	},
+
+	/**
+	 * Without login: the OCSP responder nginx asks about client certificates of hosts with revocation by OCSP
+	 * (ssl_ocsp leaf). The CA is the one whose key the request names, the answer is valid for a minute: a revoked
+	 * certificate is refused within a minute, without a reload of nginx.
+	 * @param {Buffer} requestDer
+	 */
+	ocspAuto: async (requestDer) => {
+		if (!requestDer?.length || requestDer.length > 16 * 1024) return null;
+		const issuer = await ops.ocspRequestIssuer(requestDer).catch(() => null);
+		if (!issuer) return null;
+		for (const ca of await db()("npmos_pki_ca").whereNot({ kind: "external" }).whereNotNull("key_enc")) {
+			let hash = caKeyHashes.get(ca.id);
+			if (hash?.pem !== ca.cert_pem) {
+				hash = { pem: ca.cert_pem, value: await ops.ocspKeyHash(ca.cert_pem) };
+				caKeyHashes.set(ca.id, hash);
+			}
+			if (hash.value === issuer) return internalPki.ocsp(ca.id, requestDer, { minutes: 1 });
+		}
+		return null;
 	},
 
 	/** links of a certificate (not their tokens) */

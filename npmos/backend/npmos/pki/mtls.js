@@ -26,6 +26,10 @@ const DIR = process.env.NPMOS_MTLS_DIR || "/data/npmos/pki/nginx";
 
 export const HOST_TYPES = ["proxy_host", "stream"];
 export const MODES = ["on", "optional"];
+/** how revocation is checked: crl (the CRL files, nginx reloads when one changes) or ocsp (asks NPMOS, no reload) */
+export const REVOCATIONS = ["crl", "ocsp"];
+/** the OCSP responder of NPMOS for nginx itself (conf.d/npmos-ocsp.conf) */
+const OCSP_RESPONDER = process.env.NPMOS_OCSP_RESPONDER || "http://127.0.0.1:7089/api/npmos/pki/public/ocsp/auto";
 export { RULE_FIELDS, RULE_OPS, ruleRegex, trustSet };
 export const DEFAULTS = {
 	enabled: false,
@@ -36,6 +40,7 @@ export const DEFAULTS = {
 	rules: [],
 	required_paths: [],
 	headers: true,
+	revocation: "crl",
 };
 
 const parse = (value) => (typeof value === "string" ? JSON.parse(value) : value);
@@ -78,6 +83,7 @@ const toBinding = (row) =>
 				rules: parse(row.rules) || [],
 				required_paths: parse(row.required_paths) || [],
 				headers: !!row.headers,
+				revocation: REVOCATIONS.includes(row.revocation) ? row.revocation : "crl",
 			}
 		: { ...DEFAULTS };
 
@@ -95,14 +101,17 @@ export const prepareHost = async (hostType, host) => {
 		if (!binding.enabled || !binding.ca_ids.length || !(host.certificate_id > 0)) return;
 		const set = trustSet(binding.ca_ids, await db()("npmos_pki_ca"));
 		if (!set.ids.length) return;
-		await writeFiles(hostType, host.id, set);
+		const ocsp = binding.revocation === "ocsp" && hostType === "proxy_host";
+		// with OCSP nginx asks NPMOS about every new connection: no CRL file, nothing to reload on a revocation
+		await writeFiles(hostType, host.id, ocsp ? { ...set, crls: "" } : set);
 		const f = files(hostType, host.id);
 		host.npmos_mtls = {
 			mode: hostType === "stream" ? "on" : binding.mode,
 			depth: binding.depth,
 			send_ca_names: binding.send_ca_names,
 			ca_file: f.ca,
-			crl_file: set.crls ? f.crl : "",
+			crl_file: set.crls && !ocsp ? f.crl : "",
+			ocsp_url: ocsp ? OCSP_RESPONDER : "",
 			issuers: set.issuers?.length ? `^(?:${set.issuers.map(escapeRe).join("|")})$` : "",
 			rules: binding.rules.map(ruleRegex),
 			headers: binding.headers,
@@ -154,6 +163,8 @@ const refreshFor = async (caIds) => {
 	const rows = await db()("npmos_mtls_host").where({ enabled: true });
 	let changed = false;
 	for (const row of rows) {
+		// revocation by OCSP: the answers of NPMOS change, nginx needs nothing
+		if (row.revocation === "ocsp" && row.host_type === "proxy_host") continue;
 		const set = trustSet(parse(row.ca_ids) || [], cas);
 		if (!set.ids.some((id) => caIds.includes(id))) continue;
 		const hadCrl = await readFile(files(row.host_type, row.host_id).crl, "utf8").then(
@@ -193,7 +204,7 @@ export const detachCas = async (caIds, check = false) => {
 			continue;
 		}
 		await db()("npmos_mtls_host")
-			.where({ id: row.id })
+			.where({ host_type: row.host_type, host_id: row.host_id })
 			.update({ ca_ids: JSON.stringify(left), enabled: row.enabled && left.length > 0, modified_on: new Date() });
 		if (host) {
 			await reconfigure(row.host_type, row.host_id);
@@ -338,6 +349,10 @@ const validate = (data, hostType, host, cas) => {
 			values: rule.field === "serial" && rule.op === "one_of" ? values.map((v) => v.toUpperCase()) : values,
 		};
 	});
+	if (!REVOCATIONS.includes(b.revocation)) throw new errs.ValidationError(`revocation: ${REVOCATIONS.join(", ")}`);
+	if (hostType === "stream" && b.revocation !== "crl") {
+		throw new errs.ValidationError("Streams check revocation by the CRL only");
+	}
 	if (hostType === "stream") {
 		if (b.mode !== "on" || b.rules.length || b.required_paths.length) {
 			throw new errs.ValidationError("Streams support mode on without rules and locations");
@@ -428,6 +443,7 @@ const internalMtls = {
 			rules: JSON.stringify(binding.rules),
 			required_paths: JSON.stringify(binding.required_paths),
 			headers: binding.headers,
+			revocation: binding.revocation,
 		};
 		await db()("npmos_mtls_host")
 			.insert({ host_type: hostType, host_id: id, ...values })

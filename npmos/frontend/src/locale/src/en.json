@@ -3551,6 +3551,21 @@
 	"npmos.mtls.required-paths": {
 		"defaultMessage": "Require a certificate on"
 	},
+	"npmos.mtls.revocation": {
+		"defaultMessage": "Revocation check"
+	},
+	"npmos.mtls.revocation.crl": {
+		"defaultMessage": "CRL"
+	},
+	"npmos.mtls.revocation.ocsp": {
+		"defaultMessage": "OCSP"
+	},
+	"npmos.mtls.revocation.crl.hint": {
+		"defaultMessage": "nginx reads the list of revoked certificates. A revocation applies the new list with a graceful reload of nginx: open connections are not cut."
+	},
+	"npmos.mtls.revocation.ocsp.hint": {
+		"defaultMessage": "nginx asks NPMOS about the certificate on every new connection, nothing is reloaded: a revoked certificate is refused within a minute. While NPMOS restarts, new connections with a certificate are refused."
+	},
 	"npmos.mtls.rule.add": {
 		"defaultMessage": "Add rule"
 	},
@@ -4285,6 +4300,12 @@
 	},
 	"npmos.pki.ca.delete.cascade": {
 		"defaultMessage": "Together with {name} its trust domains ({domains}) and every certificate they issued ({certs}) are deleted. Hosts stop trusting them; a host that trusts only these CAs keeps mTLS, so turn it off there first."
+	},
+	"npmos.pki.ca.delete.hosts": {
+		"defaultMessage": "Hosts that trust it lose it; where it is the only CA, mTLS is turned off and the host opens without a certificate:"
+	},
+	"npmos.pki.ca.delete.hosts-confirm": {
+		"defaultMessage": "Turn off mTLS on these hosts and delete"
 	},
 	"npmos.pki.ca.edit": {
 		"defaultMessage": "Edit CA"
