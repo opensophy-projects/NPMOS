@@ -32,6 +32,8 @@ const AccessModal = EasyModal.create(({ visible, remove, data, host, onDone }: P
 	const [email, setEmail] = useState("");
 	const [days, setDays] = useState(data.settings.clientDays);
 	const [notes, setNotes] = useState("");
+	// empty: NPMOS generates the password of the .p12 and shows it once
+	const [password, setPassword] = useState("");
 	const keepAllowed = can("pki", "export_key");
 	const [keep, setKeep] = useState(keepAllowed);
 	const [link, setLink] = useState(false);
@@ -57,6 +59,7 @@ const AccessModal = EasyModal.create(({ visible, remove, data, host, onDone }: P
 				days,
 				notes: notes.trim(),
 				storeKey: keep && keepAllowed,
+				password: password || undefined,
 				linkHours: link ? 24 : undefined,
 			});
 			setResult(issued);
@@ -177,6 +180,19 @@ const AccessModal = EasyModal.create(({ visible, remove, data, host, onDone }: P
 								onChange={(e) => setNotes(e.target.value)}
 							/>
 						</div>
+						<div className="mb-3">
+							<label className="form-label" htmlFor="mtls-access-password">
+								<T id="npmos.pki.p12.password" />
+							</label>
+							<input
+								id="mtls-access-password"
+								className="form-control"
+								autoComplete="new-password"
+								placeholder={t("npmos.pki.p12.password.generate")}
+								value={password}
+								onChange={(e) => setPassword(e.target.value)}
+							/>
+						</div>
 						<label className="form-check">
 							<input
 								type="checkbox"
@@ -219,7 +235,9 @@ const AccessModal = EasyModal.create(({ visible, remove, data, host, onDone }: P
 						<Button
 							actionType="primary"
 							isLoading={busy}
-							disabled={!issuer || !name.trim() || days < 1}
+							disabled={
+								!issuer || !name.trim() || days < 1 || (password.length > 0 && password.length < 4)
+							}
 							onClick={submit}
 						>
 							<T id="npmos.mtls.access.submit" />
