@@ -71,6 +71,11 @@ services:
       COOKIE_SECRET_FILE: /run/npmos-secrets/cookie_secret
       # access/stream logs to /data/nginx/logs — read by CrowdSec
       LOGROTATE: "true"
+      # open-appsec ML-WAF is part of NPMOS, so its nginx attachment is loaded by default: the agent is
+      # already running, WAF -> Agent shows it enabled, and turning on WAF for a host works at once (no
+      # separate global switch + restart first). The attachment is fail-open and hosts are inactive until
+      # protected, so idle cost is small. Turn it off in WAF -> Agent (that restart unloads the module).
+      NGINX_LOAD_OPENAPPSEC_ATTACHMENT_MODULE: ${NPMOS_WAF_ENABLED:-true}
       # IPv4 only by default: nginx does not listen on IPv6 and its resolver asks for IPv4 only, so
       # NPMOS starts on hosts where IPv6 is off or broken. NPMOS_DISABLE_IPV6=false turns IPv6 on.
       DISABLE_IPV6: ${NPMOS_DISABLE_IPV6:-true}

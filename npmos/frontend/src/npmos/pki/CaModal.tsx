@@ -270,14 +270,21 @@ const CaModal = EasyModal.create(({ visible, remove, data, mode = "root", edit, 
 							<label className="form-label" htmlFor="pki-ca-keypass">
 								<T id="npmos.pki.ca.key-password" />
 							</label>
-							<input
-								id="pki-ca-keypass"
-								type="password"
-								className="form-control"
+							{/* NPMOS: form wrapper so the lone password field is inside a form */}
+							<form
+								style={{ display: "contents" }}
 								autoComplete="off"
-								value={keyPassword}
-								onChange={(e) => setKeyPassword(e.target.value)}
-							/>
+								onSubmit={(e) => e.preventDefault()}
+							>
+								<input
+									id="pki-ca-keypass"
+									type="password"
+									className="form-control"
+									autoComplete="off"
+									value={keyPassword}
+									onChange={(e) => setKeyPassword(e.target.value)}
+								/>
+							</form>
 						</div>
 					</>
 				)}

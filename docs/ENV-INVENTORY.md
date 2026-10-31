@@ -32,7 +32,7 @@
 | `NGINX_WORKER_PROCESSES`, `NGINX_WORKER_CONNECTIONS`, `NGINX_LOG_NOT_FOUND` | auto, 512, false | те же | GUI (Администрирование → Настройки → Nginx) | 4 ✅ |
 | `NGINX_FORCE_X25519MLKEM768`, `NGINX_DISABLE_TLS12`, `NGINX_TRUST_SECPR1`, `NGINX_TRUST_RSA_PKCS1` | | те же | GUI (Администрирование → Настройки → TLS) | 4 ✅ |
 | `DISABLE_NGINX_BEAUTIFIER` | `false` | `false` | NPMOS фиксирует | — |
-| `NGINX_LOAD_OPENAPPSEC_ATTACHMENT_MODULE` | `false` | `false` | GUI (Агенты → Агент open-appsec: «Включить WAF»), значение из БД пишется в `/data/npmos/runtime.env` | 1 ✅ |
+| `NGINX_LOAD_OPENAPPSEC_ATTACHMENT_MODULE` | `false` | `true` (`NPMOS_WAF_ENABLED`) | GUI (Агенты → Агент open-appsec: «Включить WAF»), значение из БД пишется в `/data/npmos/runtime.env` | 1 ✅ |
 | `NGINX_LOAD_NJS_MODULE`, `NGINX_LOAD_GEOIP2_MODULE`, `NGINX_LOAD_LDAP_MODULE`, `NGINX_LOAD_NTLM_MODULE`, `NGINX_LOAD_VHOST_TRAFFIC_STATUS_MODULE` | `false` | `false` | GUI (Администрирование → Настройки → Nginx) | 4 ✅ |
 | `TRUST_CLOUDFLARE` | `false` | `false` (загрузка IP-диапазонов Cloudflare — только при явном включении) | GUI (Администрирование → Настройки → Сеть, помечено «интернет») | 4 ✅ |
 | `DISABLE_GRAVATAR` | `false` | **`true`** ✅ | NPMOS фиксирует: Gravatar убран, аватары с gravatar.com не загружаются | — |

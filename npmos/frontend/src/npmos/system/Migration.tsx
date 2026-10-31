@@ -167,7 +167,10 @@ function Source({ busy, run }: { busy: boolean; run: (fn: () => Promise<unknown>
 						{field("port", "npmos.migration.database.port")}
 						{field("database", "npmos.migration.database.name")}
 						{field("user", "npmos.migration.database.user")}
-						{field("password", "npmos.migration.database.password", "password")}
+						{/* NPMOS: form wrapper (display:contents) so the password field is inside a form */}
+						<form style={{ display: "contents" }} autoComplete="off" onSubmit={(e) => e.preventDefault()}>
+							{field("password", "npmos.migration.database.password", "password")}
+						</form>
 					</div>
 					<button
 						type="button"

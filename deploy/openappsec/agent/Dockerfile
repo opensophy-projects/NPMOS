@@ -19,6 +19,25 @@ WORKDIR /src
 # hosts of the local policy (no scheme)
 COPY patches/ /patches/
 RUN git apply --verbose /patches/*.patch
+# Request headers every browser sends (Sec-Fetch-*, Priority, client hints) are not in the list of clean
+# headers of the agent's signatures: the model takes "Sec-Fetch-Dest: style" for XSS and refuses every
+# stylesheet Chrome loads. waap-headers.json adds them with strict patterns; another value is scanned as before.
+COPY waap-headers.json /patches/waap-headers.json
+RUN python3 - <<'EOF'
+import json
+path = "components/security_apps/waap/resources/waap.data"
+with open(path) as f:
+    data = json.load(f)
+with open("/patches/waap-headers.json") as f:
+    extra = json.load(f)
+headers = data["waap_signatures"]["headers_re"]
+clash = sorted(set(headers) & set(extra))
+if clash:
+    raise SystemExit(f"waap-headers.json: already in the signatures: {clash}")
+headers.update(extra)
+with open(path, "w") as f:
+    json.dump(data, f, indent=1)
+EOF
 RUN cmake -DCMAKE_INSTALL_PREFIX=build_out . && \
     make -j"$(nproc)" install && \
     make package && \

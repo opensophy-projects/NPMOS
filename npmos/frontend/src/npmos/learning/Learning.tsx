@@ -299,7 +299,7 @@ function Queue({ label }: { label: boolean }) {
 					</p>
 				</div>
 			</div>
-			<div className={hostStyles.toolbar}>
+			<div className={cn(hostStyles.toolbar, styles.toolbar)}>
 				<SearchField value={search} onChange={setSearch} placeholder={t("npmos.learning.search")} />
 				<div className={eventStyles.periods} role="group" aria-label={t("npmos.events.period")}>
 					{PERIODS.map((p) => (

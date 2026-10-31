@@ -40,6 +40,8 @@ const ACME_SERVERS = [
 ];
 // shown by the backend instead of a secret that is set
 const SECRET_SET = "********";
+// NPMOS: wrap a lone password input so it sits inside a <form> without changing the grid layout
+const CONTENTS = { display: "contents" } as const;
 const URL_FORM = /^https?:\/\/[A-Za-z0-9._~:/?&%+@-]+$/;
 const EMAIL_FORM = /^[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]{1,190}$/;
 const TOKEN_FORM = /^[A-Za-z0-9_-]{0,512}$/;
@@ -147,7 +149,7 @@ function Control({
 			<input
 				type={item.type === "email" ? "email" : "text"}
 				className="form-control form-control-sm"
-				autoComplete="off"
+				autoComplete={item.type === "email" ? "email" : "off"}
 				value={String(value)}
 				disabled={disabled}
 				aria-label={label}
@@ -156,17 +158,21 @@ function Control({
 		);
 	}
 	if (item.type === "secret") {
+		// NPMOS: a lone password lives inside a form (display:contents keeps the grid layout) so the
+		// browser does not warn "Password field is not contained in a form".
 		return (
-			<input
-				type="password"
-				className="form-control form-control-sm"
-				autoComplete="new-password"
-				placeholder={value === SECRET_SET ? t("npmos.system.secret.set") : ""}
-				value={value === SECRET_SET ? "" : String(value)}
-				disabled={disabled}
-				aria-label={label}
-				onChange={(e) => onChange(e.target.value.trim() || (item.value === SECRET_SET ? SECRET_SET : ""))}
-			/>
+			<form style={CONTENTS} autoComplete="off" onSubmit={(e) => e.preventDefault()}>
+				<input
+					type="password"
+					className="form-control form-control-sm"
+					autoComplete="new-password"
+					placeholder={value === SECRET_SET ? t("npmos.system.secret.set") : ""}
+					value={value === SECRET_SET ? "" : String(value)}
+					disabled={disabled}
+					aria-label={label}
+					onChange={(e) => onChange(e.target.value.trim() || (item.value === SECRET_SET ? SECRET_SET : ""))}
+				/>
+			</form>
 		);
 	}
 	if (item.type === "tz") {

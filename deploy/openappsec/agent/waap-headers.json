@@ -1,0 +1,19 @@
+{
+	"sec-fetch-dest": "^[a-z-]{1,32}$",
+	"sec-fetch-mode": "^[a-z-]{1,32}$",
+	"sec-fetch-site": "^[a-z-]{1,32}$",
+	"sec-fetch-user": "^\\?[01]$",
+	"sec-fetch-storage-access": "^[a-z-]{1,32}$",
+	"sec-purpose": "^[a-z-]{1,32}(;\\s?[a-z-]{1,32})?$",
+	"priority": "^(u=[0-7]|i)(,\\s?(u=[0-7]|i))?$",
+	"sec-ch-ua-mobile": "^\\?[01]$",
+	"sec-ch-ua-platform": "^\"[\\w .-]{0,32}\"$",
+	"sec-ch-ua-platform-version": "^\"[\\w .-]{0,32}\"$",
+	"sec-ch-ua-arch": "^\"[\\w .-]{0,32}\"$",
+	"sec-ch-ua-bitness": "^\"[\\w .-]{0,32}\"$",
+	"sec-ch-ua-model": "^\"[\\w .-]{0,64}\"$",
+	"sec-ch-prefers-color-scheme": "^\"?(light|dark)\"?$",
+	"upgrade-insecure-requests": "^1$",
+	"dnt": "^[01]$",
+	"sec-gpc": "^1$"
+}

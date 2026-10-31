@@ -151,6 +151,16 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
   done
   [ "$(status "/?q=hello")" = 200 ] || fail "a normal request was blocked"
 
+  step "WAF: the request headers of a browser pass (a stylesheet of Chrome: Sec-Fetch-Dest: style)"
+  # the agent's model takes "style" for XSS: without waap-headers.json every stylesheet of Chrome was refused
+  browser=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 -H 'Host: test.local' -H 'Accept: text/css,*/*;q=0.1' \
+    -H 'Sec-Fetch-Dest: style' -H 'Sec-Fetch-Mode: no-cors' -H 'Sec-Fetch-Site: same-origin' -H 'Priority: u=0' \
+    -H 'Sec-Ch-Ua-Mobile: ?0' -H 'Sec-Ch-Ua-Platform: "Linux"' "$HTTP/assets/index.css")
+  [ "$browser" = 403 ] && fail "a stylesheet request of a browser was blocked"
+  [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 -H 'Host: test.local' \
+    -H 'Sec-Fetch-Dest: <script>alert(document.cookie)</script>' "$HTTP/")" = 403 ] \
+    || fail "an attack in Sec-Fetch-Dest was not blocked"
+
   step "Block page: a refused request gets the page of NPMOS, not the one of the agent"
   page=$(curl -s --max-time 10 -H 'Host: test.local' "$HTTP$SQLI")
   echo "$page" | grep -q 'NPMOS: block page' || fail "no block page of NPMOS: $(echo "$page" | head -c 300)"
