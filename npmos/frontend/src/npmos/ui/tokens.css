@@ -412,6 +412,11 @@ h3,
 	--tblr-modal-footer-bg: var(--background);
 	border-radius: var(--radius-lg);
 }
+/* a dropdown that opens past the fields (TLS certificate, access list) is drawn over the buttons of the footer:
+   they are positioned and come later, so without this they cover the open menu */
+.modal-body {
+	z-index: 1;
+}
 /* no line under the title of a modal: the fields follow it, and the tabs of a modal have their own line */
 .modal-header {
 	border-bottom: 0;

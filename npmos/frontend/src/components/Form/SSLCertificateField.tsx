@@ -148,6 +148,8 @@ export function SSLCertificateField({
 							<Select
 								className="react-select-container"
 								classNamePrefix="react-select"
+								// NPMOS: a short menu (2-3 certificates, then scroll) that stays inside the modal
+								maxMenuHeight={170}
 								value={options.find((o) => o.value === field.value) || options[0]}
 								options={options}
 								components={{ Option }}
@@ -181,6 +183,8 @@ export function SSLCertificateField({
 							<Select
 								className="react-select-container"
 								classNamePrefix="react-select"
+								// NPMOS: a short menu (2-3 certificates, then scroll) that stays inside the modal
+								maxMenuHeight={170}
 								value={mtlsOptions.find((o) => o.value === field.value) || mtlsOptions[0]}
 								options={mtlsOptions}
 								components={{ Option }}

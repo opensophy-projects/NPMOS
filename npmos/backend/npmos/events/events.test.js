@@ -193,6 +193,14 @@ test("analytics timeline: aligned buckets, actions split", async () => {
 	);
 });
 
+test("requests: proxy hosts that open the interface of NPMOS", async () => {
+	const { isInterfaceHost } = await import("./requests.js");
+	assert.equal(isInterfaceHost({ forward_host: "127.0.0.1", forward_port: 81 }), true);
+	assert.equal(isInterfaceHost({ forward_host: "localhost", forward_port: "81" }), true);
+	assert.equal(isInterfaceHost({ forward_host: "127.0.0.1", forward_port: 8081 }), false);
+	assert.equal(isInterfaceHost({ forward_host: "app", forward_port: 81 }), false);
+});
+
 test("requests: a line of the access log of nginx, admin and health checks left out", async () => {
 	const { parseLine, requestAggregates } = await import("./requests.js");
 	const line = (host, status, extra = "Mozilla/5.0") =>
@@ -204,6 +212,7 @@ test("requests: a line of the access log of nginx, admin and health checks left 
 	assert.equal(parseLine(line("127.0.0.1:81", 200)), null);
 	assert.equal(parseLine(line("app.example.com", 200, "NPMplus/healthcheck")), null);
 	assert.equal(parseLine("garbage"), null);
+	assert.equal(parseLine(line("npmos.example.com:81", 200)), null);
 	const rows = requestAggregates([
 		a,
 		parseLine(line("app.example.com", 403)),
