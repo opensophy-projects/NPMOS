@@ -28,6 +28,8 @@ export const RULE_TYPES = {
 	host_problem: { params: {}, severity: "warning" },
 	// groups of events in the queue of learning (Agents → open-appsec → Learning), last 24 h
 	learning_queue: { params: { threshold: int(1, 100000, 1) }, severity: "warning" },
+	// short-lived client certificates renewed by NPMOS (auto renewal by link): the one-time link of the new .p12
+	pki_reissued: { params: {}, severity: "info" },
 };
 
 /** parameters of a rule with defaults for what is missing or invalid */
@@ -93,6 +95,16 @@ const TEXT = {
 		ru: (v) => ({
 			title: `Хост ${v.name}: ошибка nginx`,
 			text: `nginx не принял конфигурацию ${v.name}: ${v.error}`,
+		}),
+	},
+	pki_reissued: {
+		en: (v) => ({
+			title: `New certificate for ${v.name}`,
+			text: `NPMOS renewed the short-lived certificate ${v.name}: the current one is valid until ${v.expires}. Download the new .p12 (same password) once: ${v.link} (the link works until ${v.link_expires}).`,
+		}),
+		ru: (v) => ({
+			title: `Новый сертификат для ${v.name}`,
+			text: `NPMOS перевыпустил короткоживущий сертификат ${v.name}: текущий действует до ${v.expires}. Скачайте новый .p12 (пароль тот же) один раз: ${v.link} (ссылка действует до ${v.link_expires}).`,
 		}),
 	},
 	learning_queue: {
@@ -220,6 +232,8 @@ const CHECKS = {
 			.whereNull("deleted_on")
 			.whereNull("replaced_by")
 			.whereNull("certificate_id")
+			// short-lived certificates are renewed by NPMOS: their end is not news
+			.where("auto_renew", "")
 			.where("not_after", "<=", until)
 			.select("id", "common_name", "profile", "not_after");
 		for (const c of pki) {
@@ -276,6 +290,38 @@ const CHECKS = {
 		return alerts;
 	},
 
+	pki_reissued: async () => {
+		const { decrypt } = await import("../secrets.js");
+		const publicUrl = ((await getSetting("pki").catch(() => null))?.public_url || "").replace(/\/$/, "");
+		const rows = await db()("npmos_pki_cert as c")
+			.join("npmos_pki_link as l", "l.cert_id", "c.id")
+			.whereNotNull("c.renew_link_enc")
+			.whereNull("c.revoked_on")
+			.whereNull("c.deleted_on")
+			.whereNull("l.used_on")
+			.where("l.expires_on", ">", new Date())
+			.select("c.id", "c.common_name", "c.renew_link_enc", "l.expires_on");
+		const old = rows.length
+			? await db()("npmos_pki_cert")
+					.whereIn(
+						"replaced_by",
+						rows.map((r) => r.id),
+					)
+					.select("replaced_by", "not_after")
+			: [];
+		return rows.map((r) => ({
+			key: `pki-reissued:${r.id}`,
+			values: {
+				name: r.common_name,
+				link: `${publicUrl}${decrypt(r.renew_link_enc)}`,
+				link_expires: new Date(r.expires_on).toISOString().slice(0, 16).replace("T", " "),
+				expires: (() => {
+					const prev = old.find((o) => o.replaced_by === r.id);
+					return prev ? new Date(prev.not_after).toISOString().slice(0, 16).replace("T", " ") : "—";
+				})(),
+			},
+		}));
+	},
 	learning_queue: async (p) => {
 		const { queueSize } = await import("../learning/index.js");
 		const count = await queueSize("24h");

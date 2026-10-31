@@ -1571,13 +1571,16 @@ const issueProperties = {
 	include_key_pem: { type: "boolean" },
 	link_hours: { type: "integer" },
 	install: { type: "boolean" },
+	// short-lived certificates renewed by NPMOS: validity in hours, "link" (people) or "token" (services)
+	hours: { type: "integer" },
+	auto_renew: { type: "string", enum: ["", "link", "token"] },
 	...p12Properties,
 };
 
 /**
  * POST /api/npmos/pki/certs — issue: {ca_id, profile, subject | csr_pem, sans?, days?, key_type?, template?,
- *   notes?, store_key?, password?, compatible?, include_key_pem?, link_hours?, install?}
- *   → {certificate, files: {cert_pem, chain_pem, p12_base64?, password?, key_pem?}, link?}
+ *   notes?, store_key?, password?, compatible?, include_key_pem?, link_hours?, install?, hours?, auto_renew?}
+ *   → {certificate, files: {cert_pem, chain_pem, p12_base64?, password?, key_pem?}, link?, renew_token?}
  */
 router
 	.route("/pki/certs")
@@ -1801,6 +1804,25 @@ router.get("/pki/public/ocsp/:ca/:request", async (req, res, next) => {
 	try {
 		const b64 = decodeURIComponent(req.params.request).replace(/-/g, "+").replace(/_/g, "/");
 		await ocspAnswer(res, req.params.ca, /^[A-Za-z0-9+/=]{1,22000}$/.test(b64) ? Buffer.from(b64, "base64") : null);
+	} catch (err) {
+		next(err);
+	}
+});
+
+/**
+ * POST /api/npmos/pki/public/renew — without login: a service renews its short-lived certificate.
+ *   Authorization: Bearer <renewal token>; {csr_pem?} → {cert_pem, chain_pem, key_pem?, not_after, renew_token}
+ */
+router.post("/pki/public/renew", express.json({ limit: "64kb" }), async (req, res, next) => {
+	try {
+		const token = /^Bearer\s+(\S+)$/i.exec(req.get("authorization") || "")?.[1];
+		const csr = typeof req.body?.csr_pem === "string" ? req.body.csr_pem : undefined;
+		const answer = await internalPki.renewByToken(token, { csr_pem: csr });
+		res.set("Cache-Control", "no-store");
+		if (!answer) {
+			return res.status(401).send({ error: { code: 401, message: "Unknown, used or expired renewal token" } });
+		}
+		res.send(answer);
 	} catch (err) {
 		next(err);
 	}

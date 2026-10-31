@@ -3557,11 +3557,11 @@
 	"npmos.mtls.revocation.crl": {
 		"defaultMessage": "CRL"
 	},
-	"npmos.mtls.revocation.ocsp": {
-		"defaultMessage": "OCSP"
-	},
 	"npmos.mtls.revocation.crl.hint": {
 		"defaultMessage": "nginx читает список отозванных сертификатов. При отзыве новый список применяется мягким перечитыванием nginx: открытые соединения не обрываются."
+	},
+	"npmos.mtls.revocation.ocsp": {
+		"defaultMessage": "OCSP"
 	},
 	"npmos.mtls.revocation.ocsp.hint": {
 		"defaultMessage": "nginx спрашивает NPMOS о сертификате при каждом новом подключении, ничего не перезагружается: отозванный сертификат перестаёт пускать в течение минуты. Пока NPMOS перезапускается, новые подключения с сертификатом не проходят."
@@ -3938,6 +3938,15 @@
 	"npmos.notifications.rule.no-channels": {
 		"defaultMessage": "каналы не выбраны"
 	},
+	"npmos.notifications.rule.pki_reissued": {
+		"defaultMessage": "Сертификат перевыпущен автоматически"
+	},
+	"npmos.notifications.rule.pki_reissued.hint": {
+		"defaultMessage": "NPMOS перевыпустил короткоживущий клиентский сертификат: в сообщении одноразовая ссылка на новый .p12."
+	},
+	"npmos.notifications.rule.pki_reissued.params": {
+		"defaultMessage": "при каждом перевыпуске"
+	},
 	"npmos.notifications.rule.policy_error": {
 		"defaultMessage": "Политика WAF не применена"
 	},
@@ -4250,6 +4259,27 @@
 	"npmos.pki.all-cas": {
 		"defaultMessage": "Все домены доверия"
 	},
+	"npmos.pki.auto-renew": {
+		"defaultMessage": "Автоматический перевыпуск"
+	},
+	"npmos.pki.auto-renew.link": {
+		"defaultMessage": "Люди: ссылка"
+	},
+	"npmos.pki.auto-renew.link.hint": {
+		"defaultMessage": "Короткоживущий сертификат: до окончания NPMOS выпускает следующий (пароль .p12 тот же), а правило «Сертификат перевыпущен автоматически» присылает одноразовую ссылку на него. Браузер сам не обновится: человек ставит новый .p12."
+	},
+	"npmos.pki.auto-renew.none": {
+		"defaultMessage": "Выключен"
+	},
+	"npmos.pki.auto-renew.none.hint": {
+		"defaultMessage": "Обычный сертификат на указанное ниже число дней."
+	},
+	"npmos.pki.auto-renew.token": {
+		"defaultMessage": "Сервисы: токен"
+	},
+	"npmos.pki.auto-renew.token.hint": {
+		"defaultMessage": "Как в Istio: сервис сам продлевает короткоживущий сертификат по токену (POST /api/npmos/pki/public/renew), старый отзывается, токен заменяется."
+	},
 	"npmos.pki.ca.add": {
 		"defaultMessage": "Добавить CA"
 	},
@@ -4295,9 +4325,6 @@
 	"npmos.pki.ca.delete": {
 		"defaultMessage": "Удалить CA"
 	},
-	"npmos.pki.ca.delete.text": {
-		"defaultMessage": "Удалить {name}? Удалить можно только CA без сертификатов, доменов доверия и хостов."
-	},
 	"npmos.pki.ca.delete.cascade": {
 		"defaultMessage": "Вместе с {name} удалятся его домены доверия ({domains}) и все выпущенные ими сертификаты ({certs}). Хосты перестанут им доверять; если хост доверяет только этим CA, сначала выключите на нём mTLS."
 	},
@@ -4306,6 +4333,9 @@
 	},
 	"npmos.pki.ca.delete.hosts-confirm": {
 		"defaultMessage": "Отключить mTLS на хостах и удалить"
+	},
+	"npmos.pki.ca.delete.text": {
+		"defaultMessage": "Удалить {name}? Удалить можно только CA без сертификатов, доменов доверия и хостов."
 	},
 	"npmos.pki.ca.edit": {
 		"defaultMessage": "Изменить CA"
@@ -4426,6 +4456,9 @@
 	},
 	"npmos.pki.expires": {
 		"defaultMessage": "Действует до"
+	},
+	"npmos.pki.hours": {
+		"defaultMessage": "Срок, часов"
 	},
 	"npmos.pki.include-key": {
 		"defaultMessage": "Выдать ключ и в PEM (для серверов и скриптов)"
@@ -4576,6 +4609,12 @@
 	},
 	"npmos.pki.renew": {
 		"defaultMessage": "Перевыпустить"
+	},
+	"npmos.pki.renew-token": {
+		"defaultMessage": "Токен перевыпуска"
+	},
+	"npmos.pki.renew-token.hint": {
+		"defaultMessage": "Показывается один раз. Каждый перевыпуск возвращает новые сертификат, ключ и токен; старый сертификат отзывается. С csr_pem в теле запроса сервис сохраняет свой ключ."
 	},
 	"npmos.pki.renew.do": {
 		"defaultMessage": "Перевыпустить"

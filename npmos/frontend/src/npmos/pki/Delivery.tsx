@@ -72,6 +72,31 @@ export function PasswordBox({ password }: { password: string }) {
 	);
 }
 
+/** the renewal token of a service (shown once) and how the service renews itself */
+function RenewBox({ token, publicUrl }: { token: string; publicUrl: string }) {
+	const url = `${publicUrl || window.location.origin}/api/npmos/pki/public/renew`;
+	const command = `curl -sS -X POST ${url} -H 'Authorization: Bearer ${token}' -H 'Content-Type: application/json' -d '{}'`;
+	return (
+		<div className="mt-3">
+			<div className="form-label">
+				<T id="npmos.pki.renew-token" />
+			</div>
+			<div className="input-group mb-2">
+				<input className="form-control font-monospace" readOnly value={token} />
+				<button type="button" className="btn" onClick={() => copy(token)} aria-label={t("npmos.pki.copy")}>
+					<IconCopy size={16} />
+				</button>
+			</div>
+			<div className="form-hint mb-1">
+				<T id="npmos.pki.renew-token.hint" />
+			</div>
+			<pre className="small mb-0" style={{ whiteSpace: "pre-wrap", wordBreak: "break-all" }}>
+				{command}
+			</pre>
+		</div>
+	);
+}
+
 export function Delivery({ result, publicUrl }: { result: IssueResult; publicUrl: string }) {
 	const { locale } = useLocaleState();
 	const { certificate: c, files, link } = result;
@@ -125,6 +150,7 @@ export function Delivery({ result, publicUrl }: { result: IssueResult; publicUrl
 				)}
 			</div>
 			{link && <LinkBox link={link} publicUrl={publicUrl} />}
+			{result.renewToken && <RenewBox token={result.renewToken} publicUrl={publicUrl} />}
 			{c.certificateId && (
 				<p className="text-secondary small mt-3 mb-0">
 					<T id="npmos.pki.installed" />

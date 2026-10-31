@@ -125,13 +125,29 @@ export const readCsr = async (csrPem) =>
 		return { keyType, rsa: key.asymmetricKeyType === "rsa" };
 	});
 
+/** YYYYMMDDHHMMSSZ of a date, for -not_after */
+const generalTime = (date) => `${new Date(date).toISOString().replace(/[-:T]/g, "").slice(0, 14)}Z`;
+
 /**
  * Signs a request with a CA. The subject is the one of the request (x509 -subj of openssl 3.0
  * mangles UTF-8), extensions are only ours (none is copied from the request).
  * @param {{csrPem: string, caCertPem: string, caKeyPem: string, profile: "intermediate"|"client"|"server",
- *   sans?: object, days: number, serial: string, crlUrl?: string, rsa?: boolean}} p
+ *   sans?: object, days: number, notAfter?: Date, serial: string, crlUrl?: string, rsa?: boolean}} p
+ *   notAfter overrides days: certificates valid for hours
  */
-export const sign = async ({ csrPem, caCertPem, caKeyPem, profile, sans, days, serial, crlUrl, ocspUrl, rsa }) =>
+export const sign = async ({
+	csrPem,
+	caCertPem,
+	caKeyPem,
+	profile,
+	sans,
+	days,
+	notAfter,
+	serial,
+	crlUrl,
+	ocspUrl,
+	rsa,
+}) =>
 	withTmp(async (tmp) => {
 		const csr = await tmp.write("req.csr", csrPem);
 		const caCert = await tmp.write("ca.pem", caCertPem);
@@ -155,6 +171,7 @@ export const sign = async ({ csrPem, caCertPem, caKeyPem, profile, sans, days, s
 				`0x${serial}`,
 				"-days",
 				String(days),
+				...(notAfter ? ["-not_after", generalTime(notAfter)] : []),
 				"-sha256",
 			])
 		).toString();
@@ -250,6 +267,16 @@ export const ocspKeyHash = async (certPem) =>
 		const cert = await tmp.write("cert.pem", certPem);
 		const text = (await openssl(["x509", "-in", cert, "-noout", "-ocspid"])).toString();
 		return /Public key OCSP hash:\s*([0-9A-Fa-f]+)/.exec(text)?.[1].toUpperCase() ?? null;
+	});
+
+/** the request names the same subject as the certificate (a renewal by a client keeps its identity) */
+export const sameSubject = async (csrPem, certPem) =>
+	withTmp(async (tmp) => {
+		const csr = await tmp.write("req.csr", csrPem);
+		const cert = await tmp.write("cert.pem", certPem);
+		const a = (await openssl(["req", "-in", csr, "-noout", "-subject", "-nameopt", "RFC2253"])).toString();
+		const b = (await openssl(["x509", "-in", cert, "-noout", "-subject", "-nameopt", "RFC2253"])).toString();
+		return a.replace(/^subject=/, "").trim() === b.replace(/^subject=/, "").trim();
 	});
 
 /** CRL in DER (for publication) */

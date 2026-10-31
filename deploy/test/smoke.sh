@@ -626,6 +626,18 @@ for i in $(seq 1 45); do
   sleep 2
 done
 
+step "PKI: a service renews its short-lived certificate with its token, the token works once"
+svc=$(api_json "$ADMIN/api/npmos/pki/certs" -d "{\"ca_id\": $domain_id, \"profile\": \"client\",
+  \"subject\": {\"common_name\": \"smoke-svc\"}, \"auto_renew\": \"token\", \"hours\": 2}" | tr -d ' \n')
+svc_token=$(echo "$svc" | grep -o '"renew_token":"[^"]*"' | cut -d'"' -f4)
+[ -n "$svc_token" ] || fail "no renewal token: $svc"
+renewed=$(curl -sS -k --max-time 30 -X POST "$ADMIN/api/npmos/pki/public/renew" -H "Authorization: Bearer $svc_token" \
+  -H 'Content-Type: application/json' -d '{}' | tr -d ' \n')
+echo "$renewed" | grep -q 'BEGINCERTIFICATE' || fail "the service was not renewed: $renewed"
+echo "$renewed" | grep -q '"renew_token":"[^"]' || fail "no new token after the renewal: $renewed"
+expect "$(curl -sS -k -o /dev/null -w '%{http_code}' -X POST "$ADMIN/api/npmos/pki/public/renew" \
+  -H "Authorization: Bearer $svc_token" -H 'Content-Type: application/json' -d '{}')" 401 "the used renewal token"
+
 step "mTLS in one step: the switch of a host creates its trust domain, an access certificate opens it"
 quick_id=$(api_json "$ADMIN/api/nginx/proxy-hosts" -d "{\"domain_names\": [\"quick.local\"], \"forward_scheme\": \"http\",
   \"forward_host\": \"test-upstream\", \"forward_port\": \"80\", \"certificate_id\": $tls_id}" | json_id)

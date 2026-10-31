@@ -155,6 +155,10 @@ export interface IssueData {
 	includeKeyPem?: boolean;
 	linkHours?: number;
 	install?: boolean;
+	/** short-lived: validity in hours instead of days */
+	hours?: number;
+	/** renewed by NPMOS: "link" (people, a one-time link of the next .p12) or "token" (services) */
+	autoRenew?: "" | "link" | "token";
 }
 
 export interface OneTimeLink {
@@ -174,6 +178,8 @@ export interface IssueResult {
 		filename?: string;
 	};
 	link: OneTimeLink | null;
+	/** auto renewal by token: shown once, the service renews with it */
+	renewToken?: string | null;
 }
 
 export interface FileResult {
