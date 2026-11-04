@@ -166,13 +166,21 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
     -H 'Sec-Fetch-Dest: style' -H 'Sec-Fetch-Mode: no-cors' -H 'Sec-Fetch-Site: same-origin' -H 'Priority: u=0' \
     -H 'Sec-Ch-Ua-Mobile: ?0' -H 'Sec-Ch-Ua-Platform: "Linux"' "$HTTP/assets/index.css")
   [ "$browser" = 403 ] && fail "a stylesheet request of a browser was blocked"
-  [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 -H 'Host: test.local' \
-    -H 'Sec-Fetch-Dest: <script>alert(document.cookie)</script>' "$HTTP/")" = 403 ] \
-    || fail "an attack in Sec-Fetch-Dest was not blocked"
+  # retried like the checks above: a request handled while the agent restarts a service passes (fail-open)
+  for i in $(seq 1 30); do
+    [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 -H 'Host: test.local' \
+      -H 'Sec-Fetch-Dest: <script>alert(document.cookie)</script>' "$HTTP/")" = 403 ] && break
+    [ "$i" = 30 ] && fail "an attack in Sec-Fetch-Dest was not blocked"
+    sleep 2
+  done
 
   step "Block page: a refused request gets the page of NPMOS, not the one of the agent"
-  page=$(curl -s --max-time 10 -H 'Host: test.local' "$HTTP$SQLI")
-  echo "$page" | grep -q 'NPMOS: block page' || fail "no block page of NPMOS: $(echo "$page" | head -c 300)"
+  for i in $(seq 1 30); do
+    page=$(curl -s --max-time 10 -H 'Host: test.local' "$HTTP$SQLI")
+    echo "$page" | grep -q 'NPMOS: block page' && break
+    [ "$i" = 30 ] && fail "no block page of NPMOS: $(echo "$page" | head -c 300)"
+    sleep 2
+  done
   echo "$page" | grep -q 'Check Point' && fail "the page of the agent is shown"
   echo "$page" | grep -q '{{ip}}' && fail "the details of the request are not filled in"
 
