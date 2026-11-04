@@ -296,6 +296,23 @@ h3,
 .card-link:hover::before {
 	border-color: color-mix(in oklab, var(--accent) 60%, transparent);
 }
+/* a card that is a link (Overview: proxy hosts, redirects…) keeps its look on hover: Tabler lights it with
+   a large pale shadow, which in the dark theme is a glow */
+a.card:hover,
+a.card:focus-visible {
+	box-shadow: var(--shadow-inset);
+}
+
+/* tabs in a row scroll sideways on a narrow screen, but never show a scrollbar: the 1px the active tab
+   sticks out below made Windows draw vertical scroll arrows next to the tabs (Analytics -> Blocks) */
+.nav-tabs.overflow-auto {
+	overflow-x: auto !important;
+	overflow-y: hidden !important;
+	scrollbar-width: none;
+}
+.nav-tabs.overflow-auto::-webkit-scrollbar {
+	display: none;
+}
 
 .form-control,
 .form-select,
