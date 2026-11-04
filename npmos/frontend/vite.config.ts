@@ -57,6 +57,9 @@ export default defineConfig({
 	test: {
 		environment: "happy-dom",
 		setupFiles: ["./vitest-setup.js"],
+		// NPMOS: Node 25+ has a localStorage of its own (undefined without --localstorage-file) that hides the one of
+		// happy-dom in the test workers: tests failed on Node 26 LTS with "reading 'getItem'" of undefined
+		execArgv: ["--no-experimental-webstorage"],
 	},
 	assetsInclude: ["**/*.md", "**/*.png", "**/*.svg"],
 });
