@@ -131,15 +131,6 @@ export function DecisionsTab({ refresh }: { refresh: () => void }) {
 						<T id="npmos.crowdsec.unban.selected" data={{ count: selected.length }} />
 					</button>
 				)}
-				{decide && (
-					<button
-						type="button"
-						className="btn btn-sm btn-primary ms-auto"
-						onClick={() => showBanModal({ onDone: reload })}
-					>
-						<T id="npmos.crowdsec.ban.title" />
-					</button>
-				)}
 			</div>
 			{decisions.isError ? (
 				<p className="text-danger mb-0">{decisions.error.message}</p>

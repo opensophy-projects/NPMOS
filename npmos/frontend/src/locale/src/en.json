@@ -1005,7 +1005,28 @@
 		"defaultMessage": "The page answers every refusal nginx makes itself (code 403); answers of your services are left as they are. Pages of mTLS and the admin interface keep their own."
 	},
 	"npmos.blocks.description": {
-		"defaultMessage": "Whom CrowdSec blocks now and why, and the lists of addresses: bans, captchas, alerts, blocklists. A ban by hand is here too."
+		"defaultMessage": "Whom CrowdSec blocks now and why, what open-appsec refused, and the lists of addresses: bans, captchas, alerts, blocklists. A ban by hand is here too."
+	},
+	"npmos.blocks.openappsec.all": {
+		"defaultMessage": "All in Events"
+	},
+	"npmos.blocks.openappsec.attack": {
+		"defaultMessage": "Attack"
+	},
+	"npmos.blocks.openappsec.ban": {
+		"defaultMessage": "Ban"
+	},
+	"npmos.blocks.openappsec.hint": {
+		"defaultMessage": "Requests open-appsec refused in the last 24 hours: {count}. Bans of CrowdSec for repeated attacks are on the Decisions tab."
+	},
+	"npmos.blocks.openappsec.host": {
+		"defaultMessage": "Host and path"
+	},
+	"npmos.blocks.openappsec.none": {
+		"defaultMessage": "open-appsec has refused nothing in the last 24 hours."
+	},
+	"npmos.blocks.openappsec.time": {
+		"defaultMessage": "When"
 	},
 	"npmos.certificates.mtls": {
 		"defaultMessage": "mTLS CA"
@@ -2098,6 +2119,9 @@
 	},
 	"npmos.crowdsec.tab.hub": {
 		"defaultMessage": "Hub"
+	},
+	"npmos.crowdsec.tab.openappsec": {
+		"defaultMessage": "open-appsec"
 	},
 	"npmos.crowdsec.tab.overview": {
 		"defaultMessage": "Overview"

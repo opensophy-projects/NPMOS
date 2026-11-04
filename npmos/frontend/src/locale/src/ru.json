@@ -1005,7 +1005,28 @@
 		"defaultMessage": "Страница отдаётся на каждый отказ, который nginx делает сам (код 403); ответы ваших сервисов не трогаются. У mTLS и панели администратора свои страницы."
 	},
 	"npmos.blocks.description": {
-		"defaultMessage": "Кого сейчас блокирует CrowdSec, за что, и списки адресов: баны, капчи, алерты, блок-листы. Здесь же — ручной бан."
+		"defaultMessage": "Кого и почему блокирует CrowdSec, что отклонил open-appsec, и списки адресов: баны, капчи, алерты, блок-листы. Здесь же — бан вручную."
+	},
+	"npmos.blocks.openappsec.all": {
+		"defaultMessage": "Все в «Событиях»"
+	},
+	"npmos.blocks.openappsec.attack": {
+		"defaultMessage": "Атака"
+	},
+	"npmos.blocks.openappsec.ban": {
+		"defaultMessage": "Забанить"
+	},
+	"npmos.blocks.openappsec.hint": {
+		"defaultMessage": "Запросы, которые open-appsec отклонил за последние 24 часа: {count}. Баны CrowdSec за повторные атаки — на вкладке «Решения»."
+	},
+	"npmos.blocks.openappsec.host": {
+		"defaultMessage": "Хост и путь"
+	},
+	"npmos.blocks.openappsec.none": {
+		"defaultMessage": "За последние 24 часа open-appsec ничего не отклонил."
+	},
+	"npmos.blocks.openappsec.time": {
+		"defaultMessage": "Когда"
 	},
 	"npmos.certificates.mtls": {
 		"defaultMessage": "CA для mTLS"
@@ -2098,6 +2119,9 @@
 	},
 	"npmos.crowdsec.tab.hub": {
 		"defaultMessage": "Hub"
+	},
+	"npmos.crowdsec.tab.openappsec": {
+		"defaultMessage": "open-appsec"
 	},
 	"npmos.crowdsec.tab.overview": {
 		"defaultMessage": "Обзор"

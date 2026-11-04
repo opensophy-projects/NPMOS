@@ -30,10 +30,11 @@ import { BlocklistsTab, RegistryTab } from "./Blocklists";
 import { AlertsTab, DecisionsTab } from "./Decisions";
 import { HubTab } from "./Hub";
 import { SettingsTab } from "./Settings";
+import { OpenappsecBlocksTab } from "./Openappsec";
 
 // Agents → CrowdSec: the agent and its policy; Analytics → Blocks: what it decides (one page, two places)
 const AGENT_TABS = ["overview", "settings", "hub", "registry"] as const;
-const BLOCK_TABS = ["decisions", "alerts", "blocklists"] as const;
+const BLOCK_TABS = ["decisions", "alerts", "openappsec", "blocklists"] as const;
 const TABS = [...AGENT_TABS, ...BLOCK_TABS] as const;
 type Tab = (typeof TABS)[number];
 type Place = "agent" | "blocks";
@@ -291,6 +292,7 @@ function CrowdsecPage({ place }: { place: Place }) {
 			"npmos-crowdsec-decisions",
 			"npmos-crowdsec-alerts",
 			"npmos-crowdsec-hosts",
+			"npmos-blocks-openappsec",
 		])
 			queryClient.invalidateQueries({ queryKey: [key] });
 	};
@@ -379,6 +381,7 @@ function CrowdsecPage({ place }: { place: Place }) {
 			{tab === "overview" && <OverviewTab data={data} go={go} />}
 			{tab === "decisions" && <DecisionsTab refresh={refresh} />}
 			{tab === "alerts" && <AlertsTab initialQuery={params.get("q") ?? ""} refresh={refresh} />}
+			{tab === "openappsec" && <OpenappsecBlocksTab refresh={refresh} />}
 			{tab === "blocklists" && <BlocklistsTab shareEnabled={!!settings.data?.shareEnabled} refresh={refresh} />}
 			{tab === "hub" && <HubTab onlineHub={!!settings.data?.onlineHub} refresh={refresh} />}
 			{tab === "settings" && settings.data && (
@@ -395,7 +398,7 @@ const Crowdsec = () => (
 	</HasPermission>
 );
 
-/** Analytics → Blocks: decisions, alerts and blocklists of CrowdSec */
+/** Analytics → Blocks: decisions, alerts and blocklists of CrowdSec, what open-appsec refused */
 export const Blocks = () => (
 	<HasPermission rbac="crowdsec" permission={VIEW} pageLoading loadingNoLogo>
 		<CrowdsecPage place="blocks" />
