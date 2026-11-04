@@ -6,7 +6,8 @@
 # Same binary and configs as upstream build/package/Dockerfile; differences:
 #   - current Alpine runtime instead of 3.13;
 #   - /npmos-entry.sh: VAR_FILE=/path sets VAR from a file (secrets without shell wrappers);
-#   - /db owned by appuser, so shared-storage does not need to run as root.
+#   - /db owned by appuser, so shared-storage does not need to run as root;
+#   - patches/<repository>/*.patch applied to the sources (tuning: no database password in its log).
 ARG GO_VERSION=1.18
 ARG ALPINE_VERSION=3.24
 
@@ -15,6 +16,9 @@ ARG REPO
 ARG REF
 ADD ${REPO}#${REF} /app
 WORKDIR /app
+COPY patches/ /patches/
+RUN name=$(basename "$REPO" .git) && \
+    for p in /patches/"$name"/*.patch; do [ -e "$p" ] || continue; echo "patch: $p"; patch -p1 < "$p" || exit 1; done
 # modules are vendored under dependencies/ (go.mod replace directives)
 ENV GOMODCACHE=/vendor
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -a -installsuffix cgo -o /go/bin/app ./cmd/server/
