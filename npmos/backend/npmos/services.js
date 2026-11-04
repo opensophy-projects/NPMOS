@@ -6,6 +6,7 @@ import { express as logger } from "../logger.js";
 import pjson from "../package.json" with { type: "json" };
 import { regenerateAllHosts } from "../setup.js";
 import control from "./control/client.js";
+import { knownSecrets, redact } from "./redact.js";
 
 const MAX_LOG_LINES = 5000;
 const DIAGNOSTICS_LOG_LINES = 2000;
@@ -73,8 +74,9 @@ const internalServices = {
 
 	/**
 	 * Diagnostic archive for bug reports: versions, service states, recent logs, `nginx -T`.
-	 * Contains no secrets from the secrets volume, but logs and nginx configs are the admin's
-	 * to review before sharing.
+	 * Secrets found in the logs and the nginx configs (passwords of connection strings, tokens, keys, the
+	 * values of the secrets this process was given) are masked; the archive is still the admin's to review
+	 * before sharing.
 	 * @param {Access} access
 	 * @param {import("node:stream").Writable} output
 	 */
@@ -84,7 +86,8 @@ const internalServices = {
 		archive.on("warning", (err) => logger.warn(`diagnostics: ${err.message}`));
 		archive.pipe(output);
 
-		const add = (name, content) => archive.append(content, { name });
+		const secrets = knownSecrets();
+		const add = (name, content) => archive.append(redact(content, secrets), { name });
 		const attempt = async (fn) => {
 			try {
 				return await fn();
