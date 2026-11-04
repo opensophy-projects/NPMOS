@@ -2150,6 +2150,27 @@
 	"npmos.crowdsec.version": {
 		"defaultMessage": "Версия"
 	},
+	"npmos.date.clear": {
+		"defaultMessage": "Очистить"
+	},
+	"npmos.date.done": {
+		"defaultMessage": "Готово"
+	},
+	"npmos.date.next": {
+		"defaultMessage": "Следующий месяц"
+	},
+	"npmos.date.now": {
+		"defaultMessage": "Сейчас"
+	},
+	"npmos.date.now-placeholder": {
+		"defaultMessage": "сейчас"
+	},
+	"npmos.date.previous": {
+		"defaultMessage": "Предыдущий месяц"
+	},
+	"npmos.date.time": {
+		"defaultMessage": "Время"
+	},
 	"npmos.events.agent": {
 		"defaultMessage": "Агент"
 	},

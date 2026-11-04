@@ -2150,6 +2150,27 @@
 	"npmos.crowdsec.version": {
 		"defaultMessage": "Version"
 	},
+	"npmos.date.clear": {
+		"defaultMessage": "Clear"
+	},
+	"npmos.date.done": {
+		"defaultMessage": "Done"
+	},
+	"npmos.date.next": {
+		"defaultMessage": "Next month"
+	},
+	"npmos.date.now": {
+		"defaultMessage": "Now"
+	},
+	"npmos.date.now-placeholder": {
+		"defaultMessage": "now"
+	},
+	"npmos.date.previous": {
+		"defaultMessage": "Previous month"
+	},
+	"npmos.date.time": {
+		"defaultMessage": "Time"
+	},
 	"npmos.events.agent": {
 		"defaultMessage": "Agent"
 	},

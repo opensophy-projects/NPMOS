@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+	actionsFor,
 	activeCount,
 	DEFAULT_FILTERS,
 	filtersFromParams,
 	filtersToParams,
 	filtersToQuery,
+	forKind,
 	withoutValue,
 	withValue,
 } from "./filters";
@@ -69,5 +71,21 @@ describe("event filters", () => {
 		const f = filtersFromParams(new URLSearchParams("kind=crowdsec"));
 		expect([f.kind, f.agent]).toEqual(["agents", ["crowdsec"]]);
 		expect(filtersToQuery(f)).toMatchObject({ kind: "agents", agent: "crowdsec" });
+	});
+});
+
+describe("filters of a kind", () => {
+	it("mTLS keeps host and address, drops what its events do not have", () => {
+		const f = { ...DEFAULT_FILTERS, host: ["a.test"], ip: ["203.0.113.7"], type: ["SQL Injection"], minScore: "5" };
+		const m = forKind(f, "mtls");
+		expect(m.host).toEqual(["a.test"]);
+		expect(m.ip).toEqual(["203.0.113.7"]);
+		expect(m.type).toEqual([]);
+		expect(m.minScore).toBe("");
+	});
+	it("the actions follow the chosen agents", () => {
+		const f = { ...DEFAULT_FILTERS, agent: ["crowdsec"], action: ["Prevent", "ban"] };
+		expect(actionsFor(f)).not.toContain("Prevent");
+		expect(forKind(f, "agents").action).toEqual(["ban"]);
 	});
 });
