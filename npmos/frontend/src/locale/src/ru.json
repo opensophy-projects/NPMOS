@@ -5855,6 +5855,18 @@
 	"npmos.services": {
 		"defaultMessage": "Сервисы"
 	},
+	"npmos.services.address": {
+		"defaultMessage": "Адрес"
+	},
+	"npmos.services.apps": {
+		"defaultMessage": "Приложения"
+	},
+	"npmos.services.apps.hint": {
+		"defaultMessage": "Контейнеры вне NPMOS в сети npmos: прокси-хост обращается к ним по имени. Компоненты NPMOS выше не публикуются."
+	},
+	"npmos.services.apps.none": {
+		"defaultMessage": "В сетях npmos нет ваших контейнеров. Подключите контейнер к сети npmos (docker network connect), и он появится здесь."
+	},
 	"npmos.services.diagnostics": {
 		"defaultMessage": "Диагностический архив"
 	},
@@ -5878,6 +5890,12 @@
 	},
 	"npmos.services.no-logs": {
 		"defaultMessage": "Записей нет"
+	},
+	"npmos.services.publish": {
+		"defaultMessage": "Опубликовать :{port}"
+	},
+	"npmos.services.published": {
+		"defaultMessage": "порт сервера {port} → {inner}"
 	},
 	"npmos.services.regenerate": {
 		"defaultMessage": "Пересоздать конфигурацию nginx"

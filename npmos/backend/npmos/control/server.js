@@ -81,6 +81,22 @@ const getProject = async () => {
 	return project;
 };
 
+const addressesOf = (c) =>
+	Object.entries(c.NetworkSettings?.Networks ?? {})
+		.filter(([, n]) => n.IPAddress)
+		.map(([network, n]) => ({ network, ip: n.IPAddress }));
+
+/** the ports a container listens on, once per port and protocol (published ones with the port of the host) */
+const portsOf = (c) =>
+	[
+		...new Map(
+			(c.Ports ?? []).map((p) => [
+				`${p.PrivatePort}/${p.Type}`,
+				{ port: p.PrivatePort, type: p.Type, published: p.PublicPort ?? null },
+			]),
+		).values(),
+	].sort((x, y) => x.port - y.port || x.type.localeCompare(y.type));
+
 const listManaged = async () => {
 	const filters = JSON.stringify({ label: [`${PROJECT_LABEL}=${await getProject()}`, `${MANAGED_LABEL}=true`] });
 	const containers = await (
@@ -97,7 +113,33 @@ const listManaged = async () => {
 		created: c.Created,
 		restartable: !NOT_RESTARTABLE.includes(c.Labels[SERVICE_LABEL]),
 		networkMode: c.HostConfig?.NetworkMode || null,
+		// addresses in its networks and the ports it listens on (published ones with the address of the host)
+		addresses: addressesOf(c),
+		ports: portsOf(c),
 	}));
+};
+
+/**
+ * Applications: running containers outside this stack in a network of npmos, which nginx reaches by name. Read
+ * only (name, image, addresses, ports): System -> Services offers to publish them as a proxy host.
+ */
+const listApps = async () => {
+	const project = await getProject();
+	const containers = await (await docker("GET", "/containers/json")).json();
+	const npmos = containers.find(
+		(c) => c.Labels?.[PROJECT_LABEL] === project && c.Labels?.[SERVICE_LABEL] === "npmos",
+	);
+	const networks = Object.keys(npmos?.NetworkSettings?.Networks ?? {});
+	return containers
+		.filter((c) => c.Labels?.[PROJECT_LABEL] !== project)
+		.filter((c) => Object.keys(c.NetworkSettings?.Networks ?? {}).some((n) => networks.includes(n)))
+		.map((c) => ({
+			name: (c.Names?.[0] || "").replace(/^\//, ""),
+			image: c.Image,
+			status: c.Status,
+			addresses: addressesOf(c).filter((a) => networks.includes(a.network)),
+			ports: portsOf(c),
+		}));
 };
 
 const findService = async (service) => {
@@ -203,6 +245,8 @@ const server = http.createServer(async (req, res) => {
 
 		if (req.method === "GET" && url.pathname === "/v1/services") {
 			result = await listManaged();
+		} else if (req.method === "GET" && url.pathname === "/v1/apps") {
+			result = await listApps();
 		} else if (parts[0] === "v1" && parts[1] === "services" && parts.length >= 3) {
 			const service = decodeURIComponent(parts[2]);
 			const action = parts[3];

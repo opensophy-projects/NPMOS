@@ -48,6 +48,7 @@ const call = async (method, path, actor) => {
 
 const control = {
 	listServices: () => call("GET", "/v1/services"),
+	listApps: () => call("GET", "/v1/apps"),
 	getService: (service) => call("GET", `/v1/services/${encodeURIComponent(service)}`),
 	/**
 	 * @param {string} service

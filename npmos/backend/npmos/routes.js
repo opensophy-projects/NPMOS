@@ -128,6 +128,15 @@ router
 	.get(handle((_, res) => internalServices.list(res.locals.access)));
 
 /**
+ * GET /api/npmos/apps — containers outside the stack in a network of npmos: name, image, addresses, ports
+ */
+router
+	.route("/apps")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalServices.apps(res.locals.access)));
+
+/**
  * GET /api/npmos/services/:service
  */
 router

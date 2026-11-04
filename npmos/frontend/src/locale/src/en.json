@@ -5855,6 +5855,18 @@
 	"npmos.services": {
 		"defaultMessage": "Services"
 	},
+	"npmos.services.address": {
+		"defaultMessage": "Address"
+	},
+	"npmos.services.apps": {
+		"defaultMessage": "Applications"
+	},
+	"npmos.services.apps.hint": {
+		"defaultMessage": "Containers outside NPMOS in a network of npmos: a proxy host reaches them by name. The components of NPMOS above are not published."
+	},
+	"npmos.services.apps.none": {
+		"defaultMessage": "No containers of your own in the networks of npmos. Connect one to a network of npmos (docker network connect) and it shows here."
+	},
 	"npmos.services.diagnostics": {
 		"defaultMessage": "Diagnostic archive"
 	},
@@ -5878,6 +5890,12 @@
 	},
 	"npmos.services.no-logs": {
 		"defaultMessage": "No log lines"
+	},
+	"npmos.services.publish": {
+		"defaultMessage": "Publish :{port}"
+	},
+	"npmos.services.published": {
+		"defaultMessage": "host port {port} → {inner}"
 	},
 	"npmos.services.regenerate": {
 		"defaultMessage": "Regenerate nginx config"

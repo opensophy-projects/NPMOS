@@ -32,12 +32,20 @@ import { fromWafForm, toWafForm, WafFields, wafUnchanged } from "src/npmos/compo
 import { useWafHost } from "src/npmos/hooks";
 import { AcmeLogIfRequested } from "src/npmos/certs/AcmeLog"; // NPMOS: full log of a failed request
 
+// NPMOS: a new host filled from elsewhere (System -> Services: publish a service)
+export interface ProxyHostPrefill {
+	forwardScheme?: string;
+	forwardHost?: string;
+	forwardPort?: number;
+}
+
 interface Props extends InnerModalProps {
 	id: number | "new";
 	isClone?: boolean;
+	prefill?: ProxyHostPrefill;
 }
 
-const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove }: Props) => {
+const ProxyHostModal = EasyModal.create(({ id, isClone = false, prefill, visible, remove }: Props) => {
 	const { data: currentUser, isLoading: userIsLoading, error: userError } = useUser("me");
 	const { data, isLoading, error } = useProxyHost(id);
 	const { data: allProxyHosts } = useProxyHosts();
@@ -145,9 +153,9 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove 
 						{
 							// Details tab
 							domainNames: data?.domainNames || [],
-							forwardScheme: data?.forwardScheme || "http",
-							forwardHost: data?.forwardHost || "",
-							forwardPort: data?.forwardPort || undefined,
+							forwardScheme: prefill?.forwardScheme || data?.forwardScheme || "http",
+							forwardHost: prefill?.forwardHost || data?.forwardHost || "",
+							forwardPort: prefill?.forwardPort || data?.forwardPort || undefined,
 							npmplusAccessListIds: data?.npmplusAccessListIds || [],
 							npmplusAccessListType: data?.npmplusAccessListType || "public",
 							cachingEnabled: data?.cachingEnabled || false,
@@ -1012,8 +1020,8 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove 
 	);
 });
 
-const showProxyHostModal = (id: number | "new", isClone = false) => {
-	EasyModal.show(ProxyHostModal, { id, isClone } as Omit<Props, "visible" | "remove">);
+const showProxyHostModal = (id: number | "new", isClone = false, prefill?: ProxyHostPrefill) => {
+	EasyModal.show(ProxyHostModal, { id, isClone, prefill } as Omit<Props, "visible" | "remove">);
 };
 
 export { showProxyHostModal };
