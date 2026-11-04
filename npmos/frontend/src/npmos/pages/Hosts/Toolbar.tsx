@@ -1,15 +1,6 @@
 // Toolbar of the hosts table as in the Cloudflare DNS page: search, filters (field, operator,
 // value), display options, export/import, "Add", active filters and bulk actions.
-import {
-	IconCheck,
-	IconDownload,
-	IconFilter,
-	IconPlus,
-	IconSettings,
-	IconTrash,
-	IconUpload,
-	IconX,
-} from "@tabler/icons-react";
+import { IconCheck, IconDownload, IconFilter, IconPlus, IconTrash, IconUpload, IconX } from "@tabler/icons-react";
 import cn from "classnames";
 import { forwardRef, useState } from "react";
 import type { AccessList, Certificate } from "src/api/backend";
@@ -269,47 +260,6 @@ function FilterEditor({
 	);
 }
 
-export function FiltersPopover({
-	filters,
-	options,
-	onChange,
-}: {
-	filters: Filters;
-	options: FilterOptions;
-	onChange: (rules: FilterRule[]) => void;
-}) {
-	const count = filters.rules.length;
-	return (
-		<Popover
-			ariaLabel={t("npmos.hosts.filters")}
-			title={<T id="npmos.hosts.filters" />}
-			width="40rem"
-			triggerClassName={cn(styles.tool, count > 0 && styles.toolOn)}
-			activeClassName={styles.toolOn}
-			trigger={
-				<>
-					<IconFilter size={16} />
-					<span className={styles.toolText}>
-						<T id="npmos.hosts.filters" />
-					</span>
-					{count > 0 && <span className={styles.count}>{count}</span>}
-				</>
-			}
-		>
-			{(close) => (
-				<FilterEditor
-					filters={filters}
-					options={options}
-					onApply={(rules) => {
-						onChange(rules);
-						close();
-					}}
-				/>
-			)}
-		</Popover>
-	);
-}
-
 /** applied filters as chips under the toolbar */
 export function ActiveFilters({
 	filters,
@@ -355,62 +305,119 @@ function Check({ on, label, onClick }: { on: boolean; label: React.ReactNode; on
 	);
 }
 
-export function ViewPopover({ view, onChange }: { view: View; onChange: (view: View) => void }) {
-	const changed = view.hidden.length > 0 || view.compact;
+/** columns and density of the table */
+function ViewChecks({ view, onChange }: { view: View; onChange: (view: View) => void }) {
+	return (
+		<div className={styles.checks}>
+			<div className={styles.checksTitle}>
+				<T id="npmos.hosts.view.columns" />
+			</div>
+			<div className={styles.checksGrid}>
+				<Check on label={<T id="column.name" />} onClick={() => undefined} />
+				{COLUMNS.map((column) => (
+					<Check
+						key={column}
+						on={!view.hidden.includes(column)}
+						label={columnLabel(column)}
+						onClick={() =>
+							onChange({
+								...view,
+								hidden: view.hidden.includes(column)
+									? view.hidden.filter((c) => c !== column)
+									: [...view.hidden, column],
+							})
+						}
+					/>
+				))}
+			</div>
+			<div className={styles.checksTitle}>
+				<T id="npmos.hosts.view.other" />
+			</div>
+			<Check
+				on={view.compact}
+				label={<T id="npmos.hosts.view.compact" />}
+				onClick={() => onChange({ ...view, compact: !view.compact })}
+			/>
+		</div>
+	);
+}
+
+/** filters and display options in one panel: two tabs under one button */
+export function FiltersViewPopover({
+	filters,
+	options,
+	onChange,
+	view,
+	onViewChange,
+}: {
+	filters: Filters;
+	options: FilterOptions;
+	onChange: (rules: FilterRule[]) => void;
+	view: View;
+	onViewChange: (view: View) => void;
+}) {
+	const [tab, setTab] = useState<"filters" | "view">("filters");
+	const count = filters.rules.length;
+	const viewChanged = view.hidden.length > 0 || view.compact;
 	return (
 		<Popover
-			ariaLabel={t("npmos.hosts.view")}
-			title={<T id="npmos.hosts.view.columns" />}
-			titleAction={
-				<button
-					type="button"
-					className={styles.reset}
-					disabled={!changed}
-					onClick={() => onChange(DEFAULT_VIEW)}
-				>
-					<T id="npmos.hosts.view.reset" />
-				</button>
+			ariaLabel={t("npmos.hosts.filters-view")}
+			title={
+				<div className={styles.panelTabs} role="tablist">
+					{(["filters", "view"] as const).map((x) => (
+						<button
+							key={x}
+							type="button"
+							role="tab"
+							aria-selected={tab === x}
+							className={cn(styles.panelTab, tab === x && styles.panelTabOn)}
+							onClick={() => setTab(x)}
+						>
+							<T id={x === "filters" ? "npmos.hosts.filters" : "npmos.hosts.view"} />
+							{x === "filters" && count > 0 && <span className={styles.count}>{count}</span>}
+						</button>
+					))}
+				</div>
 			}
-			width="16rem"
-			triggerClassName={styles.tool}
+			titleAction={
+				tab === "view" ? (
+					<button
+						type="button"
+						className={styles.reset}
+						disabled={!viewChanged}
+						onClick={() => onViewChange(DEFAULT_VIEW)}
+					>
+						<T id="npmos.hosts.view.reset" />
+					</button>
+				) : undefined
+			}
+			width="40rem"
+			triggerClassName={cn(styles.tool, (count > 0 || viewChanged) && styles.toolOn)}
 			activeClassName={styles.toolOn}
 			trigger={
 				<>
-					<IconSettings size={16} />
+					<IconFilter size={16} />
 					<span className={styles.toolText}>
-						<T id="npmos.hosts.view" />
+						<T id="npmos.hosts.filters-view" />
 					</span>
+					{count > 0 && <span className={styles.count}>{count}</span>}
 				</>
 			}
 		>
-			{() => (
-				<div className={styles.checks}>
-					<Check on label={<T id="column.name" />} onClick={() => undefined} />
-					{COLUMNS.map((column) => (
-						<Check
-							key={column}
-							on={!view.hidden.includes(column)}
-							label={columnLabel(column)}
-							onClick={() =>
-								onChange({
-									...view,
-									hidden: view.hidden.includes(column)
-										? view.hidden.filter((c) => c !== column)
-										: [...view.hidden, column],
-								})
-							}
-						/>
-					))}
-					<div className={styles.checksTitle}>
-						<T id="npmos.hosts.view.other" />
-					</div>
-					<Check
-						on={view.compact}
-						label={<T id="npmos.hosts.view.compact" />}
-						onClick={() => onChange({ ...view, compact: !view.compact })}
+			{(close) =>
+				tab === "filters" ? (
+					<FilterEditor
+						filters={filters}
+						options={options}
+						onApply={(rules) => {
+							onChange(rules);
+							close();
+						}}
 					/>
-				</div>
-			)}
+				) : (
+					<ViewChecks view={view} onChange={onViewChange} />
+				)
+			}
 		</Popover>
 	);
 }

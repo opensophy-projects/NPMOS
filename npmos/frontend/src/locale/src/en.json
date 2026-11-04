@@ -2450,6 +2450,9 @@
 	"npmos.hosts.filters": {
 		"defaultMessage": "Filters"
 	},
+	"npmos.hosts.filters-view": {
+		"defaultMessage": "Filters and view"
+	},
 	"npmos.hosts.filters.reset": {
 		"defaultMessage": "Reset filters"
 	},
@@ -2564,6 +2567,24 @@
 	"npmos.hosts.open-site": {
 		"defaultMessage": "Open site"
 	},
+	"npmos.hosts.panel.dead": {
+		"defaultMessage": "{host} is the address of this panel. A 404 host on it answers instead of the panel: it stops opening at this address (use {direct})."
+	},
+	"npmos.hosts.panel.delete": {
+		"defaultMessage": "You opened the panel at {host}, through this host. Once it is deleted, the panel at this address stops answering. The panel stays open at {direct}."
+	},
+	"npmos.hosts.panel.disable": {
+		"defaultMessage": "You opened the panel at {host}, through this host. Once it is off, the panel at this address stops answering (the page shows connection errors). The panel stays open at {direct}."
+	},
+	"npmos.hosts.panel.disable-anyway": {
+		"defaultMessage": "Turn off anyway"
+	},
+	"npmos.hosts.panel.redirect": {
+		"defaultMessage": "{host} is the address of this panel. A redirect on it sends the panel away too: it stops opening at this address (use {direct})."
+	},
+	"npmos.hosts.panel.title": {
+		"defaultMessage": "This host opens the panel"
+	},
 	"npmos.hosts.reachability": {
 		"defaultMessage": "Check reachability"
 	},
@@ -2626,6 +2647,9 @@
 	},
 	"npmos.hosts.recommendations": {
 		"defaultMessage": "Recommendations"
+	},
+	"npmos.hosts.redirect.permanent": {
+		"defaultMessage": "Browsers remember 301 and 308: after the host is changed or deleted, they keep redirecting until their cache is cleared. To try a redirect, use 302 or 307."
 	},
 	"npmos.hosts.search": {
 		"defaultMessage": "Search hosts: domain, address, port, group"

@@ -2450,6 +2450,9 @@
 	"npmos.hosts.filters": {
 		"defaultMessage": "Фильтры"
 	},
+	"npmos.hosts.filters-view": {
+		"defaultMessage": "Фильтры и вид"
+	},
 	"npmos.hosts.filters.reset": {
 		"defaultMessage": "Сбросить фильтры"
 	},
@@ -2564,6 +2567,24 @@
 	"npmos.hosts.open-site": {
 		"defaultMessage": "Открыть сайт"
 	},
+	"npmos.hosts.panel.dead": {
+		"defaultMessage": "{host} — адрес этой панели. 404-хост на нём будет отвечать вместо панели: по этому адресу она перестанет открываться (останется {direct})."
+	},
+	"npmos.hosts.panel.delete": {
+		"defaultMessage": "Вы открыли панель по адресу {host} — через этот хост. После удаления панель по этому адресу перестанет открываться. Панель останется доступна по {direct}."
+	},
+	"npmos.hosts.panel.disable": {
+		"defaultMessage": "Вы открыли панель по адресу {host} — через этот хост. После отключения панель по этому адресу перестанет открываться (страница покажет ошибки соединения). Панель останется доступна по {direct}."
+	},
+	"npmos.hosts.panel.disable-anyway": {
+		"defaultMessage": "Всё равно отключить"
+	},
+	"npmos.hosts.panel.redirect": {
+		"defaultMessage": "{host} — адрес этой панели. Редирект на нём уведёт и саму панель: по этому адресу она перестанет открываться (останется {direct})."
+	},
+	"npmos.hosts.panel.title": {
+		"defaultMessage": "Через этот хост открыта панель"
+	},
 	"npmos.hosts.reachability": {
 		"defaultMessage": "Проверить доступность"
 	},
@@ -2626,6 +2647,9 @@
 	},
 	"npmos.hosts.recommendations": {
 		"defaultMessage": "Рекомендации"
+	},
+	"npmos.hosts.redirect.permanent": {
+		"defaultMessage": "Браузеры запоминают 301 и 308: после изменения или удаления хоста они продолжают перенаправлять, пока не очистить кэш. Для проверки используйте 302 или 307."
 	},
 	"npmos.hosts.search": {
 		"defaultMessage": "Поиск: домен, адрес, порт, группа"
