@@ -31,7 +31,8 @@ function HasPermission({
 	const can = useCan();
 	const isLoading = userIsLoading || (!!rbac && rbacIsLoading);
 
-	if (!section) {
+	// NPMOS: a page of NPMOS names only its RBAC resource: without a section it is still checked
+	if (!section && !rbac) {
 		return <>{children}</>;
 	}
 
@@ -48,7 +49,7 @@ function HasPermission({
 	const [resource, action] = (rbac ?? "").split(":");
 	const allowed = rbac
 		? can(resource, action || permission)
-		: hasPermission(section, permission, data?.permissions, data?.roles);
+		: !!section && hasPermission(section, permission, data?.permissions, data?.roles);
 	if (allowed) {
 		return <>{children}</>;
 	}
