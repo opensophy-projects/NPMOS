@@ -63,6 +63,44 @@ const notifyCrl = async (caIds) => {
 	}
 };
 
+/** tables of hosts that serve a certificate of NPMplus */
+const TLS_HOSTS = ["proxy_host", "redirection_host", "dead_host", "stream"];
+
+/**
+ * Copies of server certificates of the PKI in Certificates of NPMplus ("<name> (PKI)"): with the CA they go too.
+ * Copies a host still serves stay and are named, the host would lose its TLS.
+ * @returns {Promise<{copies: number[], used: string[], usedIds: number[]}>}
+ */
+const installedCopies = async (certIds) => {
+	const ids = (
+		await db()("npmos_pki_cert").whereIn("id", certIds).whereNotNull("certificate_id").select("certificate_id")
+	).map((r) => r.certificate_id);
+	const copies = ids.length
+		? (await db()("certificate").whereIn("id", ids).where({ is_deleted: 0 }).select("id")).map((r) => r.id)
+		: [];
+	const used = [];
+	const usedIds = new Set();
+	for (const table of TLS_HOSTS) {
+		if (!copies.length) break;
+		const rows = await db()(table).whereIn("certificate_id", copies).where({ is_deleted: 0 });
+		for (const row of rows) {
+			usedIds.add(row.certificate_id);
+			used.push(table === "stream" ? `:${row.incoming_port}` : (parse(row.domain_names) || []).join(", "));
+		}
+	}
+	return { copies, used, usedIds: [...usedIds] };
+};
+
+const removeCopies = async (access, copies) => {
+	for (const id of copies) {
+		try {
+			await internalCertificate.delete(access, { id });
+		} catch (err) {
+			logger.error(`NPMOS PKI: certificate #${id} of NPMplus not deleted: ${err.message}`);
+		}
+	}
+};
+
 const settings = () => getSetting("pki");
 
 const crlUrl = (s, caId) =>
@@ -677,9 +715,15 @@ const internalPki = {
 					`Hosts trust only these CAs, turn mTLS off there first: ${alone.join(", ")}`,
 				);
 			}
+			const certs = await db()("npmos_pki_cert").whereIn("ca_id", ids).select("id");
+			const installed = await installedCopies(certs.map((r) => r.id));
+			if (installed.used.length) {
+				throw new errs.ValidationError(
+					`Hosts serve server certificates of these CAs, choose other certificates there first: ${installed.used.join("; ")}`,
+				);
+			}
 			// hosts first: if this fails, no host refers to a deleted CA
 			const hosts = detach ? await detach(ids) : [];
-			const certs = await db()("npmos_pki_cert").whereIn("ca_id", ids).select("id");
 			await db().transaction(async (trx) => {
 				await trx("npmos_pki_link")
 					.whereIn(
@@ -691,11 +735,13 @@ const internalPki = {
 				// children first: parent_id points up
 				for (const caId of [...ids].reverse()) await trx("npmos_pki_ca").where({ id: caId }).delete();
 			});
+			await removeCopies(access, installed.copies);
 			await audit(access, "deleted", "pki", id, {
 				name: ca.name,
 				cascade: true,
 				cas: all.filter((c) => ids.includes(c.id)).map((c) => c.name),
 				certificates: certs.length,
+				tls_certificates: installed.copies.length,
 				hosts,
 			});
 			return true;
@@ -713,6 +759,12 @@ const internalPki = {
 		if (hosts.length) throw new errs.ValidationError(`Hosts trust it: ${hosts.join(", ")}`);
 		// deleted certificates were kept for the CRL of this CA only
 		const deleted = await db()("npmos_pki_cert").where({ ca_id: id }).select("id");
+		const installed = await installedCopies(deleted.map((r) => r.id));
+		if (installed.used.length) {
+			throw new errs.ValidationError(
+				`Hosts serve server certificates of this CA, choose other certificates there first: ${installed.used.join("; ")}`,
+			);
+		}
 		await db()("npmos_pki_link")
 			.whereIn(
 				"cert_id",
@@ -721,7 +773,8 @@ const internalPki = {
 			.delete();
 		await db()("npmos_pki_cert").where({ ca_id: id }).delete();
 		await db()("npmos_pki_ca").where({ id }).delete();
-		await audit(access, "deleted", "pki", id, { name: ca.name });
+		await removeCopies(access, installed.copies);
+		await audit(access, "deleted", "pki", id, { name: ca.name, tls_certificates: installed.copies.length });
 		return true;
 	},
 
@@ -1026,6 +1079,12 @@ const internalPki = {
 		const list = rows.map((r) => r.id);
 		await db()("npmos_pki_link").whereIn("cert_id", list).delete();
 		await db()("npmos_pki_cert").whereIn("id", list).update({ deleted_on: now, key_enc: null, modified_on: now });
+		// their copies in Certificates of NPMplus go too, unless a host still serves one
+		const installed = await installedCopies(list);
+		await removeCopies(
+			access,
+			installed.copies.filter((id) => !installed.usedIds.includes(id)),
+		);
 		for (const row of rows) {
 			await audit(access, "deleted", "pki", row.id, { name: row.common_name, serial: row.serial });
 		}

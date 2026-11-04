@@ -7,6 +7,7 @@ import { updateAuth } from "src/api/backend";
 import { Button } from "src/components";
 import { intl, T } from "src/locale";
 import { validateString } from "src/modules/Validations";
+import { HiddenUsername } from "src/npmos/ui/HiddenUsername"; // NPMOS: user field for the browser
 
 const showChangePasswordModal = (id: number | "me") => {
 	EasyModal.show(ChangePasswordModal, { id });
@@ -54,6 +55,8 @@ const ChangePasswordModal = EasyModal.create(({ id, visible, remove }: Props) =>
 			>
 				{() => (
 					<Form>
+						{/* NPMOS: a user field for the browser ("Password forms should have username fields") */}
+						<HiddenUsername />
 						<Modal.Header closeButton>
 							<Modal.Title>
 								<T id="user.change-password" />

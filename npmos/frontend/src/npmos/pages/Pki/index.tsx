@@ -827,6 +827,8 @@ function PkiPage() {
 	const refresh = () => {
 		queryClient.invalidateQueries({ queryKey: ["npmos-pki"] });
 		queryClient.invalidateQueries({ queryKey: ["npmos-mtls-hosts"] });
+		// the registry of all certificates and Certificates of NPMplus hold copies of server certificates
+		queryClient.invalidateQueries({ queryKey: ["certificates"] });
 	};
 
 	if (isLoading) return <LoadingPage noLogo />;

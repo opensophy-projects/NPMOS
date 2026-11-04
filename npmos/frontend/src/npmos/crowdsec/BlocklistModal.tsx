@@ -8,6 +8,7 @@ import { Button } from "src/components";
 import { intl, T } from "src/locale";
 import { showError, showSuccess } from "src/notifications";
 import { type Blocklist, type BlocklistData, DECISION_TYPES, DURATIONS, saveBlocklist } from "./api";
+import { HiddenUsername } from "../ui/HiddenUsername";
 
 const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id }, values);
 
@@ -159,15 +160,23 @@ const BlocklistModal = EasyModal.create(({ visible, remove, list, onDone }: Prop
 								<label className="form-label" htmlFor="cs-bl-token">
 									<T id="npmos.crowdsec.blocklist.token" />
 								</label>
-								<input
-									id="cs-bl-token"
-									type="password"
+								{/* NPMOS: inside a form with a user field, so the browser does not warn about the password */}
+								<form
+									style={{ display: "contents" }}
 									autoComplete="off"
-									className="form-control"
-									placeholder={list?.hasToken ? t("npmos.crowdsec.secret.kept") : ""}
-									value={token}
-									onChange={(e) => setToken(e.target.value)}
-								/>
+									onSubmit={(e) => e.preventDefault()}
+								>
+									<HiddenUsername />
+									<input
+										id="cs-bl-token"
+										type="password"
+										autoComplete="off"
+										className="form-control"
+										placeholder={list?.hasToken ? t("npmos.crowdsec.secret.kept") : ""}
+										value={token}
+										onChange={(e) => setToken(e.target.value)}
+									/>
+								</form>
 							</div>
 							<div className="col-md-6 mb-3">
 								<label className="form-label" htmlFor="cs-bl-refresh">

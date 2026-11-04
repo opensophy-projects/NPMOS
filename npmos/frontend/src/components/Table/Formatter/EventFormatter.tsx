@@ -7,6 +7,7 @@ import {
 	IconDisc,
 	IconLock,
 	IconLockAccess,
+	IconSchool, // NPMOS: WAF learning
 	IconShieldHalf,
 	IconServer,
 	IconSettings,
@@ -45,6 +46,8 @@ const getEventValue = (event: AuditLog) => {
 		case "pki":
 		case "mtls":
 		case "crowdsec":
+		// NPMOS: labels of WAF learning
+		case "waf_learning":
 			return NPMOS_NAMES[event.meta?.name]
 				? intl.formatMessage({ id: NPMOS_NAMES[event.meta.name] })
 				: event.meta?.name;
@@ -121,6 +124,10 @@ const getIcon = (row: AuditLog) => {
 			break;
 		case "crowdsec":
 			ico = <IconShieldHalf size={16} className={c} />;
+			break;
+		// NPMOS: labels of WAF learning
+		case "waf_learning":
+			ico = <IconSchool size={16} className={c} />;
 			break;
 	}
 

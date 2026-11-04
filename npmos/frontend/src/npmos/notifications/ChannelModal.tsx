@@ -19,6 +19,7 @@ import {
 	updateChannel,
 	type WebhookConfig,
 } from "./api";
+import { HiddenUsername } from "../ui/HiddenUsername";
 
 const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id }, values);
 
@@ -135,6 +136,7 @@ const ChannelModal = EasyModal.create(({ type, channel, visible, remove }: Props
 			<Modal.Body>
 				{/* NPMOS: a form wrapper so the browser does not warn about password fields outside a form */}
 				<form autoComplete="off" onSubmit={(e) => e.preventDefault()}>
+					<HiddenUsername />
 					{error && <Alert variant="danger">{error}</Alert>}
 					{type === "telegram" && (
 						<Alert variant="warning">

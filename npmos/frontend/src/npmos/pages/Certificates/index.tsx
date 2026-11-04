@@ -261,8 +261,9 @@ function CertificatesPage() {
 		return items;
 	};
 
-	const segment = (active: boolean, onClick: () => void, label: React.ReactNode, n?: number) => (
+	const segment = (active: boolean, onClick: () => void, label: React.ReactNode, n?: number, key?: string) => (
 		<button
+			key={key}
 			type="button"
 			className={cn(styles.period, active && styles.periodOn)}
 			aria-pressed={active}
@@ -333,6 +334,7 @@ function CertificatesPage() {
 							() => update({ status: status === s ? "" : s }),
 							<T id={`npmos.certs.status.${s}`} />,
 							data?.counts.status[s] ?? 0,
+							s,
 						),
 					)}
 				</div>
@@ -424,6 +426,7 @@ function CertificatesPage() {
 								() => update({ source: source === s ? "" : s }),
 								<T id={`npmos.certs.source.${s}`} />,
 								data?.counts.source[s] ?? 0,
+								s,
 							),
 						)}
 					</div>

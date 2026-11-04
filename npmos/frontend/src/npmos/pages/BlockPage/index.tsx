@@ -3,7 +3,7 @@
 // The settings in the interface or as code, with the page as it will look.
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import cn from "classnames";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import { Button, HasPermission, LoadingPage } from "src/components";
 import { intl, T } from "src/locale";
@@ -35,10 +35,41 @@ const SAMPLE: Record<string, string> = {
 };
 const sample = (html: string) => Object.entries(SAMPLE).reduce((s, [k, v]) => s.replaceAll(k, v), html);
 
+const STYLE = /<style>([\s\S]*?)<\/style>/gi;
+
+/**
+ * The page as visitors see it. A srcdoc frame takes the CSP of the panel, which refuses inline <style>: the
+ * styles go to the frame through the CSSOM instead (a constructed sheet is not an inline style).
+ */
+function PreviewFrame({ html }: { html: string }) {
+	const ref = useRef<HTMLIFrameElement>(null);
+	const css = [...html.matchAll(STYLE)].map((m) => m[1]).join("\n");
+	const body = html.replace(STYLE, "");
+	const apply = () => {
+		const win = ref.current?.contentWindow as (Window & typeof globalThis) | null;
+		if (!win?.document) return;
+		const sheet = new win.CSSStyleSheet();
+		sheet.replaceSync(css);
+		win.document.adoptedStyleSheets = [sheet];
+	};
+	return (
+		<iframe
+			ref={ref}
+			title={t("npmos.block-page.preview")}
+			className={own.frame}
+			srcDoc={body}
+			// no scripts in the frame; same origin only so that the styles can be given to it
+			sandbox="allow-same-origin"
+			onLoad={apply}
+		/>
+	);
+}
+
 function Form({ initial, manage }: { initial: BlockPageSettings; manage: boolean }) {
 	const queryClient = useQueryClient();
 	const [form, setForm] = useState(initial);
 	const [preview, setPreview] = useState("");
+	const [previewError, setPreviewError] = useState("");
 	const [saving, setSaving] = useState(false);
 	const set = (patch: Partial<BlockPageSettings>) => setForm({ ...form, ...patch });
 	const changed = JSON.stringify(form) !== JSON.stringify(initial);
@@ -48,8 +79,11 @@ function Form({ initial, manage }: { initial: BlockPageSettings; manage: boolean
 		const timer = setTimeout(
 			() =>
 				previewBlockPage(form)
-					.then((r) => setPreview(r.preview))
-					.catch(() => undefined),
+					.then((r) => {
+						setPreview(r.preview);
+						setPreviewError("");
+					})
+					.catch((err: Error) => setPreviewError(err.message)),
 			300,
 		);
 		return () => clearTimeout(timer);
@@ -176,17 +210,16 @@ function Form({ initial, manage }: { initial: BlockPageSettings; manage: boolean
 				<div className={own.previewHead}>
 					<T id="npmos.block-page.preview" />
 				</div>
-				{form.enabled ? (
-					<iframe
-						title={t("npmos.block-page.preview")}
-						className={own.frame}
-						srcDoc={sample(preview)}
-						sandbox=""
-					/>
-				) : (
+				{!form.enabled ? (
 					<p className="text-secondary small p-3 mb-0">
 						<T id="npmos.block-page.off" />
 					</p>
+				) : previewError ? (
+					<p className="text-danger small p-3 mb-0">
+						<T id="npmos.block-page.preview-error" data={{ error: previewError }} />
+					</p>
+				) : (
+					<PreviewFrame html={sample(preview)} />
 				)}
 			</div>
 		</div>

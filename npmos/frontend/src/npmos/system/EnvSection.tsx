@@ -19,6 +19,7 @@ import {
 	setSystemSettings,
 } from "./api";
 import styles from "./EnvSection.module.css";
+import { HiddenUsername } from "../ui/HiddenUsername";
 
 const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id }, values);
 
@@ -162,6 +163,7 @@ function Control({
 		// browser does not warn "Password field is not contained in a form".
 		return (
 			<form style={CONTENTS} autoComplete="off" onSubmit={(e) => e.preventDefault()}>
+				<HiddenUsername />
 				<input
 					type="password"
 					className="form-control form-control-sm"

@@ -971,6 +971,9 @@
 	"npmos.block-page.preview": {
 		"defaultMessage": "Preview"
 	},
+	"npmos.block-page.preview-error": {
+		"defaultMessage": "The preview could not be made: {error}"
+	},
 	"npmos.block-page.saved": {
 		"defaultMessage": "The block page is saved"
 	},
@@ -6101,6 +6104,9 @@
 	"npmos.system.secret.set": {
 		"defaultMessage": "set — enter a new one to replace it"
 	},
+	"npmos.user.password-hint": {
+		"defaultMessage": "At least 8 characters. The user can change it later in their profile."
+	},
 	"npmos.users.search": {
 		"defaultMessage": "Search by name, nickname or email"
 	},
@@ -6455,6 +6461,9 @@
 	"object.event.installed": {
 		"defaultMessage": "Installed {object}"
 	},
+	"object.event.labeled": {
+		"defaultMessage": "Labeled {object}"
+	},
 	"object.event.regenerated": {
 		"defaultMessage": "Regenerated {object}"
 	},
@@ -6472,6 +6481,9 @@
 	},
 	"object.event.unbanned": {
 		"defaultMessage": "Unbanned {object}"
+	},
+	"object.event.unlabeled": {
+		"defaultMessage": "Label removed: {object}"
 	},
 	"object.event.updated": {
 		"defaultMessage": "Updated {object}"
@@ -6751,5 +6763,8 @@
 	},
 	"waf": {
 		"defaultMessage": "WAF"
+	},
+	"waf_learning": {
+		"defaultMessage": "Learning"
 	}
 }

@@ -971,6 +971,9 @@
 	"npmos.block-page.preview": {
 		"defaultMessage": "Предпросмотр"
 	},
+	"npmos.block-page.preview-error": {
+		"defaultMessage": "Не удалось построить предпросмотр: {error}"
+	},
 	"npmos.block-page.saved": {
 		"defaultMessage": "Страница блокировки сохранена"
 	},
@@ -6101,6 +6104,9 @@
 	"npmos.system.secret.set": {
 		"defaultMessage": "задан — введите новый, чтобы заменить"
 	},
+	"npmos.user.password-hint": {
+		"defaultMessage": "Не короче 8 символов. Пользователь сможет сменить его в профиле."
+	},
 	"npmos.users.search": {
 		"defaultMessage": "Поиск по имени, нику или email"
 	},
@@ -6455,6 +6461,9 @@
 	"object.event.installed": {
 		"defaultMessage": "{object}: установка"
 	},
+	"object.event.labeled": {
+		"defaultMessage": "{object}: размечено"
+	},
 	"object.event.regenerated": {
 		"defaultMessage": "{object}: конфигурация пересоздана"
 	},
@@ -6472,6 +6481,9 @@
 	},
 	"object.event.unbanned": {
 		"defaultMessage": "{object}: разбан"
+	},
+	"object.event.unlabeled": {
+		"defaultMessage": "{object}: разметка снята"
 	},
 	"object.event.updated": {
 		"defaultMessage": "{object} обновлен"
@@ -6751,5 +6763,8 @@
 	},
 	"waf": {
 		"defaultMessage": "WAF"
+	},
+	"waf_learning": {
+		"defaultMessage": "Обучение"
 	}
 }

@@ -52,6 +52,9 @@ const UserModal = EasyModal.create(({ id, visible, remove }: Props) => {
 		// NPMOS: the admin flag follows the Administrator role, set with the roles below
 		if (id === "new") payload.roles = [];
 		else delete payload.roles;
+		// NPMOS: a new user gets the password with the email, no second step
+		if (payload.password) payload.auth = { type: "password", secret: payload.password };
+		delete payload.password;
 
 		setUser(payload, {
 			onError: (err: any) => setErrorMsg(err.message),
@@ -167,6 +170,8 @@ const UserModal = EasyModal.create(({ id, visible, remove }: Props) => {
 												<input
 													id="email"
 													type="email"
+													// NPMOS: the user name of the password below for the browser
+													autoComplete="username"
 													className={`form-control ${form.errors.email && form.touched.email ? "is-invalid" : ""}`}
 													placeholder={intl.formatMessage({ id: "email-address" })}
 													{...field}
@@ -185,6 +190,35 @@ const UserModal = EasyModal.create(({ id, visible, remove }: Props) => {
 										)}
 									</Field>
 								</div>
+								{/* NPMOS: the password of a new user, set with the email */}
+								{id === "new" && (
+									<div className="mb-3">
+										<Field name="password" validate={validateString(8, 100)}>
+											{({ field, form }: any) => (
+												<div className="form-floating mb-3">
+													<input
+														id="password"
+														type="password"
+														autoComplete="new-password"
+														required
+														className={`form-control ${form.errors.password && form.touched.password ? "is-invalid" : ""}`}
+														placeholder={intl.formatMessage({ id: "password" })}
+														{...field}
+													/>
+													<label htmlFor="password">
+														<T id="password" />
+													</label>
+													{form.errors.password && form.touched.password ? (
+														<div className="invalid-feedback">{form.errors.password}</div>
+													) : null}
+													<div className="form-hint">
+														<T id="npmos.user.password-hint" />
+													</div>
+												</div>
+											)}
+										</Field>
+									</div>
+								)}
 								{currentUser && data && currentUser?.id !== data?.id ? (
 									<div className="my-3">
 										<h4 className="py-2">
