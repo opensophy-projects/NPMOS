@@ -21,6 +21,7 @@ import { intl, T } from "src/locale";
 import { validateString } from "src/modules/Validations";
 import { showObjectSuccess } from "src/notifications";
 import { PanelDomainAlert, PermanentRedirectHint } from "src/npmos/hosts/panel"; // NPMOS: domain of the panel
+import { AcmeLogIfRequested } from "src/npmos/certs/AcmeLog"; // NPMOS: full log of a failed request
 
 // NPMOS: "Duplicate" in the hosts table opens the form filled from another host
 const showRedirectionHostModal = (id: number | "new", isClone = false) => {
@@ -134,6 +135,8 @@ const RedirectionHostModal = EasyModal.create(({ id, isClone = false, visible, r
 							<Modal.Body className="p-0">
 								<Alert variant="danger" show={!!errorMsg} onClose={() => setErrorMsg(null)} dismissible>
 									{errorMsg}
+									{/* NPMOS: every step of a failed certificate request */}
+									{errorMsg && <AcmeLogIfRequested />}
 								</Alert>
 								<div className="card m-0 border-0">
 									<div className="card-header">

@@ -9,6 +9,7 @@ import { createCertificate } from "src/api/backend";
 import { Button, DNSProviderFields, DomainNamesField } from "src/components";
 import { T } from "src/locale";
 import { showObjectSuccess } from "src/notifications";
+import { AcmeLogButton } from "src/npmos/certs/AcmeLog"; // NPMOS: full log of a failed request
 
 const showDNSCertificateModal = () => {
 	EasyModal.show(DNSCertificateModal);
@@ -75,6 +76,8 @@ const DNSCertificateModal = EasyModal.create(({ visible, remove }: InnerModalPro
 						<Modal.Body className="p-0">
 							<Alert variant="danger" show={!!errorMsg} onClose={() => setErrorMsg(null)} dismissible>
 								{errorMsg}
+								{/* NPMOS: every step of the failed request */}
+								{errorMsg && <AcmeLogButton />}
 							</Alert>
 							<div className="card m-0 border-0">
 								<div className="card-body">

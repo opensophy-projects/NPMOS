@@ -10,6 +10,7 @@ import { createCertificate, testHttpCertificate } from "src/api/backend";
 import { Button, DomainNamesField } from "src/components";
 import { T } from "src/locale";
 import { showObjectSuccess } from "src/notifications";
+import { AcmeLogButton } from "src/npmos/certs/AcmeLog"; // NPMOS: full log of a failed request
 
 const showHTTPCertificateModal = () => {
 	EasyModal.show(HTTPCertificateModal);
@@ -133,6 +134,8 @@ const HTTPCertificateModal = EasyModal.create(({ visible, remove }: InnerModalPr
 						<Modal.Body className="p-0">
 							<Alert variant="danger" show={!!errorMsg} onClose={() => setErrorMsg(null)} dismissible>
 								{errorMsg}
+								{/* NPMOS: every step of the failed request */}
+								{errorMsg && <AcmeLogButton />}
 							</Alert>
 							<div className="card m-0 border-0">
 								<div className="card-body">

@@ -23,7 +23,7 @@
 | `DB_MYSQL_*` | — | не используется | Bootstrap (поддержка upstream сохраняется) | — |
 | `COOKIE_SECRET` | случайный при каждом старте | `COOKIE_SECRET_FILE` от `npmos-init` ✅ | Bootstrap (секрет) | 0 |
 | `INITIAL_ADMIN_EMAIL`, `INITIAL_ADMIN_PASSWORD` | — | не задаём: первый админ создаётся мастером в GUI | Bootstrap | — |
-| `ACME_SERVER`, `ACME_EMAIL`, `ACME_EAB_KID`, `ACME_EAB_HMAC_KEY` | Let's Encrypt | Let's Encrypt; аккаунт регистрируется при первом запросе сертификата, при старте обращений нет ✅ | GUI (Администрирование → Настройки → ACME): Let's Encrypt, тестовый Let's Encrypt, ZeroSSL, Google Trust Services, SSL.com или свой URL; HMAC-ключ не показывается после сохранения | 6 ✅ |
+| `ACME_SERVER`, `ACME_EMAIL`, `ACME_EAB_KID`, `ACME_EAB_HMAC_KEY`, `ACME_PROFILE`, `ACME_RENEW`, `ACME_RENEW_DAYS` | Let's Encrypt; профиль — сервера; продление вкл., окно certbot | Let's Encrypt; аккаунт регистрируется при первом запросе сертификата, при старте обращений нет ✅ | GUI (Администрирование → Настройки → ACME): Let's Encrypt, тестовый Let's Encrypt, ZeroSSL, Google Trust Services, SSL.com или свой URL; HMAC-ключ не показывается после сохранения | 6 ✅ |
 | `ACME_PROFILE`, `ACME_KEY_TYPE`, `ACME_KEY_SIZE`, `ACME_MUST_STAPLE`, `ACME_OCSP_STAPLING`, `ACME_SERVER_TLS_VERIFY` | | те же | env (редко нужны) | 6 |
 | `CUSTOM_OCSP_STAPLING` | `false` | `false` | GUI (Сертификаты) | 6 |
 | `CERTBOT_RUN_INTERVAL` | 3 ч | 3 ч | GUI (Сертификаты) | 6 |

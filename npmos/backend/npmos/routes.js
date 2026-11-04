@@ -27,6 +27,7 @@ import internalWafHostCode from "./waf/hosts-code.js";
 import internalWafHosts from "./waf/hosts.js";
 import internalWaf from "./waf/index.js";
 import internalWafObjects from "./waf/objects/api.js";
+import { lastFailureLog } from "./acme.js";
 
 const router = express.Router({
 	caseSensitive: true,
@@ -1012,6 +1013,21 @@ router
  * the PKI, certificate files on disk no record describes. Filters: source, status, kind (comma-separated),
  * used=yes|no, q; sort=expires|-expires|name|-created; limit (≤ 200), offset
  */
+/**
+ * GET /api/npmos/acme/last-log — the full log of the last failed ACME request (certbot output and debug log,
+ * secrets masked): {log, time} or {log: null}
+ */
+router
+	.route("/acme/last-log")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(
+		handle(async (_, res) => {
+			await res.locals.access.can("certificates:list");
+			return lastFailureLog() ?? { log: null };
+		}),
+	);
+
 router
 	.route("/certificates")
 	.options((_, res) => res.sendStatus(204))

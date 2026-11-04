@@ -2,15 +2,21 @@
 // Upstream registers the account in launch.sh at every start, which contacts the ACME server
 // (and, for ZeroSSL, api.zerossl.com) even when no ACME certificate is ever requested, and
 // blocks startup when offline. NPMOS registers right before the first certbot request instead.
-import { readdir } from "node:fs/promises";
+import { mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { readdir, readFile, writeFile } from "node:fs/promises";
 import errs from "../lib/error.js";
 import utils from "../lib/utils.js";
 import { certbot as logger } from "../logger.js";
+import { knownSecrets, redact } from "./redact.js";
 
 const ACCOUNTS_DIR = "/data/tls/certbot/accounts";
 const ZEROSSL_HOST = "acme.zerossl.com";
 const ZEROSSL_EAB_URL = "https://api.zerossl.com/acme/eab-credentials-email";
 const HTTP_TIMEOUT_MS = 20000;
+// the full log of the last failed request, for "Full log" in the interface
+const FAILURE_LOG = "/data/npmos/acme/last-failure.log";
+const CERTBOT_LOG = "/tmp/certbot-log/letsencrypt.log";
+const CERTBOT_LOG_FRESH_MS = 5 * 60 * 1000;
 
 let pending = null;
 
@@ -30,12 +36,21 @@ const hasAccount = async () => {
  * @returns {Promise<{kid: string, hmacKey: string}>}
  */
 const fetchZeroSslEab = async (email) => {
-	const response = await fetch(ZEROSSL_EAB_URL, {
-		method: "POST",
-		headers: { "Content-Type": "application/x-www-form-urlencoded" },
-		body: new URLSearchParams({ email }),
-		signal: AbortSignal.timeout(HTTP_TIMEOUT_MS),
-	});
+	let response;
+	try {
+		response = await fetch(ZEROSSL_EAB_URL, {
+			method: "POST",
+			headers: { "Content-Type": "application/x-www-form-urlencoded" },
+			body: new URLSearchParams({ email }),
+			signal: AbortSignal.timeout(HTTP_TIMEOUT_MS),
+		});
+	} catch (err) {
+		// fetch says only "fetch failed": name the host and the reason under it
+		const reason = err?.cause?.code || err?.cause?.message || err?.message || "";
+		throw new errs.ValidationError(
+			`NPMOS could not reach ${new URL(ZEROSSL_EAB_URL).host} for the EAB keys of ZeroSSL (${reason}). Check DNS and HTTPS to it, or enter EAB keys in System -> Settings -> ACME.`,
+		);
+	}
 	const data = await response.json();
 	if (!response.ok || !data.eab_kid || !data.eab_hmac_key) {
 		throw new errs.ValidationError(`ZeroSSL did not issue EAB credentials (status ${response.status})`);
@@ -93,11 +108,67 @@ const ensureAcmeAccount = async () => {
  * @returns {Error}
  */
 const acmeError = (err) => {
+	const output = `${err?.message || err}`.trim();
+	saveFailureLog(output);
 	if (err?.public) {
 		return err;
 	}
-	const detail = `${err?.message || err}`.trim() || "no output";
-	return new errs.ValidationError(`Certificate request failed: ${detail}${timeoutHint(detail)}`, err);
+	let host = "";
+	try {
+		host = serverHost();
+	} catch {}
+	return new errs.ValidationError(
+		`Certificate request to ${host || "the ACME server"} failed: ${clean(output) || "no output"}${timeoutHint(output)}\n\nThe full log of the request: Certificates -> Full log of the last request.`,
+		err,
+	);
+};
+
+// certbot was written for Let's Encrypt and sends there for help, whatever server it asked: those lines go
+const clean = (output) =>
+	output
+		.split("\n")
+		.filter(
+			(line) =>
+				!/community\.letsencrypt\.org|See the logfile|re-run Certbot with -v|Ask for help or search/i.test(
+					line,
+				),
+		)
+		.join("\n")
+		.replace(/\n{3,}/g, "\n\n")
+		.trim();
+
+const saveFailureLog = (output) => {
+	try {
+		// the debug log of certbot, if certbot ran for this request (it fails before that without an account)
+		let debug = "(certbot did not run)";
+		try {
+			if (Date.now() - statSync(CERTBOT_LOG).mtimeMs < CERTBOT_LOG_FRESH_MS)
+				debug = readFileSync(CERTBOT_LOG, "utf8");
+		} catch {}
+		const text = [
+			`time: ${new Date().toISOString()}`,
+			`ACME server: ${process.env.ACME_SERVER || ""}`,
+			"",
+			"== output",
+			output,
+			"",
+			`== ${CERTBOT_LOG}`,
+			debug,
+		].join("\n");
+		mkdirSync("/data/npmos/acme", { recursive: true });
+		writeFileSync(FAILURE_LOG, redact(text, knownSecrets()), { mode: 0o600 });
+	} catch (e) {
+		logger.warn(`The log of the failed request is not saved: ${e.message}`);
+	}
+};
+
+/** the full log of the last failed ACME request, or null */
+const lastFailureLog = () => {
+	try {
+		return { log: readFileSync(FAILURE_LOG, "utf8"), time: statSync(FAILURE_LOG).mtime.toISOString() };
+	} catch {
+		return null;
+	}
 };
 
 /** certbot gives up after 45 s without an answer: say what to check instead of only the traceback */
@@ -112,4 +183,44 @@ const timeoutHint = (detail) => {
 	return `\n\nThe ACME server ${host} did not answer in time. Check that NPMOS can reach it (DNS, HTTPS on port 443, firewall, proxy) and try again, or choose another ACME server in System -> Settings -> ACME.`;
 };
 
-export { acmeError, ensureAcmeAccount };
+const RENEWAL_DIR = "/data/tls/certbot/renewal";
+
+const acmeRenewEnabled = () => !/^(false|0|no|off)$/i.test(process.env.ACME_RENEW || "true");
+
+/**
+ * The renewal window (days before the end) of Settings -> ACME, in the renewal file of every certificate:
+ * certbot has no option for it on the command line. 0 takes the line out, certbot decides (a third of the term,
+ * at most 30 days).
+ */
+const setRenewWindow = (conf, days) => {
+	const lines = conf.split("\n").filter((line) => !/^\s*renew_before_expiry\s*=/.test(line));
+	if (days > 0) {
+		// a top-level key: before the first [section]
+		const at = lines.findIndex((line) => /^\s*\[/.test(line));
+		lines.splice(at < 0 ? lines.length : at, 0, `renew_before_expiry = ${days} days`);
+	}
+	return lines.join("\n");
+};
+
+/** @param {string} [value]  days, ACME_RENEW_DAYS by default */
+const applyRenewWindow = async (value = process.env.ACME_RENEW_DAYS) => {
+	const days = Number.parseInt(value || "0", 10) || 0;
+	let files = [];
+	try {
+		files = (await readdir(RENEWAL_DIR)).filter((f) => f.endsWith(".conf"));
+	} catch {
+		return;
+	}
+	for (const file of files) {
+		const path = `${RENEWAL_DIR}/${file}`;
+		try {
+			const conf = await readFile(path, "utf8");
+			const next = setRenewWindow(conf, days);
+			if (next !== conf) await writeFile(path, next);
+		} catch (err) {
+			logger.warn(`Renewal window not set in ${file}: ${err.message}`);
+		}
+	}
+};
+
+export { acmeError, acmeRenewEnabled, applyRenewWindow, clean, ensureAcmeAccount, lastFailureLog, setRenewWindow };

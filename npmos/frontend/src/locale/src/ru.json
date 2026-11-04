@@ -644,6 +644,18 @@
 	"npmos.access.search": {
 		"defaultMessage": "Поиск по названию"
 	},
+	"npmos.acme.log.none": {
+		"defaultMessage": "Неудачных запросов к ACME-серверу ещё не было."
+	},
+	"npmos.acme.log.open": {
+		"defaultMessage": "Полный лог последнего запроса"
+	},
+	"npmos.acme.log.time": {
+		"defaultMessage": "Запрос от {time}. Пароли и ключи скрыты."
+	},
+	"npmos.acme.log.title": {
+		"defaultMessage": "Полный лог последнего запроса"
+	},
 	"npmos.agent.default.hint": {
 		"defaultMessage": "Действует на все хосты без своей политики: режим и блоки, которые использует агент."
 	},
@@ -5882,6 +5894,21 @@
 	"npmos.settings.events-retention": {
 		"defaultMessage": "Срок хранения событий безопасности"
 	},
+	"npmos.system.acme-profile.auto": {
+		"defaultMessage": "Как решит NPMOS (Let's Encrypt: shortlived)"
+	},
+	"npmos.system.acme-profile.classic": {
+		"defaultMessage": "classic — 90 дней"
+	},
+	"npmos.system.acme-profile.none": {
+		"defaultMessage": "По умолчанию сервера (Let's Encrypt: 90 дней)"
+	},
+	"npmos.system.acme-profile.shortlived": {
+		"defaultMessage": "shortlived — около 6 дней"
+	},
+	"npmos.system.acme-profile.tlsserver": {
+		"defaultMessage": "tlsserver — 90 дней, только для серверов"
+	},
 	"npmos.system.acme.custom": {
 		"defaultMessage": "Другой (URL)"
 	},
@@ -5905,6 +5932,24 @@
 	},
 	"npmos.system.env.ACME_EMAIL.hint": {
 		"defaultMessage": "Сюда центр сертификации присылает напоминания об истечении. Нужен для ZeroSSL и EAB."
+	},
+	"npmos.system.env.ACME_PROFILE": {
+		"defaultMessage": "Профиль сертификата (срок)"
+	},
+	"npmos.system.env.ACME_PROFILE.hint": {
+		"defaultMessage": "Срок задаёт ACME-сервер своими профилями (они есть у Let's Encrypt; ZeroSSL, Google и другие выдают на свой срок). Профиль, которого у сервера нет, заменяется профилем по умолчанию. Действует для новых выпусков и продлений после перезапуска."
+	},
+	"npmos.system.env.ACME_RENEW": {
+		"defaultMessage": "Продлевать автоматически"
+	},
+	"npmos.system.env.ACME_RENEW.hint": {
+		"defaultMessage": "Выключено — сертификаты ACME продлеваются только вручную («Сертификаты → Продлить»)."
+	},
+	"npmos.system.env.ACME_RENEW_DAYS": {
+		"defaultMessage": "Продлевать за дней до конца"
+	},
+	"npmos.system.env.ACME_RENEW_DAYS.hint": {
+		"defaultMessage": "0 — как решит certbot: за треть срока (не больше 30 дней). Для коротких сроков ставьте меньше самого срока."
 	},
 	"npmos.system.env.ACME_SERVER": {
 		"defaultMessage": "ACME-сервер"

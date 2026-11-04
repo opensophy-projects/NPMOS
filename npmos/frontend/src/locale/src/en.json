@@ -644,6 +644,18 @@
 	"npmos.access.search": {
 		"defaultMessage": "Search by name"
 	},
+	"npmos.acme.log.none": {
+		"defaultMessage": "No ACME request has failed yet."
+	},
+	"npmos.acme.log.open": {
+		"defaultMessage": "Full log of the last request"
+	},
+	"npmos.acme.log.time": {
+		"defaultMessage": "Request of {time}. Passwords and keys are masked."
+	},
+	"npmos.acme.log.title": {
+		"defaultMessage": "Full log of the last request"
+	},
 	"npmos.agent.default.hint": {
 		"defaultMessage": "Applies to every host that has no policy of its own: the mode and the building blocks the agent uses."
 	},
@@ -5882,6 +5894,21 @@
 	"npmos.settings.events-retention": {
 		"defaultMessage": "Retention of security events"
 	},
+	"npmos.system.acme-profile.auto": {
+		"defaultMessage": "As NPMOS decides (Let's Encrypt: shortlived)"
+	},
+	"npmos.system.acme-profile.classic": {
+		"defaultMessage": "classic — 90 days"
+	},
+	"npmos.system.acme-profile.none": {
+		"defaultMessage": "Default of the server (Let's Encrypt: 90 days)"
+	},
+	"npmos.system.acme-profile.shortlived": {
+		"defaultMessage": "shortlived — about 6 days"
+	},
+	"npmos.system.acme-profile.tlsserver": {
+		"defaultMessage": "tlsserver — 90 days, server use only"
+	},
 	"npmos.system.acme.custom": {
 		"defaultMessage": "Other (URL)"
 	},
@@ -5905,6 +5932,24 @@
 	},
 	"npmos.system.env.ACME_EMAIL.hint": {
 		"defaultMessage": "Expiry notices of the authority go here. Needed for ZeroSSL and EAB."
+	},
+	"npmos.system.env.ACME_PROFILE": {
+		"defaultMessage": "Certificate profile (term)"
+	},
+	"npmos.system.env.ACME_PROFILE.hint": {
+		"defaultMessage": "The term is set by the ACME server through its profiles (Let's Encrypt has them; ZeroSSL, Google and others give their own term). A profile the server does not know falls back to its default. Applies to new requests and renewals after the restart."
+	},
+	"npmos.system.env.ACME_RENEW": {
+		"defaultMessage": "Renew automatically"
+	},
+	"npmos.system.env.ACME_RENEW.hint": {
+		"defaultMessage": "Off: certificates of ACME are only renewed by hand (Certificates -> Renew)."
+	},
+	"npmos.system.env.ACME_RENEW_DAYS": {
+		"defaultMessage": "Renew days before the end"
+	},
+	"npmos.system.env.ACME_RENEW_DAYS.hint": {
+		"defaultMessage": "0: as certbot decides, a third of the term (at most 30 days). For short terms keep it below the term."
 	},
 	"npmos.system.env.ACME_SERVER": {
 		"defaultMessage": "ACME server"

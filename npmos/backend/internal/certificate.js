@@ -8,7 +8,7 @@ import dayjs from "dayjs";
 import _ from "lodash";
 import dnsPlugins from "../certbot/dns-plugins.json" with { type: "json" };
 import { installPlugin } from "../lib/certbot.js";
-import { acmeError, ensureAcmeAccount } from "../npmos/acme.js";
+import { acmeError, acmeRenewEnabled, applyRenewWindow, ensureAcmeAccount } from "../npmos/acme.js"; // NPMOS: ACME account, errors, renewal
 import error from "../lib/error.js";
 import utils from "../lib/utils.js";
 import { debug, ssl as logger } from "../logger.js";
@@ -50,6 +50,9 @@ const internalCertificate = {
 
 		try {
 			try {
+				// NPMOS: renewal can be off (Settings -> ACME); the days before the end go to the renewal files
+				if (!acmeRenewEnabled()) throw new Error("automatic renewal is off in Settings -> ACME");
+				await applyRenewWindow();
 				const result = await utils.execFile("certbot", [
 					"--config",
 					"/etc/certbot.ini",

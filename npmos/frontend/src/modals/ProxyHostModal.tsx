@@ -30,6 +30,7 @@ import { showError, showObjectSuccess } from "src/notifications";
 import { setWafHost } from "src/npmos/api";
 import { fromWafForm, toWafForm, WafFields, wafUnchanged } from "src/npmos/components/WafFields";
 import { useWafHost } from "src/npmos/hooks";
+import { AcmeLogIfRequested } from "src/npmos/certs/AcmeLog"; // NPMOS: full log of a failed request
 
 interface Props extends InnerModalProps {
 	id: number | "new";
@@ -199,6 +200,8 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove 
 							<Modal.Body className="p-0">
 								<Alert variant="danger" show={!!errorMsg} onClose={() => setErrorMsg(null)} dismissible>
 									{errorMsg}
+									{/* NPMOS: every step of a failed certificate request */}
+									{errorMsg && <AcmeLogIfRequested />}
 								</Alert>
 								<div className="card m-0 border-0">
 									<div className="card-header">
