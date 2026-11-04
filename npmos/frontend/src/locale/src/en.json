@@ -3281,12 +3281,6 @@
 	"npmos.mtls.access.keep.hint": {
 		"defaultMessage": "Encrypted. Without it the .p12 is handed out only now."
 	},
-	"npmos.mtls.access.own-ca": {
-		"defaultMessage": "A CA of its own for this person"
-	},
-	"npmos.mtls.access.own-ca.hint": {
-		"defaultMessage": "NPMOS makes a CA for this person under {root} and issues the certificate with it. Deleting that CA cuts the person off; on a host with revocation by OCSP within a minute and without a reload of nginx."
-	},
 	"npmos.mtls.access.link": {
 		"defaultMessage": "Also make a one-time download link (24 h)"
 	},
@@ -3304,6 +3298,12 @@
 	},
 	"npmos.mtls.access.no-issuer": {
 		"defaultMessage": "This host trusts only external CAs: NPMOS cannot issue certificates for it. Add a trust domain in its mTLS settings."
+	},
+	"npmos.mtls.access.own-ca": {
+		"defaultMessage": "A CA of its own for this person"
+	},
+	"npmos.mtls.access.own-ca.hint": {
+		"defaultMessage": "NPMOS makes a CA for this person under {root} and issues the certificate with it. Deleting that CA cuts the person off; on a host with revocation by OCSP within a minute and without a reload of nginx."
 	},
 	"npmos.mtls.access.rules": {
 		"defaultMessage": "The host has rules on fields of certificates: the name must match them."
