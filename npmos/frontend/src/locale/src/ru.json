@@ -746,6 +746,30 @@
 	"npmos.analytics.levels": {
 		"defaultMessage": "Уровни атак"
 	},
+	"npmos.analytics.live": {
+		"defaultMessage": "Сейчас"
+	},
+	"npmos.analytics.live.all": {
+		"defaultMessage": "Все события"
+	},
+	"npmos.analytics.live.events": {
+		"defaultMessage": "событий"
+	},
+	"npmos.analytics.live.quiet": {
+		"defaultMessage": "Тихо: за последние 5 минут событий нет."
+	},
+	"npmos.analytics.live.refused": {
+		"defaultMessage": "отклонено или забанено"
+	},
+	"npmos.analytics.live.sources": {
+		"defaultMessage": "адресов"
+	},
+	"npmos.analytics.live.title": {
+		"defaultMessage": "Что происходит сейчас"
+	},
+	"npmos.analytics.live.window": {
+		"defaultMessage": "последние 5 минут, обновление каждые 5 с"
+	},
 	"npmos.analytics.no-attacks": {
 		"defaultMessage": "За этот период атак не было"
 	},

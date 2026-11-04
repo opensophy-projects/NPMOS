@@ -746,6 +746,30 @@
 	"npmos.analytics.levels": {
 		"defaultMessage": "Attack severity"
 	},
+	"npmos.analytics.live": {
+		"defaultMessage": "Live"
+	},
+	"npmos.analytics.live.all": {
+		"defaultMessage": "All events"
+	},
+	"npmos.analytics.live.events": {
+		"defaultMessage": "events"
+	},
+	"npmos.analytics.live.quiet": {
+		"defaultMessage": "Quiet: no events in the last 5 minutes."
+	},
+	"npmos.analytics.live.refused": {
+		"defaultMessage": "refused or banned"
+	},
+	"npmos.analytics.live.sources": {
+		"defaultMessage": "addresses"
+	},
+	"npmos.analytics.live.title": {
+		"defaultMessage": "Happening now"
+	},
+	"npmos.analytics.live.window": {
+		"defaultMessage": "last 5 minutes, refreshed every 5 s"
+	},
 	"npmos.analytics.no-attacks": {
 		"defaultMessage": "No attacks in this period"
 	},
