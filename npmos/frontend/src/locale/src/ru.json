@@ -1332,7 +1332,7 @@
 		"defaultMessage": "Пропускать запрос"
 	},
 	"npmos.crowdsec.appsec.hint": {
-		"defaultMessage": "Баунсер отправляет запросы в движок AppSec CrowdSec, который блокирует эксплойты известных уязвимостей (виртуальные патчи). Работает вместе с баунсером NPMOS."
+		"defaultMessage": "Баунсер отправляет запросы в движок AppSec CrowdSec, который блокирует эксплойты известных уязвимостей (виртуальные патчи). Работает вместе с баунсером NPMOS. На хостах с open-appsec в режиме предотвращения первым отвечает open-appsec: то, что он заблокировал, до AppSec не доходит (в CrowdSec оно попадает через лог open-appsec и сценарий бана). Списки разрешённых (allowlists) CrowdSec действуют и на AppSec."
 	},
 	"npmos.crowdsec.appsec.title": {
 		"defaultMessage": "CrowdSec AppSec"

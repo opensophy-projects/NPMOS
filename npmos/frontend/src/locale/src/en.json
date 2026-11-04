@@ -1332,7 +1332,7 @@
 		"defaultMessage": "Let the request through"
 	},
 	"npmos.crowdsec.appsec.hint": {
-		"defaultMessage": "The bouncer sends requests to the AppSec engine of CrowdSec, which blocks exploits of known vulnerabilities (virtual patching). Works with the bouncer of NPMOS."
+		"defaultMessage": "The bouncer sends requests to the AppSec engine of CrowdSec, which blocks exploits of known vulnerabilities (virtual patching). Works with the bouncer of NPMOS. On hosts with open-appsec in prevention, open-appsec answers first: what it blocks does not reach AppSec (it reaches CrowdSec through the open-appsec log and the ban scenario). Allowlists of CrowdSec apply to AppSec too."
 	},
 	"npmos.crowdsec.appsec.title": {
 		"defaultMessage": "CrowdSec AppSec"

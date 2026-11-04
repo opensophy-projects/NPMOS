@@ -16,6 +16,7 @@ import { readFileSync } from "node:fs";
 import http from "node:http";
 import { hostname } from "node:os";
 import { timingSafeEqual } from "node:crypto";
+import { repairNamespaces } from "./watchdog.js";
 
 const PORT = Number.parseInt(process.env.NPMOS_CONTROL_PORT || "7080", 10);
 const DOCKER_HOST = process.env.NPMOS_DOCKER_HOST || "http://socket-proxy:2375";
@@ -269,6 +270,25 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, () => {
 	audit({ event: "listening", port: PORT, docker: DOCKER_HOST });
 });
+
+const inspectContainer = async (id) => (await docker("GET", `/containers/${id}/json`)).json();
+const restartContainer = (id) => docker("POST", `/containers/${id}/restart?t=10`);
+
+const WATCHDOG_MS = 30 * 1000;
+const repairAll = () => repairNamespaces(listManaged, inspectContainer, restartContainer);
+if (process.env.NPMOS_CONTROL_WATCHDOG !== "false") {
+	const tick = () =>
+		repairAll().then(
+			(repaired) => {
+				for (const service of repaired)
+					audit({ actor: "watchdog", result: "restarted", service, reason: "network namespace" });
+			},
+			// socket-proxy may come up after this service at boot: the next tick tries again
+			() => undefined,
+		);
+	setTimeout(tick, 5000).unref();
+	setInterval(tick, WATCHDOG_MS).unref();
+}
 
 for (const signal of ["SIGINT", "SIGTERM"]) {
 	process.on(signal, () => server.close(() => process.exit(0)));
