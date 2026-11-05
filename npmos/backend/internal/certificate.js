@@ -55,15 +55,12 @@ const internalCertificate = {
 				// NPMOS: renewal can be off (Settings -> ACME); the days before the end go to the renewal files
 				if (!acmeRenewEnabled()) throw new Error("automatic renewal is off in Settings -> ACME");
 				await applyRenewWindow();
-				const result = await certbotAcme([
-					// NPMOS: an ACME account the server forgot is registered again
-					"--config",
-					"/etc/certbot.ini",
-					"renew",
-					"--server",
-					process.env.ACME_SERVER,
-					"--quiet",
-				]);
+				const result = await certbotAcme(
+					// NPMOS: an ACME account the server forgot is registered again; none is registered up front (the
+					// timer runs at the start too, without certificates it must not reach the ACME server)
+					["--config", "/etc/certbot.ini", "renew", "--server", process.env.ACME_SERVER, "--quiet"],
+					{ register: false },
+				);
 
 				if (result) logger.info(`Renew Result: ${result}`);
 			} catch (err) {
@@ -829,18 +826,21 @@ const internalCertificate = {
 			// do nothing
 		}
 
-		const renewResult = await certbotAcme([
-			// NPMOS: an ACME account the server forgot is registered again
-			"--config",
-			"/etc/certbot.ini",
-			"renew",
-			"--server",
-			process.env.ACME_SERVER,
-			"--cert-name",
-			`npm-${certificate.id}`,
-			"--new-key",
-			"--force-renewal",
-		]);
+		const renewResult = await certbotAcme(
+			[
+				// NPMOS: an ACME account the server forgot is registered again
+				"--config",
+				"/etc/certbot.ini",
+				"renew",
+				"--server",
+				process.env.ACME_SERVER,
+				"--cert-name",
+				`npm-${certificate.id}`,
+				"--new-key",
+				"--force-renewal",
+			],
+			{ register: false },
+		); // NPMOS: the lineage has its account already
 		logger.info(renewResult);
 
 		return renewResult;
@@ -876,18 +876,21 @@ const internalCertificate = {
 			// do nothing
 		}
 
-		const renewResult = await certbotAcme([
-			// NPMOS: an ACME account the server forgot is registered again
-			"--config",
-			"/etc/certbot.ini",
-			"renew",
-			"--server",
-			process.env.ACME_SERVER,
-			"--cert-name",
-			`npm-${certificate.id}`,
-			"--new-key",
-			"--force-renewal",
-		]);
+		const renewResult = await certbotAcme(
+			[
+				// NPMOS: an ACME account the server forgot is registered again
+				"--config",
+				"/etc/certbot.ini",
+				"renew",
+				"--server",
+				process.env.ACME_SERVER,
+				"--cert-name",
+				`npm-${certificate.id}`,
+				"--new-key",
+				"--force-renewal",
+			],
+			{ register: false },
+		); // NPMOS: the lineage has its account already
 		logger.info(renewResult);
 		return renewResult;
 	},

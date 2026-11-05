@@ -145,9 +145,11 @@ const replaceAccount = async () => {
  * certbot with the ACME account of ACME_SERVER. Before, an account the server had forgotten failed every request
  * until the files were removed by hand; now NPMOS registers a new one and asks once more.
  * @param {string[]} args
+ * @param {{register?: boolean}} [options]  register: false for "renew" by the timer, which must not reach the ACME
+ *   server when there is nothing to renew (local-first: no account is registered at the start of NPMOS)
  */
-const certbotAcme = async (args) => {
-	await ensureAcmeAccount();
+const certbotAcme = async (args, { register = true } = {}) => {
+	if (register) await ensureAcmeAccount();
 	try {
 		return await utils.execFile("certbot", args);
 	} catch (err) {
