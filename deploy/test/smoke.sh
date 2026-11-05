@@ -686,15 +686,22 @@ denied() { # page → the mTLS of mtls.local with that page
     \"rules\": [{\"field\": \"organizational_unit\", \"op\": \"one_of\", \"values\": [\"IT\"]}], \"revocation\": \"ocsp\",
     \"denied_page\": \"$1\"}" | tr -d ' \n' | grep -q "\"denied_page\":\"$1\"" || fail "mtls.local did not take the page $1"
 }
+# after a change old nginx workers still answer for a moment (graceful reload, reuseport): each check is repeated
+eventually() { # description, command... → fails after 15 tries
+  what=$1; shift
+  for i in $(seq 1 15); do "$@" && return 0; [ "$i" = 15 ] && fail "$what"; sleep 1; done
+}
+mtls_code() { want=$1; shift; [ "$(mtls "$@" 2>/dev/null)" = "$want" ]; }
+page_404() { curl -s -k --max-time 10 $TLS_TO "$HTTPS_MTLS/" | grep -q 'This site is not here'; }
 denied not_found
-for i in $(seq 1 10); do [ "$(mtls)" = 404 ] && break; [ "$i" = 10 ] && fail "no certificate: expected 404"; sleep 1; done
-curl -sS -k --max-time 10 $TLS_TO "$HTTPS_MTLS/" | grep -q 'This site is not here' || fail "the 404 page of NPMOS was not shown"
-expect "$(mtls --cert /tmp/bob.crt --key /tmp/bob.key)" 404 "a certificate refused by a rule with the 404 page"
+eventually "no certificate: expected 404" mtls_code 404
+eventually "the 404 page of NPMOS was not shown" page_404
+eventually "a certificate refused by a rule: expected 404" mtls_code 404 --cert /tmp/bob.crt --key /tmp/bob.key
 denied close
-for i in $(seq 1 10); do [ "$(mtls)" = 000 ] && break; [ "$i" = 10 ] && fail "no certificate: expected no answer"; sleep 1; done
-expect "$(mtls --cert /tmp/dana.crt --key /tmp/dana.key)" 000 "a certificate of another host with no answer"
+eventually "no certificate: expected no answer" mtls_code 000
+eventually "a certificate of another host: expected no answer" mtls_code 000 --cert /tmp/dana.crt --key /tmp/dana.key
 denied certificate
-for i in $(seq 1 10); do [ "$(mtls)" = 403 ] && break; [ "$i" = 10 ] && fail "no certificate: expected 403 again"; sleep 1; done
+eventually "no certificate: expected 403 again" mtls_code 403
 
 step "mTLS on a TCP stream: a certificate of the trust domain passes, none or a revoked one is refused"
 stream_id=$(api_json "$ADMIN/api/nginx/streams" -d "{\"incoming_port\": 9555, \"forwarding_host\": \"test-upstream\",
