@@ -4523,6 +4523,18 @@
 	"npmos.pki.ca.parent": {
 		"defaultMessage": "Корневой CA"
 	},
+	"npmos.pki.ca.revoke": {
+		"defaultMessage": "Отозвать CA"
+	},
+	"npmos.pki.ca.revoke.text": {
+		"defaultMessage": "{name} попадёт в список отзыва (CRL) и OCSP своего корня, {count, plural, =0 {и больше ничего не выпустит} one {а его # действующий сертификат будет отозван вместе с ним} few {а его # действующих сертификата будут отозваны вместе с ним} other {а его # действующих сертификатов будут отозваны вместе с ним}}. Хосты, которые доверяют этому CA или его корню, перестанут пускать его сертификаты в течение минуты. Отменить отзыв нельзя."
+	},
+	"npmos.pki.ca.revoked": {
+		"defaultMessage": "{name} отозван"
+	},
+	"npmos.pki.ca.revoked-badge": {
+		"defaultMessage": "отозван"
+	},
 	"npmos.pki.copied": {
 		"defaultMessage": "Скопировано"
 	},

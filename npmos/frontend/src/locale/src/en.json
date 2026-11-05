@@ -4523,6 +4523,18 @@
 	"npmos.pki.ca.parent": {
 		"defaultMessage": "Root CA"
 	},
+	"npmos.pki.ca.revoke": {
+		"defaultMessage": "Revoke CA"
+	},
+	"npmos.pki.ca.revoke.text": {
+		"defaultMessage": "{name} goes into the revocation list (CRL) and OCSP of its root, and {count, plural, =0 {it issues nothing more} one {its # valid certificate is revoked with it} other {its # valid certificates are revoked with it}}. Hosts that trust this CA or its root refuse its certificates within a minute. A revocation cannot be undone."
+	},
+	"npmos.pki.ca.revoked": {
+		"defaultMessage": "{name} is revoked"
+	},
+	"npmos.pki.ca.revoked-badge": {
+		"defaultMessage": "revoked"
+	},
 	"npmos.pki.copied": {
 		"defaultMessage": "Copied"
 	},

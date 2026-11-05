@@ -438,7 +438,7 @@ function CasTab({ data, refresh }: { data: PkiOverview; refresh: () => void }) {
 					},
 				]
 			: []),
-		...(can("pki", "issue") && ca.kind === "intermediate" && ca.hasKey
+		...(can("pki", "issue") && ca.kind === "intermediate" && ca.hasKey && !ca.revokedOn
 			? [
 					{
 						key: "issue",
@@ -456,6 +456,22 @@ function CasTab({ data, refresh }: { data: PkiOverview; refresh: () => void }) {
 						label: <T id="npmos.pki.ca.edit" />,
 						onSelect: () => showCaModal({ data, edit: ca, onDone: refresh }),
 					},
+					...(can("pki", "revoke") && ca.kind === "intermediate" && !ca.revokedOn
+						? [
+								{
+									key: "revoke",
+									label: <span className="text-danger">{t("npmos.pki.ca.revoke")}</span>,
+									onSelect: () =>
+										showRevokeModal({
+											ca,
+											certs: data.certificates.filter(
+												(c) => c.caId === ca.id && c.status !== "revoked",
+											),
+											onDone: refresh,
+										}),
+								},
+							]
+						: []),
 					{
 						key: "delete",
 						label: <span className="text-danger">{t("npmos.pki.ca.delete")}</span>,
@@ -559,6 +575,14 @@ function CasTab({ data, refresh }: { data: PkiOverview; refresh: () => void }) {
 											<span className="badge bg-secondary-lt ms-2">
 												<T id={`npmos.pki.ca.kind.${ca.kind}`} />
 											</span>
+											{ca.revokedOn && (
+												<span
+													className="badge bg-red-lt ms-1"
+													title={t(`npmos.pki.reason.${ca.revokeReason || "unspecified"}`)}
+												>
+													<T id="npmos.pki.ca.revoked-badge" />
+												</span>
+											)}
 											{ca.upstreamCertificateId && (
 												<span className="badge bg-azure-lt ms-1">
 													<T id="npmos.pki.ca.from-npmplus" />

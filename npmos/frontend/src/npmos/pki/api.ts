@@ -60,6 +60,9 @@ export interface PkiCa {
 	issued: number;
 	active: number;
 	revoked: number;
+	/** an intermediate CA revoked with every certificate it issued */
+	revokedOn: string | null;
+	revokeReason: string | null;
 	/** hosts with mTLS that trust it */
 	hosts: string[];
 }
@@ -239,6 +242,10 @@ export const renewCert = (
 	},
 ): Promise<IssueResult> => api.post({ url: `/npmos/pki/certs/${id}/renew`, data });
 
+/** an intermediate CA: listed in the CRL and OCSP of its root, its certificates are revoked with it */
+export const revokeCa = (id: number, reason: string): Promise<PkiCa> =>
+	api.post({ url: `/npmos/pki/cas/${id}/revoke`, data: { reason } });
+
 export const revokeCerts = (ids: number[], reason: string): Promise<{ revoked: number }> =>
 	api.post({ url: "/npmos/pki/certs/revoke", data: { ids, reason } });
 
@@ -329,7 +336,8 @@ export const hostKey = (ref: { hostType: MtlsHostType; hostId: number }) => `${r
 /** CAs of NPMOS that can issue client certificates for a host: its trust domains, or those of its roots */
 export const issuersFor = (host: { caIds: number[] }, cas: PkiCa[]) => {
 	const now = Date.now();
-	const usable = (ca: PkiCa) => ca.kind === "intermediate" && ca.hasKey && new Date(ca.notAfter).getTime() > now;
+	const usable = (ca: PkiCa) =>
+		ca.kind === "intermediate" && ca.hasKey && !ca.revokedOn && new Date(ca.notAfter).getTime() > now;
 	const direct = cas.filter((ca) => host.caIds.includes(ca.id) && usable(ca));
 	if (direct.length) return direct;
 	return cas.filter((ca) => ca.parentId !== null && host.caIds.includes(ca.parentId) && usable(ca));

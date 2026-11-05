@@ -190,6 +190,8 @@ const toCa = (row, counts = {}) => ({
 	issued: counts.issued || 0,
 	active: counts.active || 0,
 	revoked: counts.revoked || 0,
+	revoked_on: row.revoked_on ?? null,
+	revoke_reason: row.revoke_reason ?? null,
 	meta: parse(row.meta) || {},
 });
 
@@ -277,11 +279,13 @@ export const regenerateCrl = async (caId) => {
 	if (ca.kind === "external" || !ca.key_enc) return false;
 	const s = await settings();
 	const revokedCerts = await db()("npmos_pki_cert").where({ ca_id: caId }).whereNotNull("revoked_on");
+	// revoked trust domains under it are listed too: nginx checks the CRL of every CA of the chain
+	const revokedCas = await db()("npmos_pki_ca").where({ parent_id: caId }).whereNotNull("revoked_on");
 	const crlNumber = (ca.crl_number || 0) + 1;
 	const crlPem = await ops.makeCrl({
 		caCertPem: ca.cert_pem,
 		caKeyPem: decrypt(ca.key_enc),
-		revoked: revokedCerts,
+		revoked: [...revokedCerts, ...revokedCas],
 		crlNumber,
 		days: s.crl_days,
 	});
@@ -590,6 +594,8 @@ const internalPki = {
 			await regenerateCrl(id);
 			return id;
 		});
+		// hosts that trust the root take the new CA (its certificate and CRL) at once
+		if (data.kind === "intermediate") await notifyCrl([Number(data.parent_id)]);
 		await audit(access, "created", "pki", result, { name: data.name, kind: data.kind });
 		return internalPki.getCa(access, result);
 	},
@@ -848,6 +854,7 @@ const internalPki = {
 				throw new PkiError("Certificates are issued by NPMOS CAs with a key");
 			if (ca.kind === "root")
 				throw new PkiError("A root CA only signs intermediate CAs; issue with a trust domain");
+			if (ca.revoked_on) throw new PkiError("The CA is revoked");
 			if (new Date(ca.not_after) <= new Date()) throw new PkiError("The CA has expired");
 			if (!PROFILES.includes(data.profile)) throw new PkiError(`profile: ${PROFILES.join(", ")}`);
 			const sans = normalizeSans(data.sans);
@@ -1044,6 +1051,44 @@ const internalPki = {
 	},
 
 	/**
+	 * Revokes an intermediate CA (trust domain): the CRL and OCSP of its root list it, every certificate it issued is
+	 * revoked with it (CACompromise when its key leaked), and it issues nothing more. Hosts that trust it or its root
+	 * refuse its certificates; the CA stays in the list (its CRL is still published) until it is deleted.
+	 * @param {Access} access
+	 */
+	revokeCa: async (access, id, reason = "unspecified") => {
+		await access.can("pki:manage");
+		await access.can("pki:revoke");
+		if (!REVOKE_REASONS.includes(reason)) throw new errs.ValidationError(`reason: ${REVOKE_REASONS.join(", ")}`);
+		const ca = await caRow(id);
+		if (ca.kind !== "intermediate") {
+			throw new errs.ValidationError(
+				"Only an intermediate CA is revoked; a root is not trusted by anyone above it, delete it instead",
+			);
+		}
+		if (ca.revoked_on) throw new errs.ValidationError("The CA is already revoked");
+		const parent = ca.parent_id ? await caRow(ca.parent_id) : null;
+		if (!parent?.key_enc) throw new errs.ValidationError("NPMOS has no key of the root of this CA");
+		const now = new Date();
+		await db()("npmos_pki_ca").where({ id }).update({ revoked_on: now, revoke_reason: reason, modified_on: now });
+		const certReason = ["keyCompromise", "CACompromise"].includes(reason) ? "CACompromise" : reason;
+		const certs = await db()("npmos_pki_cert").where({ ca_id: id }).whereNull("revoked_on").select("id");
+		// the CRL of the CA itself and nginx follow from the revocation of its certificates
+		if (certs.length) {
+			await internalPki.revoke(
+				access,
+				certs.map((r) => r.id),
+				certReason,
+			);
+		}
+		ocspCache.clear();
+		await regenerateCrl(parent.id);
+		await notifyCrl([parent.id, id]);
+		await audit(access, "revoked", "pki", id, { name: ca.name, reason, certificates: certs.length });
+		return internalPki.getCa(access, id);
+	},
+
+	/**
 	 * Notes of a certificate (who or what it is for).
 	 * @param {Access} access
 	 */
@@ -1188,7 +1233,9 @@ const internalPki = {
 		const certs = await db()("npmos_pki_cert")
 			.where({ ca_id: caId })
 			.select("serial", "not_after", "revoked_on", "revoke_reason");
-		const children = await db()("npmos_pki_ca").where({ parent_id: caId }).select("serial", "not_after");
+		const children = await db()("npmos_pki_ca")
+			.where({ parent_id: caId })
+			.select("serial", "not_after", "revoked_on", "revoke_reason");
 		const caKeyPem = decrypt(ca.key_enc);
 		const signer = await ocspSigner(ca, caKeyPem);
 		const der = await ops.ocspRespond({

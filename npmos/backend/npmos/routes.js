@@ -1582,6 +1582,27 @@ router
 		}),
 	);
 
+/**
+ * POST /api/npmos/pki/cas/:ca_id/revoke — {reason}: an intermediate CA and every certificate it issued
+ */
+router
+	.route("/pki/cas/:ca_id/revoke")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					properties: { reason: { type: "string" } },
+				},
+				req.body,
+			);
+			return internalPki.revokeCa(res.locals.access, req.params.ca_id, data.reason || "unspecified");
+		}),
+	);
+
 const issueProperties = {
 	ca_id: { type: "integer" },
 	profile: { type: "string", enum: ["client", "server"] },

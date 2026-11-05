@@ -173,10 +173,13 @@ const refreshFor = async (caIds) => {
 	const rows = await db()("npmos_mtls_host").where({ enabled: true });
 	let changed = false;
 	for (const row of rows) {
-		// revocation by OCSP: the answers of NPMOS change, nginx needs nothing
-		if (row.revocation === "ocsp" && row.host_type === "proxy_host") continue;
 		const set = trustSet(parse(row.ca_ids) || [], cas);
 		if (!set.ids.some((id) => caIds.includes(id))) continue;
+		// revocation by OCSP: answers of NPMOS change, nginx needs nothing; a new CA under a trusted root: the CA file
+		if (row.revocation === "ocsp" && row.host_type === "proxy_host") {
+			changed = (await writeFiles(row.host_type, row.host_id, { ...set, crls: "" })) || changed;
+			continue;
+		}
 		const hadCrl = await readFile(files(row.host_type, row.host_id).crl, "utf8").then(
 			() => true,
 			() => false,

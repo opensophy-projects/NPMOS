@@ -680,6 +680,16 @@ for i in $(seq 1 30); do
 done
 $CURL "$ADMIN/api/npmos/pki" | grep -q '"common_name": *"dana"' && fail "the deleted certificate is still listed"
 
+step "PKI: a revoked trust domain takes its certificates with it and issues nothing more"
+api_json "$ADMIN/api/npmos/pki/cas/$other_id/revoke" -d '{"reason": "keyCompromise"}' | tr -d ' \n' \
+  | grep -q '"revoke_reason":"keyCompromise"' || fail "the trust domain Smoke Partners was not revoked"
+carol_reason=$($CURL "$ADMIN/api/npmos/pki" | tr -d ' \n' | sed -n 's/.*"common_name":"carol",\(.*\)/\1/p' \
+  | grep -o '"revoke_reason":[^,]*' | head -1)
+expect "$carol_reason" '"revoke_reason":"CACompromise"' "the certificate of carol revoked with its CA"
+expect "$(curl -sS -k -b $JAR -o /dev/null -w '%{http_code}' -H 'Content-Type: application/json' \
+  "$ADMIN/api/npmos/pki/certs" -d "{\"ca_id\": $other_id, \"profile\": \"client\", \"subject\": {\"common_name\": \"x\"}}")" \
+  400 "issuing with a revoked CA"
+
 step "Certificates: the registry lists the TLS certificate and the CAs of the PKI, without the deleted one"
 registry=$($CURL "$ADMIN/api/npmos/certificates?limit=200" | tr -d ' \n')
 echo "$registry" | grep -q '"source":"tls"' || fail "no TLS certificate in the registry: $registry"
