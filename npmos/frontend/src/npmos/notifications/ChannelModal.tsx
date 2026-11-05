@@ -145,6 +145,7 @@ const ChannelModal = EasyModal.create(({ type, channel, visible, remove }: Props
 					)}
 					<Field label="npmos.notifications.name">
 						<input
+							autoComplete="off"
 							className="form-control"
 							value={name}
 							maxLength={100}
@@ -157,6 +158,7 @@ const ChannelModal = EasyModal.create(({ type, channel, visible, remove }: Props
 								<div className="col-md-6">
 									<Field label="npmos.notifications.email.host">
 										<input
+											autoComplete="off"
 											className="form-control"
 											value={email.host}
 											placeholder={EXAMPLE.host}
@@ -167,6 +169,7 @@ const ChannelModal = EasyModal.create(({ type, channel, visible, remove }: Props
 								<div className="col-md-2">
 									<Field label="npmos.notifications.email.port">
 										<input
+											autoComplete="off"
 											type="number"
 											className="form-control"
 											value={email.port}
@@ -227,6 +230,7 @@ const ChannelModal = EasyModal.create(({ type, channel, visible, remove }: Props
 							</div>
 							<Field label="npmos.notifications.email.from">
 								<input
+									autoComplete="off"
 									className="form-control"
 									value={email.from}
 									placeholder={EXAMPLE.from}
@@ -235,6 +239,7 @@ const ChannelModal = EasyModal.create(({ type, channel, visible, remove }: Props
 							</Field>
 							<Field label="npmos.notifications.email.to" hint="npmos.notifications.email.to.hint">
 								<input
+									autoComplete="off"
 									className="form-control"
 									value={to}
 									placeholder={EXAMPLE.to}
@@ -260,6 +265,7 @@ const ChannelModal = EasyModal.create(({ type, channel, visible, remove }: Props
 						<>
 							<Field label="npmos.notifications.webhook.url">
 								<input
+									autoComplete="off"
 									className="form-control"
 									value={webhook.url}
 									placeholder={EXAMPLE.url}
@@ -302,6 +308,7 @@ const ChannelModal = EasyModal.create(({ type, channel, visible, remove }: Props
 								hint="npmos.notifications.telegram.chat.hint"
 							>
 								<input
+									autoComplete="off"
 									className="form-control"
 									value={telegram.chatId}
 									placeholder={EXAMPLE.chat}
@@ -313,6 +320,7 @@ const ChannelModal = EasyModal.create(({ type, channel, visible, remove }: Props
 								hint="npmos.notifications.telegram.api.hint"
 							>
 								<input
+									autoComplete="off"
 									className="form-control"
 									value={telegram.apiUrl}
 									placeholder={EXAMPLE.api}

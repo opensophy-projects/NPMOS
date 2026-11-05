@@ -1,7 +1,7 @@
 // Important notices of the overview (docs/ROADMAP.md, phase 2 "Overview"): what needs the
 // administrator now, from data the UI already has. Phase 4 moves them into notifications.
 import type { Certificate } from "src/api/backend";
-import type { Service, WafStatus } from "../../api";
+import type { CertTerm, Service, WafStatus } from "../../api";
 import { type FilterRule, filtersToParams, type Recommendation } from "../Hosts/rows";
 
 export type NoticeLevel = "alert" | "warning" | "info";
@@ -40,13 +40,21 @@ export const hostNotices = (recs: Recommendation[]): Notice[] =>
  * Expiring certificates and mTLS CAs. Certificates of hosts are already in the host notices
  * (`attached`: their ids), so only the others are listed here.
  */
-export function certificateNotices(certificates: Certificate[], attached: number[] = [], now = Date.now()): Notice[] {
+export function certificateNotices(
+	certificates: Certificate[],
+	attached: number[] = [],
+	now = Date.now(),
+	terms?: Record<string, CertTerm>,
+): Notice[] {
 	const notices: Notice[] = [];
 	for (const cert of certificates) {
 		if (!cert.expiresOn || (cert.provider !== "mtls" && attached.includes(cert.id))) continue;
 		const days = Math.floor((new Date(cert.expiresOn).getTime() - now) / DAY);
-		const limit = cert.provider === "letsencrypt" ? LE_WARN_DAYS : CERT_WARN_DAYS;
-		if (days >= limit) continue;
+		// by the term of the certificate when NPMOS knows it (a renewal is late, or it must be replaced soon)
+		const from = cert.provider !== "mtls" ? terms?.[String(cert.id)]?.attentionFrom : null;
+		if (from) {
+			if (days >= 0 && now < new Date(from).getTime()) continue;
+		} else if (days >= (cert.provider === "letsencrypt" ? LE_WARN_DAYS : CERT_WARN_DAYS)) continue;
 		const kind = cert.provider === "mtls" ? "ca" : "cert";
 		notices.push({
 			key: `cert-${cert.id}`,

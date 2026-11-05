@@ -43,7 +43,8 @@ export const SYSTEM_ENV = [
 	{ env: "ACME_EAB_KID", group: "acme", type: "token", default: "" },
 	{ env: "ACME_EAB_HMAC_KEY", group: "acme", type: "secret", default: "" },
 	// the term of the certificates is the CA's: it offers profiles (Let's Encrypt: classic 90 days, shortlived
-	// about 6 days, tlsserver); "none": the default of the server. Empty: as envs.sh (shortlived at Let's Encrypt)
+	// about 6 days, tlsserver); "none": the default of the server. Empty: as envs.sh (classic at Let's Encrypt:
+	// local-first, a few days without the internet must not leave the sites with expired certificates)
 	{ env: "ACME_PROFILE", group: "acme", type: "profile", default: "" },
 	bool("ACME_RENEW", "acme", true),
 	// days before the end a certificate is renewed; 0: what certbot does (a third of the term, at most 30 days)

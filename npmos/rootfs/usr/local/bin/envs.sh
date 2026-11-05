@@ -93,7 +93,10 @@ export ACME_SERVER="${ACME_SERVER:-https://acme-v02.api.letsencrypt.org/director
 
 case "$ACME_SERVER" in
     "https://acme-v02.api.letsencrypt.org/directory")
-        export ACME_PROFILE="${ACME_PROFILE:-shortlived}"
+        # NPMOS: classic (90 days) instead of shortlived (about 6 days): NPMOS is local-first, and a server that
+        # cannot reach Let's Encrypt for two or three days would serve expired certificates. shortlived stays a
+        # choice in System -> Settings -> ACME.
+        export ACME_PROFILE="${ACME_PROFILE:-classic}"
         ;;
 
     "https://dv.acme-v02.api.pki.goog/directory")

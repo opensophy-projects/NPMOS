@@ -7,6 +7,7 @@ import validator from "../lib/validator/api.js";
 import { debug, express as logger } from "../logger.js";
 import internalAudit from "./audit/index.js";
 import internalBlockPage from "./block-page.js";
+import { certificateTerms } from "./cert-terms.js";
 import internalCertificates from "./certificates.js";
 import internalCrowdsec from "./crowdsec/index.js";
 import internalAnalytics from "./events/analytics.js";
@@ -882,7 +883,7 @@ router
 
 /**
  * GET /api/npmos/events — security events of the agent, newest first. Filters: from, to (ISO, default
- * the last 24 h), kind=agents (open-appsec and CrowdSec, default)|security|crowdsec|mtls|system|all, agent
+ * the last 24 h), kind=agents (open-appsec with its notices and CrowdSec, default)|security|crowdsec|mtls|system|all, agent
  * (open-appsec, crowdsec, mtls), important=true, host, ip, action, severity, type
  * (comma-separated), min_score, max_score, q (text); limit (≤ 500), before (cursor: next of a page)
  */
@@ -1042,6 +1043,21 @@ router
 	.options((_, res) => res.sendStatus(204))
 	.all(jwtdecode())
 	.get(handle((req, res) => internalCertificates.list(res.locals.access, req.query)));
+
+/**
+ * GET /api/npmos/certificates/terms — the TLS certificates of the hosts: {<id>: {not_before, not_after,
+ * lifetime_days, auto_renew, renew_from, attention_from}}; attention_from follows the term (npmos/cert-terms.js)
+ */
+router
+	.route("/certificates/terms")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(
+		handle(async (_, res) => {
+			await res.locals.access.can("certificates:list");
+			return certificateTerms();
+		}),
+	);
 
 /**
  * GET /api/npmos/audit — a page of the audit log, newest first. Filters: period=24h|7d|30d|90d or from/to (ISO),

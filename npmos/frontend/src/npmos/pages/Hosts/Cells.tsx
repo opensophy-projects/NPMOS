@@ -22,7 +22,7 @@ import type { PkiCa, PkiCert } from "../../pki/api";
 import { Dropdown, type DropdownItem } from "../../ui/Dropdown";
 import { dateTime, timeAgo } from "../../ui/time";
 import styles from "./Hosts.module.css";
-import { EXPIRING_DAYS, type HostRow, type MtlsState, type WafState } from "./rows";
+import type { HostRow, MtlsState, WafState } from "./rows";
 
 const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id }, values);
 
@@ -134,7 +134,7 @@ export function NameCell({ row, ctx }: { row: HostRow; ctx: CellContext }) {
 
 export function TlsCell({ row, ctx }: { row: HostRow; ctx: CellContext }) {
 	const days = row.expiresInDays;
-	const tone = days === null ? undefined : days < 0 ? "alert" : days < EXPIRING_DAYS ? "warning" : undefined;
+	const tone = days === null ? undefined : days < 0 ? "alert" : row.certAttention ? "warning" : undefined;
 	const label =
 		row.tls === "none"
 			? t("no-tls")

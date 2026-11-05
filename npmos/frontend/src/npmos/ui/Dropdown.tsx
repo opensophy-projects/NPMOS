@@ -96,7 +96,7 @@ export function Dropdown({
 	useLayoutEffect(() => {
 		if (!open) return;
 		measured.current = false;
-		placeMenu(Math.min(320, (items.length + (header ? 1 : 0)) * 36 + 8));
+		placeMenu(Math.min(448, (items.length + (header ? 1 : 0)) * 36 + 8));
 	}, [open, items.length, header, placeMenu]);
 	useLayoutEffect(() => {
 		if (!open || measured.current || !menu.current) return;

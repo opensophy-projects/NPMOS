@@ -2,6 +2,8 @@ import { QueryClient } from "@tanstack/react-query";
 import { camelizeKeys, decamelize, decamelizeKeys } from "humps";
 import queryString, { type StringifiableRecord } from "query-string";
 import AuthStore from "src/modules/AuthStore";
+// NPMOS: errors for answers that are not JSON
+import { isNotJson, notJsonError } from "src/npmos/apiErrors";
 
 const queryClient = new QueryClient();
 const contentTypeHeader = "Content-Type";
@@ -40,6 +42,11 @@ function buildBody(data?: Record<string, any>): string | undefined {
 }
 
 async function processResponse(response: Response, reload = true) {
+	// NPMOS: an answer that is not JSON came from in front of the API (the protection of the proxy host the panel
+	// is opened through, a page of nginx): say who refused instead of a JSON parse error, and keep the session
+	if (isNotJson(response) && response.status !== 204) {
+		throw notJsonError(response);
+	}
 	const payload = await response.json();
 	if (!response.ok) {
 		if (response.status === 401 || response.status === 403) {

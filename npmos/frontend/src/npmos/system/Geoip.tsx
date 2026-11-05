@@ -8,6 +8,7 @@ import { T } from "src/locale";
 import { showError, showSuccess } from "src/notifications";
 import { t } from "../crowdsec/labels";
 import { dateTime } from "../ui/time";
+import { isNotJson, notJsonError } from "../apiErrors";
 
 interface GeoipState {
 	database: { source: "uploaded" | "crowdsec"; type: string; built: string | null; size: number } | null;
@@ -23,6 +24,7 @@ const upload = async (file: File): Promise<GeoipState> => {
 		headers: { "Content-Type": "application/octet-stream" },
 		body: file,
 	});
+	if (isNotJson(response)) throw notJsonError(response);
 	const payload = await response.json().catch(() => ({}));
 	if (!response.ok) throw new Error(payload?.error?.message || `HTTP ${response.status}`);
 	return payload;

@@ -6,6 +6,7 @@ import { X509Certificate } from "node:crypto";
 import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import db from "../db.js";
+import { termOf } from "./cert-terms.js";
 import errs from "../lib/error.js";
 
 const DAY = 86400000;
@@ -47,11 +48,13 @@ const may = (access, permission) =>
 
 const iso = (value) => (value ? new Date(value).toISOString() : null);
 
-const statusOf = (notAfter, revoked, now) => {
+/** `attention`: when the certificate needs attention (TLS of the hosts: by its term, cert-terms.js) */
+const statusOf = (notAfter, revoked, now, attention = null) => {
 	if (revoked) return "revoked";
 	if (!notAfter) return "valid";
 	const left = new Date(notAfter).getTime() - now.getTime();
 	if (left <= 0) return "expired";
+	if (attention) return now.getTime() >= new Date(attention).getTime() ? "expiring" : "valid";
 	return left < EXPIRING_DAYS * DAY ? "expiring" : "valid";
 };
 
@@ -196,6 +199,7 @@ const collect = async (access, now) => {
 		for (const cert of certs) {
 			const meta = parse(cert.meta) || {};
 			const pki = pkiOf[cert.id];
+			const term = await termOf(cert);
 			rows.push({
 				key: `tls:${cert.id}`,
 				source: "tls",
@@ -205,10 +209,12 @@ const collect = async (access, now) => {
 				kind: cert.provider,
 				dns_provider: meta.dns_challenge ? meta.dns_provider || null : null,
 				issuer: pki ? pki.issuer : "",
-				not_before: null,
-				not_after: iso(cert.expires_on),
+				not_before: term.not_before,
+				not_after: term.not_after ?? iso(cert.expires_on),
 				created_on: iso(cert.created_on),
-				status: statusOf(cert.expires_on, pki?.status === "revoked", now),
+				status: statusOf(cert.expires_on, pki?.status === "revoked", now, term.attention_from),
+				auto_renew: term.auto_renew,
+				renew_from: term.renew_from,
 				used_by: usage.byCert[cert.id] || [],
 				pki_id: pki?.id ?? null,
 			});

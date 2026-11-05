@@ -4,8 +4,8 @@ import type { EventQuery } from "../../api";
 
 export const PERIODS = ["1h", "24h", "7d", "30d", "custom"] as const;
 export type Period = (typeof PERIODS)[number];
-// "agents": open-appsec and CrowdSec in one list, the agent named in each row
-export const KINDS = ["agents", "mtls", "system", "all"] as const;
+// "agents": open-appsec (attacks and the notices of its agent) and CrowdSec in one list, the agent named in each row
+export const KINDS = ["agents", "mtls", "all"] as const;
 export type Kind = (typeof KINDS)[number];
 // open-appsec (Prevent, Detect, Accept), CrowdSec (decision type, an alert without one, a simulated one), mTLS
 export const ACTIONS = ["Prevent", "Detect", "Accept", "ban", "captcha", "alert", "simulated", "denied"] as const;
@@ -69,8 +69,8 @@ const validScore = (value: string | null) => (value && /^\d{1,2}(\.\d+)?$/.test(
 export const filtersFromParams = (params: URLSearchParams): EventFilters => {
 	const period = PERIODS.find((p) => p === params.get("period")) ?? DEFAULT_FILTERS.period;
 	const from = validDate(params.get("from"));
-	// links of before: kind=security (open-appsec) and kind=crowdsec are the agents with one agent
-	const old = { security: "open-appsec", crowdsec: "crowdsec" }[params.get("kind") ?? ""];
+	// links of before: kind=security, kind=system (open-appsec) and kind=crowdsec are the agents with one agent
+	const old = { security: "open-appsec", system: "open-appsec", crowdsec: "crowdsec" }[params.get("kind") ?? ""];
 	const agent = split(params.get("agent")).filter((a) => (AGENTS as readonly string[]).includes(a));
 	return {
 		period: period === "custom" && !from ? DEFAULT_FILTERS.period : period,
@@ -149,13 +149,12 @@ const CROWDSEC_ACTIONS = ["ban", "captcha", "alert", "simulated"];
 export const FILTERS_OF: Record<Kind, { fields: ListField[]; score: boolean }> = {
 	agents: { fields: ["agent", "host", "ip", "action", "severity", "type"], score: true },
 	mtls: { fields: ["host", "ip"], score: false },
-	system: { fields: ["severity"], score: false },
 	all: { fields: [...LIST_FIELDS], score: true },
 };
 
 /** the actions to choose from: those of the agents chosen (open-appsec, CrowdSec), of all with none chosen */
 export const actionsFor = (f: EventFilters): string[] => {
-	if (f.kind === "mtls" || f.kind === "system") return [];
+	if (f.kind === "mtls") return [];
 	const agents = f.agent.length ? f.agent : [...AGENTS];
 	return [
 		...(agents.includes("open-appsec") ? OPENAPPSEC_ACTIONS : []),

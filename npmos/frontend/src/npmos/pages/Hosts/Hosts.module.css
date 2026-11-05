@@ -93,9 +93,12 @@
 	white-space: nowrap;
 	transition: border-color 150ms ease-out;
 }
-.tool:hover,
-.toolOn {
+/* filters and "Export" look the same whether or not something is set: the counter shows active filters */
+.tool:hover {
 	border-color: color-mix(in oklab, var(--accent) 60%, transparent);
+}
+.toolOn {
+	border-color: var(--border-strong);
 }
 .danger {
 	color: var(--tblr-danger);

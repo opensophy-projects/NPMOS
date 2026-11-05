@@ -6,6 +6,7 @@ import Alert from "react-bootstrap/Alert";
 import * as api from "src/api/backend/base";
 import { T } from "src/locale";
 import { showError } from "src/notifications";
+import { isNotJson, notJsonError } from "../apiErrors";
 
 type Stage = "idle" | "ready" | "importing" | "done" | "failed";
 
@@ -58,6 +59,7 @@ const upload = async (file: File): Promise<MigrationState> => {
 		headers: { "Content-Type": "application/octet-stream" },
 		body: file,
 	});
+	if (isNotJson(response)) throw notJsonError(response);
 	const payload = await response.json().catch(() => ({}));
 	if (!response.ok) throw new Error(payload?.error?.message || `HTTP ${response.status}`);
 	return payload;

@@ -22,6 +22,7 @@ import { useCrowdsec } from "../../crowdsec/api";
 import {
 	useAnalytics,
 	useCertificateRegistry,
+	useCertTerms,
 	useEvents,
 	useServices,
 	useUpstreamChecks,
@@ -117,6 +118,7 @@ function OverviewPage() {
 	const waf = useWafHosts({ enabled: can("proxy") });
 	const upstreams = useUpstreamChecks({ enabled: can("proxy") || can("stream") });
 	const certificates = useCertificates([], { enabled: hasPermission(CERTIFICATES, VIEW, perms, roles) });
+	const terms = useCertTerms({ enabled: hasPermission(CERTIFICATES, VIEW, perms, roles) });
 	const wafStatus = useWafStatus({ enabled: rbac("waf_policy") });
 	const services = useServices({ enabled: rbac("services"), refetchInterval: 15000 });
 	const eventsOptions = { enabled: rbac("waf_events"), refetchInterval: 30000 };
@@ -142,6 +144,7 @@ function OverviewPage() {
 		dead: dead.data,
 		waf: waf.data,
 		upstreams: upstreams.data,
+		terms: terms.data,
 	});
 	const notices = sortNotices([
 		...serviceNotices(rbac("services") ? services.data : undefined),
@@ -150,6 +153,8 @@ function OverviewPage() {
 		...certificateNotices(
 			certificates.data ?? [],
 			rows.flatMap((r) => (r.certificate ? [r.certificate.id] : [])),
+			Date.now(),
+			terms.data,
 		),
 	]);
 

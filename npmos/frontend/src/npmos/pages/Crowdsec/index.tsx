@@ -30,11 +30,12 @@ import { BlocklistsTab, RegistryTab } from "./Blocklists";
 import { AlertsTab, DecisionsTab } from "./Decisions";
 import { HubTab } from "./Hub";
 import { SettingsTab } from "./Settings";
-import { OpenappsecBlocksTab } from "./Openappsec";
+import { AgentTriggersTab } from "./Triggers";
 
-// Agents → CrowdSec: the agent and its policy; Analytics → Blocks: what it decides (one page, two places)
-const AGENT_TABS = ["overview", "settings", "hub", "registry"] as const;
-const BLOCK_TABS = ["decisions", "alerts", "openappsec", "blocklists"] as const;
+// Agents → CrowdSec: the agent, its policy and its alerts; Analytics → Blocks: what the agents block (one page,
+// two places). "Triggers" lists the refusals of open-appsec and the bans of CrowdSec together.
+const AGENT_TABS = ["overview", "alerts", "settings", "hub", "registry"] as const;
+const BLOCK_TABS = ["decisions", "triggers", "blocklists"] as const;
 const TABS = [...AGENT_TABS, ...BLOCK_TABS] as const;
 type Tab = (typeof TABS)[number];
 type Place = "agent" | "blocks";
@@ -276,7 +277,9 @@ function CrowdsecPage({ place }: { place: Place }) {
 	const [params, setParams] = useSearchParams();
 	const navigate = useNavigate();
 	const tabs: readonly Tab[] = place === "agent" ? AGENT_TABS : BLOCK_TABS;
-	const asked = TABS.find((x) => x === params.get("tab"));
+	// links of before: the open-appsec tab of Blocks is part of "triggers"
+	const askedTab = params.get("tab") === "openappsec" ? "triggers" : params.get("tab");
+	const asked = TABS.find((x) => x === askedTab);
 	const tab = (asked && tabs.includes(asked) ? asked : tabs[0]) as Tab;
 	// a tab of the other place (links of before) opens there
 	const go = (x: Tab) => {
@@ -292,7 +295,7 @@ function CrowdsecPage({ place }: { place: Place }) {
 			"npmos-crowdsec-decisions",
 			"npmos-crowdsec-alerts",
 			"npmos-crowdsec-hosts",
-			"npmos-blocks-openappsec",
+			"npmos-blocks-triggers",
 		])
 			queryClient.invalidateQueries({ queryKey: [key] });
 	};
@@ -381,7 +384,7 @@ function CrowdsecPage({ place }: { place: Place }) {
 			{tab === "overview" && <OverviewTab data={data} go={go} />}
 			{tab === "decisions" && <DecisionsTab refresh={refresh} />}
 			{tab === "alerts" && <AlertsTab initialQuery={params.get("q") ?? ""} refresh={refresh} />}
-			{tab === "openappsec" && <OpenappsecBlocksTab refresh={refresh} />}
+			{tab === "triggers" && <AgentTriggersTab refresh={refresh} />}
 			{tab === "blocklists" && <BlocklistsTab shareEnabled={!!settings.data?.shareEnabled} refresh={refresh} />}
 			{tab === "hub" && <HubTab onlineHub={!!settings.data?.onlineHub} refresh={refresh} />}
 			{tab === "settings" && settings.data && (
@@ -398,7 +401,7 @@ const Crowdsec = () => (
 	</HasPermission>
 );
 
-/** Analytics → Blocks: decisions, alerts and blocklists of CrowdSec, what open-appsec refused */
+/** Analytics → Blocks: bans (decisions of CrowdSec), what the agents refused, blocklists */
 export const Blocks = () => (
 	<HasPermission rbac="crowdsec" permission={VIEW} pageLoading loadingNoLogo>
 		<CrowdsecPage place="blocks" />

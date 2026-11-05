@@ -9,6 +9,7 @@ import _ from "lodash";
 import dnsPlugins from "../certbot/dns-plugins.json" with { type: "json" };
 import { installPlugin } from "../lib/certbot.js";
 import { acmeError, acmeRenewEnabled, applyRenewWindow, ensureAcmeAccount } from "../npmos/acme.js"; // NPMOS: ACME account, errors, renewal
+import { assertKeyMatches } from "../npmos/cert-pair.js"; // NPMOS: the key must belong to the certificate
 import error from "../lib/error.js";
 import utils from "../lib/utils.js";
 import { debug, ssl as logger } from "../logger.js";
@@ -512,6 +513,10 @@ const internalCertificate = {
 				}
 				finalData[name] = res;
 			}
+		}
+		// NPMOS: the key must be the one of the certificate
+		if (data.files.certificate && data.files.certificate_key) {
+			assertKeyMatches(data.files.certificate.data.toString(), data.files.certificate_key.data.toString());
 		}
 
 		return finalData;

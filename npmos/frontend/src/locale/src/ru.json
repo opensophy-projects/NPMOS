@@ -860,6 +860,18 @@
 	"npmos.analytics.traffic.timeline": {
 		"defaultMessage": "Запросы во времени"
 	},
+	"npmos.api.not-json": {
+		"defaultMessage": "{host} дал неожиданный ответ (HTTP {status}), который пришёл не от NPMOS."
+	},
+	"npmos.api.not-json.blocked": {
+		"defaultMessage": "Запрос отклонён, не дойдя до NPMOS (HTTP {status}): его заблокировала защита {host} — open-appsec, CrowdSec или mTLS прокси-хоста, через который открыта панель. Найдите запрос в «Аналитика → События» и добавьте исключение или откройте панель по адресу https://IP-сервера:81."
+	},
+	"npmos.api.not-json.not-found": {
+		"defaultMessage": "{host} ответил 404: этот адрес не ведёт к API NPMOS. Проверьте прокси-хост панели: схема https, адрес 127.0.0.1, порт 81."
+	},
+	"npmos.api.not-json.unavailable": {
+		"defaultMessage": "{host} ответил {status}: бэкенд NPMOS сейчас недоступен через этот адрес."
+	},
 	"npmos.audit.action.applied": {
 		"defaultMessage": "Применение"
 	},
@@ -1029,7 +1041,7 @@
 		"defaultMessage": "Страница отдаётся на каждый отказ, который nginx делает сам (код 403); ответы ваших сервисов не трогаются. У mTLS и панели администратора свои страницы."
 	},
 	"npmos.blocks.description": {
-		"defaultMessage": "Кого и почему блокирует CrowdSec, что отклонил open-appsec, и списки адресов: баны, капчи, алерты, блок-листы. Здесь же — бан вручную."
+		"defaultMessage": "Кого и почему блокируют агенты: действующие баны и капчи, что недавно отклонили open-appsec и CrowdSec, блок-листы. Здесь же — бан вручную; алерты CrowdSec с подробностями — в «Агенты → CrowdSec»."
 	},
 	"npmos.blocks.openappsec.all": {
 		"defaultMessage": "Все в «Событиях»"
@@ -1040,17 +1052,17 @@
 	"npmos.blocks.openappsec.ban": {
 		"defaultMessage": "Забанить"
 	},
-	"npmos.blocks.openappsec.hint": {
-		"defaultMessage": "Запросы, которые open-appsec отклонил за последние 24 часа: {count}. Баны CrowdSec за повторные атаки — на вкладке «Решения»."
-	},
 	"npmos.blocks.openappsec.host": {
 		"defaultMessage": "Хост и путь"
 	},
-	"npmos.blocks.openappsec.none": {
-		"defaultMessage": "За последние 24 часа open-appsec ничего не отклонил."
-	},
 	"npmos.blocks.openappsec.time": {
 		"defaultMessage": "Когда"
+	},
+	"npmos.blocks.triggers.hint": {
+		"defaultMessage": "Что агенты отклонили за последние 24 часа: запросы, заблокированные open-appsec, и адреса, забаненные CrowdSec, — {count}. Действующие баны — на вкладке «Решения»."
+	},
+	"npmos.blocks.triggers.none": {
+		"defaultMessage": "За последние 24 часа агенты ничего не отклонили."
 	},
 	"npmos.certificates.mtls": {
 		"defaultMessage": "CA для mTLS"
@@ -2144,9 +2156,6 @@
 	"npmos.crowdsec.tab.hub": {
 		"defaultMessage": "Hub"
 	},
-	"npmos.crowdsec.tab.openappsec": {
-		"defaultMessage": "open-appsec"
-	},
 	"npmos.crowdsec.tab.overview": {
 		"defaultMessage": "Обзор"
 	},
@@ -2155,6 +2164,9 @@
 	},
 	"npmos.crowdsec.tab.settings": {
 		"defaultMessage": "Политика"
+	},
+	"npmos.crowdsec.tab.triggers": {
+		"defaultMessage": "Срабатывания"
 	},
 	"npmos.crowdsec.time": {
 		"defaultMessage": "Время"
@@ -2269,9 +2281,6 @@
 	},
 	"npmos.events.kind.mtls": {
 		"defaultMessage": "mTLS"
-	},
-	"npmos.events.kind.system": {
-		"defaultMessage": "Сообщения open-appsec"
 	},
 	"npmos.events.label.benign": {
 		"defaultMessage": "Ложное срабатывание"
@@ -2679,10 +2688,10 @@
 		"defaultMessage": "Браузеры не откроют эти сайты. Продлите сертификат или выпустите новый."
 	},
 	"npmos.hosts.rec.expiring": {
-		"defaultMessage": "Сертификат истекает в ближайшие 14 дней: хостов {count}"
+		"defaultMessage": "Сертификат требует внимания: хостов {count}"
 	},
 	"npmos.hosts.rec.expiring.hint": {
-		"defaultMessage": "Let's Encrypt продлевается сам; свои сертификаты нужно заменить."
+		"defaultMessage": "Сертификаты Let's Encrypt и других ACME попадают сюда, только если продление запаздывает (полный лог последнего запроса — в «Сертификатах»); свои — за 14 дней до конца или за треть более короткого срока."
 	},
 	"npmos.hosts.rec.less": {
 		"defaultMessage": "Свернуть"
@@ -6021,7 +6030,7 @@
 		"defaultMessage": "Срок хранения событий безопасности"
 	},
 	"npmos.system.acme-profile.auto": {
-		"defaultMessage": "Как решит NPMOS (Let's Encrypt: shortlived)"
+		"defaultMessage": "Как решит NPMOS (Let's Encrypt: classic, 90 дней)"
 	},
 	"npmos.system.acme-profile.classic": {
 		"defaultMessage": "classic — 90 дней"
@@ -6030,7 +6039,7 @@
 		"defaultMessage": "По умолчанию сервера (Let's Encrypt: 90 дней)"
 	},
 	"npmos.system.acme-profile.shortlived": {
-		"defaultMessage": "shortlived — около 6 дней"
+		"defaultMessage": "shortlived — около 6 дней (нужен интернет каждые день-два)"
 	},
 	"npmos.system.acme-profile.tlsserver": {
 		"defaultMessage": "tlsserver — 90 дней, только для серверов"
@@ -6063,7 +6072,7 @@
 		"defaultMessage": "Профиль сертификата (срок)"
 	},
 	"npmos.system.env.ACME_PROFILE.hint": {
-		"defaultMessage": "Срок задаёт ACME-сервер своими профилями (они есть у Let's Encrypt; ZeroSSL, Google и другие выдают на свой срок). Профиль, которого у сервера нет, заменяется профилем по умолчанию. Действует для новых выпусков и продлений после перезапуска."
+		"defaultMessage": "Срок задаёт ACME-сервер своими профилями (они есть у Let's Encrypt; ZeroSSL, Google и другие выдают на свой срок). Короткий срок уменьшает вред от украденного ключа, но NPMOS должен успеть связаться с сервером до его конца: с shortlived два-три дня без интернета оставят сайты с просроченными сертификатами. Профиль, которого у сервера нет, заменяется профилем по умолчанию. Действует для новых выпусков и продлений после перезапуска."
 	},
 	"npmos.system.env.ACME_RENEW": {
 		"defaultMessage": "Продлевать автоматически"
@@ -6381,7 +6390,7 @@
 		"defaultMessage": "Компонент агента"
 	},
 	"npmos.waf.events.description": {
-		"defaultMessage": "Что нашли агенты: атаки, которые обнаружил или заблокировал open-appsec, и алерты CrowdSec; в каждой строке указан агент. Отказы mTLS и сообщения агентов — на своих вкладках."
+		"defaultMessage": "Что нашли и сообщили агенты: атаки, которые обнаружил или заблокировал open-appsec, алерты CrowdSec и служебные сообщения агента open-appsec; в каждой строке указан агент. Отказы mTLS — на своей вкладке."
 	},
 	"npmos.waf.events.event": {
 		"defaultMessage": "Событие"

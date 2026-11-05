@@ -3,6 +3,7 @@ import {
 	type Analytics,
 	type AnalyticsPeriod,
 	type AuditPage,
+	type CertTerm,
 	type RegistryPage,
 	type EventQuery,
 	type EventsPage,
@@ -10,6 +11,7 @@ import {
 	getAnalytics,
 	getAudit,
 	getCertificateRegistry,
+	getCertTerms,
 	getEvent,
 	getEvents,
 	getEventsSettings,
@@ -101,6 +103,15 @@ export const useHostAttacks = (options = {}) =>
 		queryKey: ["npmos-host-attacks"],
 		queryFn: getHostAttacks,
 		refetchInterval: 60000,
+		...options,
+	});
+
+/** terms of the TLS certificates of the hosts: when each needs attention */
+export const useCertTerms = (options = {}) =>
+	useQuery<Record<string, CertTerm>, Error>({
+		queryKey: ["npmos-cert-terms"],
+		queryFn: getCertTerms,
+		refetchInterval: 300000,
 		...options,
 	});
 
