@@ -383,8 +383,14 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
   echo "$label" | grep -q '"syncedOn": *"' || fail "the label was not written for the agent: $label"
   $CURL "$ADMIN/api/npmos/learning/queue?period=24h&host=1&suggestions=0" | grep -q "\"$key\"" \
     && fail "the labelled group is still in the queue"
+  # the exception reaches the policy a moment later (debounced generation); while the agent reloads after the
+  # rollback above, fail-open (50 ms) lets the attack through on its own, so 200 alone proves nothing yet
+  for i in $(seq 1 30); do
+    $CURL "$ADMIN/api/npmos/waf/policy" | grep -q "npmos-learn-$label_id" && break
+    [ "$i" = 30 ] && fail "no exception of the label in the policy"
+    sleep 1
+  done
   wait_status "$SQLI" 200 "SQLi labelled legitimate is still blocked"
-  $CURL "$ADMIN/api/npmos/waf/policy" | grep -q "npmos-learn-$label_id" || fail "no exception of the label in the policy"
   $CURL -X DELETE "$ADMIN/api/npmos/learning/labels/$label_id" | grep -q '"ok": *true' || fail "the label was not undone"
   wait_status "$SQLI" 403 "SQLi is not blocked after the label was undone"
   $CURL "$ADMIN/api/npmos/learning/labels?active=0" | grep -q '"undoneOn": *"' || fail "the undone label is not in the history"
