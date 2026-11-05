@@ -18,6 +18,12 @@ import { bootstrap as bootstrapWafPolicy } from "./npmos/waf/policy.js";
 import { getCompiledSchema } from "./schema/index.js";
 import setup from "./setup.js";
 
+// NPMOS: a promise nobody awaited (a route of NPMplus answered before its work, see routes/nginx/dead_hosts.js) must
+// not stop the backend for every user: Node ends the process on an unhandled rejection by default
+process.on("unhandledRejection", (err) => {
+	logger.error(`Unhandled rejection: ${err?.message || err}`);
+});
+
 async function appStart() {
 	return (
 		migrateUp()

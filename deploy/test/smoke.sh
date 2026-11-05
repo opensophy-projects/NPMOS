@@ -50,6 +50,12 @@ code=$(curl -sS -k -b $JAR -o /dev/null -w '%{http_code}' -H 'Content-Type: appl
 sleep 2
 $CURL "$ADMIN/api/" | grep -q '"status": *"OK"' || fail "backend is down after duplicate email"
 
+step "disabling a 404 host that does not exist answers 404 and does not crash the backend"
+code=$(curl -sS -k -b $JAR -o /dev/null -w '%{http_code}' -X POST "$ADMIN/api/nginx/dead-hosts/999999/disable")
+[ "$code" = 404 ] || fail "disable of a missing 404 host: expected 404, got $code"
+sleep 2
+$CURL "$ADMIN/api/" | grep -q '"status": *"OK"' || fail "backend is down after disabling a missing 404 host"
+
 step "create a proxy host test.local -> test-upstream"
 $CURL -H 'Content-Type: application/json' "$ADMIN/api/nginx/proxy-hosts" -d '{
   "domain_names": ["test.local"], "forward_scheme": "http",

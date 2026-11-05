@@ -131,7 +131,8 @@ function OverviewPage() {
 
 	const crowdsec = useCrowdsec({ enabled: rbac("crowdsec"), refetchInterval: 30000 });
 	const traffic = useAnalytics("24h", "", { enabled: rbac("analytics") });
-	const registry = useCertificateRegistry({ limit: 1 });
+	// the registry needs certificates or PKI: without either the panel is not shown and nothing is asked
+	const registry = useCertificateRegistry({ limit: 1 }, { enabled: rbac("certificates") || rbac("pki") });
 
 	if (!me || [proxy, redirect, stream, dead].some((q, i) => can(HOST_TYPES[i]) && q.isLoading)) {
 		return <LoadingPage />;

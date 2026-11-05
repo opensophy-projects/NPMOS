@@ -15,7 +15,7 @@ import { useEffect, useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { deleteCertificate, downloadCertificate, getCertificate } from "src/api/backend";
-import { LoadingPage } from "src/components";
+import { HasPermission, LoadingPage } from "src/components";
 import { useUser } from "src/hooks";
 import { formatDateTime, intl, T } from "src/locale";
 import {
@@ -26,7 +26,7 @@ import {
 	showReachabilityModal,
 	showRenewCertificateModal,
 } from "src/modals";
-import { CERTIFICATES, hasPermission, MANAGE } from "src/modules/Permissions";
+import { CERTIFICATES, hasPermission, MANAGE, VIEW } from "src/modules/Permissions";
 import { showError, showObjectSuccess } from "src/notifications";
 import type { CertSource, CertStatus, EventQuery, RegistryCert } from "../../api";
 import { useCertificateRegistry } from "../../hooks";
@@ -600,4 +600,11 @@ function CertificatesPage() {
 	);
 }
 
-export default CertificatesPage;
+/** the registry lists TLS certificates (certificates) and those of the PKI (pki): either opens the page */
+const Certificates = () => (
+	<HasPermission rbac="certificates|pki" permission={VIEW} pageLoading loadingNoLogo>
+		<CertificatesPage />
+	</HasPermission>
+);
+
+export default Certificates;

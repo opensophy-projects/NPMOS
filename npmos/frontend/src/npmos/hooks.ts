@@ -133,11 +133,12 @@ export const useAudit = (query: EventQuery) =>
 	});
 
 // the key starts with "certificates": the modals of NPMplus refresh it when they change a certificate
-export const useCertificateRegistry = (query: EventQuery) =>
+export const useCertificateRegistry = (query: EventQuery, options = {}) =>
 	useQuery<RegistryPage, Error>({
 		queryKey: ["certificates", "npmos-registry", query],
 		queryFn: () => getCertificateRegistry(query),
 		placeholderData: (previous) => previous,
+		...options,
 	});
 
 export const useEvent = (id: string, time: string) =>

@@ -14,7 +14,8 @@ interface Props {
 	children?: ReactNode;
 	pageLoading?: boolean;
 	loadingNoLogo?: boolean;
-	/** NPMOS: an RBAC resource ("users", or "waf_policy:apply"); with `permission` it decides instead of `section` */
+	/** NPMOS: an RBAC resource ("users", "waf_policy:apply", or any of several: "certificates|pki"); with `permission` it
+	 * decides instead of `section` */
 	rbac?: string;
 }
 function HasPermission({
@@ -46,9 +47,12 @@ function HasPermission({
 		return <Loading noLogo={loadingNoLogo} />;
 	}
 
-	const [resource, action] = (rbac ?? "").split(":");
+	// NPMOS: "certificates|pki" — any of the resources
 	const allowed = rbac
-		? can(resource, action || permission)
+		? rbac.split("|").some((one) => {
+				const [resource, action] = one.split(":");
+				return can(resource, action || permission);
+			})
 		: !!section && hasPermission(section, permission, data?.permissions, data?.roles);
 	if (allowed) {
 		return <>{children}</>;
