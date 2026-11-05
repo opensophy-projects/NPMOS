@@ -1,5 +1,5 @@
 // Revocation of one or many certificates with a reason; the CRLs are generated again and nginx
-// refuses the certificates within seconds.
+// refuses the certificates within seconds. With a CA: an intermediate CA and every certificate it issued.
 import EasyModal, { type InnerModalProps } from "ez-modal-react";
 import { useState } from "react";
 import Alert from "react-bootstrap/Alert";
@@ -7,16 +7,18 @@ import Modal from "react-bootstrap/Modal";
 import { Button } from "src/components";
 import { intl, T } from "src/locale";
 import { showSuccess } from "src/notifications";
-import { type PkiCert, REVOKE_REASONS, revokeCerts } from "./api";
+import { type PkiCa, type PkiCert, REVOKE_REASONS, revokeCa, revokeCerts } from "./api";
 
 const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id }, values);
 
 interface Props extends InnerModalProps {
 	certs: PkiCert[];
+	/** revokes this intermediate CA instead (certs: the ones it issued, shown) */
+	ca?: PkiCa;
 	onDone: () => void;
 }
 
-const RevokeModal = EasyModal.create(({ visible, remove, certs, onDone }: Props) => {
+const RevokeModal = EasyModal.create(({ visible, remove, certs, ca, onDone }: Props) => {
 	const [reason, setReason] = useState<string>("unspecified");
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -25,11 +27,16 @@ const RevokeModal = EasyModal.create(({ visible, remove, certs, onDone }: Props)
 		setBusy(true);
 		setError(null);
 		try {
-			const { revoked } = await revokeCerts(
-				certs.map((c) => c.id),
-				reason,
-			);
-			showSuccess(t("npmos.pki.revoked-count", { count: revoked }));
+			if (ca) {
+				await revokeCa(ca.id, reason);
+				showSuccess(t("npmos.pki.ca.revoked", { name: ca.name }));
+			} else {
+				const { revoked } = await revokeCerts(
+					certs.map((c) => c.id),
+					reason,
+				);
+				showSuccess(t("npmos.pki.revoked-count", { count: revoked }));
+			}
 			onDone();
 			remove();
 		} catch (err: any) {
@@ -42,13 +49,17 @@ const RevokeModal = EasyModal.create(({ visible, remove, certs, onDone }: Props)
 		<Modal show={visible} onHide={remove}>
 			<Modal.Header closeButton>
 				<Modal.Title>
-					<T id="npmos.pki.revoke" />
+					<T id={ca ? "npmos.pki.ca.revoke" : "npmos.pki.revoke"} />
 				</Modal.Title>
 			</Modal.Header>
 			<Modal.Body>
 				{error && <Alert variant="danger">{error}</Alert>}
 				<p>
-					<T id="npmos.pki.revoke.text" data={{ count: certs.length }} />
+					{ca ? (
+						<T id="npmos.pki.ca.revoke.text" data={{ name: ca.name, count: certs.length }} />
+					) : (
+						<T id="npmos.pki.revoke.text" data={{ count: certs.length }} />
+					)}
 				</p>
 				<div className="small font-monospace text-secondary mb-3">
 					{certs

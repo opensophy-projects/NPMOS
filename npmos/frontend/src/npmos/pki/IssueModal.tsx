@@ -54,7 +54,7 @@ const IssueModal = EasyModal.create(({ visible, remove, data, preset, renew, onD
 	const can = useCan();
 	const canKeepKey = can("pki", "export_key");
 	const issuers = data.cas.filter(
-		(ca) => ca.kind === "intermediate" && ca.hasKey && new Date(ca.notAfter) > new Date(),
+		(ca) => ca.kind === "intermediate" && ca.hasKey && !ca.revokedOn && new Date(ca.notAfter) > new Date(),
 	);
 	const template = data.settings.templates.find((x) => x.id === preset?.templateId);
 	const [templateId, setTemplateId] = useState(template?.id ?? "");

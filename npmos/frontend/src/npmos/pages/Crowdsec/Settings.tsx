@@ -20,6 +20,7 @@ import { durationLabel, t } from "../../crowdsec/labels";
 import { showProfileModal } from "../../crowdsec/ProfileModal";
 import { useCan } from "../../rbac/hooks";
 import styles from "../Pki/Pki.module.css";
+import { HiddenUsername } from "../../ui/HiddenUsername";
 
 const SCENARIO_PLACEHOLDER = "crowdsecurity/http-probing\nnpmos/openappsec-prevent";
 
@@ -289,16 +290,24 @@ export function SettingsTab({ data, refresh }: { data: CrowdsecSettingsState; re
 								<label className="form-label" htmlFor="cs-b-secret">
 									<T id="npmos.crowdsec.captcha.secret-key" />
 								</label>
-								<input
-									id="cs-b-secret"
-									type="password"
+								{/* NPMOS: inside a form with a user field, so the browser does not warn about the password */}
+								<form
+									style={{ display: "contents" }}
 									autoComplete="off"
-									className="form-control"
-									disabled={!manage}
-									placeholder={b.captcha.hasSecret ? t("npmos.crowdsec.secret.kept") : ""}
-									value={secret}
-									onChange={(e) => setSecret(e.target.value.trim())}
-								/>
+									onSubmit={(e) => e.preventDefault()}
+								>
+									<HiddenUsername />
+									<input
+										id="cs-b-secret"
+										type="password"
+										autoComplete="off"
+										className="form-control"
+										disabled={!manage}
+										placeholder={b.captcha.hasSecret ? t("npmos.crowdsec.secret.kept") : ""}
+										value={secret}
+										onChange={(e) => setSecret(e.target.value.trim())}
+									/>
+								</form>
 							</div>
 						</>
 					)}

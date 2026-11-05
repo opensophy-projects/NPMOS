@@ -19,6 +19,7 @@ import {
 	setSystemSettings,
 } from "./api";
 import styles from "./EnvSection.module.css";
+import { HiddenUsername } from "../ui/HiddenUsername";
 
 const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id }, values);
 
@@ -141,6 +142,26 @@ function Control({
 			</select>
 		);
 	}
+	if (item.type === "profile") {
+		// the ACME profile sets the term; a name the list does not know stays selectable
+		const known = ["", "none", "classic", "shortlived", "tlsserver"];
+		const options = known.includes(String(value)) ? known : [...known, String(value)];
+		return (
+			<select
+				className="form-select form-select-sm"
+				value={String(value)}
+				disabled={disabled}
+				aria-label={label}
+				onChange={(e) => onChange(e.target.value)}
+			>
+				{options.map((o) => (
+					<option key={o} value={o}>
+						{known.includes(o) ? t(`npmos.system.acme-profile.${o || "auto"}`) : o}
+					</option>
+				))}
+			</select>
+		);
+	}
 	if (item.type === "url") {
 		return <AcmeServer value={String(value)} disabled={disabled} label={label} onChange={onChange} />;
 	}
@@ -162,6 +183,7 @@ function Control({
 		// browser does not warn "Password field is not contained in a form".
 		return (
 			<form style={CONTENTS} autoComplete="off" onSubmit={(e) => e.preventDefault()}>
+				<HiddenUsername />
 				<input
 					type="password"
 					className="form-control form-control-sm"
@@ -246,7 +268,7 @@ const valid = (item: EnvSetting, value: EnvValue) => {
 	if (item.type === "workers" && value === "auto") return true;
 	if (item.type === "url") return typeof value === "string" && value.length <= 512 && URL_FORM.test(value);
 	if (item.type === "email") return value === "" || (typeof value === "string" && EMAIL_FORM.test(value));
-	if (item.type === "token") return typeof value === "string" && TOKEN_FORM.test(value);
+	if (item.type === "token" || item.type === "profile") return typeof value === "string" && TOKEN_FORM.test(value);
 	if (item.type === "secret") return value === SECRET_SET || (typeof value === "string" && TOKEN_FORM.test(value));
 	return (
 		Number.isInteger(value) &&

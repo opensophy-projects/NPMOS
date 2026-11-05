@@ -141,3 +141,39 @@ export const withoutValue = (f: EventFilters, field: ListField, value: string): 
 	...f,
 	[field]: f[field].filter((v) => v !== value),
 });
+
+const OPENAPPSEC_ACTIONS = ["Prevent", "Detect", "Accept"];
+const CROWDSEC_ACTIONS = ["ban", "captcha", "alert", "simulated"];
+
+/** the filters a kind of events has: mTLS refusals have no attack type or score, notices have only a severity */
+export const FILTERS_OF: Record<Kind, { fields: ListField[]; score: boolean }> = {
+	agents: { fields: ["agent", "host", "ip", "action", "severity", "type"], score: true },
+	mtls: { fields: ["host", "ip"], score: false },
+	system: { fields: ["severity"], score: false },
+	all: { fields: [...LIST_FIELDS], score: true },
+};
+
+/** the actions to choose from: those of the agents chosen (open-appsec, CrowdSec), of all with none chosen */
+export const actionsFor = (f: EventFilters): string[] => {
+	if (f.kind === "mtls" || f.kind === "system") return [];
+	const agents = f.agent.length ? f.agent : [...AGENTS];
+	return [
+		...(agents.includes("open-appsec") ? OPENAPPSEC_ACTIONS : []),
+		...(agents.includes("crowdsec") ? CROWDSEC_ACTIONS : []),
+		...(f.kind === "all" ? ["denied"] : []),
+	];
+};
+
+/** another kind: the filters it does not have are dropped (they would hide every event of it) */
+export const forKind = (f: EventFilters, kind: Kind): EventFilters => {
+	const { fields, score } = FILTERS_OF[kind];
+	const next: EventFilters = { ...f, kind };
+	for (const field of LIST_FIELDS) if (!fields.includes(field)) next[field] = [];
+	if (!score) {
+		next.minScore = "";
+		next.maxScore = "";
+	}
+	const actions = actionsFor(next);
+	next.action = next.action.filter((a) => actions.includes(a));
+	return next;
+};

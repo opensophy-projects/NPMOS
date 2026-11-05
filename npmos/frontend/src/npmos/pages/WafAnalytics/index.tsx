@@ -17,9 +17,12 @@ import hostStyles from "../Hosts/Hosts.module.css";
 import { ActionBadge, EventTime, SeverityBadge } from "../WafEvents/badges";
 import eventStyles from "../WafEvents/Events.module.css";
 import styles from "./Analytics.module.css";
+import { LIVE_MS, LiveNow } from "./Live";
 
 const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id }, values);
 const PERIODS: AnalyticsPeriod[] = ["1h", "24h", "7d", "30d"];
+/** "live": the last hour, refreshed every few seconds, with what is happening now above it */
+const VIEWS = ["live", ...PERIODS] as const;
 
 /** a bucket on the axis: time of day for a day or less, the date for longer periods */
 const bucketLabel = (iso: string, period: AnalyticsPeriod) =>
@@ -60,9 +63,14 @@ function Panel({ title, children, wide }: { title: React.ReactNode; children: Re
 function AnalyticsPage() {
 	const navigate = useNavigate();
 	const [params, setParams] = useSearchParams();
-	const period = PERIODS.find((p) => p === params.get("period")) ?? "24h";
+	const live = params.get("period") === "live";
+	const period: AnalyticsPeriod = live ? "1h" : (PERIODS.find((p) => p === params.get("period")) ?? "24h");
 	const host = params.get("host") ?? "";
-	const { data, isLoading, isError, error, isFetching } = useAnalytics(period, host);
+	const { data, isLoading, isError, error, isFetching } = useAnalytics(
+		period,
+		host,
+		live ? { refetchInterval: LIVE_MS } : {},
+	);
 
 	const set = (key: string, value: string, isDefault: boolean) => {
 		const next = new URLSearchParams(params);
@@ -90,17 +98,20 @@ function AnalyticsPage() {
 
 			<div className={hostStyles.toolbar}>
 				<div className={eventStyles.periods} role="group" aria-label={t("npmos.events.period")}>
-					{PERIODS.map((p) => (
-						<button
-							key={p}
-							type="button"
-							className={cn(eventStyles.period, period === p && eventStyles.periodOn)}
-							aria-pressed={period === p}
-							onClick={() => set("period", p, p === "24h")}
-						>
-							<T id={`npmos.events.period.${p}`} />
-						</button>
-					))}
+					{VIEWS.map((p) => {
+						const on = p === "live" ? live : !live && period === p;
+						return (
+							<button
+								key={p}
+								type="button"
+								className={cn(eventStyles.period, on && eventStyles.periodOn)}
+								aria-pressed={on}
+								onClick={() => set("period", p, p === "24h")}
+							>
+								<T id={p === "live" ? "npmos.analytics.live" : `npmos.events.period.${p}`} />
+							</button>
+						);
+					})}
 				</div>
 				<Dropdown
 					floating
@@ -130,6 +141,7 @@ function AnalyticsPage() {
 				<Alert variant="danger">{error?.message || <T id="npmos.common.unknown-error" />}</Alert>
 			) : (
 				<>
+					{live && <LiveNow host={host} />}
 					<h2 className={styles.section}>
 						<T id="npmos.analytics.section.traffic" />
 					</h2>

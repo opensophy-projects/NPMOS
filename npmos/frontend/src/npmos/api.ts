@@ -13,7 +13,22 @@ export interface Service {
 	status: string;
 	created: number;
 	restartable: boolean;
+	/** addresses in its networks */
+	addresses?: { network: string; ip: string }[];
+	/** ports it listens on; published: the port on the host */
+	ports?: { port: number; type: string; published: number | null }[];
 }
+
+/** a container outside the stack in a network of npmos (System -> Services: publish it as a proxy host) */
+export interface App {
+	name: string;
+	image: string;
+	status: string;
+	addresses: { network: string; ip: string }[];
+	ports: { port: number; type: string; published: number | null }[];
+}
+
+export const getApps = () => api.get({ url: "/npmos/apps" }) as Promise<App[]>;
 
 export interface ServiceLogLine {
 	stream: "stdout" | "stderr";

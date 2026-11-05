@@ -22,6 +22,16 @@ const internalServices = {
 	},
 
 	/**
+	 * Applications outside the stack in a network of npmos (to publish as a proxy host)
+	 * @param {Access} access
+	 */
+	apps: async (access) => {
+		await access.can("services:view");
+		const apps = await control.listApps();
+		return apps.sort((a, b) => a.name.localeCompare(b.name));
+	},
+
+	/**
 	 * @param {Access} access
 	 * @param {string} service
 	 */

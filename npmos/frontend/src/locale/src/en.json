@@ -644,6 +644,18 @@
 	"npmos.access.search": {
 		"defaultMessage": "Search by name"
 	},
+	"npmos.acme.log.none": {
+		"defaultMessage": "No ACME request has failed yet."
+	},
+	"npmos.acme.log.open": {
+		"defaultMessage": "Full log of the last request"
+	},
+	"npmos.acme.log.time": {
+		"defaultMessage": "Request of {time}. Passwords and keys are masked."
+	},
+	"npmos.acme.log.title": {
+		"defaultMessage": "Full log of the last request"
+	},
 	"npmos.agent.default.hint": {
 		"defaultMessage": "Applies to every host that has no policy of its own: the mode and the building blocks the agent uses."
 	},
@@ -733,6 +745,30 @@
 	},
 	"npmos.analytics.levels": {
 		"defaultMessage": "Attack severity"
+	},
+	"npmos.analytics.live": {
+		"defaultMessage": "Live"
+	},
+	"npmos.analytics.live.all": {
+		"defaultMessage": "All events"
+	},
+	"npmos.analytics.live.events": {
+		"defaultMessage": "events"
+	},
+	"npmos.analytics.live.quiet": {
+		"defaultMessage": "Quiet: no events in the last 5 minutes."
+	},
+	"npmos.analytics.live.refused": {
+		"defaultMessage": "refused or banned"
+	},
+	"npmos.analytics.live.sources": {
+		"defaultMessage": "addresses"
+	},
+	"npmos.analytics.live.title": {
+		"defaultMessage": "Happening now"
+	},
+	"npmos.analytics.live.window": {
+		"defaultMessage": "last 5 minutes, refreshed every 5 s"
 	},
 	"npmos.analytics.no-attacks": {
 		"defaultMessage": "No attacks in this period"
@@ -971,6 +1007,9 @@
 	"npmos.block-page.preview": {
 		"defaultMessage": "Preview"
 	},
+	"npmos.block-page.preview-error": {
+		"defaultMessage": "The preview could not be made: {error}"
+	},
 	"npmos.block-page.saved": {
 		"defaultMessage": "The block page is saved"
 	},
@@ -990,7 +1029,28 @@
 		"defaultMessage": "The page answers every refusal nginx makes itself (code 403); answers of your services are left as they are. Pages of mTLS and the admin interface keep their own."
 	},
 	"npmos.blocks.description": {
-		"defaultMessage": "Whom CrowdSec blocks now and why, and the lists of addresses: bans, captchas, alerts, blocklists. A ban by hand is here too."
+		"defaultMessage": "Whom CrowdSec blocks now and why, what open-appsec refused, and the lists of addresses: bans, captchas, alerts, blocklists. A ban by hand is here too."
+	},
+	"npmos.blocks.openappsec.all": {
+		"defaultMessage": "All in Events"
+	},
+	"npmos.blocks.openappsec.attack": {
+		"defaultMessage": "Attack"
+	},
+	"npmos.blocks.openappsec.ban": {
+		"defaultMessage": "Ban"
+	},
+	"npmos.blocks.openappsec.hint": {
+		"defaultMessage": "Requests open-appsec refused in the last 24 hours: {count}. Bans of CrowdSec for repeated attacks are on the Decisions tab."
+	},
+	"npmos.blocks.openappsec.host": {
+		"defaultMessage": "Host and path"
+	},
+	"npmos.blocks.openappsec.none": {
+		"defaultMessage": "open-appsec has refused nothing in the last 24 hours."
+	},
+	"npmos.blocks.openappsec.time": {
+		"defaultMessage": "When"
 	},
 	"npmos.certificates.mtls": {
 		"defaultMessage": "mTLS CA"
@@ -1317,7 +1377,7 @@
 		"defaultMessage": "Let the request through"
 	},
 	"npmos.crowdsec.appsec.hint": {
-		"defaultMessage": "The bouncer sends requests to the AppSec engine of CrowdSec, which blocks exploits of known vulnerabilities (virtual patching). Works with the bouncer of NPMOS."
+		"defaultMessage": "The bouncer sends requests to the AppSec engine of CrowdSec, which blocks exploits of known vulnerabilities (virtual patching). Works with the bouncer of NPMOS. On hosts with open-appsec in prevention, open-appsec answers first: what it blocks does not reach AppSec (it reaches CrowdSec through the open-appsec log and the ban scenario). Allowlists of CrowdSec apply to AppSec too."
 	},
 	"npmos.crowdsec.appsec.title": {
 		"defaultMessage": "CrowdSec AppSec"
@@ -2084,6 +2144,9 @@
 	"npmos.crowdsec.tab.hub": {
 		"defaultMessage": "Hub"
 	},
+	"npmos.crowdsec.tab.openappsec": {
+		"defaultMessage": "open-appsec"
+	},
 	"npmos.crowdsec.tab.overview": {
 		"defaultMessage": "Overview"
 	},
@@ -2110,6 +2173,27 @@
 	},
 	"npmos.crowdsec.version": {
 		"defaultMessage": "Version"
+	},
+	"npmos.date.clear": {
+		"defaultMessage": "Clear"
+	},
+	"npmos.date.done": {
+		"defaultMessage": "Done"
+	},
+	"npmos.date.next": {
+		"defaultMessage": "Next month"
+	},
+	"npmos.date.now": {
+		"defaultMessage": "Now"
+	},
+	"npmos.date.now-placeholder": {
+		"defaultMessage": "now"
+	},
+	"npmos.date.previous": {
+		"defaultMessage": "Previous month"
+	},
+	"npmos.date.time": {
+		"defaultMessage": "Time"
 	},
 	"npmos.events.agent": {
 		"defaultMessage": "Agent"
@@ -2447,6 +2531,9 @@
 	"npmos.hosts.filters": {
 		"defaultMessage": "Filters"
 	},
+	"npmos.hosts.filters-view": {
+		"defaultMessage": "Filters and view"
+	},
 	"npmos.hosts.filters.reset": {
 		"defaultMessage": "Reset filters"
 	},
@@ -2561,6 +2648,24 @@
 	"npmos.hosts.open-site": {
 		"defaultMessage": "Open site"
 	},
+	"npmos.hosts.panel.dead": {
+		"defaultMessage": "{host} is the address of this panel. A 404 host on it answers instead of the panel: it stops opening at this address (use {direct})."
+	},
+	"npmos.hosts.panel.delete": {
+		"defaultMessage": "You opened the panel at {host}, through this host. Once it is deleted, the panel at this address stops answering. The panel stays open at {direct}."
+	},
+	"npmos.hosts.panel.disable": {
+		"defaultMessage": "You opened the panel at {host}, through this host. Once it is off, the panel at this address stops answering (the page shows connection errors). The panel stays open at {direct}."
+	},
+	"npmos.hosts.panel.disable-anyway": {
+		"defaultMessage": "Turn off anyway"
+	},
+	"npmos.hosts.panel.redirect": {
+		"defaultMessage": "{host} is the address of this panel. A redirect on it sends the panel away too: it stops opening at this address (use {direct})."
+	},
+	"npmos.hosts.panel.title": {
+		"defaultMessage": "This host opens the panel"
+	},
 	"npmos.hosts.reachability": {
 		"defaultMessage": "Check reachability"
 	},
@@ -2623,6 +2728,9 @@
 	},
 	"npmos.hosts.recommendations": {
 		"defaultMessage": "Recommendations"
+	},
+	"npmos.hosts.redirect.permanent": {
+		"defaultMessage": "Browsers remember 301 and 308: after the host is changed or deleted, they keep redirecting until their cache is cleared. To try a redirect, use 302 or 307."
 	},
 	"npmos.hosts.search": {
 		"defaultMessage": "Search hosts: domain, address, port, group"
@@ -3404,6 +3512,33 @@
 	"npmos.mtls.deleted": {
 		"defaultMessage": "{count, plural, one {Certificate deleted} other {# certificates deleted}}"
 	},
+	"npmos.mtls.denied-page": {
+		"defaultMessage": "When a client is refused"
+	},
+	"npmos.mtls.denied-page.blocked": {
+		"defaultMessage": "The block page (403)"
+	},
+	"npmos.mtls.denied-page.blocked.hint": {
+		"defaultMessage": "The same page as for requests blocked by the WAF or CrowdSec (Agents → Block page), without a word about certificates. If the block page is off, the plain 403 of nginx."
+	},
+	"npmos.mtls.denied-page.certificate": {
+		"defaultMessage": "The page \"A client certificate is required\" (403)"
+	},
+	"npmos.mtls.denied-page.certificate.hint": {
+		"defaultMessage": "Explains how to install the certificate. Good for people of your organization."
+	},
+	"npmos.mtls.denied-page.close": {
+		"defaultMessage": "Close the connection without an answer"
+	},
+	"npmos.mtls.denied-page.close.hint": {
+		"defaultMessage": "nginx answers nothing (444): the browser shows a connection error. The least a scanner learns."
+	},
+	"npmos.mtls.denied-page.not_found": {
+		"defaultMessage": "Not found (404)"
+	},
+	"npmos.mtls.denied-page.not_found.hint": {
+		"defaultMessage": "The 404 page of NPMOS: to an outsider the site looks absent."
+	},
 	"npmos.mtls.depth": {
 		"defaultMessage": "Chain depth"
 	},
@@ -3510,7 +3645,7 @@
 		"defaultMessage": "Everywhere"
 	},
 	"npmos.mtls.mode.on.hint": {
-		"defaultMessage": "Without a valid certificate the host answers 403 with a page that explains what to do."
+		"defaultMessage": "Without a valid certificate the host refuses the request; what the client sees is chosen below."
 	},
 	"npmos.mtls.mode.optional": {
 		"defaultMessage": "On chosen locations"
@@ -4414,6 +4549,18 @@
 	},
 	"npmos.pki.ca.parent": {
 		"defaultMessage": "Root CA"
+	},
+	"npmos.pki.ca.revoke": {
+		"defaultMessage": "Revoke CA"
+	},
+	"npmos.pki.ca.revoke.text": {
+		"defaultMessage": "{name} goes into the revocation list (CRL) and OCSP of its root, and {count, plural, =0 {it issues nothing more} one {its # valid certificate is revoked with it} other {its # valid certificates are revoked with it}}. Hosts that trust this CA or its root refuse its certificates within a minute. A revocation cannot be undone."
+	},
+	"npmos.pki.ca.revoked": {
+		"defaultMessage": "{name} is revoked"
+	},
+	"npmos.pki.ca.revoked-badge": {
+		"defaultMessage": "revoked"
 	},
 	"npmos.pki.copied": {
 		"defaultMessage": "Copied"
@@ -5771,6 +5918,18 @@
 	"npmos.services": {
 		"defaultMessage": "Services"
 	},
+	"npmos.services.address": {
+		"defaultMessage": "Address"
+	},
+	"npmos.services.apps": {
+		"defaultMessage": "Applications"
+	},
+	"npmos.services.apps.hint": {
+		"defaultMessage": "Containers outside NPMOS in a network of npmos: a proxy host reaches them by name. The components of NPMOS above are not published."
+	},
+	"npmos.services.apps.none": {
+		"defaultMessage": "No containers of your own in the networks of npmos. Connect one to a network of npmos (docker network connect) and it shows here."
+	},
 	"npmos.services.diagnostics": {
 		"defaultMessage": "Diagnostic archive"
 	},
@@ -5794,6 +5953,12 @@
 	},
 	"npmos.services.no-logs": {
 		"defaultMessage": "No log lines"
+	},
+	"npmos.services.publish": {
+		"defaultMessage": "Publish :{port}"
+	},
+	"npmos.services.published": {
+		"defaultMessage": "host port {port} → {inner}"
 	},
 	"npmos.services.regenerate": {
 		"defaultMessage": "Regenerate nginx config"
@@ -5855,6 +6020,21 @@
 	"npmos.settings.events-retention": {
 		"defaultMessage": "Retention of security events"
 	},
+	"npmos.system.acme-profile.auto": {
+		"defaultMessage": "As NPMOS decides (Let's Encrypt: shortlived)"
+	},
+	"npmos.system.acme-profile.classic": {
+		"defaultMessage": "classic — 90 days"
+	},
+	"npmos.system.acme-profile.none": {
+		"defaultMessage": "Default of the server (Let's Encrypt: 90 days)"
+	},
+	"npmos.system.acme-profile.shortlived": {
+		"defaultMessage": "shortlived — about 6 days"
+	},
+	"npmos.system.acme-profile.tlsserver": {
+		"defaultMessage": "tlsserver — 90 days, server use only"
+	},
 	"npmos.system.acme.custom": {
 		"defaultMessage": "Other (URL)"
 	},
@@ -5878,6 +6058,24 @@
 	},
 	"npmos.system.env.ACME_EMAIL.hint": {
 		"defaultMessage": "Expiry notices of the authority go here. Needed for ZeroSSL and EAB."
+	},
+	"npmos.system.env.ACME_PROFILE": {
+		"defaultMessage": "Certificate profile (term)"
+	},
+	"npmos.system.env.ACME_PROFILE.hint": {
+		"defaultMessage": "The term is set by the ACME server through its profiles (Let's Encrypt has them; ZeroSSL, Google and others give their own term). A profile the server does not know falls back to its default. Applies to new requests and renewals after the restart."
+	},
+	"npmos.system.env.ACME_RENEW": {
+		"defaultMessage": "Renew automatically"
+	},
+	"npmos.system.env.ACME_RENEW.hint": {
+		"defaultMessage": "Off: certificates of ACME are only renewed by hand (Certificates -> Renew)."
+	},
+	"npmos.system.env.ACME_RENEW_DAYS": {
+		"defaultMessage": "Renew days before the end"
+	},
+	"npmos.system.env.ACME_RENEW_DAYS.hint": {
+		"defaultMessage": "0: as certbot decides, a third of the term (at most 30 days). For short terms keep it below the term."
 	},
 	"npmos.system.env.ACME_SERVER": {
 		"defaultMessage": "ACME server"
@@ -6100,6 +6298,9 @@
 	},
 	"npmos.system.secret.set": {
 		"defaultMessage": "set — enter a new one to replace it"
+	},
+	"npmos.user.password-hint": {
+		"defaultMessage": "At least 8 characters. The user can change it later in their profile."
 	},
 	"npmos.users.search": {
 		"defaultMessage": "Search by name, nickname or email"
@@ -6455,6 +6656,9 @@
 	"object.event.installed": {
 		"defaultMessage": "Installed {object}"
 	},
+	"object.event.labeled": {
+		"defaultMessage": "Labeled {object}"
+	},
 	"object.event.regenerated": {
 		"defaultMessage": "Regenerated {object}"
 	},
@@ -6472,6 +6676,9 @@
 	},
 	"object.event.unbanned": {
 		"defaultMessage": "Unbanned {object}"
+	},
+	"object.event.unlabeled": {
+		"defaultMessage": "Label removed: {object}"
 	},
 	"object.event.updated": {
 		"defaultMessage": "Updated {object}"
@@ -6751,5 +6958,8 @@
 	},
 	"waf": {
 		"defaultMessage": "WAF"
+	},
+	"waf_learning": {
+		"defaultMessage": "Learning"
 	}
 }

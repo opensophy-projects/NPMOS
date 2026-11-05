@@ -17,7 +17,9 @@ ARG REF
 ADD ${REPO}#${REF} /app
 WORKDIR /app
 COPY patches/ /patches/
+# the busybox of golang:*-alpine has no patch applet
 RUN name=$(basename "$REPO" .git) && \
+    if ls /patches/"$name"/*.patch >/dev/null 2>&1; then apk add --no-cache patch; fi && \
     for p in /patches/"$name"/*.patch; do [ -e "$p" ] || continue; echo "patch: $p"; patch -p1 < "$p" || exit 1; done
 # modules are vendored under dependencies/ (go.mod replace directives)
 ENV GOMODCACHE=/vendor

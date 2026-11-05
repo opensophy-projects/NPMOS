@@ -8,6 +8,7 @@ import Modal from "react-bootstrap/Modal";
 import { Button } from "src/components";
 import { intl, T } from "src/locale";
 import { createCa, importCa, KEY_TYPES, type PkiCa, type PkiOverview, type Subject, updateCa } from "./api";
+import { HiddenUsername } from "../ui/HiddenUsername";
 
 const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id }, values);
 
@@ -276,6 +277,7 @@ const CaModal = EasyModal.create(({ visible, remove, data, mode = "root", edit, 
 								autoComplete="off"
 								onSubmit={(e) => e.preventDefault()}
 							>
+								<HiddenUsername />
 								<input
 									id="pki-ca-keypass"
 									type="password"

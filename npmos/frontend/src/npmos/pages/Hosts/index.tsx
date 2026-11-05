@@ -103,12 +103,12 @@ import {
 	columnLabel,
 	DEFAULT_VIEW,
 	type FilterOptions,
-	FiltersPopover,
+	FiltersViewPopover,
 	Search,
 	TransferMenu,
 	type View,
-	ViewPopover,
 } from "./Toolbar";
+import { PanelHostWarning, servesPanel } from "../../hosts/panel";
 
 const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id }, values);
 
@@ -345,6 +345,29 @@ function HostsPage() {
 			);
 		}
 	};
+	/** turns hosts on or off; turning off the host the panel is open through asks first */
+	const toggleMany = (targets: HostRow[], enabled: boolean) => {
+		const go = () =>
+			run(
+				targets,
+				(r) => toggleHost(r.type, r.id, enabled),
+				t(enabled ? "npmos.hosts.done.enabled" : "npmos.hosts.done.disabled"),
+			);
+		const panel = enabled ? [] : targets.filter((r) => servesPanel(r.names));
+		if (!panel.length) return go();
+		showConfirmModal({
+			tTitle: "npmos.hosts.panel.title",
+			tConfirm: "npmos.hosts.panel.disable-anyway",
+			danger: true,
+			onConfirm: go,
+			children: (
+				<>
+					<PanelHostWarning action="disable" />
+					<div className="fw-bold text-break">{panel.flatMap((r) => r.names).join(", ")}</div>
+				</>
+			),
+		});
+	};
 
 	const changeWaf = (row: HostRow, state: WafState) => {
 		const current = waf.data?.[row.id] ?? WAF_DEFAULTS;
@@ -379,6 +402,7 @@ function HostsPage() {
 			headers: row.type === "proxy",
 			...current,
 			revocation: current?.revocation ?? ("crl" as const),
+			deniedPage: current?.deniedPage ?? ("certificate" as const),
 			rules: (current?.rules ?? []).map((r) => fromApiRule(r as any)),
 		};
 		if (caIds === null) {
@@ -414,17 +438,13 @@ function HostsPage() {
 				invalidations: [[QUERY_KEY[row.type]]],
 				children: (
 					<>
+						{servesPanel(row.names) && <PanelHostWarning action="delete" />}
 						<T id="object.delete.content" tData={{ object: OBJECT[row.type] }} />
 						<div className="mt-2 fw-bold text-break">{row.names.join(", ")}</div>
 					</>
 				),
 			}),
-		toggle: (row, enabled) =>
-			run(
-				[row],
-				(r) => toggleHost(r.type, r.id, enabled),
-				t(enabled ? "npmos.hosts.done.enabled" : "npmos.hosts.done.disabled"),
-			),
+		toggle: (row, enabled) => toggleMany([row], enabled),
 		setWaf: (row, state) => run([row], (r) => changeWaf(r, state), t("npmos.hosts.done.waf")),
 		wafTemplate: (row) => waf.data?.[row.id]?.template ?? null,
 		wafReady: (row) =>
@@ -690,12 +710,13 @@ function HostsPage() {
 
 			<div className={styles.toolbar}>
 				<Search ref={searchRef} value={filters.q} onChange={(q) => setFilters({ ...filters, q })} />
-				<FiltersPopover
+				<FiltersViewPopover
 					filters={filters}
 					options={filterOptions}
 					onChange={(rules) => setFilters({ ...filters, rules })}
+					view={view}
+					onViewChange={setView}
 				/>
-				<ViewPopover view={view} onChange={setView} />
 				<TransferMenu
 					onExport={onExport}
 					onImport={() => importRef.current?.click()}
@@ -730,13 +751,7 @@ function HostsPage() {
 						certificates={certificates.data ?? []}
 						accessLists={accessLists.data ?? []}
 						onClear={() => setSelected(new Set())}
-						onToggle={(enabled) =>
-							run(
-								selectedRows,
-								(r) => toggleHost(r.type, r.id, enabled),
-								t(enabled ? "npmos.hosts.done.enabled" : "npmos.hosts.done.disabled"),
-							)
-						}
+						onToggle={(enabled) => toggleMany(selectedRows, enabled)}
 						onWaf={(state) =>
 							run(
 								selectedRows.filter((r) => r.type === "proxy"),

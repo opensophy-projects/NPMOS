@@ -8,7 +8,7 @@ export interface EnvSetting {
 	/** the env name, e.g. DISABLE_HTTP (a value, not a key: the API client leaves it as it is) */
 	env: string;
 	group: EnvGroup;
-	type: "bool" | "int" | "workers" | "tz" | "url" | "email" | "token" | "secret";
+	type: "bool" | "int" | "workers" | "tz" | "url" | "email" | "token" | "secret" | "profile";
 	default: EnvValue;
 	min?: number;
 	max?: number;

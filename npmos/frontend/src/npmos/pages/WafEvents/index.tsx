@@ -20,12 +20,14 @@ import hostStyles from "../Hosts/Hosts.module.css";
 import { ActionBadge, EventTime, SeverityBadge } from "./badges";
 import styles from "./Events.module.css";
 import {
-	ACTIONS,
 	AGENT_OF,
 	AGENTS,
+	actionsFor,
 	activeCount,
 	type EventFilters,
+	FILTERS_OF,
 	filtersFromParams,
+	forKind,
 	filtersToParams,
 	filtersToQuery,
 	KINDS,
@@ -38,6 +40,7 @@ import {
 } from "./filters";
 import { RetentionPopover } from "./Retention";
 import { SearchField } from "../../ui/SearchField";
+import { DateTimePicker } from "../../ui/DateTimePicker";
 
 const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id }, values);
 const PAGE_SIZE = 50;
@@ -45,14 +48,6 @@ const PAGE_SIZE = 50;
 const EXAMPLE_HOST = "app.example.com";
 const EXAMPLE_IP = "203.0.113.7";
 const EXAMPLE_TYPE = "SQL Injection";
-
-/** value of <input type="datetime-local"> for an ISO time, and back */
-const toLocalInput = (iso: string) => {
-	if (!iso) return "";
-	const d = new Date(iso);
-	return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-};
-const fromLocalInput = (value: string) => (value ? new Date(value).toISOString() : "");
 
 function Periods({ filters, onChange }: { filters: EventFilters; onChange: (f: EventFilters) => void }) {
 	return (
@@ -145,6 +140,9 @@ function FilterPanel({
 			filters[field].includes(value) ? withoutValue(filters, field, value) : withValue(filters, field, value),
 		);
 	const count = activeCount(filters);
+	// only the filters of this kind of events
+	const has = (field: ListField) => FILTERS_OF[filters.kind].fields.includes(field);
+	const actions = actionsFor(filters);
 	return (
 		<Popover
 			ariaLabel={t("npmos.events.filters")}
@@ -201,7 +199,7 @@ function FilterPanel({
 							</span>
 						</label>
 					</div>
-					{filters.kind === "agents" && (
+					{has("agent") && (
 						<div className={styles.section}>
 							<div className={styles.sectionTitle}>
 								<T id="npmos.events.agent" />
@@ -213,7 +211,12 @@ function FilterPanel({
 											type="checkbox"
 											className="form-check-input m-0"
 											checked={filters.agent.includes(a)}
-											onChange={() => toggle("agent", a)}
+											onChange={() => {
+												const next = filters.agent.includes(a)
+													? withoutValue(filters, "agent", a)
+													: withValue(filters, "agent", a);
+												onChange(forKind(next, next.kind));
+											}}
 										/>
 										<T id={`npmos.events.agent.${a}`} />
 									</label>
@@ -221,102 +224,114 @@ function FilterPanel({
 							</div>
 						</div>
 					)}
-					<div className={styles.section}>
-						<div className={styles.sectionTitle}>
-							<T id="npmos.waf.events.action" />
+					{has("action") && actions.length > 0 && (
+						<div className={styles.section}>
+							<div className={styles.sectionTitle}>
+								<T id="npmos.waf.events.action" />
+							</div>
+							<div className={styles.options}>
+								{actions.map((a) => (
+									<label key={a}>
+										<input
+											type="checkbox"
+											className="form-check-input m-0"
+											checked={filters.action.includes(a)}
+											onChange={() => toggle("action", a)}
+										/>
+										{a}
+									</label>
+								))}
+							</div>
 						</div>
-						<div className={styles.options}>
-							{ACTIONS.map((a) => (
-								<label key={a}>
-									<input
-										type="checkbox"
-										className="form-check-input m-0"
-										checked={filters.action.includes(a)}
-										onChange={() => toggle("action", a)}
-									/>
-									{a}
-								</label>
-							))}
+					)}
+					{has("severity") && (
+						<div className={styles.section}>
+							<div className={styles.sectionTitle}>
+								<T id="npmos.waf.events.severity" />
+							</div>
+							<div className={styles.options}>
+								{SEVERITIES.map((s) => (
+									<label key={s}>
+										<input
+											type="checkbox"
+											className="form-check-input m-0"
+											checked={filters.severity.includes(s)}
+											onChange={() => toggle("severity", s)}
+										/>
+										{s}
+									</label>
+								))}
+							</div>
 						</div>
-					</div>
-					<div className={styles.section}>
-						<div className={styles.sectionTitle}>
-							<T id="npmos.waf.events.severity" />
-						</div>
-						<div className={styles.options}>
-							{SEVERITIES.map((s) => (
-								<label key={s}>
-									<input
-										type="checkbox"
-										className="form-check-input m-0"
-										checked={filters.severity.includes(s)}
-										onChange={() => toggle("severity", s)}
-									/>
-									{s}
-								</label>
-							))}
-						</div>
-					</div>
-					<div className={styles.section}>
-						<div className={styles.sectionTitle}>
-							<T id="npmos.waf.events.host" />
-						</div>
-						<TextValues
-							field="host"
-							filters={filters}
-							onChange={onChange}
-							placeholder={EXAMPLE_HOST}
-							suggestions={hosts}
-						/>
-					</div>
-					<div className={styles.section}>
-						<div className={styles.sectionTitle}>
-							<T id="npmos.waf.events.source-ip" />
-						</div>
-						<TextValues field="ip" filters={filters} onChange={onChange} placeholder={EXAMPLE_IP} />
-					</div>
-					<div className={styles.section}>
-						<div className={styles.sectionTitle}>
-							<T id="npmos.events.attack-type" />
-						</div>
-						<TextValues
-							field="type"
-							filters={filters}
-							onChange={onChange}
-							placeholder={EXAMPLE_TYPE}
-							suggestions={types}
-						/>
-					</div>
-					<div className={styles.section}>
-						<div className={styles.sectionTitle}>
-							<T id="npmos.events.score" />
-						</div>
-						<div className={styles.scores}>
-							<input
-								type="number"
-								min={0}
-								max={10}
-								step={0.1}
-								className="form-control form-control-sm"
-								aria-label={t("npmos.events.score.min")}
-								placeholder="0"
-								value={filters.minScore}
-								onChange={(e) => onChange({ ...filters, minScore: e.target.value })}
-							/>
-							<span>—</span>
-							<input
-								type="number"
-								min={0}
-								max={10}
-								step={0.1}
-								className="form-control form-control-sm"
-								aria-label={t("npmos.events.score.max")}
-								placeholder="10"
-								value={filters.maxScore}
-								onChange={(e) => onChange({ ...filters, maxScore: e.target.value })}
+					)}
+					{has("host") && (
+						<div className={styles.section}>
+							<div className={styles.sectionTitle}>
+								<T id="npmos.waf.events.host" />
+							</div>
+							<TextValues
+								field="host"
+								filters={filters}
+								onChange={onChange}
+								placeholder={EXAMPLE_HOST}
+								suggestions={hosts}
 							/>
 						</div>
-					</div>
+					)}
+					{has("ip") && (
+						<div className={styles.section}>
+							<div className={styles.sectionTitle}>
+								<T id="npmos.waf.events.source-ip" />
+							</div>
+							<TextValues field="ip" filters={filters} onChange={onChange} placeholder={EXAMPLE_IP} />
+						</div>
+					)}
+					{has("type") && (
+						<div className={styles.section}>
+							<div className={styles.sectionTitle}>
+								<T id="npmos.events.attack-type" />
+							</div>
+							<TextValues
+								field="type"
+								filters={filters}
+								onChange={onChange}
+								placeholder={EXAMPLE_TYPE}
+								suggestions={types}
+							/>
+						</div>
+					)}
+					{FILTERS_OF[filters.kind].score && (
+						<div className={styles.section}>
+							<div className={styles.sectionTitle}>
+								<T id="npmos.events.score" />
+							</div>
+							<div className={styles.scores}>
+								<input
+									type="number"
+									min={0}
+									max={10}
+									step={0.1}
+									className="form-control form-control-sm"
+									aria-label={t("npmos.events.score.min")}
+									placeholder="0"
+									value={filters.minScore}
+									onChange={(e) => onChange({ ...filters, minScore: e.target.value })}
+								/>
+								<span>—</span>
+								<input
+									type="number"
+									min={0}
+									max={10}
+									step={0.1}
+									className="form-control form-control-sm"
+									aria-label={t("npmos.events.score.max")}
+									placeholder="10"
+									value={filters.maxScore}
+									onChange={(e) => onChange({ ...filters, maxScore: e.target.value })}
+								/>
+							</div>
+						</div>
+					)}
 				</div>
 			)}
 		</Popover>
@@ -513,20 +528,18 @@ function WafEventsPage() {
 			{filters.period === "custom" && (
 				<div className={styles.custom}>
 					<T id="npmos.events.from" />
-					<input
-						type="datetime-local"
-						className="form-control form-control-sm"
-						value={toLocalInput(filters.from)}
-						onChange={(e) =>
-							e.target.value && setFilters({ ...filters, from: fromLocalInput(e.target.value) })
-						}
+					<DateTimePicker
+						label={t("npmos.events.from")}
+						value={filters.from}
+						onChange={(iso) => iso && setFilters({ ...filters, from: iso })}
 					/>
 					<T id="npmos.events.to" />
-					<input
-						type="datetime-local"
-						className="form-control form-control-sm"
-						value={toLocalInput(filters.to)}
-						onChange={(e) => setFilters({ ...filters, to: fromLocalInput(e.target.value) })}
+					<DateTimePicker
+						label={t("npmos.events.to")}
+						value={filters.to}
+						placeholder={t("npmos.date.now-placeholder")}
+						clearable
+						onChange={(iso) => setFilters({ ...filters, to: iso })}
 					/>
 				</div>
 			)}
@@ -553,7 +566,7 @@ function WafEventsPage() {
 								type="button"
 								className={cn(styles.period, filters.kind === kind && styles.periodOn)}
 								aria-pressed={filters.kind === kind}
-								onClick={() => setFilters({ ...filters, kind })}
+								onClick={() => setFilters(forKind(filters, kind))}
 							>
 								<T id={`npmos.events.kind.${kind}`} />
 							</button>

@@ -37,6 +37,7 @@ import hostStyles from "../Hosts/Hosts.module.css";
 import styles from "../WafEvents/Events.module.css";
 import own from "./Certificates.module.css";
 import { SearchField } from "../../ui/SearchField";
+import { showAcmeLogModal } from "../../certs/AcmeLog";
 
 const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id }, values);
 const PAGE_SIZE = 25;
@@ -261,8 +262,9 @@ function CertificatesPage() {
 		return items;
 	};
 
-	const segment = (active: boolean, onClick: () => void, label: React.ReactNode, n?: number) => (
+	const segment = (active: boolean, onClick: () => void, label: React.ReactNode, n?: number, key?: string) => (
 		<button
+			key={key}
 			type="button"
 			className={cn(styles.period, active && styles.periodOn)}
 			aria-pressed={active}
@@ -318,6 +320,12 @@ function CertificatesPage() {
 								label: <T id="npmos.certificates.mtls" />,
 								onSelect: () => showCustomCertificateModal(undefined, "mtls"),
 							},
+							{
+								key: "acme-log",
+								divider: true,
+								label: <T id="npmos.acme.log.open" />,
+								onSelect: showAcmeLogModal,
+							},
 						]}
 					/>
 				)}
@@ -333,6 +341,7 @@ function CertificatesPage() {
 							() => update({ status: status === s ? "" : s }),
 							<T id={`npmos.certs.status.${s}`} />,
 							data?.counts.status[s] ?? 0,
+							s,
 						),
 					)}
 				</div>
@@ -424,6 +433,7 @@ function CertificatesPage() {
 								() => update({ source: source === s ? "" : s }),
 								<T id={`npmos.certs.source.${s}`} />,
 								data?.counts.source[s] ?? 0,
+								s,
 							),
 						)}
 					</div>

@@ -27,6 +27,7 @@ import internalWafHostCode from "./waf/hosts-code.js";
 import internalWafHosts from "./waf/hosts.js";
 import internalWaf from "./waf/index.js";
 import internalWafObjects from "./waf/objects/api.js";
+import { lastFailureLog } from "./acme.js";
 
 const router = express.Router({
 	caseSensitive: true,
@@ -125,6 +126,15 @@ router
 	.options((_, res) => res.sendStatus(204))
 	.all(jwtdecode())
 	.get(handle((_, res) => internalServices.list(res.locals.access)));
+
+/**
+ * GET /api/npmos/apps — containers outside the stack in a network of npmos: name, image, addresses, ports
+ */
+router
+	.route("/apps")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_, res) => internalServices.apps(res.locals.access)));
 
 /**
  * GET /api/npmos/services/:service
@@ -1012,6 +1022,21 @@ router
  * the PKI, certificate files on disk no record describes. Filters: source, status, kind (comma-separated),
  * used=yes|no, q; sort=expires|-expires|name|-created; limit (≤ 200), offset
  */
+/**
+ * GET /api/npmos/acme/last-log — the full log of the last failed ACME request (certbot output and debug log,
+ * secrets masked): {log, time} or {log: null}
+ */
+router
+	.route("/acme/last-log")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(
+		handle(async (_, res) => {
+			await res.locals.access.can("certificates:list");
+			return lastFailureLog() ?? { log: null };
+		}),
+	);
+
 router
 	.route("/certificates")
 	.options((_, res) => res.sendStatus(204))
@@ -1557,6 +1582,27 @@ router
 		}),
 	);
 
+/**
+ * POST /api/npmos/pki/cas/:ca_id/revoke — {reason}: an intermediate CA and every certificate it issued
+ */
+router
+	.route("/pki/cas/:ca_id/revoke")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					properties: { reason: { type: "string" } },
+				},
+				req.body,
+			);
+			return internalPki.revokeCa(res.locals.access, req.params.ca_id, data.reason || "unspecified");
+		}),
+	);
+
 const issueProperties = {
 	ca_id: { type: "integer" },
 	profile: { type: "string", enum: ["client", "server"] },
@@ -1860,7 +1906,7 @@ router
 /**
  * GET /api/npmos/mtls/:host_type/:host_id
  * PUT /api/npmos/mtls/:host_type/:host_id — {enabled, ca_ids, mode, depth, send_ca_names, rules, required_paths, headers,
- *   revocation: crl|ocsp}
+ *   revocation: crl|ocsp, denied_page: certificate|blocked|not_found|close}
  */
 router
 	.route("/mtls/:host_type/:host_id")
@@ -1896,6 +1942,7 @@ router
 						},
 						required_paths: { type: "array", maxItems: 200, items: { type: "string" } },
 						revocation: { type: "string", enum: ["crl", "ocsp"] },
+						denied_page: { type: "string", enum: ["certificate", "blocked", "not_found", "close"] },
 						headers: { type: "boolean" },
 					},
 				},

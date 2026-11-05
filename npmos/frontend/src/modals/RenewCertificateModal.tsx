@@ -9,6 +9,7 @@ import { Button, Loading } from "src/components";
 import { useCertificate } from "src/hooks";
 import { T } from "src/locale";
 import { showObjectSuccess } from "src/notifications";
+import { AcmeLogButton } from "src/npmos/certs/AcmeLog"; // NPMOS: full log of a failed request
 
 interface Props extends InnerModalProps {
 	id: number;
@@ -65,6 +66,8 @@ const RenewCertificateModal = EasyModal.create(({ id, visible, remove }: Props) 
 			<Modal.Body>
 				<Alert variant="danger" show={!!errorMsg}>
 					{errorMsg}
+					{/* NPMOS: every step of the failed request */}
+					{errorMsg && <AcmeLogButton />}
 				</Alert>
 				{isLoading && <Loading noLogo />}
 				{!isLoading && error && (

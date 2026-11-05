@@ -17,6 +17,8 @@ import {
 import { useDeadHost, useDeadHosts, useDirectorySuggestions, useSetDeadHost } from "src/hooks";
 import { intl, T } from "src/locale";
 import { showObjectSuccess } from "src/notifications";
+import { PanelDomainAlert } from "src/npmos/hosts/panel"; // NPMOS: domain of the panel
+import { AcmeLogIfRequested } from "src/npmos/certs/AcmeLog"; // NPMOS: full log of a failed request
 
 // NPMOS: "Duplicate" in the hosts table opens the form filled from another host
 const showDeadHostModal = (id: number | "new", isClone = false) => {
@@ -122,6 +124,8 @@ const DeadHostModal = EasyModal.create(({ id, isClone = false, visible, remove }
 							<Modal.Body className="p-0">
 								<Alert variant="danger" show={!!errorMsg} onClose={() => setErrorMsg(null)} dismissible>
 									{errorMsg}
+									{/* NPMOS: every step of a failed certificate request */}
+									{errorMsg && <AcmeLogIfRequested />}
 								</Alert>
 								<div className="card m-0 border-0">
 									<div className="card-header">
@@ -168,6 +172,8 @@ const DeadHostModal = EasyModal.create(({ id, isClone = false, visible, remove }
 									<div className="card-body">
 										<div className="tab-content">
 											<div className="tab-pane active show" id="tab-details" role="tabpanel">
+												{/* NPMOS: a 404 host on the domain of the panel cuts the panel off */}
+												<PanelDomainAlert action="dead" />
 												<DomainNamesField isWildcardPermitted dnsProviderWildcardSupported />
 											</div>
 											<div className="tab-pane" id="tab-ssl" role="tabpanel">

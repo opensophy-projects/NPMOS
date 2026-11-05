@@ -42,6 +42,12 @@ export const SYSTEM_ENV = [
 	{ env: "ACME_EMAIL", group: "acme", type: "email", default: "" },
 	{ env: "ACME_EAB_KID", group: "acme", type: "token", default: "" },
 	{ env: "ACME_EAB_HMAC_KEY", group: "acme", type: "secret", default: "" },
+	// the term of the certificates is the CA's: it offers profiles (Let's Encrypt: classic 90 days, shortlived
+	// about 6 days, tlsserver); "none": the default of the server. Empty: as envs.sh (shortlived at Let's Encrypt)
+	{ env: "ACME_PROFILE", group: "acme", type: "profile", default: "" },
+	bool("ACME_RENEW", "acme", true),
+	// days before the end a certificate is renewed; 0: what certbot does (a third of the term, at most 30 days)
+	int("ACME_RENEW_DAYS", "acme", 0, 0, 89),
 	bool("NPMOS_CHECK_VERSION", "external", false, { internet: true }),
 ];
 
@@ -93,6 +99,7 @@ export const normalize = (env, value) => {
 				(value === "" || /^[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]{1,190}$/.test(value))
 				? value
 				: undefined;
+		case "profile":
 		case "token":
 		case "secret":
 			return typeof value === "string" && /^[A-Za-z0-9_-]{0,512}$/.test(value) ? value : undefined;
