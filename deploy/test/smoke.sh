@@ -680,6 +680,34 @@ for i in $(seq 1 30); do
 done
 $CURL "$ADMIN/api/npmos/pki" | grep -q '"common_name": *"dana"' && fail "the deleted certificate is still listed"
 
+step "mTLS on a TCP stream: a certificate of the trust domain passes, none or a revoked one is refused"
+stream_id=$(api_json "$ADMIN/api/nginx/streams" -d "{\"incoming_port\": 9555, \"forwarding_host\": \"test-upstream\",
+  \"forwarding_port\": 80, \"tcp_forwarding\": true, \"udp_forwarding\": false, \"certificate_id\": $tls_id}" | json_id)
+[ -n "$stream_id" ] || fail "the TLS stream :9555 was not created"
+api_json -X PUT "$ADMIN/api/npmos/mtls/stream/$stream_id" -d "{\"enabled\": true, \"ca_ids\": [$domain_id]}" \
+  | tr -d ' \n' | grep -q '"enabled":true' || fail "the stream did not take mTLS"
+expect "$(curl -sS -o /dev/null -w '%{http_code}' -X PUT -H 'Content-Type: application/json' -b $JAR -k \
+  "$ADMIN/api/npmos/mtls/stream/$stream_id" -d "{\"enabled\": true, \"ca_ids\": [$domain_id], \"revocation\": \"ocsp\"}")" \
+  400 "OCSP on a stream"
+stream_tls() { curl -s -k --max-time 10 -o /dev/null -w '%{http_code}' "$@" https://npmos:9555/; }
+gwen=$(client gwen IT "$domain_id")
+for i in $(seq 1 15); do
+  [ "$(stream_tls --cert /tmp/gwen.crt --key /tmp/gwen.key)" = 200 ] && break
+  [ "$i" = 15 ] && fail "the stream does not let gwen in"
+  sleep 2
+done
+expect "$(stream_tls)" 000 "the stream without a certificate"
+expect "$(stream_tls --cert /tmp/carol.crt --key /tmp/carol.key)" 000 "the stream with a certificate of another domain"
+gwen_id=$(echo "$gwen" | tr -d ' \n' | grep -o '"certificate":{"id":[0-9]*' | grep -o '[0-9]*$')
+api_json "$ADMIN/api/npmos/pki/certs/revoke" -d "{\"ids\": [$gwen_id], \"reason\": \"keyCompromise\"}" \
+  | grep -q '"revoked": *1' || fail "gwen was not revoked"
+for i in $(seq 1 30); do
+  [ "$(stream_tls --cert /tmp/gwen.crt --key /tmp/gwen.key)" = 000 ] && break
+  [ "$i" = 30 ] && fail "the revoked certificate still opens the stream"
+  sleep 2
+done
+$CURL -X DELETE "$ADMIN/api/nginx/streams/$stream_id" > /dev/null
+
 step "PKI: a revoked trust domain takes its certificates with it and issues nothing more"
 api_json "$ADMIN/api/npmos/pki/cas/$other_id/revoke" -d '{"reason": "keyCompromise"}' | tr -d ' \n' \
   | grep -q '"revoke_reason":"keyCompromise"' || fail "the trust domain Smoke Partners was not revoked"
