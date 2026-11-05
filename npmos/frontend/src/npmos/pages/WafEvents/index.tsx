@@ -528,15 +528,18 @@ function WafEventsPage() {
 			{filters.period === "custom" && (
 				<div className={styles.custom}>
 					<T id="npmos.events.from" />
+					{/* the start is never after the end (or now), the end never before the start */}
 					<DateTimePicker
 						label={t("npmos.events.from")}
 						value={filters.from}
+						max={filters.to || new Date().toISOString()}
 						onChange={(iso) => iso && setFilters({ ...filters, from: iso })}
 					/>
 					<T id="npmos.events.to" />
 					<DateTimePicker
 						label={t("npmos.events.to")}
 						value={filters.to}
+						min={filters.from || undefined}
 						placeholder={t("npmos.date.now-placeholder")}
 						clearable
 						onChange={(iso) => setFilters({ ...filters, to: iso })}

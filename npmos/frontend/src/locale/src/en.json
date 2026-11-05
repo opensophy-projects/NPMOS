@@ -2249,6 +2249,21 @@
 	"npmos.date.time": {
 		"defaultMessage": "Time"
 	},
+	"npmos.domain-names.create": {
+		"defaultMessage": "Add {domain} — Enter"
+	},
+	"npmos.domain-names.hint": {
+		"defaultMessage": "Type a domain and press Enter"
+	},
+	"npmos.domain-names.how": {
+		"defaultMessage": "Enter, Tab, a comma or a space adds the domain; a pasted list is split. A domain left typed is added when you leave the field."
+	},
+	"npmos.domain-names.invalid": {
+		"defaultMessage": "{domain} is not a domain this host can take"
+	},
+	"npmos.domain-names.placeholder": {
+		"defaultMessage": "Type a domain, e.g. site.example.com"
+	},
 	"npmos.events.agent": {
 		"defaultMessage": "Agent"
 	},

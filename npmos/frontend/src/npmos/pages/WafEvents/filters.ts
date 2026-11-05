@@ -72,10 +72,14 @@ export const filtersFromParams = (params: URLSearchParams): EventFilters => {
 	// links of before: kind=security, kind=system (open-appsec) and kind=crowdsec are the agents with one agent
 	const old = { security: "open-appsec", system: "open-appsec", crowdsec: "crowdsec" }[params.get("kind") ?? ""];
 	const agent = split(params.get("agent")).filter((a) => (AGENTS as readonly string[]).includes(a));
+	// a period written backwards (from after to) is the same period: the dates are swapped
+	let to = validDate(params.get("to"));
+	let start = from;
+	if (start && to && Date.parse(start) > Date.parse(to)) [start, to] = [to, start];
 	return {
 		period: period === "custom" && !from ? DEFAULT_FILTERS.period : period,
-		from: period === "custom" ? from : "",
-		to: period === "custom" ? validDate(params.get("to")) : "",
+		from: period === "custom" ? start : "",
+		to: period === "custom" ? to : "",
 		kind: KINDS.find((k) => k === params.get("kind")) ?? DEFAULT_FILTERS.kind,
 		important: params.get("important") === "1",
 		q: (params.get("q") ?? "").slice(0, 200),

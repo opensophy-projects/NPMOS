@@ -2249,6 +2249,21 @@
 	"npmos.date.time": {
 		"defaultMessage": "Время"
 	},
+	"npmos.domain-names.create": {
+		"defaultMessage": "Добавить {domain} — Enter"
+	},
+	"npmos.domain-names.hint": {
+		"defaultMessage": "Введите домен и нажмите Enter"
+	},
+	"npmos.domain-names.how": {
+		"defaultMessage": "Enter, Tab, запятая или пробел добавляют домен; вставленный список разбивается сам. Набранный домен добавится и при уходе из поля."
+	},
+	"npmos.domain-names.invalid": {
+		"defaultMessage": "{domain} — не домен, который можно добавить этому хосту"
+	},
+	"npmos.domain-names.placeholder": {
+		"defaultMessage": "Введите домен, например site.example.com"
+	},
 	"npmos.events.agent": {
 		"defaultMessage": "Агент"
 	},

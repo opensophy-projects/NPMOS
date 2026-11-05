@@ -88,4 +88,10 @@ describe("filters of a kind", () => {
 		expect(actionsFor(f)).not.toContain("Prevent");
 		expect(forKind(f, "agents").action).toEqual(["ban"]);
 	});
+	it("swaps a period written backwards", () => {
+		const f = filtersFromParams(
+			new URLSearchParams("period=custom&from=2026-11-05T00:00:00.000Z&to=2026-11-04T00:00:00.000Z"),
+		);
+		expect([f.from, f.to]).toEqual(["2026-11-04T00:00:00.000Z", "2026-11-05T00:00:00.000Z"]);
+	});
 });
