@@ -63,6 +63,7 @@ pnpm vite
 
 - [Перенос с Nginx Proxy Manager, NPMplus и open-appsec-npm](docs/MIGRATION.md)
 - [Полное удаление NPMOS](docs/UNINSTALL.md)
+- [Решение проблем: браузер перенаправляет на старый адрес](docs/TROUBLESHOOTING.md)
 - [Как развернуть develop-версию и что проверить руками](docs/TESTING-DEVELOP.md)
 - [План разработки](docs/ROADMAP.md)
 - [Инвентаризация env-настроек](docs/ENV-INVENTORY.md)
