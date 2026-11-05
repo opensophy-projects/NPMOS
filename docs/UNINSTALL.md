@@ -146,15 +146,50 @@ npm rm -g pnpm
 - **Сертификаты в браузерах и ОС.** Если в систему или браузер импортировали корневой CA NPMOS или клиентские сертификаты (.p12) для mTLS, удалите их там вручную. В Windows это `certmgr.msc`, в macOS — «Связка ключей», в Firefox — «Настройки → Сертификаты».
 - **Docker целиком.** Если Docker ставился только ради NPMOS, его можно удалить средствами ОС. Тогда шаги 1–4 не нужны: удаление `/var/lib/docker` снимает всё сразу.
 
-## Коротко: всё одной командой
+## Коротко: всё сразу, без резервной копии
 
-Для сервера, где кроме NPMOS в Docker ничего нет:
+Убирает только то, что относится к NPMOS, другие проекты в Docker не трогает. `NPMOS_DIR` — каталог, куда клонировали репозиторий. Если его уже нет, шаг с `docker compose` пропускается, остатки удаляются по именам.
 
 ```bash
-docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml --profile attack down --volumes --remove-orphans
-docker ps -a --format '{{.Names}}' | grep -E '^npmos' | xargs -r docker rm -f
-docker volume ls -q | grep -E '^npmos' | xargs -r docker volume rm
-docker network ls --format '{{.Name}}' | grep -E '^npmos' | xargs -r docker network rm
-docker system prune -af --volumes   # ВНИМАНИЕ: удаляет ВСЕ неиспользуемые образы, тома и кэш Docker на машине
-cd .. && rm -rf npmos
+NPMOS_DIR=~/npmos
+
+# 1. стек (прод, dev, тест закрытого контура) вместе с томами и сетями
+if [ -f "$NPMOS_DIR/deploy/compose.yaml" ]; then
+  D="$NPMOS_DIR/deploy"
+  docker compose -f "$D/compose.yaml" -f "$D/compose.dev.yaml" --profile attack down --volumes --remove-orphans
+  docker compose -p npmos-airgap -f "$D/compose.yaml" -f "$D/test/compose.airgap.yaml" --profile test \
+    down --volumes --remove-orphans 2>/dev/null
+fi
+
+# 2. остатки по имени и метке
+docker ps -aq --filter 'name=^npmos' | xargs -r docker rm -f
+docker ps -aq --filter 'label=npmos.managed=true' | xargs -r docker rm -f
+docker volume ls -q | grep -E '^npmos(-airgap)?_' | xargs -r docker volume rm -f
+docker network ls --format '{{.Name}}' | grep -E '^npmos(-airgap)?_' | xargs -r docker network rm
+
+# 3. образы NPMOS
+docker images --format '{{.Repository}}:{{.Tag}}' | grep -E '(^|/)npmos(-appsec-[a-z-]+)?:' | xargs -r docker rmi -f
+
+# 4. сторонние образы стека, dev и тестов (пропустите, если они нужны другим проектам)
+docker images --format '{{.Repository}}:{{.Tag}}' \
+  | grep -E '(^|/)(crowdsecurity/crowdsec|tecnativa/docker-socket-proxy|postgres|traefik/whoami|curlimages/curl|zoeyvid/npmplus|node):' \
+  | xargs -r docker rmi -f
+
+# 5. кэш сборки и висячие слои (весь кэш сборки Docker, не только NPMOS)
+docker builder prune -af
+docker image prune -f
+
+# 6. файлы
+rm -rf "$NPMOS_DIR" ~/npmos-backup
+
+# проверка: все три команды ничего не выводят
+docker ps -a | grep npmos; docker volume ls | grep npmos; docker network ls | grep npmos
+```
+
+Затем по разделу 6: порты, файрвол, DNS, импортированные в браузер или ОС CA и `.p12`.
+
+Если кроме NPMOS в Docker ничего нет, шаги 2–5 можно заменить одной командой. Она удаляет **все** остановленные контейнеры, неиспользуемые образы, тома, сети и кэш Docker на машине:
+
+```bash
+docker system prune -af --volumes
 ```
