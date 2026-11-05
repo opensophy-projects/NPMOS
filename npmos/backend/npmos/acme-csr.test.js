@@ -4,7 +4,7 @@ import { mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { checkCsr } from "./acme-csr.js";
+import { checkCsr } from "./acme-csr-check.js";
 
 const dir = mkdtempSync(path.join(tmpdir(), "csr-"));
 const csr = (name, args) => {
