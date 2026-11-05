@@ -644,6 +644,48 @@
 	"npmos.access.search": {
 		"defaultMessage": "Search by name"
 	},
+	"npmos.acme.csr.check": {
+		"defaultMessage": "Check"
+	},
+	"npmos.acme.csr.csr": {
+		"defaultMessage": "Certificate request (CSR), PEM"
+	},
+	"npmos.acme.csr.csr.hint": {
+		"defaultMessage": "For example: openssl req -new -newkey ec -pkeyopt ec_paramgen_curve:P-384 -nodes -keyout site.key -out site.csr -subj \"/CN=site.example.com\" -addext \"subjectAltName=DNS:site.example.com\""
+	},
+	"npmos.acme.csr.dns": {
+		"defaultMessage": "Prove the domains through DNS (DNS-01)"
+	},
+	"npmos.acme.csr.dns.hint": {
+		"defaultMessage": "Needed for wildcard domains and servers whose port 80 is closed: the record is made through the API of the DNS provider."
+	},
+	"npmos.acme.csr.from-file": {
+		"defaultMessage": "From file"
+	},
+	"npmos.acme.csr.http.hint": {
+		"defaultMessage": "HTTP-01: the domains must point at this server and port 80 be open from the internet."
+	},
+	"npmos.acme.csr.intro": {
+		"defaultMessage": "Paste a certificate request made elsewhere — with the key type, subject or extensions you need — and its private key. The ACME server of Settings → ACME signs it; NPMOS renews it with the same CSR and serves it like any ACME certificate. The domains come from the subjectAltName of the CSR."
+	},
+	"npmos.acme.csr.key": {
+		"defaultMessage": "Private key of the CSR, PEM"
+	},
+	"npmos.acme.csr.key.hint": {
+		"defaultMessage": "Not encrypted: nginx serves the certificate with it. It is kept in the data volume of NPMOS with the CSR, readable by NPMOS only."
+	},
+	"npmos.acme.csr.menu": {
+		"defaultMessage": "ACME with your own CSR"
+	},
+	"npmos.acme.csr.names": {
+		"defaultMessage": "Domains: {names}"
+	},
+	"npmos.acme.csr.submit": {
+		"defaultMessage": "Request the certificate"
+	},
+	"npmos.acme.csr.title": {
+		"defaultMessage": "ACME certificate for your own CSR"
+	},
 	"npmos.acme.log.none": {
 		"defaultMessage": "No ACME request has failed yet."
 	},

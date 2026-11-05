@@ -9,6 +9,7 @@ import _ from "lodash";
 import dnsPlugins from "../certbot/dns-plugins.json" with { type: "json" };
 import { installPlugin } from "../lib/certbot.js";
 import { acmeError, acmeRenewEnabled, applyRenewWindow, ensureAcmeAccount } from "../npmos/acme.js"; // NPMOS: ACME account, errors, renewal
+import internalAcmeCsr from "../npmos/acme-csr.js"; // NPMOS: ACME with your own CSR
 import { assertKeyMatches } from "../npmos/cert-pair.js"; // NPMOS: the key must belong to the certificate
 import error from "../lib/error.js";
 import utils from "../lib/utils.js";
@@ -67,6 +68,8 @@ const internalCertificate = {
 			} catch (err) {
 				logger.warn(`Certbot completed with errors: ${err}`);
 			}
+			// NPMOS: certificates of your own CSR have no certbot lineage: NPMOS renews them
+			await internalAcmeCsr.renewDue();
 
 			try {
 				await internalNginx.reload();
@@ -763,9 +766,12 @@ const internalCertificate = {
 		const certificate = await internalCertificate.get(access, data);
 
 		if (certificate.provider === "letsencrypt") {
-			const renewMethod = certificate.meta.dns_challenge
-				? internalCertificate.renewCertbotWithDnsChallenge
-				: internalCertificate.renewCertbot;
+			// NPMOS: a certificate of your own CSR is requested again with the same CSR
+			const renewMethod = certificate.meta.npmos_csr
+				? internalAcmeCsr.renew
+				: certificate.meta.dns_challenge
+					? internalCertificate.renewCertbotWithDnsChallenge
+					: internalCertificate.renewCertbot;
 
 			// NPMOS: show certbot's output instead of "Internal Error"
 			await renewMethod(certificate).catch((err) => {
@@ -778,6 +784,8 @@ const internalCertificate = {
 			const updatedCertificate = await certificateModel.query().patchAndFetchById(certificate.id, {
 				expires_on: dayjs.unix(certInfo.dates.to).format("YYYY-MM-DD HH:mm:ss"),
 			});
+			// NPMOS: nginx serves the renewed certificate now, not after the next reload
+			await internalNginx.reload().catch((err) => logger.error(err));
 
 			// Add to audit log
 			await internalAuditLog.add(access, {
@@ -885,6 +893,8 @@ const internalCertificate = {
 	 * @returns {Promise}
 	 */
 	revokeCertbot: async (certificate, throwErrors) => {
+		// NPMOS: a certificate of your own CSR is revoked by its file
+		if (certificate.meta?.npmos_csr) return internalAcmeCsr.revoke(certificate, throwErrors);
 		logger.info(
 			`Revoking Certbot certificates for Cert #${certificate.id}: ${certificate.domain_names.join(", ")}`,
 		);

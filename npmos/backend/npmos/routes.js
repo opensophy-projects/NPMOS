@@ -7,6 +7,7 @@ import validator from "../lib/validator/api.js";
 import { debug, express as logger } from "../logger.js";
 import internalAudit from "./audit/index.js";
 import internalBlockPage from "./block-page.js";
+import internalAcmeCsr from "./acme-csr.js";
 import { certificateTerms } from "./cert-terms.js";
 import internalCertificates from "./certificates.js";
 import internalCrowdsec from "./crowdsec/index.js";
@@ -1035,6 +1036,53 @@ router
 		handle(async (_, res) => {
 			await res.locals.access.can("certificates:list");
 			return lastFailureLog() ?? { log: null };
+		}),
+	);
+
+/**
+ * POST /api/npmos/acme/csr/check — {csr, key}: names, key type and subject of your own CSR
+ * POST /api/npmos/acme/csr — {csr, key, meta: {dns_challenge?, dns_provider?, dns_provider_credentials?,
+ *   propagation_seconds?}}: an ACME certificate for the CSR (npmos/acme-csr.js)
+ */
+const csrSchema = {
+	type: "object",
+	additionalProperties: false,
+	required: ["csr", "key"],
+	properties: {
+		csr: { type: "string", minLength: 1, maxLength: 65536 },
+		key: { type: "string", minLength: 1, maxLength: 65536 },
+		meta: {
+			type: "object",
+			additionalProperties: false,
+			properties: {
+				dns_challenge: { type: "boolean" },
+				dns_provider: { type: "string", maxLength: 100 },
+				dns_provider_credentials: { type: "string", maxLength: 65536 },
+				propagation_seconds: { type: ["integer", "null"], minimum: 0, maximum: 7200 },
+			},
+		},
+	},
+};
+
+router
+	.route("/acme/csr/check")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) => {
+			await res.locals.access.can("certificates:create");
+			return internalAcmeCsr.check(res.locals.access, await validator(csrSchema, req.body));
+		}),
+	);
+
+router
+	.route("/acme/csr")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) => {
+			await res.locals.access.can("certificates:create");
+			return internalAcmeCsr.create(res.locals.access, await validator(csrSchema, req.body));
 		}),
 	);
 

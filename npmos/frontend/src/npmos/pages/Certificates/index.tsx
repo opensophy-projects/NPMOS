@@ -37,6 +37,7 @@ import hostStyles from "../Hosts/Hosts.module.css";
 import styles from "../WafEvents/Events.module.css";
 import own from "./Certificates.module.css";
 import { SearchField } from "../../ui/SearchField";
+import { showCsrModal } from "../../certs/CsrModal";
 import { showAcmeLogModal } from "../../certs/AcmeLog";
 
 const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id }, values);
@@ -308,6 +309,11 @@ function CertificatesPage() {
 								key: "dns",
 								label: <T id="lets-encrypt-via-dns" />,
 								onSelect: () => showDNSCertificateModal(),
+							},
+							{
+								key: "csr",
+								label: <T id="npmos.acme.csr.menu" />,
+								onSelect: showCsrModal,
 							},
 							{
 								key: "custom",

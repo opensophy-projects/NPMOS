@@ -644,6 +644,48 @@
 	"npmos.access.search": {
 		"defaultMessage": "Поиск по названию"
 	},
+	"npmos.acme.csr.check": {
+		"defaultMessage": "Проверить"
+	},
+	"npmos.acme.csr.csr": {
+		"defaultMessage": "Запрос на сертификат (CSR), PEM"
+	},
+	"npmos.acme.csr.csr.hint": {
+		"defaultMessage": "Например: openssl req -new -newkey ec -pkeyopt ec_paramgen_curve:P-384 -nodes -keyout site.key -out site.csr -subj \"/CN=site.example.com\" -addext \"subjectAltName=DNS:site.example.com\""
+	},
+	"npmos.acme.csr.dns": {
+		"defaultMessage": "Подтвердить домены через DNS (DNS-01)"
+	},
+	"npmos.acme.csr.dns.hint": {
+		"defaultMessage": "Нужно для wildcard-доменов и серверов с закрытым портом 80: запись создаётся через API DNS-провайдера."
+	},
+	"npmos.acme.csr.from-file": {
+		"defaultMessage": "Из файла"
+	},
+	"npmos.acme.csr.http.hint": {
+		"defaultMessage": "HTTP-01: домены должны указывать на этот сервер, порт 80 открыт из интернета."
+	},
+	"npmos.acme.csr.intro": {
+		"defaultMessage": "Вставьте запрос на сертификат, сделанный в другом месте (с нужным типом ключа, субъектом или расширениями), и его закрытый ключ. Подпишет ACME-сервер из «Настройки → ACME»; NPMOS продлевает сертификат тем же CSR и отдаёт его, как любой сертификат ACME. Домены берутся из subjectAltName запроса."
+	},
+	"npmos.acme.csr.key": {
+		"defaultMessage": "Закрытый ключ CSR, PEM"
+	},
+	"npmos.acme.csr.key.hint": {
+		"defaultMessage": "Без пароля: с ним nginx отдаёт сертификат. Хранится в томе данных NPMOS рядом с CSR, доступен только NPMOS."
+	},
+	"npmos.acme.csr.menu": {
+		"defaultMessage": "ACME по своему CSR"
+	},
+	"npmos.acme.csr.names": {
+		"defaultMessage": "Домены: {names}"
+	},
+	"npmos.acme.csr.submit": {
+		"defaultMessage": "Запросить сертификат"
+	},
+	"npmos.acme.csr.title": {
+		"defaultMessage": "Сертификат ACME по своему CSR"
+	},
 	"npmos.acme.log.none": {
 		"defaultMessage": "Неудачных запросов к ACME-серверу ещё не было."
 	},
