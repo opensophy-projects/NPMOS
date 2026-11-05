@@ -402,6 +402,7 @@ function HostsPage() {
 			headers: row.type === "proxy",
 			...current,
 			revocation: current?.revocation ?? ("crl" as const),
+			deniedPage: current?.deniedPage ?? ("certificate" as const),
 			rules: (current?.rules ?? []).map((r) => fromApiRule(r as any)),
 		};
 		if (caIds === null) {

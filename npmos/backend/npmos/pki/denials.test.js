@@ -27,6 +27,9 @@ test("mTLS denials: a line of the nginx log becomes a security event", () => {
 	});
 	assert.equal(refused.name, "mTLS: client certificate not accepted");
 	assert.equal(refused.sample, "subject: CN=bob,OU=Sales; serial: 0A");
+	// the answer chosen for the host (denied_page): 404 or a closed connection (444)
+	assert.equal(toEvent({ time: "2026-10-29T15:00:02+00:00", ip: "192.0.2.8", status: "404" }).response_code, 404);
+	assert.equal(toEvent({ time: "2026-10-29T15:00:02+00:00", ip: "192.0.2.8", status: "444" }).response_code, 444);
 	assert.equal(toEvent({ ip: "192.0.2.9" }), null);
 	assert.equal(toEvent({ time: "bad", ip: "192.0.2.9" }), null);
 });

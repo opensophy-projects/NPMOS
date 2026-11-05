@@ -302,7 +302,12 @@ export interface MtlsBinding {
 	headers: boolean;
 	/** crl: nginx reads the CRL (reloads on a revocation); ocsp: nginx asks NPMOS, no reload */
 	revocation: "crl" | "ocsp";
+	/** what a refused client gets: the mTLS page, the block page, the 404 page or no answer (proxy hosts) */
+	deniedPage: DeniedPage;
 }
+
+export const DENIED_PAGES = ["certificate", "blocked", "not_found", "close"] as const;
+export type DeniedPage = (typeof DENIED_PAGES)[number];
 
 export interface MtlsHost extends MtlsBinding {
 	name: string;

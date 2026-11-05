@@ -3512,6 +3512,33 @@
 	"npmos.mtls.deleted": {
 		"defaultMessage": "{count, plural, one {Certificate deleted} other {# certificates deleted}}"
 	},
+	"npmos.mtls.denied-page": {
+		"defaultMessage": "When a client is refused"
+	},
+	"npmos.mtls.denied-page.blocked": {
+		"defaultMessage": "The block page (403)"
+	},
+	"npmos.mtls.denied-page.blocked.hint": {
+		"defaultMessage": "The same page as for requests blocked by the WAF or CrowdSec (Agents → Block page), without a word about certificates. If the block page is off, the plain 403 of nginx."
+	},
+	"npmos.mtls.denied-page.certificate": {
+		"defaultMessage": "The page \"A client certificate is required\" (403)"
+	},
+	"npmos.mtls.denied-page.certificate.hint": {
+		"defaultMessage": "Explains how to install the certificate. Good for people of your organization."
+	},
+	"npmos.mtls.denied-page.close": {
+		"defaultMessage": "Close the connection without an answer"
+	},
+	"npmos.mtls.denied-page.close.hint": {
+		"defaultMessage": "nginx answers nothing (444): the browser shows a connection error. The least a scanner learns."
+	},
+	"npmos.mtls.denied-page.not_found": {
+		"defaultMessage": "Not found (404)"
+	},
+	"npmos.mtls.denied-page.not_found.hint": {
+		"defaultMessage": "The 404 page of NPMOS: to an outsider the site looks absent."
+	},
 	"npmos.mtls.depth": {
 		"defaultMessage": "Chain depth"
 	},
@@ -3618,7 +3645,7 @@
 		"defaultMessage": "Everywhere"
 	},
 	"npmos.mtls.mode.on.hint": {
-		"defaultMessage": "Without a valid certificate the host answers 403 with a page that explains what to do."
+		"defaultMessage": "Without a valid certificate the host refuses the request; what the client sees is chosen below."
 	},
 	"npmos.mtls.mode.optional": {
 		"defaultMessage": "On chosen locations"

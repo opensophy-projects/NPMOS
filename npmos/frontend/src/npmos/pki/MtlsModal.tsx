@@ -11,6 +11,8 @@ import { intl, T } from "src/locale";
 import { showSuccess } from "src/notifications";
 import { useCan } from "../rbac/hooks";
 import {
+	DENIED_PAGES,
+	type DeniedPage,
 	fromApiRule,
 	getMtlsHost,
 	getPki,
@@ -73,6 +75,7 @@ function MtlsForm({
 		requiredPaths: host.requiredPaths,
 		headers: host.headers,
 		revocation: host.revocation ?? "crl",
+		deniedPage: host.deniedPage ?? "certificate",
 	});
 	const [advanced, setAdvanced] = useState(false);
 	const [busy, setBusy] = useState(false);
@@ -340,6 +343,29 @@ function MtlsForm({
 						</div>
 						<div className="form-hint">
 							<T id={`npmos.mtls.revocation.${value.revocation}.hint`} />
+						</div>
+					</div>
+				)}
+
+				{proxy && (
+					<div className="mb-3">
+						<label className="form-label" htmlFor="mtls-denied-page">
+							<T id="npmos.mtls.denied-page" />
+						</label>
+						<select
+							id="mtls-denied-page"
+							className="form-select"
+							value={value.deniedPage}
+							onChange={(e) => setValue({ ...value, deniedPage: e.target.value as DeniedPage })}
+						>
+							{DENIED_PAGES.map((p) => (
+								<option key={p} value={p}>
+									{t(`npmos.mtls.denied-page.${p}`)}
+								</option>
+							))}
+						</select>
+						<div className="form-hint">
+							<T id={`npmos.mtls.denied-page.${value.deniedPage}.hint`} />
 						</div>
 					</div>
 				)}

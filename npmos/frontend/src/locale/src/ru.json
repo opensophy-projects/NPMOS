@@ -3512,6 +3512,33 @@
 	"npmos.mtls.deleted": {
 		"defaultMessage": "{count, plural, one {Сертификат удалён} few {Удалено # сертификата} other {Удалено # сертификатов}}"
 	},
+	"npmos.mtls.denied-page": {
+		"defaultMessage": "Что видит отклонённый клиент"
+	},
+	"npmos.mtls.denied-page.blocked": {
+		"defaultMessage": "Страница блокировки (403)"
+	},
+	"npmos.mtls.denied-page.blocked.hint": {
+		"defaultMessage": "Та же страница, что при блокировке WAF или CrowdSec («Агенты → Страница блокировки»), без упоминания сертификатов. Если страница блокировки выключена — обычный 403 nginx."
+	},
+	"npmos.mtls.denied-page.certificate": {
+		"defaultMessage": "Страница «Нужен клиентский сертификат» (403)"
+	},
+	"npmos.mtls.denied-page.certificate.hint": {
+		"defaultMessage": "Объясняет, как установить сертификат. Подходит для сотрудников."
+	},
+	"npmos.mtls.denied-page.close": {
+		"defaultMessage": "Закрыть соединение без ответа"
+	},
+	"npmos.mtls.denied-page.close.hint": {
+		"defaultMessage": "nginx ничего не отвечает (444): браузер покажет ошибку соединения. Сканер узнаёт меньше всего."
+	},
+	"npmos.mtls.denied-page.not_found": {
+		"defaultMessage": "Не найдено (404)"
+	},
+	"npmos.mtls.denied-page.not_found.hint": {
+		"defaultMessage": "Страница 404 NPMOS: для постороннего сайт выглядит несуществующим."
+	},
 	"npmos.mtls.depth": {
 		"defaultMessage": "Глубина цепочки"
 	},
@@ -3618,7 +3645,7 @@
 		"defaultMessage": "Везде"
 	},
 	"npmos.mtls.mode.on.hint": {
-		"defaultMessage": "Без подходящего сертификата хост отвечает 403 со страницей, где объяснено, что делать."
+		"defaultMessage": "Без подходящего сертификата хост отказывает; что увидит клиент — выбирается ниже."
 	},
 	"npmos.mtls.mode.optional": {
 		"defaultMessage": "На выбранных локациях"

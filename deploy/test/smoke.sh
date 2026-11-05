@@ -680,6 +680,22 @@ for i in $(seq 1 30); do
 done
 $CURL "$ADMIN/api/npmos/pki" | grep -q '"common_name": *"dana"' && fail "the deleted certificate is still listed"
 
+step "mTLS: a refused client gets the page the host chose (404, no answer), a valid certificate still passes"
+denied() { # page → the mTLS of mtls.local with that page
+  api_json -X PUT "$ADMIN/api/npmos/mtls/proxy_host/$host_id" -d "{\"enabled\": true, \"ca_ids\": [$domain_id],
+    \"rules\": [{\"field\": \"organizational_unit\", \"op\": \"one_of\", \"values\": [\"IT\"]}], \"revocation\": \"ocsp\",
+    \"denied_page\": \"$1\"}" | tr -d ' \n' | grep -q "\"denied_page\":\"$1\"" || fail "mtls.local did not take the page $1"
+}
+denied not_found
+for i in $(seq 1 10); do [ "$(mtls)" = 404 ] && break; [ "$i" = 10 ] && fail "no certificate: expected 404"; sleep 1; done
+curl -sS -k --max-time 10 $TLS_TO "$HTTPS_MTLS/" | grep -q 'This site is not here' || fail "the 404 page of NPMOS was not shown"
+expect "$(mtls --cert /tmp/bob.crt --key /tmp/bob.key)" 404 "a certificate refused by a rule with the 404 page"
+denied close
+for i in $(seq 1 10); do [ "$(mtls)" = 000 ] && break; [ "$i" = 10 ] && fail "no certificate: expected no answer"; sleep 1; done
+expect "$(mtls --cert /tmp/dana.crt --key /tmp/dana.key)" 000 "a certificate of another host with no answer"
+denied certificate
+for i in $(seq 1 10); do [ "$(mtls)" = 403 ] && break; [ "$i" = 10 ] && fail "no certificate: expected 403 again"; sleep 1; done
+
 step "mTLS on a TCP stream: a certificate of the trust domain passes, none or a revoked one is refused"
 stream_id=$(api_json "$ADMIN/api/nginx/streams" -d "{\"incoming_port\": 9555, \"forwarding_host\": \"test-upstream\",
   \"forwarding_port\": 80, \"tcp_forwarding\": true, \"udp_forwarding\": false, \"certificate_id\": $tls_id}" | json_id)

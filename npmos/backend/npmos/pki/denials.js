@@ -51,7 +51,8 @@ export const toEvent = (line, nodeId = "local") => {
 		method: str(line.method, 16),
 		uri: uri.slice(0, 2048),
 		query: query.slice(0, 2048),
-		response_code: 403,
+		// the answer the host chose (denied_page): 403, 404 or 444 (closed); older lines have none
+		response_code: Number.parseInt(line.status, 10) || 403,
 		location: "",
 		parameter: "",
 		// SUCCESS here: the certificate is valid, but its issuer or a rule of the host refused it

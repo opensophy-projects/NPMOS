@@ -31,6 +31,11 @@ export const REVOCATIONS = ["crl", "ocsp"];
 /** the OCSP responder of NPMOS for nginx itself (conf.d/npmos-ocsp.conf) */
 const OCSP_RESPONDER = process.env.NPMOS_OCSP_RESPONDER || "http://127.0.0.1:7089/api/npmos/pki/public/ocsp/auto";
 export { RULE_FIELDS, RULE_OPS, ruleRegex, trustSet };
+/**
+ * what a refused client gets (proxy hosts): the page "a client certificate is required" (403), the block page of
+ * NPMOS (403), the 404 page (the site looks absent) or no answer at all (444, the connection is closed)
+ */
+export const DENIED_PAGES = ["certificate", "blocked", "not_found", "close"];
 export const DEFAULTS = {
 	enabled: false,
 	ca_ids: [],
@@ -41,6 +46,7 @@ export const DEFAULTS = {
 	required_paths: [],
 	headers: true,
 	revocation: "crl",
+	denied_page: "certificate",
 };
 
 const parse = (value) => (typeof value === "string" ? JSON.parse(value) : value);
@@ -84,6 +90,7 @@ const toBinding = (row) =>
 				required_paths: parse(row.required_paths) || [],
 				headers: !!row.headers,
 				revocation: REVOCATIONS.includes(row.revocation) ? row.revocation : "crl",
+				denied_page: DENIED_PAGES.includes(row.denied_page) ? row.denied_page : "certificate",
 			}
 		: { ...DEFAULTS };
 
@@ -122,6 +129,7 @@ export const prepareHost = async (hostType, host) => {
 			crl_file: set.crls && !ocsp ? f.crl : "",
 			ocsp_url: ocsp ? OCSP_RESPONDER : "",
 			ocsp_mode: ownChain ? "on" : "leaf",
+			denied_page: binding.denied_page,
 			issuers: set.issuers?.length && !rootTrusted ? `^(?:${set.issuers.map(escapeRe).join("|")})$` : "",
 			rules: binding.rules.map(ruleRegex),
 			headers: binding.headers,
@@ -362,6 +370,9 @@ const validate = (data, hostType, host, cas) => {
 			values: rule.field === "serial" && rule.op === "one_of" ? values.map((v) => v.toUpperCase()) : values,
 		};
 	});
+	if (!DENIED_PAGES.includes(b.denied_page)) {
+		throw new errs.ValidationError(`denied_page: ${DENIED_PAGES.join(", ")}`);
+	}
 	if (!REVOCATIONS.includes(b.revocation)) throw new errs.ValidationError(`revocation: ${REVOCATIONS.join(", ")}`);
 	if (hostType === "stream" && b.revocation !== "crl") {
 		throw new errs.ValidationError("Streams check revocation by the CRL only");
@@ -374,6 +385,8 @@ const validate = (data, hostType, host, cas) => {
 			throw new errs.ValidationError("Streams support mode on without rules and locations");
 		}
 		b.headers = false;
+		// a stream has no HTTP: a refused client is cut off in the TLS handshake
+		b.denied_page = "certificate";
 	}
 	const paths = ["/", ...(parse(host.locations) || []).map((l) => l.path)];
 	if (!Array.isArray(b.required_paths) || !b.required_paths.every((p) => paths.includes(p))) {
@@ -460,6 +473,7 @@ const internalMtls = {
 			required_paths: JSON.stringify(binding.required_paths),
 			headers: binding.headers,
 			revocation: binding.revocation,
+			denied_page: binding.denied_page,
 		};
 		await db()("npmos_mtls_host")
 			.insert({ host_type: hostType, host_id: id, ...values })

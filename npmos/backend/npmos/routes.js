@@ -1906,7 +1906,7 @@ router
 /**
  * GET /api/npmos/mtls/:host_type/:host_id
  * PUT /api/npmos/mtls/:host_type/:host_id — {enabled, ca_ids, mode, depth, send_ca_names, rules, required_paths, headers,
- *   revocation: crl|ocsp}
+ *   revocation: crl|ocsp, denied_page: certificate|blocked|not_found|close}
  */
 router
 	.route("/mtls/:host_type/:host_id")
@@ -1942,6 +1942,7 @@ router
 						},
 						required_paths: { type: "array", maxItems: 200, items: { type: "string" } },
 						revocation: { type: "string", enum: ["crl", "ocsp"] },
+						denied_page: { type: "string", enum: ["certificate", "blocked", "not_found", "close"] },
 						headers: { type: "boolean" },
 					},
 				},
