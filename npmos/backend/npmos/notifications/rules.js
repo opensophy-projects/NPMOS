@@ -4,6 +4,7 @@
 // Messages are written in the language of the channel (ru/en); they are not part of the GUI.
 import db from "../../db.js";
 import control from "../control/client.js";
+import { termOf } from "../cert-terms.js";
 import { EVENT_TABLE } from "../events/store.js";
 import { getSetting } from "../settings.js";
 import { getAgentStatus } from "../waf/agent.js";
@@ -80,11 +81,11 @@ const TEXT = {
 	cert_expiry: {
 		en: (v) => ({
 			title: `Certificate ${v.name} expires ${v.days < 0 ? "— expired" : `in ${v.days} d`}`,
-			text: `The certificate ${v.name} (${v.domains}) expires on ${v.expires}. Let's Encrypt certificates are renewed automatically; others must be replaced.`,
+			text: `The certificate ${v.name} (${v.domains}) expires on ${v.expires}. NPMOS renews ACME certificates itself and tells only when a renewal is late: see the full log of the last request in Certificates. Others must be replaced.`,
 		}),
 		ru: (v) => ({
 			title: `Сертификат ${v.name} ${v.days < 0 ? "истёк" : `истекает через ${v.days} дн.`}`,
-			text: `Сертификат ${v.name} (${v.domains}) действует до ${v.expires}. Let's Encrypt продлевается сам; свои сертификаты нужно заменить.`,
+			text: `Сертификат ${v.name} (${v.domains}) действует до ${v.expires}. Сертификаты ACME NPMOS продлевает сам и сообщает, только если продление запаздывает: полный лог последнего запроса — в «Сертификатах». Свои сертификаты нужно заменить.`,
 		}),
 	},
 	host_problem: {
@@ -207,11 +208,22 @@ const CHECKS = {
 		const daysLeft = (date) => Math.floor((new Date(date).getTime() - now.getTime()) / 86400000);
 		// messages at 30, 7 and 1 day left and when expired (within the days of the rule)
 		const stage = (days) => (days < 0 ? "expired" : String([1, 7, 30].find((s) => days <= s) ?? p.days));
-		const rows = await db()("certificate")
+		// TLS of the hosts: one NPMOS renews is news only when its renewal is late (cert-terms.js); one replaced by
+		// hand from the days of the rule, or a third of a shorter term (a 6-day certificate is not "expiring" all along)
+		const candidates = await db()("certificate")
 			.where("is_deleted", 0)
+			.whereNot("provider", "mtls")
 			.whereNotNull("expires_on")
-			.where("expires_on", "<=", until)
-			.select("id", "nice_name", "domain_names", "expires_on");
+			.where("expires_on", "<=", new Date(now.getTime() + Math.max(p.days, 30) * 86400000))
+			.select("id", "provider", "nice_name", "domain_names", "expires_on");
+		const rows = [];
+		for (const c of candidates) {
+			const term = await termOf(c);
+			const end = new Date(c.expires_on).getTime();
+			const lead = term.lifetime_days ? Math.min(p.days, term.lifetime_days / 3) : p.days;
+			const from = term.auto_renew ? new Date(term.attention_from).getTime() : end - lead * 86400000;
+			if (now.getTime() >= from) rows.push(c);
+		}
 		const alerts = rows.map((c) => {
 			const domains = parseJson(c.domain_names);
 			const days = daysLeft(c.expires_on);

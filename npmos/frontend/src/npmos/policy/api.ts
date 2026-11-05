@@ -4,6 +4,7 @@
 // converts keys between camelCase and snake_case.
 import * as base from "src/api/backend/base";
 import AuthStore from "src/modules/AuthStore";
+import { isNotJson, notJsonError } from "../apiErrors";
 
 export type Kind =
 	| "threat_prevention"
@@ -138,6 +139,7 @@ const request = async <T>(method: string, url: string, data?: unknown): Promise<
 		headers: data === undefined ? {} : { "Content-Type": "application/json" },
 		body: data === undefined ? undefined : JSON.stringify(data),
 	});
+	if (isNotJson(response)) throw notJsonError(response);
 	const payload = await response.json();
 	if (!response.ok) {
 		if (response.status === 401) {

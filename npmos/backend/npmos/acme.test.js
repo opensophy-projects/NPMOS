@@ -24,3 +24,26 @@ test("the renewal window goes in as a top-level key of the renewal file", async 
 	assert.equal(setRenewWindow(setRenewWindow(set, 20), 0), conf);
 	assert.equal(setRenewWindow(set, 20).match(/renew_before_expiry/g).length, 1);
 });
+
+test("an account the ACME server forgot is recognised in the output of certbot", async () => {
+	const { ACCOUNT_GONE } = await import("./acme.js");
+	assert.match(
+		"acme.messages.Error: urn:ietf:params:acme:error:accountDoesNotExist :: The request specified an account that does not exist",
+		ACCOUNT_GONE,
+	);
+	assert.match(
+		"An unexpected error occurred:\nAccount https://pebble:14000/my-account/2013de not found.",
+		ACCOUNT_GONE,
+	);
+	assert.doesNotMatch("Some challenges have failed.\nDetail: Timeout", ACCOUNT_GONE);
+});
+
+test("the urllib3 warnings of an ACME server with its own CA are not shown as the error", () => {
+	const out = [
+		"Requesting a certificate for a.example",
+		"/usr/local/lib/python3.14/site-packages/urllib3/connectionpool.py:1129: InsecureRequestWarning: Unverified HTTPS request is being made to host 'pebble'.",
+		"  warnings.warn(",
+		"Some challenges have failed.",
+	].join("\n");
+	assert.equal(clean(out), "Requesting a certificate for a.example\nSome challenges have failed.");
+});

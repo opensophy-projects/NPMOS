@@ -644,6 +644,48 @@
 	"npmos.access.search": {
 		"defaultMessage": "Search by name"
 	},
+	"npmos.acme.csr.check": {
+		"defaultMessage": "Check"
+	},
+	"npmos.acme.csr.csr": {
+		"defaultMessage": "Certificate request (CSR), PEM"
+	},
+	"npmos.acme.csr.csr.hint": {
+		"defaultMessage": "For example: openssl req -new -newkey ec -pkeyopt ec_paramgen_curve:P-384 -nodes -keyout site.key -out site.csr -subj \"/CN=site.example.com\" -addext \"subjectAltName=DNS:site.example.com\""
+	},
+	"npmos.acme.csr.dns": {
+		"defaultMessage": "Prove the domains through DNS (DNS-01)"
+	},
+	"npmos.acme.csr.dns.hint": {
+		"defaultMessage": "Needed for wildcard domains and servers whose port 80 is closed: the record is made through the API of the DNS provider."
+	},
+	"npmos.acme.csr.from-file": {
+		"defaultMessage": "From file"
+	},
+	"npmos.acme.csr.http.hint": {
+		"defaultMessage": "HTTP-01: the domains must point at this server and port 80 be open from the internet."
+	},
+	"npmos.acme.csr.intro": {
+		"defaultMessage": "Paste a certificate request made elsewhere — with the key type, subject or extensions you need — and its private key. The ACME server of Settings → ACME signs it; NPMOS renews it with the same CSR and serves it like any ACME certificate. The domains come from the subjectAltName of the CSR."
+	},
+	"npmos.acme.csr.key": {
+		"defaultMessage": "Private key of the CSR, PEM"
+	},
+	"npmos.acme.csr.key.hint": {
+		"defaultMessage": "Not encrypted: nginx serves the certificate with it. It is kept in the data volume of NPMOS with the CSR, readable by NPMOS only."
+	},
+	"npmos.acme.csr.menu": {
+		"defaultMessage": "ACME with your own CSR"
+	},
+	"npmos.acme.csr.names": {
+		"defaultMessage": "Domains: {names}"
+	},
+	"npmos.acme.csr.submit": {
+		"defaultMessage": "Request the certificate"
+	},
+	"npmos.acme.csr.title": {
+		"defaultMessage": "ACME certificate for your own CSR"
+	},
 	"npmos.acme.log.none": {
 		"defaultMessage": "No ACME request has failed yet."
 	},
@@ -860,6 +902,18 @@
 	"npmos.analytics.traffic.timeline": {
 		"defaultMessage": "Requests over time"
 	},
+	"npmos.api.not-json": {
+		"defaultMessage": "{host} gave an unexpected answer (HTTP {status}) that did not come from NPMOS."
+	},
+	"npmos.api.not-json.blocked": {
+		"defaultMessage": "The request was refused before it reached NPMOS (HTTP {status}): the protection of {host} blocked it — open-appsec, CrowdSec or mTLS of the proxy host the panel is opened through. Find the request in Analytics → Events and add an exception, or open the panel at https://server-IP:81."
+	},
+	"npmos.api.not-json.not-found": {
+		"defaultMessage": "{host} answered 404: this address does not lead to the API of NPMOS. Check the proxy host of the panel: scheme https, address 127.0.0.1, port 81."
+	},
+	"npmos.api.not-json.unavailable": {
+		"defaultMessage": "{host} answered {status}: the backend of NPMOS cannot be reached through this address right now."
+	},
 	"npmos.audit.action.applied": {
 		"defaultMessage": "Applied"
 	},
@@ -1029,7 +1083,7 @@
 		"defaultMessage": "The page answers every refusal nginx makes itself (code 403); answers of your services are left as they are. Pages of mTLS and the admin interface keep their own."
 	},
 	"npmos.blocks.description": {
-		"defaultMessage": "Whom CrowdSec blocks now and why, what open-appsec refused, and the lists of addresses: bans, captchas, alerts, blocklists. A ban by hand is here too."
+		"defaultMessage": "Whom the agents block and why: bans and captchas in force, what open-appsec and CrowdSec refused lately, and blocklists. A ban by hand is here too; the alerts of CrowdSec with their details are in Agents → CrowdSec."
 	},
 	"npmos.blocks.openappsec.all": {
 		"defaultMessage": "All in Events"
@@ -1040,17 +1094,17 @@
 	"npmos.blocks.openappsec.ban": {
 		"defaultMessage": "Ban"
 	},
-	"npmos.blocks.openappsec.hint": {
-		"defaultMessage": "Requests open-appsec refused in the last 24 hours: {count}. Bans of CrowdSec for repeated attacks are on the Decisions tab."
-	},
 	"npmos.blocks.openappsec.host": {
 		"defaultMessage": "Host and path"
 	},
-	"npmos.blocks.openappsec.none": {
-		"defaultMessage": "open-appsec has refused nothing in the last 24 hours."
-	},
 	"npmos.blocks.openappsec.time": {
 		"defaultMessage": "When"
+	},
+	"npmos.blocks.triggers.hint": {
+		"defaultMessage": "What the agents refused in the last 24 hours: requests open-appsec blocked and addresses CrowdSec banned — {count}. Bans in force are on the Decisions tab."
+	},
+	"npmos.blocks.triggers.none": {
+		"defaultMessage": "The agents have refused nothing in the last 24 hours."
 	},
 	"npmos.certificates.mtls": {
 		"defaultMessage": "mTLS CA"
@@ -2144,9 +2198,6 @@
 	"npmos.crowdsec.tab.hub": {
 		"defaultMessage": "Hub"
 	},
-	"npmos.crowdsec.tab.openappsec": {
-		"defaultMessage": "open-appsec"
-	},
 	"npmos.crowdsec.tab.overview": {
 		"defaultMessage": "Overview"
 	},
@@ -2155,6 +2206,9 @@
 	},
 	"npmos.crowdsec.tab.settings": {
 		"defaultMessage": "Policy"
+	},
+	"npmos.crowdsec.tab.triggers": {
+		"defaultMessage": "Triggers"
 	},
 	"npmos.crowdsec.time": {
 		"defaultMessage": "Time"
@@ -2194,6 +2248,21 @@
 	},
 	"npmos.date.time": {
 		"defaultMessage": "Time"
+	},
+	"npmos.domain-names.create": {
+		"defaultMessage": "Add {domain} — Enter"
+	},
+	"npmos.domain-names.hint": {
+		"defaultMessage": "Type a domain and press Enter"
+	},
+	"npmos.domain-names.how": {
+		"defaultMessage": "Enter, Tab, a comma or a space adds the domain; a pasted list is split. A domain left typed is added when you leave the field."
+	},
+	"npmos.domain-names.invalid": {
+		"defaultMessage": "{domain} is not a domain this host can take"
+	},
+	"npmos.domain-names.placeholder": {
+		"defaultMessage": "Type a domain, e.g. site.example.com"
 	},
 	"npmos.events.agent": {
 		"defaultMessage": "Agent"
@@ -2269,9 +2338,6 @@
 	},
 	"npmos.events.kind.mtls": {
 		"defaultMessage": "mTLS"
-	},
-	"npmos.events.kind.system": {
-		"defaultMessage": "Messages of open-appsec"
 	},
 	"npmos.events.label.benign": {
 		"defaultMessage": "False positive"
@@ -2679,10 +2745,10 @@
 		"defaultMessage": "Browsers refuse these sites. Renew the certificate or issue a new one."
 	},
 	"npmos.hosts.rec.expiring": {
-		"defaultMessage": "Certificate expires within 14 days on {count, plural, one {# host} other {# hosts}}"
+		"defaultMessage": "A certificate needs attention on {count, plural, one {# host} other {# hosts}}"
 	},
 	"npmos.hosts.rec.expiring.hint": {
-		"defaultMessage": "Let's Encrypt renews by itself; custom certificates have to be replaced."
+		"defaultMessage": "Let's Encrypt and other ACME certificates show here only when their renewal is late (see the full log of the last request in Certificates); custom ones 14 days before the end, or a third of a shorter term."
 	},
 	"npmos.hosts.rec.less": {
 		"defaultMessage": "Show fewer"
@@ -6021,7 +6087,7 @@
 		"defaultMessage": "Retention of security events"
 	},
 	"npmos.system.acme-profile.auto": {
-		"defaultMessage": "As NPMOS decides (Let's Encrypt: shortlived)"
+		"defaultMessage": "As NPMOS decides (Let's Encrypt: classic, 90 days)"
 	},
 	"npmos.system.acme-profile.classic": {
 		"defaultMessage": "classic — 90 days"
@@ -6030,7 +6096,7 @@
 		"defaultMessage": "Default of the server (Let's Encrypt: 90 days)"
 	},
 	"npmos.system.acme-profile.shortlived": {
-		"defaultMessage": "shortlived — about 6 days"
+		"defaultMessage": "shortlived — about 6 days (needs the internet every day or two)"
 	},
 	"npmos.system.acme-profile.tlsserver": {
 		"defaultMessage": "tlsserver — 90 days, server use only"
@@ -6063,7 +6129,7 @@
 		"defaultMessage": "Certificate profile (term)"
 	},
 	"npmos.system.env.ACME_PROFILE.hint": {
-		"defaultMessage": "The term is set by the ACME server through its profiles (Let's Encrypt has them; ZeroSSL, Google and others give their own term). A profile the server does not know falls back to its default. Applies to new requests and renewals after the restart."
+		"defaultMessage": "The term is set by the ACME server through its profiles (Let's Encrypt has them; ZeroSSL, Google and others give their own term). A short term limits the harm of a stolen key, but NPMOS must reach the server before it ends: with shortlived, two or three days without the internet leave the sites with expired certificates. A profile the server does not know falls back to its default. Applies to new requests and renewals after the restart."
 	},
 	"npmos.system.env.ACME_RENEW": {
 		"defaultMessage": "Renew automatically"
@@ -6381,7 +6447,7 @@
 		"defaultMessage": "Agent component"
 	},
 	"npmos.waf.events.description": {
-		"defaultMessage": "What the agents found: attacks open-appsec detected or blocked and alerts of CrowdSec, each row names its agent; refusals of mTLS and messages of the agents on their own tabs."
+		"defaultMessage": "What the agents found and reported: attacks open-appsec detected or blocked, CrowdSec alerts and the notices of the open-appsec agent; each row names its agent. mTLS refusals have their own tab."
 	},
 	"npmos.waf.events.event": {
 		"defaultMessage": "Event"

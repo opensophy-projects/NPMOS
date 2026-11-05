@@ -65,6 +65,14 @@
 .day:hover {
 	background: var(--background-inset);
 }
+/* outside the allowed range (the end of a period before its start) */
+.day:disabled,
+.day:disabled:hover {
+	background: none;
+	color: var(--foreground-muted);
+	opacity: 0.3;
+	cursor: not-allowed;
+}
 .outside {
 	color: var(--foreground-muted);
 	opacity: 0.55;

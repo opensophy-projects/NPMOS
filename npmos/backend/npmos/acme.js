@@ -3,7 +3,8 @@
 // (and, for ZeroSSL, api.zerossl.com) even when no ACME certificate is ever requested, and
 // blocks startup when offline. NPMOS registers right before the first certbot request instead.
 import { mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
-import { readdir, readFile, writeFile } from "node:fs/promises";
+import { readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { basename } from "node:path";
 import errs from "../lib/error.js";
 import utils from "../lib/utils.js";
 import { certbot as logger } from "../logger.js";
@@ -101,6 +102,62 @@ const ensureAcmeAccount = async () => {
 	await pending;
 };
 
+// the ACME server does not know the account any more (a reset step-ca or Pebble, a deactivated account)
+const ACCOUNT_GONE = /accountDoesNotExist|Account \S+ not found|account (does not exist|is deactivated)/i;
+
+const accountIds = async () => {
+	try {
+		const entries = await readdir(`${ACCOUNTS_DIR}/${serverHost()}`, { recursive: true, withFileTypes: true });
+		return entries.filter((e) => e.isFile() && e.name === "regr.json").map((e) => basename(e.parentPath));
+	} catch {
+		return [];
+	}
+};
+
+/** the renewal files point at the account by its id: the new one takes the place of the old */
+const replaceAccountInRenewals = async (oldIds, newId) => {
+	let files = [];
+	try {
+		files = (await readdir(RENEWAL_DIR)).filter((f) => f.endsWith(".conf"));
+	} catch {
+		return;
+	}
+	for (const file of files) {
+		const path = `${RENEWAL_DIR}/${file}`;
+		const conf = await readFile(path, "utf8");
+		const next = conf.replace(/^(\s*account\s*=\s*)(\S+)\s*$/m, (line, key, id) =>
+			oldIds.includes(id) ? `${key}${newId}` : line,
+		);
+		if (next !== conf) await writeFile(path, next);
+	}
+};
+
+/** a new account at ACME_SERVER instead of the one it forgot */
+const replaceAccount = async () => {
+	const oldIds = await accountIds();
+	await rm(`${ACCOUNTS_DIR}/${serverHost()}`, { recursive: true, force: true });
+	await ensureAcmeAccount();
+	const [newId] = await accountIds();
+	if (newId) await replaceAccountInRenewals(oldIds, newId);
+};
+
+/**
+ * certbot with the ACME account of ACME_SERVER. Before, an account the server had forgotten failed every request
+ * until the files were removed by hand; now NPMOS registers a new one and asks once more.
+ * @param {string[]} args
+ */
+const certbotAcme = async (args) => {
+	await ensureAcmeAccount();
+	try {
+		return await utils.execFile("certbot", args);
+	} catch (err) {
+		if (!ACCOUNT_GONE.test(`${err?.message || ""}\n${err?.stderr || ""}`)) throw err;
+		logger.warn(`${serverHost()} does not know the ACME account of NPMOS any more: registering a new one`);
+		await replaceAccount();
+		return utils.execFile("certbot", args);
+	}
+};
+
 /**
  * Certbot and ACME failures are the admin's to fix (DNS, ports, rate limits), but upstream returns
  * them as a non-public CommandError, so the GUI showed "Internal Error". Pass certbot's output on.
@@ -129,7 +186,7 @@ const clean = (output) =>
 		.split("\n")
 		.filter(
 			(line) =>
-				!/community\.letsencrypt\.org|See the logfile|re-run Certbot with -v|Ask for help or search/i.test(
+				!/community\.letsencrypt\.org|See the logfile|re-run Certbot with -v|Ask for help or search|InsecureRequestWarning|^\s*warnings\.warn\(/i.test(
 					line,
 				),
 		)
@@ -223,4 +280,14 @@ const applyRenewWindow = async (value = process.env.ACME_RENEW_DAYS) => {
 	}
 };
 
-export { acmeError, acmeRenewEnabled, applyRenewWindow, clean, ensureAcmeAccount, lastFailureLog, setRenewWindow };
+export {
+	ACCOUNT_GONE,
+	acmeError,
+	acmeRenewEnabled,
+	applyRenewWindow,
+	certbotAcme,
+	clean,
+	ensureAcmeAccount,
+	lastFailureLog,
+	setRenewWindow,
+};

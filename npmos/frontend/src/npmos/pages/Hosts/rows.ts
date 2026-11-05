@@ -2,7 +2,7 @@
 // (docs/ROADMAP.md, phase 2 "Hosts: one table"). Pure functions: rows, filters, sorting,
 // recommendations and export; the page and the cells live next to it.
 import type { Certificate, DeadHost, ProxyHost, RedirectionHost, Stream } from "src/api/backend";
-import type { HostLastChange, HostObjectType, UpstreamCheck, WafSettings } from "../../api";
+import type { CertTerm, HostLastChange, HostObjectType, UpstreamCheck, WafSettings } from "../../api";
 import type { MtlsBinding, MtlsList } from "../../pki/api";
 
 export const HOST_TYPES = ["proxy", "redirect", "stream", "dead"] as const;
@@ -43,6 +43,8 @@ export interface HostRow {
 	tls: TlsKind;
 	/** whole days until the certificate expires (negative: expired), null without TLS */
 	expiresInDays: number | null;
+	/** the certificate needs attention: by its term (a renewal is late, or it must be replaced soon) */
+	certAttention: boolean;
 	/** WAF exists only on proxy hosts */
 	waf: WafState | null;
 	mtls: MtlsState;
@@ -75,6 +77,17 @@ const tlsKind = (certificate?: Certificate): TlsKind => {
 const expiresIn = (certificate: Certificate | undefined, now: number): number | null => {
 	if (!certificate?.expiresOn) return null;
 	return Math.floor((new Date(certificate.expiresOn).getTime() - now) / DAY);
+};
+
+/**
+ * By the term of the certificate when NPMOS knows it: a 6-day certificate it renews is not "expiring" all along.
+ * Without a term (an old backend): less than EXPIRING_DAYS left.
+ */
+const attentionOf = (certificate: Certificate | undefined, now: number, terms?: Record<string, CertTerm>): boolean => {
+	if (!certificate?.expiresOn) return false;
+	const from = terms?.[String(certificate.id)]?.attentionFrom;
+	if (from) return now >= new Date(from).getTime();
+	return (expiresIn(certificate, now) ?? Number.MAX_SAFE_INTEGER) < EXPIRING_DAYS;
 };
 
 const statusOf = (enabled: boolean, meta: Record<string, any> | undefined): HostStatus => {
@@ -115,12 +128,15 @@ export interface Sources {
 	mtls?: MtlsList;
 	upstreams?: UpstreamCheck[];
 	changes?: HostLastChange[];
+	/** terms of the certificates by id (GET /npmos/certificates/terms) */
+	terms?: Record<string, CertTerm>;
 }
 
 const common = (
 	type: HostType,
 	host: { id: number; enabled: boolean; meta: Record<string, any>; certificate?: Certificate; modifiedOn: string },
 	now: number,
+	terms?: Record<string, CertTerm>,
 ) => ({
 	key: `${type}-${host.id}`,
 	type,
@@ -131,6 +147,7 @@ const common = (
 	certificate: host.certificate,
 	tls: tlsKind(host.certificate),
 	expiresInDays: expiresIn(host.certificate, now),
+	certAttention: attentionOf(host.certificate, now, terms),
 	...mtlsOf(host.meta),
 	mtlsPki: false,
 	mtlsCaIds: [] as number[],
@@ -156,7 +173,7 @@ export function toRows(sources: Sources, now = Date.now()): HostRow[] {
 	});
 	for (const host of sources.proxy ?? []) {
 		rows.push({
-			...common("proxy", host, now),
+			...common("proxy", host, now, sources.terms),
 			...extras("proxy", host.id),
 			...pkiMtls(sources.mtls?.proxyHost?.[host.id]),
 			names: host.domainNames,
@@ -171,7 +188,7 @@ export function toRows(sources: Sources, now = Date.now()): HostRow[] {
 	for (const host of sources.redirect ?? []) {
 		const scheme = host.forwardScheme === "$scheme" ? "" : `${host.forwardScheme}://`;
 		rows.push({
-			...common("redirect", host, now),
+			...common("redirect", host, now, sources.terms),
 			...extras("redirect", host.id),
 			names: host.domainNames,
 			target: `${host.forwardHttpCode} → ${scheme}${host.forwardDomainName}`,
@@ -185,7 +202,7 @@ export function toRows(sources: Sources, now = Date.now()): HostRow[] {
 	for (const host of sources.stream ?? []) {
 		const protocols = [host.tcpForwarding && "tcp", host.udpForwarding && "udp"].filter(Boolean) as string[];
 		rows.push({
-			...common("stream", host, now),
+			...common("stream", host, now, sources.terms),
 			...extras("stream", host.id),
 			...pkiMtls(sources.mtls?.stream?.[host.id]),
 			names: [`:${host.incomingPort}`],
@@ -199,7 +216,7 @@ export function toRows(sources: Sources, now = Date.now()): HostRow[] {
 	}
 	for (const host of sources.dead ?? []) {
 		rows.push({
-			...common("dead", host, now),
+			...common("dead", host, now, sources.terms),
 			...extras("dead", host.id),
 			names: host.domainNames,
 			target: "",
@@ -283,7 +300,7 @@ export function filtersToParams(filters: Filters, params = new URLSearchParams()
 	return next;
 }
 
-const isExpiring = (row: HostRow) => row.expiresInDays !== null && row.expiresInDays < EXPIRING_DAYS;
+const isExpiring = (row: HostRow) => row.expiresInDays !== null && (row.expiresInDays < 0 || row.certAttention);
 
 /** does the row have this value in the field (enum fields) or contain the text (text fields) */
 function fieldMatches(row: HostRow, field: FilterField, value: string): boolean {
@@ -448,9 +465,7 @@ export function recommendations(rows: HostRow[], wafGloballyEnabled: boolean | u
 		{
 			id: "expiring",
 			level: "warning",
-			rows: active.filter(
-				(r) => r.expiresInDays !== null && r.expiresInDays >= 0 && r.expiresInDays < EXPIRING_DAYS,
-			),
+			rows: active.filter((r) => r.expiresInDays !== null && r.expiresInDays >= 0 && r.certAttention),
 			filter: [{ field: "tls", op: "is", value: "expiring" }],
 		},
 		{

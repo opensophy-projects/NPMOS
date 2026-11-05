@@ -3,6 +3,7 @@ import {
 	type Analytics,
 	type AnalyticsPeriod,
 	type AuditPage,
+	type CertTerm,
 	type RegistryPage,
 	type EventQuery,
 	type EventsPage,
@@ -10,6 +11,7 @@ import {
 	getAnalytics,
 	getAudit,
 	getCertificateRegistry,
+	getCertTerms,
 	getEvent,
 	getEvents,
 	getEventsSettings,
@@ -104,6 +106,15 @@ export const useHostAttacks = (options = {}) =>
 		...options,
 	});
 
+/** terms of the TLS certificates of the hosts: when each needs attention */
+export const useCertTerms = (options = {}) =>
+	useQuery<Record<string, CertTerm>, Error>({
+		queryKey: ["npmos-cert-terms"],
+		queryFn: getCertTerms,
+		refetchInterval: 300000,
+		...options,
+	});
+
 /** a page of stored events; `follow`: refreshed every 5 s */
 export const useEvents = (query: EventQuery, follow: boolean, options = {}) =>
 	useQuery<EventsPage, Error>({
@@ -122,11 +133,12 @@ export const useAudit = (query: EventQuery) =>
 	});
 
 // the key starts with "certificates": the modals of NPMplus refresh it when they change a certificate
-export const useCertificateRegistry = (query: EventQuery) =>
+export const useCertificateRegistry = (query: EventQuery, options = {}) =>
 	useQuery<RegistryPage, Error>({
 		queryKey: ["certificates", "npmos-registry", query],
 		queryFn: () => getCertificateRegistry(query),
 		placeholderData: (previous) => previous,
+		...options,
 	});
 
 export const useEvent = (id: string, time: string) =>

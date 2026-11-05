@@ -392,8 +392,8 @@ export function FiltersViewPopover({
 				) : undefined
 			}
 			width="40rem"
-			triggerClassName={cn(styles.tool, (count > 0 || viewChanged) && styles.toolOn)}
-			activeClassName={styles.toolOn}
+			// the same look as "Export": active filters show as the counter, not as an outline
+			triggerClassName={styles.tool}
 			trigger={
 				<>
 					<IconFilter size={16} />

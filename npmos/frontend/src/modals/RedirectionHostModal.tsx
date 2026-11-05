@@ -104,7 +104,9 @@ const RedirectionHostModal = EasyModal.create(({ id, isClone = false, visible, r
 							// Details tab
 							domainNames: data?.domainNames || [],
 							forwardDomainName: data?.forwardDomainName || "",
-							forwardScheme: data?.forwardScheme || "auto",
+							// NPMOS: "auto" is not an option of the list (it showed "keep" and saved "auto": Location auto://…)
+							forwardScheme:
+								!data?.forwardScheme || data.forwardScheme === "auto" ? "$scheme" : data.forwardScheme,
 							forwardHttpCode: data?.forwardHttpCode || 301,
 							preservePath: data?.preservePath || false,
 							blockExploits: data?.blockExploits || false,

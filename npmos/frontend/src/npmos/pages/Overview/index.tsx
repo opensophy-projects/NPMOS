@@ -22,6 +22,7 @@ import { useCrowdsec } from "../../crowdsec/api";
 import {
 	useAnalytics,
 	useCertificateRegistry,
+	useCertTerms,
 	useEvents,
 	useServices,
 	useUpstreamChecks,
@@ -117,6 +118,7 @@ function OverviewPage() {
 	const waf = useWafHosts({ enabled: can("proxy") });
 	const upstreams = useUpstreamChecks({ enabled: can("proxy") || can("stream") });
 	const certificates = useCertificates([], { enabled: hasPermission(CERTIFICATES, VIEW, perms, roles) });
+	const terms = useCertTerms({ enabled: hasPermission(CERTIFICATES, VIEW, perms, roles) });
 	const wafStatus = useWafStatus({ enabled: rbac("waf_policy") });
 	const services = useServices({ enabled: rbac("services"), refetchInterval: 15000 });
 	const eventsOptions = { enabled: rbac("waf_events"), refetchInterval: 30000 };
@@ -129,7 +131,8 @@ function OverviewPage() {
 
 	const crowdsec = useCrowdsec({ enabled: rbac("crowdsec"), refetchInterval: 30000 });
 	const traffic = useAnalytics("24h", "", { enabled: rbac("analytics") });
-	const registry = useCertificateRegistry({ limit: 1 });
+	// the registry needs certificates or PKI: without either the panel is not shown and nothing is asked
+	const registry = useCertificateRegistry({ limit: 1 }, { enabled: rbac("certificates") || rbac("pki") });
 
 	if (!me || [proxy, redirect, stream, dead].some((q, i) => can(HOST_TYPES[i]) && q.isLoading)) {
 		return <LoadingPage />;
@@ -142,6 +145,7 @@ function OverviewPage() {
 		dead: dead.data,
 		waf: waf.data,
 		upstreams: upstreams.data,
+		terms: terms.data,
 	});
 	const notices = sortNotices([
 		...serviceNotices(rbac("services") ? services.data : undefined),
@@ -150,6 +154,8 @@ function OverviewPage() {
 		...certificateNotices(
 			certificates.data ?? [],
 			rows.flatMap((r) => (r.certificate ? [r.certificate.id] : [])),
+			Date.now(),
+			terms.data,
 		),
 	]);
 

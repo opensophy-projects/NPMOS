@@ -194,9 +194,13 @@ router
 	/**
 	 * POST /api/nginx/dead-hosts/123/disable
 	 */
-	.post((req, res, next) => {
+	.post(async (req, res, next) => {
 		try {
-			const result = internalDeadHost.disable(res.locals.access, { id: Number.parseInt(req.params.host_id, 10) });
+			// NPMOS: awaited — without it the route answered 200 to anyone, and a refusal or "not found" was an unhandled
+			// rejection that stopped the backend
+			const result = await internalDeadHost.disable(res.locals.access, {
+				id: Number.parseInt(req.params.host_id, 10),
+			});
 			res.status(200).send(result);
 		} catch (err) {
 			debug(logger, `${req.method.toUpperCase()} ${req.originalUrl}: ${err}`);

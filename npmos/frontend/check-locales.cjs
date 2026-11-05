@@ -121,14 +121,24 @@ const compareLocale = (locale) => {
   });
 };
 
+// NPMOS: the strings of NPMOS are translated into en and ru only (CLAUDE.md, scripts/check-i18n.mjs fails on a
+// missing one); the other languages of NPMplus show them in English. Missing keys are listed one by one for en and
+// ru, as one line per language for the others (thousands of warnings hid the real ones).
+const FULL_LOCALES = ["en", "ru"];
+const fallbackSummary = [];
+
 // Checks for any keys missing from this locale, that
 // have been defined in any other locales
 const checkForMissing = (locale) => {
-  allKeys.forEach((key) => {
-    if (typeof locale.data[key] === "undefined") {
-      allWarnings.push("WARN: `" + locale[0] + "` does not contain item: `" + key + "`");
-    }
-    return null;
+  // en is the source of the strings: a key left in another language only (old upstream strings) is not missing
+  const english = allLocales.find((l) => l[0] === "en").data;
+  const missing = allKeys.filter((key) => key in english && typeof locale.data[key] === "undefined");
+  if (!FULL_LOCALES.includes(locale[0])) {
+    if (missing.length) fallbackSummary.push(`${locale[0]}: ${missing.length}`);
+    return;
+  }
+  missing.forEach((key) => {
+    allWarnings.push("WARN: `" + locale[0] + "` does not contain item: `" + key + "`");
   });
 };
 
@@ -157,6 +167,11 @@ if (allWarnings.length) {
     console.log("\x1b[33m%s\x1b[0m", err);
     return null;
   });
+}
+
+// NPMOS: one line for the languages shown partly in English
+if (fallbackSummary.length) {
+  console.log(`Not translated, shown in English: ${fallbackSummary.join(", ")} strings`);
 }
 
 if (allErrors.length) {

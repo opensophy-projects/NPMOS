@@ -9,6 +9,11 @@ import internalHost from "./host.js";
 import internalNginx from "./nginx.js";
 // NPMOS: host scope of the roles
 import { scopeHosts } from "../npmos/rbac/scope.js";
+// NPMOS: one stream per port and protocol
+import { assertStreamPortFree } from "../npmos/stream-ports.js";
+
+// NPMOS: the streams that listen now
+const enabledStreams = () => streamModel.query().where("is_deleted", 0).andWhere("enabled", 1);
 
 const omissions = () => {
 	return ["is_deleted", "owner.is_deleted", "certificate.is_deleted"];
@@ -29,8 +34,10 @@ const internalStream = {
 
 		return access
 			.can("streams:create", data)
-			.then((/*access_data*/) => {
+			.then(async (/*access_data*/) => {
 				// TODO: At this point the existing ports should have been checked
+				// NPMOS: checked (a second stream on a port shared its connections with the first)
+				if (data.enabled !== false) await assertStreamPortFree(data, enabledStreams);
 				data.owner_user_id = access.token.getUserId(1);
 
 				if (typeof data.meta === "undefined") {
@@ -111,13 +118,16 @@ const internalStream = {
 				// TODO: at this point the existing streams should have been checked
 				return internalStream.get(access, { id: thisData.id });
 			})
-			.then((row) => {
+			.then(async (row) => {
 				if (row.id !== thisData.id) {
 					// Sanity check that something crazy hasn't happened
 					throw new errs.InternalValidationError(
 						`Stream could not be updated, IDs do not match: ${row.id} !== ${thisData.id}`,
 					);
 				}
+				// NPMOS: one stream per port and protocol
+				const next = { ...row, ...thisData };
+				if (next.enabled) await assertStreamPortFree(next, enabledStreams);
 
 				if (create_certificate) {
 					return internalCertificate
@@ -277,13 +287,15 @@ const internalStream = {
 					expand: ["certificate", "owner"],
 				});
 			})
-			.then((row) => {
+			.then(async (row) => {
 				if (!row?.id) {
 					throw new errs.ItemNotFoundError(data.id);
 				}
 				if (row.enabled) {
 					throw new errs.ValidationError("Stream is already enabled");
 				}
+				// NPMOS: one stream per port and protocol
+				await assertStreamPortFree(row, enabledStreams);
 
 				row.enabled = 1;
 

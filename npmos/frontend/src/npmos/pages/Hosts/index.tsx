@@ -37,7 +37,14 @@ import {
 } from "src/modules/Permissions";
 import { showError, showSuccess } from "src/notifications";
 import { setWafHost, WAF_DEFAULTS } from "../../api";
-import { useHostAttacks, useHostChanges, useUpstreamChecks, useWafHosts, useWafStatus } from "../../hooks";
+import {
+	useCertTerms,
+	useHostAttacks,
+	useHostChanges,
+	useUpstreamChecks,
+	useWafHosts,
+	useWafStatus,
+} from "../../hooks";
 import { showConfirmModal } from "../../modals/ConfirmModal";
 import { showHostHistoryModal } from "../../modals/HostHistoryModal";
 import { setHostBouncer, useCrowdsecHosts } from "../../crowdsec/api";
@@ -199,6 +206,8 @@ function HostsPage() {
 	const stream = useStreams(["owner", "certificate"], { enabled: can("stream", VIEW) });
 	const dead = useDeadHosts(["owner", "certificate"], { enabled: can("dead", VIEW) });
 	const waf = useWafHosts({ enabled: can("proxy", VIEW) });
+	// when each certificate needs attention, by its term (without the permission: 14 days left)
+	const terms = useCertTerms({ enabled: hasPermission(CERTIFICATES, VIEW, perms, roles) });
 	const rbac = useCan();
 	const mtlsHosts = useMtlsHosts({ enabled: can("proxy", VIEW) || can("stream", VIEW) });
 	const pki = usePki({ enabled: rbac("pki") });
@@ -280,8 +289,19 @@ function HostsPage() {
 				mtls: mtlsHosts.data,
 				upstreams: upstreams.data,
 				changes: changes.data,
+				terms: terms.data,
 			}),
-		[proxy.data, redirect.data, stream.data, dead.data, waf.data, mtlsHosts.data, upstreams.data, changes.data],
+		[
+			proxy.data,
+			redirect.data,
+			stream.data,
+			dead.data,
+			waf.data,
+			mtlsHosts.data,
+			upstreams.data,
+			changes.data,
+			terms.data,
+		],
 	);
 	const rows = useMemo(
 		() =>

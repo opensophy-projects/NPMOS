@@ -1,5 +1,5 @@
 import { Field, useFormikContext } from "formik";
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import type { ActionMeta, MultiValue } from "react-select";
 import CreatableSelect from "react-select/creatable";
 import { intl, T } from "src/locale";
@@ -29,7 +29,44 @@ export function DomainNamesField({
 	dnsProviderWildcardSupported = false,
 	onChange,
 }: Props) {
-	const { setFieldValue } = useFormikContext();
+	const { setFieldValue, getFieldProps } = useFormikContext();
+	// NPMOS: what is being typed. A typed domain was lost unless Enter was pressed (the field looked broken); it is
+	// added on Enter, Tab, a comma, a space, when a list is pasted and when the field loses focus
+	const [input, setInput] = useState("");
+	const valid = validateDomain(isWildcardPermitted && dnsProviderWildcardSupported);
+	const add = (raw: string[]) => {
+		const current: string[] = getFieldProps(name).value ?? [];
+		const next = [...current];
+		const rest: string[] = [];
+		for (const part of raw.map((d) => d.trim().toLowerCase()).filter(Boolean)) {
+			if (!valid(part)) rest.push(part);
+			else if (!next.includes(part)) next.push(part);
+		}
+		if (next.length !== current.length) {
+			setFieldValue(name, next);
+			onChange?.(next);
+		}
+		return rest;
+	};
+	const onInputChange = (value: string, meta: { action: string }) => {
+		// a chosen option clears the text; on blur and on closing the menu it stays (onBlur adds it)
+		if (meta.action === "set-value") setInput("");
+		if (meta.action !== "input-change") return;
+		// a separator ends a domain: "a.com, b.com c.com" (pasted or typed)
+		if (/[\s,;]/.test(value)) {
+			const parts = value.split(/[\s,;]+/);
+			const last = /[\s,;]$/.test(value) ? "" : (parts.pop() ?? "");
+			const rest = add(parts);
+			setInput([...rest, last].filter(Boolean).join(" "));
+			return;
+		}
+		setInput(value);
+	};
+	const onBlur = () => {
+		if (!input.trim()) return;
+		const rest = add([input]);
+		setInput(rest.join(" "));
+	};
 
 	const handleChange = (v: MultiValue<SelectOption>, _actionMeta: ActionMeta<SelectOption>) => {
 		const doms = v?.map((i: SelectOption) => {
@@ -39,7 +76,8 @@ export function DomainNamesField({
 		onChange?.(doms);
 	};
 
-	const helperTexts: ReactNode[] = [];
+	// NPMOS: how a domain is added, always in sight
+	const helperTexts: ReactNode[] = [<T key="how" id="npmos.domain-names.how" />];
 	if (maxDomains) {
 		helperTexts.push(<T id="domain-names.max" data={{ count: maxDomains }} />);
 	}
@@ -65,8 +103,23 @@ export function DomainNamesField({
 						isClearable={false}
 						isValidNewOption={validateDomain(isWildcardPermitted && dnsProviderWildcardSupported)}
 						isMulti
-						placeholder={intl.formatMessage({ id: "domain-names.placeholder" })}
+						placeholder={intl.formatMessage({ id: "npmos.domain-names.placeholder" })}
 						onChange={handleChange}
+						inputValue={input}
+						onInputChange={onInputChange}
+						onBlur={onBlur}
+						formatCreateLabel={(value) =>
+							intl.formatMessage(
+								{ id: "npmos.domain-names.create" },
+								{ domain: value.trim().toLowerCase() },
+							)
+						}
+						noOptionsMessage={({ inputValue }) =>
+							intl.formatMessage(
+								{ id: inputValue.trim() ? "npmos.domain-names.invalid" : "npmos.domain-names.hint" },
+								{ domain: inputValue.trim() },
+							)
+						}
 						value={field.value?.map((d: string) => ({ label: d, value: d }))}
 					/>
 					{form.errors[field.name] && form.touched[field.name] ? (

@@ -26,9 +26,25 @@ interface Props {
 	/** a field that may stay empty ("now" for the end of a period) */
 	placeholder?: string;
 	clearable?: boolean;
+	/** the earliest and latest moment that can be picked (ISO): the end of a period never before its start */
+	min?: string;
+	max?: string;
 }
 
-export function DateTimePicker({ value, onChange, label, placeholder, clearable }: Props) {
+const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+
+export function DateTimePicker({ value, onChange, label, placeholder, clearable, min, max }: Props) {
+	const lo = min ? new Date(min) : null;
+	const hi = max ? new Date(max) : null;
+	/** a day none of whose moments is allowed */
+	const outOfRange = (day: Date) =>
+		(!!lo && startOfDay(day) < startOfDay(lo)) || (!!hi && startOfDay(day) > startOfDay(hi));
+	/** a moment brought inside the allowed range */
+	const clamp = (d: Date) => {
+		if (lo && d < lo) return lo;
+		if (hi && d > hi) return hi;
+		return d;
+	};
 	const current = value ? new Date(value) : null;
 	const locale = intl.locale;
 	const [view, setView] = useState(() => {
@@ -51,14 +67,15 @@ export function DateTimePicker({ value, onChange, label, placeholder, clearable 
 	};
 	const pick = (day: Date, hhmm = time) => {
 		const [h, m] = hhmm.split(":").map((x) => Number.parseInt(x, 10) || 0);
-		onChange(new Date(day.getFullYear(), day.getMonth(), day.getDate(), h, m).toISOString());
+		onChange(clamp(new Date(day.getFullYear(), day.getMonth(), day.getDate(), h, m)).toISOString());
 	};
 	const today = new Date();
 
 	return (
 		<Popover
 			ariaLabel={label}
-			title={label}
+			// the field next to it already says what it is
+			title={null}
 			width="18.5rem"
 			triggerClassName={cn("form-control form-control-sm", styles.trigger)}
 			trigger={
@@ -96,6 +113,7 @@ export function DateTimePicker({ value, onChange, label, placeholder, clearable 
 									current && sameDay(day, current) && styles.selected,
 								)}
 								aria-pressed={!!current && sameDay(day, current)}
+								disabled={outOfRange(day)}
 								onClick={() => pick(day)}
 							>
 								{day.getDate()}
@@ -123,7 +141,7 @@ export function DateTimePicker({ value, onChange, label, placeholder, clearable 
 							type="button"
 							className="btn btn-sm"
 							onClick={() => {
-								const now = new Date();
+								const now = clamp(new Date());
 								setTime(`${pad(now.getHours())}:${pad(now.getMinutes())}`);
 								setView({ year: now.getFullYear(), month: now.getMonth() });
 								onChange(now.toISOString());

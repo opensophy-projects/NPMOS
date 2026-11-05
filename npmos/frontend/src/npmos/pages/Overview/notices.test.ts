@@ -33,6 +33,24 @@ describe("overview notices", () => {
 		]);
 	});
 
+	it("follows the term of a certificate when it is known: a short one NPMOS renews is not expiring all along", () => {
+		const at = (days: number) => new Date(NOW + days * DAY).toISOString();
+		const notices = certificateNotices(
+			[cert(1, "letsencrypt", 3), cert(2, "letsencrypt", 3), cert(3, "other", 20)],
+			[],
+			NOW,
+			{
+				// 6-day certificate: renewal 2 days ahead, attention 1 day before the end
+				"1": { attentionFrom: at(2), autoRenew: true } as any,
+				// renewal late: attention reached
+				"2": { attentionFrom: at(-1), autoRenew: true } as any,
+				// a yearly one by hand: 14 days ahead
+				"3": { attentionFrom: at(6), autoRenew: false } as any,
+			},
+		);
+		expect(notices.map((n) => n.key)).toEqual(["cert-2"]);
+	});
+
 	it("collects WAF, services and host problems, alerts first", () => {
 		const waf = wafNotices({
 			enabled: true,

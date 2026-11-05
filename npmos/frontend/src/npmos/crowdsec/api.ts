@@ -2,6 +2,7 @@
 // keys (snake_case ↔ camelCase); names of hub items, scenarios and origins are values.
 import { useQuery } from "@tanstack/react-query";
 import * as api from "src/api/backend/base";
+import { isNotJson, notJsonError } from "../apiErrors";
 
 export const DECISION_TYPES = ["ban", "captcha"] as const;
 export const SCOPES = ["Ip", "Range", "any"] as const;
@@ -296,6 +297,7 @@ const rawRequest = async (method: string, url: string, body: Blob | string, cont
 		headers: { "Content-Type": contentType },
 		body,
 	});
+	if (isNotJson(response)) throw notJsonError(response);
 	const payload = await response.json().catch(() => ({}));
 	if (!response.ok) throw new Error(payload?.error?.message || `HTTP ${response.status}`);
 	return payload;

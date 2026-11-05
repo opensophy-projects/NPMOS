@@ -2,6 +2,7 @@
 import type { AuditLog } from "src/api/backend";
 import * as api from "src/api/backend/base";
 import type { HostObjects } from "./policy/api";
+import { isNotJson, notJsonError } from "./apiErrors";
 
 export interface Service {
 	id: string;
@@ -184,6 +185,21 @@ export interface EventsPage {
 	ingestError: string | null;
 }
 
+/** the term of a TLS certificate of the hosts and when it needs attention (backend: npmos/cert-terms.js) */
+export interface CertTerm {
+	notBefore: string | null;
+	notAfter: string | null;
+	lifetimeDays: number | null;
+	/** NPMOS renews it (ACME with renewal on) */
+	autoRenew: boolean;
+	/** from when it is renewed */
+	renewFrom: string | null;
+	/** from when it is "expiring": a renewal is late, or it must be replaced soon */
+	attentionFrom: string | null;
+}
+
+export const getCertTerms = () => api.get({ url: "/npmos/certificates/terms" }) as Promise<Record<string, CertTerm>>;
+
 export const getEvents = (params: EventQuery) => api.get({ url: "/npmos/events", params }) as Promise<EventsPage>;
 
 export const getEvent = (id: string, time: string) =>
@@ -353,6 +369,7 @@ export const uploadWafModel = async (file: File): Promise<WafAgentModel & { rest
 		headers: { "Content-Type": "application/octet-stream" },
 		body: file,
 	});
+	if (isNotJson(response)) throw notJsonError(response);
 	const payload = await response.json().catch(() => ({ error: { message: response.statusText } }));
 	if (!response.ok) {
 		throw new Error(payload.error?.message || response.statusText);

@@ -53,8 +53,10 @@ const internalSetting = {
 						.then(() => {
 							return row;
 						})
-						.catch((/*err*/) => {
-							internalNginx
+						.catch((err) => {
+							// NPMOS: the error goes back to the request (it was an unhandled rejection: the answer was
+							// 200 while the default site was gone) and says why
+							return internalNginx
 								.deleteConfig("default")
 								.then(() => {
 									return internalNginx.test();
@@ -64,7 +66,9 @@ const internalSetting = {
 								})
 								.then(() => {
 									// I'm being slack here I know..
-									throw new errs.ValidationError("Could not reconfigure Nginx. Please check logs.");
+									throw new errs.ValidationError(
+										`Could not reconfigure Nginx: ${err?.message || err}`,
+									);
 								});
 						});
 				}

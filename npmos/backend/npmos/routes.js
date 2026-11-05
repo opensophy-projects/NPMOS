@@ -7,6 +7,8 @@ import validator from "../lib/validator/api.js";
 import { debug, express as logger } from "../logger.js";
 import internalAudit from "./audit/index.js";
 import internalBlockPage from "./block-page.js";
+import internalAcmeCsr from "./acme-csr.js";
+import { certificateTerms } from "./cert-terms.js";
 import internalCertificates from "./certificates.js";
 import internalCrowdsec from "./crowdsec/index.js";
 import internalAnalytics from "./events/analytics.js";
@@ -882,7 +884,7 @@ router
 
 /**
  * GET /api/npmos/events — security events of the agent, newest first. Filters: from, to (ISO, default
- * the last 24 h), kind=agents (open-appsec and CrowdSec, default)|security|crowdsec|mtls|system|all, agent
+ * the last 24 h), kind=agents (open-appsec with its notices and CrowdSec, default)|security|crowdsec|mtls|system|all, agent
  * (open-appsec, crowdsec, mtls), important=true, host, ip, action, severity, type
  * (comma-separated), min_score, max_score, q (text); limit (≤ 500), before (cursor: next of a page)
  */
@@ -1037,11 +1039,73 @@ router
 		}),
 	);
 
+/**
+ * POST /api/npmos/acme/csr/check — {csr, key}: names, key type and subject of your own CSR
+ * POST /api/npmos/acme/csr — {csr, key, meta: {dns_challenge?, dns_provider?, dns_provider_credentials?,
+ *   propagation_seconds?}}: an ACME certificate for the CSR (npmos/acme-csr.js)
+ */
+const csrSchema = {
+	type: "object",
+	additionalProperties: false,
+	required: ["csr", "key"],
+	properties: {
+		csr: { type: "string", minLength: 1, maxLength: 65536 },
+		key: { type: "string", minLength: 1, maxLength: 65536 },
+		meta: {
+			type: "object",
+			additionalProperties: false,
+			properties: {
+				dns_challenge: { type: "boolean" },
+				dns_provider: { type: "string", maxLength: 100 },
+				dns_provider_credentials: { type: "string", maxLength: 65536 },
+				propagation_seconds: { type: ["integer", "null"], minimum: 0, maximum: 7200 },
+			},
+		},
+	},
+};
+
+router
+	.route("/acme/csr/check")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) => {
+			await res.locals.access.can("certificates:create");
+			return internalAcmeCsr.check(res.locals.access, await validator(csrSchema, req.body));
+		}),
+	);
+
+router
+	.route("/acme/csr")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) => {
+			await res.locals.access.can("certificates:create");
+			return internalAcmeCsr.create(res.locals.access, await validator(csrSchema, req.body));
+		}),
+	);
+
 router
 	.route("/certificates")
 	.options((_, res) => res.sendStatus(204))
 	.all(jwtdecode())
 	.get(handle((req, res) => internalCertificates.list(res.locals.access, req.query)));
+
+/**
+ * GET /api/npmos/certificates/terms — the TLS certificates of the hosts: {<id>: {not_before, not_after,
+ * lifetime_days, auto_renew, renew_from, attention_from}}; attention_from follows the term (npmos/cert-terms.js)
+ */
+router
+	.route("/certificates/terms")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(
+		handle(async (_, res) => {
+			await res.locals.access.can("certificates:list");
+			return certificateTerms();
+		}),
+	);
 
 /**
  * GET /api/npmos/audit — a page of the audit log, newest first. Filters: period=24h|7d|30d|90d or from/to (ISO),

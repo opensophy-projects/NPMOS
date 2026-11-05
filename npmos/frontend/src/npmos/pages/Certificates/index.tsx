@@ -15,7 +15,7 @@ import { useEffect, useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { deleteCertificate, downloadCertificate, getCertificate } from "src/api/backend";
-import { LoadingPage } from "src/components";
+import { HasPermission, LoadingPage } from "src/components";
 import { useUser } from "src/hooks";
 import { formatDateTime, intl, T } from "src/locale";
 import {
@@ -26,7 +26,7 @@ import {
 	showReachabilityModal,
 	showRenewCertificateModal,
 } from "src/modals";
-import { CERTIFICATES, hasPermission, MANAGE } from "src/modules/Permissions";
+import { CERTIFICATES, hasPermission, MANAGE, VIEW } from "src/modules/Permissions";
 import { showError, showObjectSuccess } from "src/notifications";
 import type { CertSource, CertStatus, EventQuery, RegistryCert } from "../../api";
 import { useCertificateRegistry } from "../../hooks";
@@ -37,6 +37,7 @@ import hostStyles from "../Hosts/Hosts.module.css";
 import styles from "../WafEvents/Events.module.css";
 import own from "./Certificates.module.css";
 import { SearchField } from "../../ui/SearchField";
+import { showCsrModal } from "../../certs/CsrModal";
 import { showAcmeLogModal } from "../../certs/AcmeLog";
 
 const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id }, values);
@@ -308,6 +309,11 @@ function CertificatesPage() {
 								key: "dns",
 								label: <T id="lets-encrypt-via-dns" />,
 								onSelect: () => showDNSCertificateModal(),
+							},
+							{
+								key: "csr",
+								label: <T id="npmos.acme.csr.menu" />,
+								onSelect: showCsrModal,
 							},
 							{
 								key: "custom",
@@ -594,4 +600,11 @@ function CertificatesPage() {
 	);
 }
 
-export default CertificatesPage;
+/** the registry lists TLS certificates (certificates) and those of the PKI (pki): either opens the page */
+const Certificates = () => (
+	<HasPermission rbac="certificates|pki" permission={VIEW} pageLoading loadingNoLogo>
+		<CertificatesPage />
+	</HasPermission>
+);
+
+export default Certificates;

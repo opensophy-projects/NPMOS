@@ -52,7 +52,8 @@ const LIST_COLUMNS = [
 ];
 
 /** the agent that wrote an event → its kind */
-const AGENT_KINDS = { "open-appsec": "security", crowdsec: "crowdsec", mtls: "mtls" };
+// the kinds of rows of each agent: open-appsec writes attacks (security) and notices of the agent (system)
+const AGENT_KINDS = { "open-appsec": ["security", "system"], crowdsec: ["crowdsec"], mtls: ["mtls"] };
 
 const list = (value) =>
 	String(value ?? "")
@@ -88,7 +89,8 @@ export const parseFilters = (query, now = new Date()) => {
 		new Date(to.getTime() - (Object.hasOwn(PERIODS, query.period) ? PERIODS[query.period] : DAY)),
 	);
 	if (from > to) throw new errs.ValidationError("from is after to");
-	// "agents": what open-appsec and CrowdSec found, in one list (the default)
+	// "agents": what open-appsec and CrowdSec found and what their agents reported, in one list (the default);
+	// "system" (the notices of open-appsec alone) stays for links made before it joined "agents"
 	const kind = ["agents", "security", "system", "crowdsec", "mtls", "all"].includes(query.kind)
 		? query.kind
 		: "agents";
@@ -96,9 +98,7 @@ export const parseFilters = (query, now = new Date()) => {
 		from,
 		to,
 		kind,
-		agent: list(query.agent)
-			.map((a) => AGENT_KINDS[a.toLowerCase()])
-			.filter(Boolean),
+		agent: list(query.agent).flatMap((a) => AGENT_KINDS[a.toLowerCase()] ?? []),
 		important: query.important === "true" || query.important === true,
 		host: list(query.host).map((h) => h.toLowerCase()),
 		ip: list(query.ip),
@@ -118,7 +118,7 @@ const like = (q) => `%${q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
 /** where clauses of the filters on a query builder */
 const applyFilters = (builder, f) => {
 	builder.where("time", ">=", f.from).where("time", "<=", f.to);
-	if (f.kind === "agents") builder.whereIn("kind", ["security", "crowdsec"]);
+	if (f.kind === "agents") builder.whereIn("kind", ["security", "system", "crowdsec"]);
 	else if (f.kind !== "all") builder.where("kind", f.kind);
 	if (f.agent.length) builder.whereIn("kind", f.agent);
 	if (f.important)
