@@ -8,7 +8,7 @@ import dayjs from "dayjs";
 import _ from "lodash";
 import dnsPlugins from "../certbot/dns-plugins.json" with { type: "json" };
 import { installPlugin } from "../lib/certbot.js";
-import { acmeError, acmeRenewEnabled, applyRenewWindow, ensureAcmeAccount } from "../npmos/acme.js"; // NPMOS: ACME account, errors, renewal
+import { acmeError, acmeRenewEnabled, applyRenewWindow, certbotAcme, ensureAcmeAccount } from "../npmos/acme.js"; // NPMOS: ACME account, errors, renewal
 import internalAcmeCsr from "../npmos/acme-csr.js"; // NPMOS: ACME with your own CSR
 import { assertKeyMatches } from "../npmos/cert-pair.js"; // NPMOS: the key must belong to the certificate
 import error from "../lib/error.js";
@@ -55,7 +55,8 @@ const internalCertificate = {
 				// NPMOS: renewal can be off (Settings -> ACME); the days before the end go to the renewal files
 				if (!acmeRenewEnabled()) throw new Error("automatic renewal is off in Settings -> ACME");
 				await applyRenewWindow();
-				const result = await utils.execFile("certbot", [
+				const result = await certbotAcme([
+					// NPMOS: an ACME account the server forgot is registered again
 					"--config",
 					"/etc/certbot.ini",
 					"renew",
@@ -688,7 +689,8 @@ const internalCertificate = {
 		const ips = certificate.domain_names.filter((entry) => net.isIP(entry) !== 0);
 		const domains = certificate.domain_names.filter((entry) => net.isIP(entry) === 0);
 
-		const result = await utils.execFile("certbot", [
+		const result = await certbotAcme([
+			// NPMOS: an ACME account the server forgot is registered again
 			"--config",
 			"/etc/certbot.ini",
 			"certonly",
@@ -727,7 +729,8 @@ const internalCertificate = {
 		await writeFile(credentialsLocation, certificate.meta.dns_provider_credentials, { mode: 0o600 });
 
 		try {
-			const result = await utils.execFile("certbot", [
+			const result = await certbotAcme([
+				// NPMOS: an ACME account the server forgot is registered again
 				"--config",
 				"/etc/certbot.ini",
 				"certonly",
@@ -826,7 +829,8 @@ const internalCertificate = {
 			// do nothing
 		}
 
-		const renewResult = await utils.execFile("certbot", [
+		const renewResult = await certbotAcme([
+			// NPMOS: an ACME account the server forgot is registered again
 			"--config",
 			"/etc/certbot.ini",
 			"renew",
@@ -872,7 +876,8 @@ const internalCertificate = {
 			// do nothing
 		}
 
-		const renewResult = await utils.execFile("certbot", [
+		const renewResult = await certbotAcme([
+			// NPMOS: an ACME account the server forgot is registered again
 			"--config",
 			"/etc/certbot.ini",
 			"renew",

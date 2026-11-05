@@ -17,6 +17,16 @@ const installPlugin = async (pluginKey) => {
 	}
 
 	const plugin = dnsPlugins[pluginKey];
+	// NPMOS: an installed plugin is used as it is. "pip install --upgrade" before every request needs PyPI, so without
+	// internet (an ACME server and DNS of your own) DNS-01 failed even with the plugin in place (local-first).
+	if (
+		await utils.execFile("pip", ["show", "--quiet", plugin.package_name]).then(
+			() => true,
+			() => false,
+		)
+	) {
+		return `${plugin.package_name} is installed`;
+	}
 	logger.start(`Installing ${pluginKey}...`);
 
 	return utils

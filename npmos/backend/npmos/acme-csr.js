@@ -14,7 +14,7 @@ import utils from "../lib/utils.js";
 import { certbot as logger } from "../logger.js";
 import certificateModel from "../models/certificate.js";
 import { checkCsr, pemBlock } from "./acme-csr-check.js";
-import { acmeError, acmeRenewEnabled, ensureAcmeAccount } from "./acme.js";
+import { acmeError, acmeRenewEnabled, certbotAcme } from "./acme.js";
 import { termOf } from "./cert-terms.js";
 
 const CSR_DIR = "/data/tls/certbot/csr";
@@ -30,7 +30,6 @@ const requestFor = async (cert) => {
 	const out = await mkdtemp("/tmp/npmos-csr-out-");
 	let credentials = null;
 	try {
-		await ensureAcmeAccount();
 		const challenge = [];
 		if (meta.dns_challenge) {
 			const plugin = dnsPlugins[meta.dns_provider];
@@ -52,7 +51,7 @@ const requestFor = async (cert) => {
 			challenge.push("--authenticator", "webroot");
 		}
 		logger.info(`Requesting a certificate for the CSR of Cert #${cert.id}: ${cert.domain_names.join(", ")}`);
-		const result = await utils.execFile("certbot", [
+		const result = await certbotAcme([
 			"--config",
 			"/etc/certbot.ini",
 			"certonly",
