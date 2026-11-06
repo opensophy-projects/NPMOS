@@ -1,0 +1,47 @@
+name: Баг
+description: Что-то работает не так, как должно
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Перед отправкой: поищите похожее issue и проверьте docs/TROUBLESHOOTING.md. Не прикладывайте пароли, токены,
+        закрытые ключи и ключи EAB. Уязвимости — не сюда, см. CODE_OF_CONDUCT.md («Уязвимость»).
+  - type: input
+    id: version
+    attributes:
+      label: Версия
+      description: Тег образов (develop / X.Y.Z) или коммит — `docker compose -f deploy/compose.yaml images`
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Окружение
+      description: ОС хоста, Docker/Compose, IPv4/IPv6, есть ли у сервера интернет
+  - type: textarea
+    id: steps
+    attributes:
+      label: Что делали
+      description: Шаги по порядку, с разделом интерфейса (например «Сертификаты → Добавить → ACME»)
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Что ожидали
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Что получили
+      description: Текст ошибки целиком, скриншот, если проблема в интерфейсе
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Логи
+      description: «Обзор → Сервисы → <сервис> → Логи», «Сертификаты → Полный лог последнего запроса» или диагностический архив
+      render: text

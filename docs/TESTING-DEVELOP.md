@@ -60,7 +60,7 @@ scripts/build-images.sh                            # все 5 образов, т
 NPMOS_REGISTRY=local NPMOS_VERSION=dev docker compose -f deploy/compose.yaml up -d
 ```
 
-Первая сборка `npmos` (nginx из исходников) и `npmos-appsec-agent` (C++) занимает 30–60 минут на каждый образ. Остальные собираются за минуты. Повторные сборки идут из кэша Docker. Отдельные образы: `scripts/build-images.sh npmos appsec-agent`.
+Первая сборка `npmos` (nginx из исходников) и `npmos-openappsec` (агент на C++ и его Go-сервисы) занимает 30–60 минут на каждый образ. Повторные сборки идут из кэша Docker. Отдельный образ: `scripts/build-images.sh openappsec`.
 
 Автотест закрытого контура тот же, что в CI, на собранных образах:
 
@@ -202,7 +202,7 @@ curl -s -o /dev/null -w '%{http_code}\n' -H "$H" "$T/?cmd=;cat%20/etc/passwd"   
 - [ ] Связка с WAF: 5 заблокированных open-appsec запросов за 10 минут с одного адреса → бан на 4 часа (профиль `ip`); «Забанить IP в CrowdSec» из карточки события.
 
 ### «Агенты → Агент open-appsec → Настройки агента»
-- [ ] **Fail-close** (CI не проверяет): выключите fail-open и сохраните, затем `docker stop npmos-appsec-agent`. Запросы к защищённому хосту должны отклоняться, к незащищённому — проходить. Включите fail-open и повторите: запросы проходят без проверки. Не забудьте `docker start npmos-appsec-agent`.
+- [ ] **Fail-close** (CI не проверяет): выключите fail-open и сохраните, затем приостановите обработчик запросов агента: `docker exec npmos-openappsec pkill -STOP -f cp-nano-http-transaction-handler` (останавливать контейнер `npmos-openappsec` нельзя: в его сети работает и nginx). Запросы к защищённому хосту должны отклоняться, к незащищённому — проходить. Включите fail-open и повторите: запросы проходят без проверки. Не забудьте `docker exec npmos-openappsec pkill -CONT -f cp-nano-http-transaction-handler`.
 - [ ] **Репутация IP из CrowdSec** (CI проверяет только, что агент забирает решения): включите в режиме Prevent, забаньте IP тестовой машины и проверьте, что запросы с неё блокируются агентом. Снимите бан.
   ```bash
   docker exec npmos-crowdsec cscli decisions add --ip <IP> --duration 10m

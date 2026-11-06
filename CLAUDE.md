@@ -13,7 +13,7 @@ NPMOS — форк NPMplus с встроенными open-appsec (ML-WAF) и Cro
 |---|---|---|
 | `npmos/` | NPMplus (git subtree, upstream `ZoeyVid/NPMplus`) + наши изменения | см. «Изменения в upstream-коде» |
 | `npmos/backend/npmos/`, `npmos/frontend/src/npmos/` | Наш код (модули NPMOS) | Новый код — сюда |
-| `deploy/` | `compose.yaml` (прод, локальный стек), `compose.dev.yaml`, `.env` (версии), `init/`, `openappsec/` (наши образы), `test/` | |
+| `deploy/` | `compose.yaml` (прод: `npmos`, `openappsec`, `crowdsec`, `postgres` + разовый `npmos-init`), `compose.dev.yaml`, `.env` (версии), `init/`, `openappsec/` (образ `npmos-openappsec`), `test/` | |
 | `reference/` | Исходники open-appsec-npm, open-appsec, smartsync(-tuning) — только для чтения | Не собирается, не линтится, не правится. Обновление: `scripts/update-reference.sh` |
 | `design/` | Токены дизайна, пример sidebar | |
 | `docs/` | План, ADR, инвентаризация env | |
@@ -24,6 +24,10 @@ NPMOS — форк NPMplus с встроенными open-appsec (ML-WAF) и Cro
 - Каждое изменение upstream-файла помечается комментарием `NPMOS:` с причиной (`// NPMOS: …`, `# NPMOS: …`). По этим меткам разрешаются конфликты при обновлении.
 - Стиль — как в окружающем коде: биом-форматирование (табы, ширина 120), ESM, `async/await`.
 - Новые строки интерфейса — только в `en.json` и `ru.json` (`npmos/frontend/src/locale/src/`). Текст прямо в TSX запрещён: `scripts/check-i18n.mjs` (в CI) проверяет, что у каждого ключа `en` есть перевод `ru` и что в разметке нет английского текста.
+
+## Удалено из upstream
+
+Из `npmos/` удалены файлы NPMplus, которые NPMOS не использует: `caddy/`, `compose.yaml`, `ech-cron-cloudflare-example.sh`, `renovate.json`, `.github/`; во frontend — страницы, которые заменили страницы NPMOS (`pages/Dashboard`, `pages/AuditLog`, `pages/Certificates`, `pages/Nginx/*`), окна `HTTPCertificateModal`, `DNSCertificateModal`, `PermissionsModal`, хуки `useAuditLogs`, `useHostReport` и функции API только для них. `npmos/README.md` заменён описанием каталога. Если при обновлении NPMplus они вернутся конфликтом «modify/delete», удаляйте их снова (`git rm`).
 
 ## Обновление NPMplus
 
@@ -57,11 +61,12 @@ scripts/test-airgap.sh
 | Образ | Источник | Сборка |
 |---|---|---|
 | `npmos` | `npmos/Dockerfile` (+ стадия `crowdsec-seed`) | долго: nginx, aws-lc, attachment из исходников |
-| `npmos-appsec-agent` | `deploy/openappsec/agent` (openappsec из исходников) | долго: C++ |
-| `npmos-appsec-{smartsync,shared-storage,tuning}` | `deploy/openappsec/go-service` | минуты |
-| CrowdSec, Postgres, socket-proxy | официальные образы, версии в `deploy/.env` | — |
+| `npmos-openappsec` | `deploy/openappsec/Dockerfile`: агент (C++), shared storage и tuning (Go) из исходников, `npmos-control` (контекст сборки `control=npmos/backend/npmos/control`) | долго: C++ |
+| CrowdSec, Postgres | официальные образы, версии в `deploy/.env` | — |
 
-Коммиты исходников open-appsec — в `deploy/openappsec/sources.env` (совпадают с `reference/VERSIONS.md`, проверяется в CI). Локальная сборка всех образов: `scripts/build-images.sh` (тег `local/<имя>:dev`), затем `NPMOS_REGISTRY=local NPMOS_VERSION=dev scripts/test-airgap.sh`. Долгие сборки (npmos, agent) делаются в CI или разработчиком, не в сессии агента.
+Коммиты исходников open-appsec — в `deploy/openappsec/sources.env` (совпадают с `reference/VERSIONS.md`, проверяется в CI). Локальная сборка всех образов: `scripts/build-images.sh` (тег `local/<имя>:dev`), затем `NPMOS_REGISTRY=local NPMOS_VERSION=dev scripts/test-airgap.sh`. Долгие сборки (npmos, openappsec) делаются в CI или разработчиком, не в сессии агента.
+
+Контейнер `openappsec` владеет сетью и IPC: порты опубликованы на нём, `npmos` подключается к ним (`network_mode: service:openappsec`). Его процессы (`deploy/openappsec/npmos-openappsec.sh`) слушают на 127.0.0.1: агент 7777, `npmos-control` 7080, shared storage 7811, tuning 7813. Архитектура целиком — в `CODE_OF_CONDUCT.md`.
 
 ## Разработка
 
@@ -80,4 +85,4 @@ cd npmos/frontend && pnpm install && pnpm vite                                  
 
 - Секреты генерирует `npmos-init` в томе `secrets`. Каждый сервис монтирует только свой подкаталог (`subpath`). Пароли не попадают в compose и env-файлы.
 - Сервисы, кроме `npmos`, сидят во внутренних сетях без выхода наружу.
-- Доступ к Docker — только через `socket-proxy` и (с фазы 1) `npmos-control` с белым списком операций и аудитом.
+- Доступ к Docker — только у `npmos-control` (в контейнере `openappsec`, сокет `/var/run/docker.sock`): белый список операций (список, логи, перезапуск, reload контейнеров стека с меткой `npmos.managed`), токен, аудит, слушает только 127.0.0.1. Контейнер `npmos`, принимающий трафик из интернета, сокета не получает.
