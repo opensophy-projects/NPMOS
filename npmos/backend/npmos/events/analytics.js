@@ -18,30 +18,43 @@ export const PERIODS = {
 	"30d": { length: 30 * DAY, bucket: DAY },
 };
 
-const isPrevent = (action) => action.toLowerCase() === "prevent";
-const isDetect = (action) => action.toLowerCase() === "detect";
+/** sources of attacks: open-appsec (security), CrowdSec alerts (crowdsec), requests refused by mTLS (mtls) */
+export const ATTACK_KINDS = ["security", "crowdsec", "mtls"];
+/** a refusal: open-appsec Prevent, a ban or captcha of CrowdSec, a request refused by mTLS */
+const BLOCKING = ["prevent", "ban", "captcha", "denied"];
+const BLOCKING_SQL = `lower(action) IN (${BLOCKING.map((a) => `'${a}'`).join(", ")})`;
+const isPrevent = (action) => BLOCKING.includes(String(action).toLowerCase());
+const isDetect = (action) => ["detect", "alert", "simulated"].includes(String(action).toLowerCase());
 
 /**
  * Empty buckets from `from` to `to`, aligned to the bucket size (UTC).
- * @returns {{t: string, prevent: number, detect: number, other: number}[]}
+ * prevent/detect/other: open-appsec; crowdsec: alerts of CrowdSec; mtls: requests refused by mTLS
+ * @returns {{t: string, prevent: number, detect: number, other: number, crowdsec: number, mtls: number}[]}
  */
 export const emptyTimeline = (from, to, bucket) => {
 	const start = Math.floor(from.getTime() / bucket) * bucket;
 	const buckets = [];
 	for (let t = start; t <= to.getTime(); t += bucket) {
-		buckets.push({ t: new Date(t).toISOString(), prevent: 0, detect: 0, other: 0 });
+		buckets.push({ t: new Date(t).toISOString(), prevent: 0, detect: 0, other: 0, crowdsec: 0, mtls: 0 });
 	}
 	return buckets;
 };
 
-/** adds counted rows ({time, action, events}) to the buckets */
+/** adds counted rows ({time, kind, action, events}) to the buckets */
 export const fillTimeline = (buckets, rows, bucket) => {
 	if (!buckets.length) return buckets;
 	const start = Date.parse(buckets[0].t);
 	for (const row of rows) {
 		const i = Math.floor((new Date(row.time).getTime() - start) / bucket);
 		if (i < 0 || i >= buckets.length) continue;
-		const key = isPrevent(row.action) ? "prevent" : isDetect(row.action) ? "detect" : "other";
+		const key =
+			row.kind === "crowdsec" || row.kind === "mtls"
+				? row.kind
+				: isPrevent(row.action)
+					? "prevent"
+					: isDetect(row.action)
+						? "detect"
+						: "other";
 		buckets[i][key] += Number(row.events);
 	}
 	return buckets;
@@ -68,12 +81,20 @@ const internalAnalytics = {
 		const knex = db();
 
 		const events = () => {
-			const b = knex(EVENT_TABLE).where("kind", "security").where("time", ">=", from).where("time", "<=", to);
+			const b = knex(EVENT_TABLE).whereIn("kind", ATTACK_KINDS).where("time", ">=", from).where("time", "<=", to);
 			if (host) b.where("host", host);
 			return b;
 		};
+		// open-appsec: critical and high only; a CrowdSec alert or an mTLS refusal always counts
 		const important = (b) =>
-			b.whereRaw(`lower(severity) in (${IMPORTANT_SEVERITIES.map(() => "?").join(",")})`, IMPORTANT_SEVERITIES);
+			b.where((q) =>
+				q
+					.whereRaw(
+						`lower(severity) in (${IMPORTANT_SEVERITIES.map(() => "?").join(",")})`,
+						IMPORTANT_SEVERITIES,
+					)
+					.orWhereIn("kind", ["crowdsec", "mtls"]),
+			);
 
 		const crowdsecQuery = () => {
 			const b = knex(EVENT_TABLE).where("kind", "crowdsec").where("time", ">=", from).where("time", "<=", to);
@@ -99,7 +120,7 @@ const internalAnalytics = {
 				events()
 					.select("host")
 					.count({ events: "*" })
-					.select(knex.raw("SUM(CASE WHEN lower(action) = 'prevent' THEN 1 ELSE 0 END) AS prevented"))
+					.select(knex.raw(`SUM(CASE WHEN ${BLOCKING_SQL} THEN 1 ELSE 0 END) AS prevented`))
 					.groupBy("host")
 					.orderBy("events", "desc")
 					.limit(TOP + 1),
@@ -138,7 +159,7 @@ const internalAnalytics = {
 						"uri",
 						"score",
 					)
-					.whereRaw("lower(action) = 'prevent'")
+					.whereRaw(BLOCKING_SQL)
 					.orderBy([
 						{ column: "time", order: "desc" },
 						{ column: "id", order: "desc" },
@@ -157,24 +178,24 @@ const internalAnalytics = {
 							from,
 						]),
 					)
-					.select("action")
+					.select("kind", "action")
 					.count({ events: "*" })
-					.groupByRaw("1, 2");
+					.groupByRaw("1, 2, 3");
 				timelineRows = await b;
 			} else {
-				timelineRows = (await events().select("time", "action").limit(500000)).map((r) => ({
+				timelineRows = (await events().select("time", "kind", "action").limit(500000)).map((r) => ({
 					...r,
 					events: 1,
 				}));
 			}
 		} else {
 			const b = knex("npmos_event_hourly")
-				.select({ time: "hour" }, "action")
+				.select({ time: "hour" }, "kind", "action")
 				.sum({ events: "events" })
-				.where("kind", "security")
+				.whereIn("kind", ATTACK_KINDS)
 				.where("hour", ">=", from)
 				.where("hour", "<=", to)
-				.groupBy("hour", "action");
+				.groupBy("hour", "kind", "action");
 			if (host) b.where("host", host);
 			timelineRows = await b;
 		}

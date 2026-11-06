@@ -1,48 +1,123 @@
-// Requests of the hosts (Analytics): the access log of nginx (format alog of nginx.conf, on with LOGROTATE) is
-// read every few seconds and counted per host and hour into npmos_request_hourly. The log is only read: CrowdSec
-// reads it too and logrotate rotates it. The position is the cursor "nginx:access" in npmos_log_cursor.
+// Requests of the hosts (Analytics): the JSON log of nginx (log_format npmos_requests of nginx.conf, written to
+// npmos-requests.log next to the access log) is read every few seconds. Every request becomes a row of
+// npmos_request_log (kept events.retention.requestDays days) and is counted per host and hour into
+// npmos_request_hourly and per country into npmos_request_country_hourly. The log is only read: logrotate rotates
+// it. The position is the cursor "nginx:requests" in npmos_log_cursor.
 import { createHash } from "node:crypto";
 import { open } from "node:fs/promises";
 import db from "../../db.js";
 import { global as logger } from "../../logger.js";
+import { countryCodes } from "../geoip/index.js";
 import { loadCursors, REQUEST_COUNTERS, store } from "./store.js";
+import { parseUserAgent } from "./useragent.js";
 
-export const LOG_FILE = process.env.NPMOS_ACCESS_LOG || "/data/nginx/logs/access.log";
-const CURSOR = "nginx:access";
-const INTERVAL_MS = 10000;
+export const LOG_FILE = process.env.NPMOS_REQUEST_LOG || "/data/nginx/logs/npmos-requests.log";
+const CURSOR = "nginx:requests";
+const INTERVAL_MS = 5000;
 const MAX_BYTES = 4 * 1024 * 1024;
 const HEAD_BYTES = 64;
 const HOUR = 3600 * 1000;
 /** answers of a refusal: the WAF and the bouncer (403), limits (429), dropped (444), mTLS (495, 496) */
-const BLOCKED = new Set([403, 429, 444, 495, 496]);
-const MONTHS = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 };
+export const BLOCKED = new Set([403, 429, 444, 495, 496]);
 
 const state = { running: false, timer: null, lastError: null, counted: 0 };
 const hash = (b) => createHash("sha1").update(b).digest("hex");
 
-/** "30/Oct/2026:08:36:30 +0000" → Date */
-const parseTime = (text) => {
-	const m = /^(\d{2})\/(\w{3})\/(\d{4}):(\d{2}):(\d{2}):(\d{2}) ([+-])(\d{2})(\d{2})$/.exec(text);
-	if (!m || !(m[2] in MONTHS)) return null;
-	const utc = Date.UTC(+m[3], MONTHS[m[2]], +m[1], +m[4], +m[5], +m[6]);
-	const offset = (m[7] === "-" ? -1 : 1) * (+m[8] * 60 + +m[9]) * 60000;
-	return new Date(utc - offset);
+/** "0.004, 0.002" (one value per upstream tried) or "-" → milliseconds of the last one, null when none */
+const lastMs = (value) => {
+	const parts = String(value ?? "")
+		.split(/[,:]\s*/)
+		.map((v) => v.trim())
+		.filter((v) => v && v !== "-");
+	if (!parts.length) return null;
+	const n = Number(parts[parts.length - 1]);
+	return Number.isFinite(n) ? Math.round(n * 1000) : null;
+};
+
+const lastStatus = (value) => {
+	const parts = String(value ?? "")
+		.split(/[,:]\s*/)
+		.map((v) => Number.parseInt(v, 10))
+		.filter((v) => Number.isInteger(v) && v >= 100 && v < 1000);
+	return parts.length ? parts[parts.length - 1] : null;
+};
+
+const refererHost = (ref) => {
+	if (!ref || ref === "-") return "";
+	try {
+		return new URL(ref).hostname.toLowerCase().slice(0, 255);
+	} catch {
+		return "";
+	}
+};
+
+const text = (v, max) => {
+	const s = String(v ?? "");
+	return (s === "-" ? "" : s).slice(0, max);
 };
 
 /**
- * A line of the log: [time] host[:port] ip request_time "request" status body_bytes bytes_sent referer agent.
- * The admin interface (port 81) and the health check of the container are not requests of the hosts; nor are the
- * requests of a proxy host that opens the interface by a domain (left out by pollOnce).
- * @returns {{time: Date, host: string, status: number, bytes: number}|null}
+ * A line of the JSON log (log_format npmos_requests). The admin interface (port 81) and the health check of the
+ * container are not requests of the hosts; nor are the requests of a proxy host that opens the interface by a
+ * domain (left out by pollOnce).
+ * @returns {object|null}  a row of npmos_request_log without the country
  */
 export const parseLine = (line) => {
-	const m = /^\[([^\]]+)\] (\S+) \S+ \S+ "[^"]*" (\d{3}) \d+ (\d+) /.exec(line);
-	if (!m) return null;
-	const time = parseTime(m[1]);
-	if (!time) return null;
-	const host = m[2].toLowerCase().replace(/:(80|443)$/, "");
-	if (/:81$/.test(host) || line.endsWith(" NPMplus/healthcheck")) return null;
-	return { time, host: host.slice(0, 255), status: Number(m[3]), bytes: Number(m[4]) };
+	if (line?.[0] !== "{") return null;
+	let r;
+	try {
+		r = JSON.parse(line);
+	} catch {
+		return null;
+	}
+	const time = new Date(Number(r.t) * 1000);
+	if (Number.isNaN(time.getTime())) return null;
+	const port = Number.parseInt(r.port, 10) || null;
+	const ua = text(r.ua, 512);
+	if (port === 81 || ua === "NPMplus/healthcheck") return null;
+	const host = text(r.h, 255).toLowerCase();
+	const status = Number(r.s) || 0;
+	const method = text(r.m, 16).toUpperCase();
+	const contentType = text(r.ct, 100).split(";")[0].trim().toLowerCase();
+	const referer = refererHost(r.ref);
+	// a page view: a page (HTML) answered without error; a visit: a page view not coming from the same site
+	const pageview = method === "GET" && status >= 200 && status < 400 && contentType === "text/html";
+	const { browser, os, device } = parseUserAgent(ua);
+	return {
+		node_id: "local",
+		time,
+		host,
+		port,
+		ip: text(r.ip, 64),
+		country: "",
+		method,
+		path: text(r.u, 2048),
+		status,
+		bytes: Number(r.b) || 0,
+		request_bytes: Number(r.rl) || 0,
+		duration_ms: Math.round((Number(r.rt) || 0) * 1000),
+		upstream_ms: lastMs(r.ut),
+		connect_ms: lastMs(r.uct),
+		upstream_status: lastStatus(r.us),
+		upstream_addr: text(
+			String(r.ua_addr ?? "")
+				.split(/,\s*/)
+				.pop(),
+			255,
+		),
+		cache: text(r.cache, 16).toUpperCase(),
+		protocol: text(r.proto, 16),
+		tls: text(r.tls, 16),
+		content_type: contentType,
+		referer_host: referer,
+		user_agent: ua,
+		browser,
+		os,
+		device,
+		pageview,
+		visit: pageview && referer !== host,
+		mitigated: BLOCKED.has(status),
+	};
 };
 
 /** a proxy host that forwards to the interface of NPMOS itself (port 81 of this container) */
@@ -88,6 +163,24 @@ export const requestAggregates = (lines, nodeId = "local") => {
 	return [...groups.values()];
 };
 
+/** rows of npmos_request_country_hourly for parsed lines with their countries */
+export const countryAggregates = (lines, nodeId = "local") => {
+	const groups = new Map();
+	for (const l of lines) {
+		const hour = new Date(Math.floor(l.time.getTime() / HOUR) * HOUR);
+		const key = `${hour.toISOString()}\u0000${l.host}\u0000${l.country}`;
+		let row = groups.get(key);
+		if (!row) {
+			row = { node_id: nodeId, hour, host: l.host, country: l.country, requests: 0, mitigated: 0, bytes: 0 };
+			groups.set(key, row);
+		}
+		row.requests += 1;
+		if (l.mitigated) row.mitigated += 1;
+		row.bytes += l.bytes;
+	}
+	return [...groups.values()];
+};
+
 /** one round: new lines of the log → counters */
 export const pollOnce = async ({ file = LOG_FILE } = {}) => {
 	let handle;
@@ -119,11 +212,15 @@ export const pollOnce = async ({ file = LOG_FILE } = {}) => {
 			.split("\n")
 			.map(parseLine)
 			.filter((l) => l && !skip.has(l.host));
+		const countries = await countryCodes(new Set(lines.map((l) => l.ip)));
+		for (const l of lines) l.country = countries.get(l.ip) || "";
 		offset += end + 1;
 		await store({
 			events: [],
 			telemetry: [],
 			requests: requestAggregates(lines),
+			requestLog: lines,
+			countries: countryAggregates(lines),
 			cursors: [{ key: CURSOR, file, offset, head: hash(headBuf), head_length: headBuf.length }],
 		});
 		state.counted += lines.length;

@@ -65,6 +65,10 @@
 	--series-1: #2a78d6;
 	--series-2: #eb6834;
 	--series-3: #1baf7a;
+	/* more series (status classes, security products): purple, amber; neutral for "other" */
+	--series-4: #8a5cf5;
+	--series-5: #d39a12;
+	--series-neutral: #9aa0a6;
 }
 
 /* dark theme */
@@ -72,6 +76,9 @@
 	--series-1: #3987e5;
 	--series-2: #d95926;
 	--series-3: #199e70;
+	--series-4: #9b74f7;
+	--series-5: #c99118;
+	--series-neutral: #6b7076;
 	--card-frame: color-mix(in oklab, var(--background-inset), var(--foreground) 2%);
 	--background-inset: #0d0d0d;
 	--background: #090909;

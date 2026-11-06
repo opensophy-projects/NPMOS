@@ -473,7 +473,8 @@ fi
 
 if [ "$LOGROTATE" = "true" ]; then
     sed -i "s|rotate [0-9]\+|rotate $LOGROTATIONS|g" /etc/logrotate
-    sed -i "s|access_log off; # http|access_log /data/nginx/logs/access.log alog;|g" /usr/local/nginx/conf/nginx.conf
+    # NPMOS: next to the access log (CrowdSec reads it) the JSON log of the requests (Analytics)
+    sed -i "s|access_log off; # http|access_log /data/nginx/logs/access.log alog; access_log /data/nginx/logs/npmos-requests.log npmos_requests;|g" /usr/local/nginx/conf/nginx.conf
     sed -i "s|access_log off; # stream|access_log /data/nginx/logs/stream.log slog;|g" /usr/local/nginx/conf/nginx.conf
     # NPMOS: the interface with its port in the log (alog_admin), so that Analytics leaves it out
     sed -i "s|access_log off; # admin|access_log /data/nginx/logs/access.log alog_admin;|g" /usr/local/nginx/conf/conf.d/npmplus.conf
@@ -484,7 +485,9 @@ if [ "$LOGROTATE" = "true" ]; then
     if [ ! -L /data/nginx/error.log ] && [ ! -f /data/nginx/logs/error.log ]; then mv -vn /data/nginx/error.log* /data/nginx/logs; fi
     if [ -f /data/logrotate.state ]; then mv -vn /data/logrotate.state /data/nginx/logs/logrotate.state; fi
 
+    # NPMOS: npmos-requests.log
     touch /data/nginx/logs/access.log \
+          /data/nginx/logs/npmos-requests.log \
           /data/nginx/logs/stream.log \
           /data/nginx/logs/error.log
 

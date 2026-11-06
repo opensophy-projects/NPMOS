@@ -610,6 +610,24 @@ $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/events/settin
 expect "$(as_analyst -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/events/settings" \
   -d '{"days": 1, "aggregate_days": 1}')" 403 "analyst changes the retention"
 
+step "analytics: every request is in the request log; a domain that is not a host is marked, CrowdSec counts as attacks"
+curl -sS --max-time 10 -o /dev/null -H 'Host: not-a-host.local' "$HTTP/smoke-unknown" || true
+curl -sS --max-time 10 -o /dev/null -H 'Host: test.local' "$HTTP/smoke-known" || true
+for i in $(seq 1 20); do
+  log=$($CURL "$ADMIN/api/npmos/analytics/requests?unknown=1&path=/smoke-unknown&limit=5")
+  echo "$log" | grep -q '"host": *"not-a-host.local"' && break
+  [ "$i" = 20 ] && fail "the request to a domain that is not a host is not in the request log: $log"
+  sleep 2
+done
+echo "$log" | grep -q '"known": *false' || fail "not-a-host.local is not marked as unknown: $log"
+$CURL "$ADMIN/api/npmos/analytics/requests?path=/smoke-known&limit=5" | grep -q '"known": *true' \
+  || fail "the request to test.local is not in the request log as a known host"
+for tab in requests visitors performance security cache origin; do
+  $CURL "$ADMIN/api/npmos/analytics/traffic?tab=$tab&period=1h" | grep -q '"kpi":' || fail "analytics tab $tab"
+done
+$CURL "$ADMIN/api/npmos/analytics/traffic?tab=requests&period=1h&unknown=1" | grep -q '"not-a-host.local"' \
+  || fail "the top hosts of Analytics miss the unknown domain"
+
 step "notifications: a webhook channel delivers a test message"
 hook=$($CURL -X POST -H 'Content-Type: application/json' "$ADMIN/api/npmos/notifications/channels" \
   -d '{"name": "smoke", "type": "webhook", "config": {"url": "http://test-upstream/npmos-hook", "secret": "k"}}')

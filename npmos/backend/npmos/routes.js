@@ -14,6 +14,7 @@ import internalCertificates from "./certificates.js";
 import internalCrowdsec from "./crowdsec/index.js";
 import internalAnalytics from "./events/analytics.js";
 import internalEvents from "./events/index.js";
+import internalTraffic from "./events/traffic.js";
 import internalHosts, { HOST_OBJECTS } from "./hosts.js";
 import internalNotifications from "./notifications/index.js";
 import internalPki from "./pki/index.js";
@@ -877,6 +878,27 @@ router
 	.get(handle((req, res) => internalAnalytics.get(res.locals.access, req.query)));
 
 /**
+ * GET /api/npmos/analytics/traffic?tab=requests|visitors|performance|security|cache|origin&period=1h|24h|7d|30d
+ *   &host,country,ip,method,browser,os,device,protocol,tls,cache,content_type,origin (comma-separated, exact)
+ *   &status=404,4xx&path=<start>&unknown=1 (hosts not in NPMOS)&mitigated=1|0 — one tab of Analytics
+ */
+router
+	.route("/analytics/traffic")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((req, res) => internalTraffic.get(res.locals.access, req.query)));
+
+/**
+ * GET /api/npmos/analytics/requests?from,to (ISO, default the last 24 h)&limit (≤ 200)&before=<cursor>&<filters of
+ *   /analytics/traffic> — the requests of the hosts, newest first
+ */
+router
+	.route("/analytics/requests")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((req, res) => internalTraffic.list(res.locals.access, req.query)));
+
+/**
  * GET /api/npmos/analytics/hosts — attacks per host and hour of the last 24 h
  */
 router
@@ -1267,7 +1289,7 @@ router
 
 /**
  * GET /api/npmos/events/settings — retention, storage, state of the ingest
- * PUT /api/npmos/events/settings — {days, aggregate_days}
+ * PUT /api/npmos/events/settings — {days, aggregate_days, request_days}
  */
 router
 	.route("/events/settings")
@@ -1286,6 +1308,7 @@ router
 						properties: {
 							days: { type: "integer", minimum: 1, maximum: 365 },
 							aggregate_days: { type: "integer", minimum: 1, maximum: 1830 },
+							request_days: { type: "integer", minimum: 1, maximum: 90 },
 						},
 					},
 					req.body,

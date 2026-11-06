@@ -8,7 +8,7 @@ import errs from "../../lib/error.js";
 import { getSetting, setSetting } from "../settings.js";
 import { status as ingestStatus, runMaintenance } from "./ingest.js";
 import { IMPORTANT_SEVERITIES } from "./normalize.js";
-import { EVENT_TABLE } from "./store.js";
+import { EVENT_TABLE, REQUEST_LOG_TABLE } from "./store.js";
 
 const MAX_LIMIT = 500;
 const MAX_EXPORT = 100000;
@@ -255,8 +255,9 @@ const internalEvents = {
 	getSettings: async (access) => {
 		await access.can("settings:view");
 		const knex = db();
-		const retention = await getSetting("events.retention");
+		const retention = { requestDays: 7, ...(await getSetting("events.retention")) };
 		const [{ n: events }] = await knex(EVENT_TABLE).count({ n: "*" });
+		const [{ n: requests }] = await knex(REQUEST_LOG_TABLE).count({ n: "*" });
 		const oldest = await knex(EVENT_TABLE).min({ t: "time" }).first();
 		let bytes = null;
 		if (isPostgres()) {
@@ -270,6 +271,7 @@ const internalEvents = {
 			retention,
 			storage: {
 				events: Number(events),
+				requests: Number(requests),
 				oldest: oldest?.t ? new Date(oldest.t).toISOString() : null,
 				bytes,
 			},
@@ -279,11 +281,16 @@ const internalEvents = {
 
 	/**
 	 * @param {Access} access
-	 * @param {{days: number, aggregate_days: number}} data
+	 * @param {{days: number, aggregate_days: number, request_days?: number}} data
 	 */
 	setSettings: async (access, data) => {
 		await access.can("settings:manage");
-		const value = { days: data.days, aggregateDays: data.aggregate_days };
+		const current = await getSetting("events.retention");
+		const value = {
+			days: data.days,
+			aggregateDays: data.aggregate_days,
+			requestDays: Math.min(data.request_days ?? current.requestDays ?? 7, data.aggregate_days),
+		};
 		await setSetting("events.retention", value);
 		await runMaintenance();
 		await internalAuditLog.add(access, {

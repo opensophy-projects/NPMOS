@@ -1,0 +1,91 @@
+/* Analytics → Requests: one row per request, details below a row on click */
+.table td {
+	font-size: 0.8125rem;
+	vertical-align: middle;
+}
+.time {
+	color: var(--foreground-muted);
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+.host,
+.client {
+	max-width: 14rem;
+	white-space: nowrap;
+}
+.host > button,
+.client > button {
+	display: inline-block;
+	max-width: 12rem;
+	color: var(--foreground);
+	vertical-align: bottom;
+}
+.mark {
+	display: block;
+	font-size: 0.75rem;
+}
+.country {
+	display: block;
+	color: var(--foreground-muted);
+	font-size: 0.75rem;
+}
+.request {
+	max-width: 28rem;
+	overflow: hidden;
+	font-family: var(--tblr-font-monospace);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.agent {
+	max-width: 14rem;
+	overflow: hidden;
+	color: var(--foreground-muted);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.status {
+	display: inline-block;
+	min-width: 2.75rem;
+	padding: 0.0625rem 0.375rem;
+	border-radius: var(--radius-xs);
+	font-variant-numeric: tabular-nums;
+	font-weight: 500;
+	text-align: center;
+}
+.s2 {
+	background: color-mix(in oklab, var(--series-3) 14%, transparent);
+	color: var(--series-3);
+}
+.s3 {
+	background: color-mix(in oklab, var(--series-1) 14%, transparent);
+	color: var(--series-1);
+}
+.s4 {
+	background: color-mix(in oklab, var(--series-5) 16%, transparent);
+	color: var(--series-5);
+}
+.s5 {
+	background: color-mix(in oklab, var(--series-2) 16%, transparent);
+	color: var(--series-2);
+}
+.open td {
+	background: var(--background-muted);
+}
+.detailRow td {
+	background: var(--background-muted);
+}
+.details {
+	display: grid;
+	grid-template-columns: max-content minmax(0, 1fr);
+	gap: 0.25rem 1rem;
+	margin: 0;
+	font-size: 0.8125rem;
+}
+.details dt {
+	color: var(--foreground-muted);
+	font-weight: 400;
+}
+.details dd {
+	margin: 0;
+	overflow-wrap: anywhere;
+}

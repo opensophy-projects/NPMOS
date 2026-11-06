@@ -95,6 +95,38 @@ export const enrich = async (events) => {
 	return events;
 };
 
+/**
+ * ISO codes of the countries of addresses (Analytics: requests of the hosts), "" when unknown or without a database.
+ * @param {Iterable<string>} ips
+ * @returns {Promise<Map<string, string>>}
+ */
+export const countryCodes = async (ips) => {
+	const result = new Map();
+	let db = null;
+	try {
+		db = await database();
+	} catch {
+		// no database: no countries
+	}
+	for (const ip of ips) {
+		if (result.has(ip)) continue;
+		let code = "";
+		if (db && ip) {
+			try {
+				const record = db.reader.get(ip);
+				const c = record?.country || record?.registered_country;
+				code = String(c?.iso_code || "")
+					.slice(0, 2)
+					.toUpperCase();
+			} catch {
+				// a broken record: no country
+			}
+		}
+		result.set(ip, code);
+	}
+	return result;
+};
+
 // loaded on use: events/store.js imports this module, the audit log needs the whole backend
 const audit = async (access, action, name) => {
 	const { default: internalAuditLog } = await import("../../internal/audit-log.js");

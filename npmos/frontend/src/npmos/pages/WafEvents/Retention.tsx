@@ -26,12 +26,14 @@ export function RetentionForm({ canManage, close }: { canManage: boolean; close?
 	const { data } = useEventsSettings();
 	const [days, setDays] = useState("");
 	const [aggregateDays, setAggregateDays] = useState("");
+	const [requestDays, setRequestDays] = useState("");
 	const [busy, setBusy] = useState(false);
 
 	useEffect(() => {
 		if (data) {
 			setDays(String(data.retention.days));
 			setAggregateDays(String(data.retention.aggregateDays));
+			setRequestDays(String(data.retention.requestDays ?? 7));
 		}
 	}, [data]);
 
@@ -39,15 +41,18 @@ export function RetentionForm({ canManage, close }: { canManage: boolean; close?
 
 	const d = Number.parseInt(days, 10);
 	const a = Number.parseInt(aggregateDays, 10);
-	const valid = d >= 1 && d <= 365 && a >= d && a <= 1830;
-	const changed = d !== data.retention.days || a !== data.retention.aggregateDays;
+	const r = Number.parseInt(requestDays, 10);
+	const valid = d >= 1 && d <= 365 && a >= d && a <= 1830 && r >= 1 && r <= 90 && r <= a;
+	const changed =
+		d !== data.retention.days || a !== data.retention.aggregateDays || r !== (data.retention.requestDays ?? 7);
 
 	const save = async () => {
 		setBusy(true);
 		try {
-			const result = await setEventsSettings({ days: d, aggregateDays: a });
+			const result = await setEventsSettings({ days: d, aggregateDays: a, requestDays: r });
 			queryClient.setQueryData(["npmos-events-settings"], result);
 			queryClient.invalidateQueries({ queryKey: ["npmos-events"] });
+			queryClient.invalidateQueries({ queryKey: ["npmos-traffic"] });
 			showSuccess(t("npmos.events.retention.saved"));
 			close?.();
 		} catch (err: any) {
@@ -86,6 +91,19 @@ export function RetentionForm({ canManage, close }: { canManage: boolean; close?
 					disabled={!canManage}
 					onChange={(e) => setAggregateDays(e.target.value)}
 				/>
+				<label htmlFor="npmos-retention-requests">
+					<T id="npmos.events.retention.request-days" />
+				</label>
+				<input
+					id="npmos-retention-requests"
+					type="number"
+					min={1}
+					max={90}
+					className="form-control form-control-sm"
+					value={requestDays}
+					disabled={!canManage}
+					onChange={(e) => setRequestDays(e.target.value)}
+				/>
 			</div>
 			{!valid && (
 				<div className="text-danger small mt-2">
@@ -95,6 +113,9 @@ export function RetentionForm({ canManage, close }: { canManage: boolean; close?
 			<div className={styles.facts}>
 				<T id="npmos.events.retention.stored" data={{ events: data.storage.events }} />
 				{data.storage.bytes !== null && ` · ${size(data.storage.bytes)}`}
+				<div>
+					<T id="npmos.events.retention.requests-stored" data={{ requests: data.storage.requests ?? 0 }} />
+				</div>
 				{data.storage.oldest && (
 					<div>
 						<T id="npmos.events.retention.oldest" data={{ time: dateTime(data.storage.oldest) }} />

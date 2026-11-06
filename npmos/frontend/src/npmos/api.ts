@@ -329,9 +329,135 @@ export interface HostAttacks {
 
 export const getHostAttacks = () => api.get({ url: "/npmos/analytics/hosts" }) as Promise<HostAttacks[]>;
 
+// Analytics of the traffic of the hosts (tabs like the Cloudflare dashboard), from the request log of nginx
+export type TrafficTab = "requests" | "visitors" | "performance" | "security" | "cache" | "origin";
+
+export interface TrafficKpi {
+	value: number | null;
+	/** against the previous period of the same length, null when unknown */
+	change: number | null;
+	series: (number | null)[] | null;
+}
+
+export interface TopRow {
+	value: string;
+	requests: number;
+	bytes: number;
+	country?: string;
+	/** hosts: one of the hosts of NPMOS */
+	known?: boolean;
+	mitigated?: number;
+	pageviews?: number | null;
+	p95?: number | null;
+}
+
+export interface EventRow {
+	value: string;
+	events: number;
+	country?: string;
+}
+
+export interface Bucket {
+	t: string;
+	[key: string]: string | number | null;
+}
+
+/** filters of Analytics and of the request log (see npmos/events/traffic.js) */
+export interface TrafficFilters {
+	host?: string;
+	country?: string;
+	ip?: string;
+	path?: string;
+	status?: string;
+	method?: string;
+	browser?: string;
+	os?: string;
+	device?: string;
+	protocol?: string;
+	tls?: string;
+	cache?: string;
+	contentType?: string;
+	origin?: string;
+	unknown?: string;
+	mitigated?: string;
+}
+
+export interface Traffic {
+	tab: TrafficTab;
+	period: AnalyticsPeriod;
+	from: string;
+	to: string;
+	bucket: number;
+	requestDays: number;
+	/** details (top lists, percentiles) start here when the period is longer than the request log is kept */
+	detailFrom: string | null;
+	unsupported?: boolean;
+	kpi: Record<string, TrafficKpi | null>;
+	timeline: Bucket[];
+	countries?: TopRow[];
+	top: Record<string, TopRow[] | EventRow[] | OriginEndpoint[]>;
+	productTimeline?: Bucket[];
+	protocolTimeline?: Bucket[];
+	percentiles?: Bucket[];
+	breakdown?: { connectMs: number | null; upstreamMs: number | null };
+	attackCountries?: EventRow[];
+	actions?: { kind: string; action: string; events: number }[];
+}
+
+export interface OriginEndpoint {
+	host: string;
+	path: string;
+	requests: number;
+	p95: number | null;
+	rate4xx: number | null;
+	rate5xx: number | null;
+	failed: number;
+}
+
+export const getTraffic = (tab: TrafficTab, period: AnalyticsPeriod, filters: TrafficFilters) =>
+	api.get({ url: "/npmos/analytics/traffic", params: { tab, period, ...filters } }) as Promise<Traffic>;
+
+export interface RequestLogRow {
+	id: string;
+	time: string;
+	host: string;
+	known: boolean;
+	port: number | null;
+	ip: string;
+	country: string;
+	method: string;
+	path: string;
+	status: number;
+	bytes: number;
+	requestBytes: number;
+	durationMs: number;
+	upstreamMs: number | null;
+	upstreamStatus: number | null;
+	upstreamAddr: string;
+	cache: string;
+	protocol: string;
+	tls: string;
+	contentType: string;
+	refererHost: string;
+	userAgent: string;
+	browser: string;
+	os: string;
+	device: string;
+	mitigated: boolean;
+}
+
+export const getRequestLog = (
+	params: TrafficFilters & { from?: string; to?: string; limit?: number; before?: string },
+) =>
+	api.get({ url: "/npmos/analytics/requests", params: { ...params } }) as Promise<{
+		rows: RequestLogRow[];
+		next: string | null;
+		unsupported?: boolean;
+	}>;
+
 export interface EventsSettings {
-	retention: { days: number; aggregateDays: number };
-	storage: { events: number; oldest: string | null; bytes: number | null };
+	retention: { days: number; aggregateDays: number; requestDays: number };
+	storage: { events: number; requests: number; oldest: string | null; bytes: number | null };
 	ingest: { running: boolean; available: boolean; lastRun: string | null; lastError: string | null };
 }
 

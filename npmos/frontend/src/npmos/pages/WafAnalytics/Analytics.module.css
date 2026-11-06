@@ -1,4 +1,4 @@
-/* WAF → Analytics: panels in two columns, the timeline and the last blocked requests full width */
+/* Analytics: tabs like the Cloudflare dashboard, panels in two columns, maps and wide charts full width */
 .grid {
 	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -16,10 +16,183 @@
 .wide {
 	grid-column: 1 / -1;
 }
+.panelHead {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75rem;
+	margin-bottom: 0.75rem;
+}
 .panelTitle {
-	margin: 0 0 0.75rem;
+	margin: 0;
 	font-size: 0.9375rem;
 	font-weight: 500;
+}
+
+/* tabs of Analytics (Requests, Visitors, …) on the left, filters and the period on the right */
+.bar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: 0.75rem;
+	border-bottom: 1px solid var(--border-strong);
+}
+.tabs {
+	display: flex;
+	gap: 0.25rem;
+	max-width: 100%;
+	overflow-x: auto;
+}
+.tab {
+	margin-bottom: -1px;
+	padding: 0.5rem 0.75rem;
+	border: 0;
+	border-bottom: 2px solid transparent;
+	background: none;
+	color: var(--foreground-muted);
+	font-size: 0.875rem;
+	font-weight: 500;
+	white-space: nowrap;
+}
+.tab:hover {
+	color: var(--foreground);
+}
+.tabOn {
+	border-bottom-color: var(--accent);
+	color: var(--foreground);
+}
+.barRight {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem;
+	padding-bottom: 0.5rem;
+}
+.filterForm select,
+.filterForm input {
+	width: 100%;
+}
+
+/* active filters */
+.chips {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.375rem;
+}
+.chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.25rem;
+	max-width: 100%;
+	padding: 0.125rem 0.25rem 0.125rem 0.5rem;
+	border: 1px solid var(--border-strong);
+	border-radius: 999px;
+	background: var(--background);
+	font-size: 0.8125rem;
+}
+.chipKey {
+	color: var(--foreground-muted);
+}
+.chipValue {
+	overflow: hidden;
+	max-width: 18rem;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.chipRemove {
+	display: inline-flex;
+	padding: 0.125rem;
+	border: 0;
+	border-radius: 50%;
+	background: none;
+	color: var(--foreground-muted);
+}
+.chipRemove:hover {
+	background: var(--background-muted);
+	color: var(--foreground);
+}
+.linkButton {
+	max-width: 100%;
+	padding: 0;
+	overflow: hidden;
+	border: 0;
+	background: none;
+	color: var(--accent);
+	font: inherit;
+	font-size: 0.8125rem;
+	text-align: left;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.linkButton:hover {
+	text-decoration: underline;
+}
+
+/* the map and its list of countries */
+.geo {
+	display: grid;
+	grid-template-columns: minmax(0, 2fr) minmax(14rem, 1fr);
+	gap: 1.25rem;
+	align-items: start;
+}
+@media (max-width: 900px) {
+	.geo {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+.geoList {
+	max-height: 26rem;
+	overflow-y: auto;
+}
+
+/* hosts that are not in NPMOS */
+.unknown {
+	color: var(--series-5);
+}
+.notice {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75rem;
+	margin: 0;
+	padding: 0.875rem 1rem;
+	border-left: 3px solid var(--series-5);
+}
+.noticeText {
+	margin-top: 0.125rem;
+	color: var(--foreground-muted);
+	font-size: 0.8125rem;
+}
+.noticeActions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+}
+
+/* a two-way switch in a panel head */
+.toggle {
+	display: inline-flex;
+	padding: 0.125rem;
+	border-radius: var(--radius-sm);
+	background: var(--card-frame);
+	box-shadow: var(--shadow-inset);
+}
+.toggleItem {
+	padding: 0.125rem 0.5rem;
+	border: 0;
+	border-radius: var(--radius-xs);
+	background: none;
+	color: var(--foreground-muted);
+	font-size: 0.75rem;
+	font-weight: 500;
+}
+.toggleOn {
+	background: var(--background);
+	color: var(--foreground);
+	box-shadow: 0 0 0 1px var(--border-strong);
 }
 .note {
 	margin: 0;

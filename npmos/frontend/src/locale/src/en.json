@@ -2543,6 +2543,12 @@
 	"npmos.events.retention.oldest": {
 		"defaultMessage": "Oldest: {time}"
 	},
+	"npmos.events.retention.request-days": {
+		"defaultMessage": "Request log, days"
+	},
+	"npmos.events.retention.requests-stored": {
+		"defaultMessage": "Requests in the log: {requests}"
+	},
 	"npmos.events.retention.saved": {
 		"defaultMessage": "Retention saved"
 	},
@@ -6460,6 +6466,549 @@
 	},
 	"npmos.system.secret.set": {
 		"defaultMessage": "set — enter a new one to replace it"
+	},
+	"npmos.traffic.answer.403": {
+		"defaultMessage": "Refused (403)"
+	},
+	"npmos.traffic.answer.429": {
+		"defaultMessage": "Rate limited (429)"
+	},
+	"npmos.traffic.answer.444": {
+		"defaultMessage": "Dropped (444)"
+	},
+	"npmos.traffic.answer.mtls": {
+		"defaultMessage": "mTLS (495/496)"
+	},
+	"npmos.traffic.attack-map": {
+		"defaultMessage": "Where attacks come from"
+	},
+	"npmos.traffic.attacks-over-time": {
+		"defaultMessage": "Attacks by security product"
+	},
+	"npmos.traffic.by-cache": {
+		"defaultMessage": "Requests by cache status"
+	},
+	"npmos.traffic.by-protocol": {
+		"defaultMessage": "Requests by HTTP protocol"
+	},
+	"npmos.traffic.by-status": {
+		"defaultMessage": "Requests by status code"
+	},
+	"npmos.traffic.bytes-cached-vs-uncached": {
+		"defaultMessage": "Data transfer: cached and uncached"
+	},
+	"npmos.traffic.bytes-over-time": {
+		"defaultMessage": "Data transfer"
+	},
+	"npmos.traffic.cache.hint": {
+		"defaultMessage": "Cache statuses come from the nginx cache of the hosts that have caching turned on (host → Caching)."
+	},
+	"npmos.traffic.cached-vs-uncached": {
+		"defaultMessage": "Cached and uncached requests"
+	},
+	"npmos.traffic.content": {
+		"defaultMessage": "Content"
+	},
+	"npmos.traffic.description": {
+		"defaultMessage": "Every request to the hosts and the attacks on them: requests, visitors, performance, security, cache and the origins behind the hosts. Click a row of a list to filter the page by it."
+	},
+	"npmos.traffic.detail-from": {
+		"defaultMessage": "The request log is kept {days} days: lists, the map and percentiles start at {time}; totals and charts cover the whole period."
+	},
+	"npmos.traffic.detail-only": {
+		"defaultMessage": "Shown for periods covered by the request log."
+	},
+	"npmos.traffic.device.bot": {
+		"defaultMessage": "Bot"
+	},
+	"npmos.traffic.device.desktop": {
+		"defaultMessage": "Desktop"
+	},
+	"npmos.traffic.device.mobile": {
+		"defaultMessage": "Mobile"
+	},
+	"npmos.traffic.device.other": {
+		"defaultMessage": "Other"
+	},
+	"npmos.traffic.device.tablet": {
+		"defaultMessage": "Tablet"
+	},
+	"npmos.traffic.devices-over-time": {
+		"defaultMessage": "Device types over time"
+	},
+	"npmos.traffic.endpoints": {
+		"defaultMessage": "Endpoints"
+	},
+	"npmos.traffic.endpoints.failed": {
+		"defaultMessage": "Connection failures"
+	},
+	"npmos.traffic.endpoints.host": {
+		"defaultMessage": "Host"
+	},
+	"npmos.traffic.endpoints.path": {
+		"defaultMessage": "Path"
+	},
+	"npmos.traffic.endpoints.requests": {
+		"defaultMessage": "Requests"
+	},
+	"npmos.traffic.endpoints.search": {
+		"defaultMessage": "Search by path or host"
+	},
+	"npmos.traffic.filter.add": {
+		"defaultMessage": "Add filter"
+	},
+	"npmos.traffic.filter.apply": {
+		"defaultMessage": "Apply"
+	},
+	"npmos.traffic.filter.browser": {
+		"defaultMessage": "Browser"
+	},
+	"npmos.traffic.filter.cache": {
+		"defaultMessage": "Cache status"
+	},
+	"npmos.traffic.filter.clear": {
+		"defaultMessage": "Clear filters"
+	},
+	"npmos.traffic.filter.contentType": {
+		"defaultMessage": "Content type"
+	},
+	"npmos.traffic.filter.country": {
+		"defaultMessage": "Country"
+	},
+	"npmos.traffic.filter.device": {
+		"defaultMessage": "Device type"
+	},
+	"npmos.traffic.filter.field": {
+		"defaultMessage": "Field"
+	},
+	"npmos.traffic.filter.host": {
+		"defaultMessage": "Host"
+	},
+	"npmos.traffic.filter.ip": {
+		"defaultMessage": "IP address"
+	},
+	"npmos.traffic.filter.method": {
+		"defaultMessage": "Method"
+	},
+	"npmos.traffic.filter.mitigated": {
+		"defaultMessage": "Outcome"
+	},
+	"npmos.traffic.filter.mitigated.no": {
+		"defaultMessage": "passed"
+	},
+	"npmos.traffic.filter.mitigated.yes": {
+		"defaultMessage": "refused"
+	},
+	"npmos.traffic.filter.origin": {
+		"defaultMessage": "Origin server"
+	},
+	"npmos.traffic.filter.os": {
+		"defaultMessage": "Operating system"
+	},
+	"npmos.traffic.filter.path": {
+		"defaultMessage": "Path starts with"
+	},
+	"npmos.traffic.filter.protocol": {
+		"defaultMessage": "HTTP protocol"
+	},
+	"npmos.traffic.filter.remove": {
+		"defaultMessage": "Remove filter {name}"
+	},
+	"npmos.traffic.filter.status": {
+		"defaultMessage": "Status"
+	},
+	"npmos.traffic.filter.tls": {
+		"defaultMessage": "TLS version"
+	},
+	"npmos.traffic.filter.unknown": {
+		"defaultMessage": "Host"
+	},
+	"npmos.traffic.filter.unknown.yes": {
+		"defaultMessage": "not in Hosts"
+	},
+	"npmos.traffic.filter.value": {
+		"defaultMessage": "Value"
+	},
+	"npmos.traffic.geography": {
+		"defaultMessage": "Geography"
+	},
+	"npmos.traffic.host.none": {
+		"defaultMessage": "no name (IP address)"
+	},
+	"npmos.traffic.host.unknown": {
+		"defaultMessage": "not in Hosts"
+	},
+	"npmos.traffic.kind.crowdsec": {
+		"defaultMessage": "CrowdSec"
+	},
+	"npmos.traffic.kind.mtls": {
+		"defaultMessage": "mTLS"
+	},
+	"npmos.traffic.kind.security": {
+		"defaultMessage": "open-appsec"
+	},
+	"npmos.traffic.kpi.5xx-rate": {
+		"defaultMessage": "5xx error rate"
+	},
+	"npmos.traffic.kpi.appsec": {
+		"defaultMessage": "open-appsec events"
+	},
+	"npmos.traffic.kpi.bytes": {
+		"defaultMessage": "Data transfer"
+	},
+	"npmos.traffic.kpi.cache-hit": {
+		"defaultMessage": "Cache hit rate"
+	},
+	"npmos.traffic.kpi.cache-off": {
+		"defaultMessage": "caching is not used"
+	},
+	"npmos.traffic.kpi.cached": {
+		"defaultMessage": "Cached requests"
+	},
+	"npmos.traffic.kpi.cached-bytes": {
+		"defaultMessage": "Data from cache"
+	},
+	"npmos.traffic.kpi.connection": {
+		"defaultMessage": "Connection success"
+	},
+	"npmos.traffic.kpi.crowdsec": {
+		"defaultMessage": "CrowdSec alerts and bans"
+	},
+	"npmos.traffic.kpi.mitigated": {
+		"defaultMessage": "Refused requests"
+	},
+	"npmos.traffic.kpi.mitigated-rate": {
+		"defaultMessage": "Refused share"
+	},
+	"npmos.traffic.kpi.origin-bytes": {
+		"defaultMessage": "Data from origins"
+	},
+	"npmos.traffic.kpi.origin-errors": {
+		"defaultMessage": "Origin error rate"
+	},
+	"npmos.traffic.kpi.origin-p50": {
+		"defaultMessage": "Origin response (p50)"
+	},
+	"npmos.traffic.kpi.origin-p95": {
+		"defaultMessage": "Origin response (p95)"
+	},
+	"npmos.traffic.kpi.pageviews": {
+		"defaultMessage": "Page views"
+	},
+	"npmos.traffic.kpi.rate-limited": {
+		"defaultMessage": "Rate limited"
+	},
+	"npmos.traffic.kpi.reachability": {
+		"defaultMessage": "Origin reachability"
+	},
+	"npmos.traffic.kpi.requests": {
+		"defaultMessage": "Total requests"
+	},
+	"npmos.traffic.kpi.saved": {
+		"defaultMessage": "Bandwidth saved"
+	},
+	"npmos.traffic.kpi.to-origin": {
+		"defaultMessage": "Requests to origins"
+	},
+	"npmos.traffic.kpi.total-p50": {
+		"defaultMessage": "Full answer (p50)"
+	},
+	"npmos.traffic.kpi.total-p95": {
+		"defaultMessage": "Full answer (p95)"
+	},
+	"npmos.traffic.kpi.uncached": {
+		"defaultMessage": "Uncached requests"
+	},
+	"npmos.traffic.kpi.visits": {
+		"defaultMessage": "Visits"
+	},
+	"npmos.traffic.log": {
+		"defaultMessage": "Requests"
+	},
+	"npmos.traffic.log.agent": {
+		"defaultMessage": "Client software"
+	},
+	"npmos.traffic.log.client": {
+		"defaultMessage": "Source"
+	},
+	"npmos.traffic.log.description": {
+		"defaultMessage": "Every request to the hosts, newest first, including requests to domains that point here but are not in Hosts. Click a row for its details, a host or an address to filter by it."
+	},
+	"npmos.traffic.log.duration": {
+		"defaultMessage": "Time"
+	},
+	"npmos.traffic.log.empty": {
+		"defaultMessage": "No requests for this period and filters."
+	},
+	"npmos.traffic.log.more": {
+		"defaultMessage": "Load more"
+	},
+	"npmos.traffic.log.only-unknown": {
+		"defaultMessage": "Only hosts not in Hosts"
+	},
+	"npmos.traffic.log.origin-status": {
+		"defaultMessage": "Origin status"
+	},
+	"npmos.traffic.log.origin-time": {
+		"defaultMessage": "Origin response"
+	},
+	"npmos.traffic.log.referer": {
+		"defaultMessage": "Came from"
+	},
+	"npmos.traffic.log.request": {
+		"defaultMessage": "Request"
+	},
+	"npmos.traffic.log.size": {
+		"defaultMessage": "Size"
+	},
+	"npmos.traffic.log.time": {
+		"defaultMessage": "Time"
+	},
+	"npmos.traffic.map": {
+		"defaultMessage": "World map"
+	},
+	"npmos.traffic.map.attacks": {
+		"defaultMessage": "Attacks"
+	},
+	"npmos.traffic.map.empty": {
+		"defaultMessage": "No countries: there was no traffic, or the GeoIP database is missing (Administration → Settings → GeoIP)."
+	},
+	"npmos.traffic.map.less": {
+		"defaultMessage": "fewer"
+	},
+	"npmos.traffic.map.mitigated": {
+		"defaultMessage": "Refused requests"
+	},
+	"npmos.traffic.map.more": {
+		"defaultMessage": "more"
+	},
+	"npmos.traffic.mitigations-by-answer": {
+		"defaultMessage": "Refusals by answer"
+	},
+	"npmos.traffic.no-attacks": {
+		"defaultMessage": "No attacks in this period."
+	},
+	"npmos.traffic.no-data": {
+		"defaultMessage": "No data"
+	},
+	"npmos.traffic.note": {
+		"defaultMessage": "Requests: the request log of nginx (the interface of NPMOS is not counted). Attacks: events of open-appsec, CrowdSec and mTLS. Countries: the GeoIP database of NPMOS, offline."
+	},
+	"npmos.traffic.origin-breakdown": {
+		"defaultMessage": "Origin connection breakdown"
+	},
+	"npmos.traffic.origin-outcomes": {
+		"defaultMessage": "Origin connection outcomes"
+	},
+	"npmos.traffic.origin-percentiles": {
+		"defaultMessage": "Origin response time percentiles"
+	},
+	"npmos.traffic.origin-requests": {
+		"defaultMessage": "Requests to origins over time"
+	},
+	"npmos.traffic.origin-statuses": {
+		"defaultMessage": "Origin status codes over time"
+	},
+	"npmos.traffic.outcomes-over-time": {
+		"defaultMessage": "Request outcomes over time"
+	},
+	"npmos.traffic.pageviews-by-country": {
+		"defaultMessage": "Page views by country"
+	},
+	"npmos.traffic.pageviews-over-time": {
+		"defaultMessage": "Page views over time"
+	},
+	"npmos.traffic.product.appsec-detect": {
+		"defaultMessage": "open-appsec: detected"
+	},
+	"npmos.traffic.product.appsec-prevent": {
+		"defaultMessage": "open-appsec: blocked"
+	},
+	"npmos.traffic.product.crowdsec-alert": {
+		"defaultMessage": "CrowdSec: alert"
+	},
+	"npmos.traffic.product.crowdsec-ban": {
+		"defaultMessage": "CrowdSec: ban"
+	},
+	"npmos.traffic.product.crowdsec-captcha": {
+		"defaultMessage": "CrowdSec: captcha"
+	},
+	"npmos.traffic.product.mtls": {
+		"defaultMessage": "mTLS: refused"
+	},
+	"npmos.traffic.requests-n": {
+		"defaultMessage": "{n} requests"
+	},
+	"npmos.traffic.requests-over-time": {
+		"defaultMessage": "Requests over time"
+	},
+	"npmos.traffic.security-actions": {
+		"defaultMessage": "Security actions"
+	},
+	"npmos.traffic.series.attacks": {
+		"defaultMessage": "Attacks"
+	},
+	"npmos.traffic.series.bytes": {
+		"defaultMessage": "Sent"
+	},
+	"npmos.traffic.series.cached": {
+		"defaultMessage": "From cache"
+	},
+	"npmos.traffic.series.connect": {
+		"defaultMessage": "Connection"
+	},
+	"npmos.traffic.series.failed": {
+		"defaultMessage": "Connection failed"
+	},
+	"npmos.traffic.series.mitigated": {
+		"defaultMessage": "Refused"
+	},
+	"npmos.traffic.series.not-cacheable": {
+		"defaultMessage": "Not cached"
+	},
+	"npmos.traffic.series.other": {
+		"defaultMessage": "Other"
+	},
+	"npmos.traffic.series.passed": {
+		"defaultMessage": "Passed"
+	},
+	"npmos.traffic.series.reached": {
+		"defaultMessage": "Reached the origin"
+	},
+	"npmos.traffic.series.requests": {
+		"defaultMessage": "Requests"
+	},
+	"npmos.traffic.series.uncached": {
+		"defaultMessage": "Not from cache"
+	},
+	"npmos.traffic.series.wait": {
+		"defaultMessage": "Response wait"
+	},
+	"npmos.traffic.tab.cache": {
+		"defaultMessage": "Cache"
+	},
+	"npmos.traffic.tab.origin": {
+		"defaultMessage": "Origin"
+	},
+	"npmos.traffic.tab.performance": {
+		"defaultMessage": "Performance"
+	},
+	"npmos.traffic.tab.requests": {
+		"defaultMessage": "Requests"
+	},
+	"npmos.traffic.tab.security": {
+		"defaultMessage": "Security"
+	},
+	"npmos.traffic.tab.visitors": {
+		"defaultMessage": "Visitors"
+	},
+	"npmos.traffic.technology": {
+		"defaultMessage": "Technology"
+	},
+	"npmos.traffic.top.agents": {
+		"defaultMessage": "Top user agents"
+	},
+	"npmos.traffic.top.attack-paths": {
+		"defaultMessage": "Top attacked paths"
+	},
+	"npmos.traffic.top.attack-sources": {
+		"defaultMessage": "Top attack sources"
+	},
+	"npmos.traffic.top.attack-types": {
+		"defaultMessage": "Top attack types"
+	},
+	"npmos.traffic.top.browsers": {
+		"defaultMessage": "Top browsers"
+	},
+	"npmos.traffic.top.cache-statuses": {
+		"defaultMessage": "Top cache statuses"
+	},
+	"npmos.traffic.top.cached-paths": {
+		"defaultMessage": "Top cached paths"
+	},
+	"npmos.traffic.top.cached-types": {
+		"defaultMessage": "Top cached content types"
+	},
+	"npmos.traffic.top.devices": {
+		"defaultMessage": "Top device types"
+	},
+	"npmos.traffic.top.hosts": {
+		"defaultMessage": "Top hosts"
+	},
+	"npmos.traffic.top.ips": {
+		"defaultMessage": "Top client IPs"
+	},
+	"npmos.traffic.top.mitigated-ips": {
+		"defaultMessage": "Top refused client IPs"
+	},
+	"npmos.traffic.top.mitigated-paths": {
+		"defaultMessage": "Top refused paths"
+	},
+	"npmos.traffic.top.origin-paths": {
+		"defaultMessage": "Top paths by origin requests"
+	},
+	"npmos.traffic.top.origin-statuses": {
+		"defaultMessage": "Top origin status codes"
+	},
+	"npmos.traffic.top.origins": {
+		"defaultMessage": "Top origin addresses"
+	},
+	"npmos.traffic.top.os": {
+		"defaultMessage": "Top operating systems"
+	},
+	"npmos.traffic.top.paths": {
+		"defaultMessage": "Top paths"
+	},
+	"npmos.traffic.top.paths-bytes": {
+		"defaultMessage": "Top paths by data transfer"
+	},
+	"npmos.traffic.top.protocols": {
+		"defaultMessage": "Top HTTP versions"
+	},
+	"npmos.traffic.top.referers": {
+		"defaultMessage": "Top referring sites"
+	},
+	"npmos.traffic.top.slow-paths": {
+		"defaultMessage": "Slowest paths (origin p95)"
+	},
+	"npmos.traffic.top.statuses": {
+		"defaultMessage": "Top status codes"
+	},
+	"npmos.traffic.top.tls": {
+		"defaultMessage": "TLS versions"
+	},
+	"npmos.traffic.top.uncached-paths": {
+		"defaultMessage": "Top uncached paths"
+	},
+	"npmos.traffic.top.uncached-types": {
+		"defaultMessage": "Top uncached content types"
+	},
+	"npmos.traffic.unknown": {
+		"defaultMessage": "unknown"
+	},
+	"npmos.traffic.unknown-hosts.add": {
+		"defaultMessage": "Add a host"
+	},
+	"npmos.traffic.unknown-hosts.default": {
+		"defaultMessage": "Default site"
+	},
+	"npmos.traffic.unknown-hosts.show": {
+		"defaultMessage": "Show requests"
+	},
+	"npmos.traffic.unknown-hosts.text": {
+		"defaultMessage": "{hosts} point to this server but are not in Hosts: the default site answers them. Add them as hosts, or let the default site drop them (444)."
+	},
+	"npmos.traffic.unknown-hosts.title": {
+		"defaultMessage": "{count} requests to domains that are not in Hosts"
+	},
+	"npmos.traffic.unsupported": {
+		"defaultMessage": "Traffic analytics needs PostgreSQL (the database of the NPMOS stack)."
+	},
+	"npmos.traffic.visitors.hint": {
+		"defaultMessage": "A page view is an HTML page answered without an error; a visit is a page view that did not come from the same site."
+	},
+	"npmos.traffic.visits-over-time": {
+		"defaultMessage": "Visits over time"
 	},
 	"npmos.user.password-hint": {
 		"defaultMessage": "At least 8 characters. The user can change it later in their profile."

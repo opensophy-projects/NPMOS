@@ -24,6 +24,8 @@ const Hosts = lazy(() => import("src/npmos/pages/Hosts"));
 const Services = lazy(() => import("src/npmos/pages/Services"));
 const WafEvents = lazy(() => import("src/npmos/pages/WafEvents"));
 const WafAnalytics = lazy(() => import("src/npmos/pages/WafAnalytics"));
+// NPMOS: Analytics → Requests (every request of the hosts)
+const RequestLog = lazy(() => import("src/npmos/pages/RequestLog"));
 const Notifications = lazy(() => import("src/npmos/pages/Notifications"));
 // NPMOS: one page per agent: its policies (GUI or code) and the agent itself
 const AgentOpenappsec = lazy(() => import("src/npmos/pages/AgentOpenappsec"));
@@ -90,6 +92,7 @@ function Router() {
 						<Route path="/agents/open-appsec" element={<AgentOpenappsec />} />
 						<Route path="/agents/block-page" element={<BlockPage />} />
 						<Route path="/analytics/blocks" element={<Blocks />} />
+						<Route path="/analytics/requests" element={<RequestLog />} />
 						{/* the pages of before open their place on the page of the agent */}
 						<Route path="/waf/agent" element={<Navigate to="/agents/open-appsec?tab=agent" replace />} />
 						<Route path="/waf/events" element={<WafEvents />} />
