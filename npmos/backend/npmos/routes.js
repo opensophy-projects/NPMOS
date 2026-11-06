@@ -5,6 +5,7 @@ import errs from "../lib/error.js";
 import jwtdecode from "../lib/express/jwt-decode.js";
 import validator from "../lib/validator/api.js";
 import { debug, express as logger } from "../logger.js";
+import internalAuditLog from "../internal/audit-log.js";
 import internalAudit from "./audit/index.js";
 import internalBlockPage from "./block-page.js";
 import internalAcmeCsr from "./acme-csr.js";
@@ -30,6 +31,8 @@ import internalWafHosts from "./waf/hosts.js";
 import internalWaf from "./waf/index.js";
 import internalWafObjects from "./waf/objects/api.js";
 import { lastFailureLog } from "./acme.js";
+import { dnsProviderHelp, dnsProviders } from "./acme/lego.js";
+import acmeServers from "./acme/servers.js";
 
 const router = express.Router({
 	caseSensitive: true,
@@ -1040,6 +1043,118 @@ router
 	);
 
 /**
+ * ACME servers (Settings -> ACME; npmos/acme/servers.js). GET: the servers (secrets masked), the presets and the
+ * clients — for everyone who can see certificates (the certificate form chooses one). POST, PUT /:id, DELETE /:id,
+ * POST /:id/default: settings:manage.
+ */
+const acmeServerSchema = {
+	type: "object",
+	additionalProperties: false,
+	properties: {
+		name: { type: "string", maxLength: 100 },
+		preset: { type: "string", maxLength: 40 },
+		directory: { type: "string", maxLength: 500 },
+		client: { type: "string", enum: ["certbot", "lego"] },
+		email: { type: "string", maxLength: 255 },
+		eab_kid: { type: "string", maxLength: 512 },
+		eab_hmac_key: { type: "string", maxLength: 512 },
+		profile: { type: "string", maxLength: 40 },
+		tls_verify: { type: "boolean" },
+		is_default: { type: "boolean" },
+	},
+};
+
+const acmeServerAudit = async (access, action, server) =>
+	internalAuditLog
+		.add(access, {
+			action,
+			object_type: "acme-server",
+			object_id: server.id,
+			meta: { name: server.name, directory: server.directory, client: server.client },
+		})
+		.catch(() => {});
+
+router
+	.route("/acme/servers")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(
+		handle(async (_, res) => {
+			await res.locals.access.can("certificates:list");
+			return acmeServers.list();
+		}),
+	)
+	.post(
+		handle(async (req, res) => {
+			await res.locals.access.can("settings:update");
+			const server = await acmeServers.create(await validator(acmeServerSchema, req.body));
+			await acmeServerAudit(res.locals.access, "created", server);
+			return server;
+		}),
+	);
+
+router
+	.route("/acme/servers/:server_id")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.put(
+		handle(async (req, res) => {
+			await res.locals.access.can("settings:update");
+			const server = await acmeServers.update(req.params.server_id, await validator(acmeServerSchema, req.body));
+			await acmeServerAudit(res.locals.access, "updated", server);
+			return server;
+		}),
+	)
+	.delete(
+		handle(async (req, res) => {
+			await res.locals.access.can("settings:update");
+			const server = await acmeServers.get(req.params.server_id);
+			const result = await acmeServers.remove(req.params.server_id);
+			if (server) await acmeServerAudit(res.locals.access, "deleted", server);
+			return result;
+		}),
+	);
+
+router
+	.route("/acme/servers/:server_id/default")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) => {
+			await res.locals.access.can("settings:update");
+			const server = await acmeServers.setDefault(req.params.server_id);
+			await acmeServerAudit(res.locals.access, "updated", server);
+			return server;
+		}),
+	);
+
+/**
+ * GET /api/npmos/acme/lego/dns-providers — the codes of the DNS providers of lego;
+ * GET /api/npmos/acme/lego/dns-providers/:code — its variables (`lego dnshelp -c <code>`)
+ */
+router
+	.route("/acme/lego/dns-providers")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(
+		handle(async (_, res) => {
+			await res.locals.access.can("certificates:list");
+			return { items: await dnsProviders() };
+		}),
+	);
+
+router
+	.route("/acme/lego/dns-providers/:code")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(
+		handle(async (req, res) => {
+			await res.locals.access.can("certificates:list");
+			return { code: req.params.code, help: await dnsProviderHelp(req.params.code) };
+		}),
+	);
+
+/**
  * POST /api/npmos/acme/csr/check — {csr, key}: names, key type and subject of your own CSR
  * POST /api/npmos/acme/csr — {csr, key, meta: {dns_challenge?, dns_provider?, dns_provider_credentials?,
  *   propagation_seconds?}}: an ACME certificate for the CSR (npmos/acme-csr.js)
@@ -1055,6 +1170,7 @@ const csrSchema = {
 			type: "object",
 			additionalProperties: false,
 			properties: {
+				acme_server_id: { type: "integer", minimum: 1 },
 				dns_challenge: { type: "boolean" },
 				dns_provider: { type: "string", maxLength: 100 },
 				dns_provider_credentials: { type: "string", maxLength: 65536 },

@@ -25,14 +25,9 @@ fi
 if [ "$ACME_SERVER_TLS_VERIFY" = "false" ]; then
     sed -i "s|no-verify-ssl = false|no-verify-ssl = true|g" /etc/certbot.ini
 fi
-# NPMOS: the profile is chosen in Settings -> ACME and changes with a restart of the container, so the line of
-# the last start is replaced, not only the placeholder; "preferred": an unknown profile falls back to the default
-# of the server instead of failing every request
+# NPMOS: the profile is a setting of each ACME server (Settings -> ACME), passed with --preferred-profile and kept
+# in the renewal file of the certificate: no profile for all in certbot.ini, the renewal files are left as they are
 sed -i -E "s/^#?(required|preferred)-profile.*$/#required-profile/" /etc/certbot.ini
-find /data/tls/certbot/renewal -type f -name '*.conf' -exec sed -i "/required_profile\|preferred_profile/d" {} \;
-if [ "$ACME_PROFILE" != "none" ]; then
-    sed -i "s|#required-profile|preferred-profile = $ACME_PROFILE|g" /etc/certbot.ini
-fi
 
 
 if [ "$PHP83" = "true" ]; then

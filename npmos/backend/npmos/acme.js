@@ -1,13 +1,14 @@
-// NPMOS: ACME account registration on first use.
-// Upstream registers the account in launch.sh at every start, which contacts the ACME server
-// (and, for ZeroSSL, api.zerossl.com) even when no ACME certificate is ever requested, and
-// blocks startup when offline. NPMOS registers right before the first certbot request instead.
+// NPMOS: certbot for an ACME server of Settings -> ACME (npmos/acme/servers.js): the account is registered on first
+// use, at the server of the certificate. Upstream registers the account in launch.sh at every start, which contacts
+// the ACME server (and, for ZeroSSL, api.zerossl.com) even when no ACME certificate is ever requested, and blocks
+// startup when offline. NPMOS registers right before the first certbot request instead.
 import { mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { basename } from "node:path";
 import errs from "../lib/error.js";
 import utils from "../lib/utils.js";
 import { certbot as logger } from "../logger.js";
+import acmeServers from "./acme/servers.js";
 import { knownSecrets, redact } from "./redact.js";
 
 const ACCOUNTS_DIR = "/data/tls/certbot/accounts";
@@ -19,13 +20,26 @@ const FAILURE_LOG = "/data/npmos/acme/last-failure.log";
 const CERTBOT_LOG = "/tmp/certbot-log/letsencrypt.log";
 const CERTBOT_LOG_FRESH_MS = 5 * 60 * 1000;
 
-let pending = null;
+const pending = new Map();
 
-const serverHost = () => new URL(process.env.ACME_SERVER).host;
+/** the server of a call, the default one of Settings -> ACME when none is given */
+const serverOf = async (server) => server || (await acmeServers.default());
+const serverHost = (server) => new URL(server.directory).host;
 
-const hasAccount = async () => {
+/** --server and what the server of the certificate asks for on the command line of certbot */
+const certbotServerArgs = (server) => [
+	"--server",
+	server.directory,
+	...(server.profile ? ["--preferred-profile", server.profile] : []),
+	...(server.tls_verify ? [] : ["--no-verify-ssl"]),
+];
+
+const hasAccount = async (server) => {
 	try {
-		const entries = await readdir(`${ACCOUNTS_DIR}/${serverHost()}`, { recursive: true, withFileTypes: true });
+		const entries = await readdir(`${ACCOUNTS_DIR}/${serverHost(server)}`, {
+			recursive: true,
+			withFileTypes: true,
+		});
 		return entries.some((entry) => entry.isFile());
 	} catch {
 		return false;
@@ -59,19 +73,25 @@ const fetchZeroSslEab = async (email) => {
 	return { kid: data.eab_kid, hmacKey: data.eab_hmac_key };
 };
 
-const register = async () => {
-	const email = process.env.ACME_EMAIL || "";
-	let kid = process.env.ACME_EAB_KID || "";
-	let hmacKey = process.env.ACME_EAB_HMAC_KEY || "";
-
-	if (serverHost() === ZEROSSL_HOST && !kid && !hmacKey) {
-		if (!email) {
-			throw new errs.ValidationError("ACME_EMAIL is required to use ZeroSSL");
+/** the EAB keys of a server; ZeroSSL issues them for the email when none are set */
+const eabOf = async (server) => {
+	let kid = server.eab_kid || "";
+	let hmacKey = server.eab_hmac_key || "";
+	if (serverHost(server) === ZEROSSL_HOST && !kid && !hmacKey) {
+		if (!server.email) {
+			throw new errs.ValidationError("An email is required to use ZeroSSL (Settings -> ACME)");
 		}
-		({ kid, hmacKey } = await fetchZeroSslEab(email));
+		({ kid, hmacKey } = await fetchZeroSslEab(server.email));
 	}
+	return { kid, hmacKey };
+};
 
-	const args = ["--config", "/etc/certbot.ini", "register", "--server", process.env.ACME_SERVER];
+const register = async (server) => {
+	const email = server.email || "";
+	const { kid, hmacKey } = await eabOf(server);
+
+	// a profile is a matter of the order, not of the account
+	const args = ["--config", "/etc/certbot.ini", "register", ...certbotServerArgs({ ...server, profile: "" })];
 	if (!email) {
 		args.push("--register-unsafely-without-email");
 	} else {
@@ -81,33 +101,41 @@ const register = async () => {
 		}
 	}
 
-	logger.info(`Registering ACME account at ${process.env.ACME_SERVER}`);
+	logger.info(`Registering ACME account at ${server.directory}`);
 	await utils.execFile("certbot", args);
 	logger.success("ACME account registered");
 };
 
 /**
- * Registers the ACME account for ACME_SERVER if there is none yet.
+ * Registers the ACME account at the server if there is none yet.
  * Concurrent callers share one registration.
  */
-const ensureAcmeAccount = async () => {
-	if (await hasAccount()) {
+const ensureAcmeAccount = async (given) => {
+	const server = await serverOf(given);
+	if (await hasAccount(server)) {
 		return;
 	}
-	if (!pending) {
-		pending = register().finally(() => {
-			pending = null;
-		});
+	const key = server.directory;
+	if (!pending.has(key)) {
+		pending.set(
+			key,
+			register(server).finally(() => {
+				pending.delete(key);
+			}),
+		);
 	}
-	await pending;
+	await pending.get(key);
 };
 
 // the ACME server does not know the account any more (a reset step-ca or Pebble, a deactivated account)
 const ACCOUNT_GONE = /accountDoesNotExist|Account \S+ not found|account (does not exist|is deactivated)/i;
 
-const accountIds = async () => {
+const accountIds = async (server) => {
 	try {
-		const entries = await readdir(`${ACCOUNTS_DIR}/${serverHost()}`, { recursive: true, withFileTypes: true });
+		const entries = await readdir(`${ACCOUNTS_DIR}/${serverHost(server)}`, {
+			recursive: true,
+			withFileTypes: true,
+		});
 		return entries.filter((e) => e.isFile() && e.name === "regr.json").map((e) => basename(e.parentPath));
 	} catch {
 		return [];
@@ -132,30 +160,32 @@ const replaceAccountInRenewals = async (oldIds, newId) => {
 	}
 };
 
-/** a new account at ACME_SERVER instead of the one it forgot */
-const replaceAccount = async () => {
-	const oldIds = await accountIds();
-	await rm(`${ACCOUNTS_DIR}/${serverHost()}`, { recursive: true, force: true });
-	await ensureAcmeAccount();
-	const [newId] = await accountIds();
+/** a new account at the server instead of the one it forgot */
+const replaceAccount = async (server) => {
+	const oldIds = await accountIds(server);
+	await rm(`${ACCOUNTS_DIR}/${serverHost(server)}`, { recursive: true, force: true });
+	await ensureAcmeAccount(server);
+	const [newId] = await accountIds(server);
 	if (newId) await replaceAccountInRenewals(oldIds, newId);
 };
 
 /**
- * certbot with the ACME account of ACME_SERVER. Before, an account the server had forgotten failed every request
+ * certbot with the ACME account of the server. Before, an account the server had forgotten failed every request
  * until the files were removed by hand; now NPMOS registers a new one and asks once more.
  * @param {string[]} args
- * @param {{register?: boolean}} [options]  register: false for "renew" by the timer, which must not reach the ACME
- *   server when there is nothing to renew (local-first: no account is registered at the start of NPMOS)
+ * @param {{register?: boolean, server?: object}} [options]  register: false for "renew" by the timer, which must not
+ *   reach the ACME server when there is nothing to renew (local-first: no account is registered at the start of
+ *   NPMOS); server: the ACME server of the certificate (npmos/acme/servers.js), the default one when not given
  */
-const certbotAcme = async (args, { register = true } = {}) => {
-	if (register) await ensureAcmeAccount();
+const certbotAcme = async (args, { register = true, server: given } = {}) => {
+	const server = await serverOf(given);
+	if (register) await ensureAcmeAccount(server);
 	try {
 		return await utils.execFile("certbot", args);
 	} catch (err) {
 		if (!ACCOUNT_GONE.test(`${err?.message || ""}\n${err?.stderr || ""}`)) throw err;
-		logger.warn(`${serverHost()} does not know the ACME account of NPMOS any more: registering a new one`);
-		await replaceAccount();
+		logger.warn(`${serverHost(server)} does not know the ACME account of NPMOS any more: registering a new one`);
+		await replaceAccount(server);
 		return utils.execFile("certbot", args);
 	}
 };
@@ -166,18 +196,18 @@ const certbotAcme = async (args, { register = true } = {}) => {
  * @param   {Error} err
  * @returns {Error}
  */
-const acmeError = (err) => {
+const acmeError = (err, server) => {
 	const output = `${err?.message || err}`.trim();
-	saveFailureLog(output);
+	saveFailureLog(output, server, err?.npmosLog);
 	if (err?.public) {
 		return err;
 	}
 	let host = "";
 	try {
-		host = serverHost();
+		host = serverHost(server);
 	} catch {}
 	return new errs.ValidationError(
-		`Certificate request to ${host || "the ACME server"} failed: ${clean(output) || "no output"}${timeoutHint(output)}\n\nThe full log of the request: Certificates -> Full log of the last request.`,
+		`Certificate request to ${host || "the ACME server"} failed: ${clean(output) || "no output"}${timeoutHint(output, host)}\n\nThe full log of the request: Certificates -> Full log of the last request.`,
 		err,
 	);
 };
@@ -196,26 +226,39 @@ const clean = (output) =>
 		.replace(/\n{3,}/g, "\n\n")
 		.trim();
 
-const saveFailureLog = (output) => {
+const saveFailureLog = (output, server, clientLog) => {
 	try {
-		// the debug log of certbot, if certbot ran for this request (it fails before that without an account)
+		// the log of lego, or the debug log of certbot if certbot ran for this request (it fails before that
+		// without an account)
 		let debug = "(certbot did not run)";
-		try {
-			if (Date.now() - statSync(CERTBOT_LOG).mtimeMs < CERTBOT_LOG_FRESH_MS)
-				debug = readFileSync(CERTBOT_LOG, "utf8");
-		} catch {}
+		let source = CERTBOT_LOG;
+		if (clientLog !== undefined) {
+			debug = clientLog;
+			source = "lego";
+		} else {
+			try {
+				if (Date.now() - statSync(CERTBOT_LOG).mtimeMs < CERTBOT_LOG_FRESH_MS)
+					debug = readFileSync(CERTBOT_LOG, "utf8");
+			} catch {}
+		}
 		const text = [
 			`time: ${new Date().toISOString()}`,
-			`ACME server: ${process.env.ACME_SERVER || ""}`,
+			`ACME server: ${server ? `${server.name} (${server.directory}), client ${server.client}` : ""}`,
 			"",
 			"== output",
 			output,
 			"",
-			`== ${CERTBOT_LOG}`,
+			`== ${source}`,
 			debug,
 		].join("\n");
 		mkdirSync("/data/npmos/acme", { recursive: true });
-		writeFileSync(FAILURE_LOG, redact(text, knownSecrets()), { mode: 0o600 });
+		writeFileSync(
+			FAILURE_LOG,
+			redact(text, [...knownSecrets(), ...(server?.eab_hmac_key ? [server.eab_hmac_key] : [])]),
+			{
+				mode: 0o600,
+			},
+		);
 	} catch (e) {
 		logger.warn(`The log of the failed request is not saved: ${e.message}`);
 	}
@@ -231,14 +274,14 @@ const lastFailureLog = () => {
 };
 
 /** certbot gives up after 45 s without an answer: say what to check instead of only the traceback */
-const timeoutHint = (detail) => {
-	if (!/ReadTimeout|ConnectTimeout|Read timed out|timed out|Max retries exceeded|NewConnectionError/i.test(detail)) {
+const timeoutHint = (detail, host = "") => {
+	if (
+		!/ReadTimeout|ConnectTimeout|Read timed out|timed out|Max retries exceeded|NewConnectionError|i\/o timeout|deadline exceeded/i.test(
+			detail,
+		)
+	) {
 		return "";
 	}
-	let host = "";
-	try {
-		host = serverHost();
-	} catch {}
 	return `\n\nThe ACME server ${host} did not answer in time. Check that NPMOS can reach it (DNS, HTTPS on port 443, firewall, proxy) and try again, or choose another ACME server in System -> Settings -> ACME.`;
 };
 
@@ -288,7 +331,9 @@ export {
 	acmeRenewEnabled,
 	applyRenewWindow,
 	certbotAcme,
+	certbotServerArgs,
 	clean,
+	eabOf,
 	ensureAcmeAccount,
 	lastFailureLog,
 	setRenewWindow,
