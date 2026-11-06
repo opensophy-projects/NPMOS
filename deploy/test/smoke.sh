@@ -422,6 +422,17 @@ $CURL -H 'Content-Type: application/json' "$ADMIN/api/nginx/proxy-hosts" -d '{
 $CURL "$ADMIN/api/npmos/hosts/upstreams" | tr -d ' \n' | grep -q '"port":9,"ok":false' \
   || fail "a closed port is reported as reachable: $($CURL "$ADMIN/api/npmos/hosts/upstreams")"
 
+step "error pages: the 502 of a dead upstream is the page of NPMOS, not the bare page of nginx"
+page=""
+for i in $(seq 1 15); do
+  page=$(curl -sS --max-time 10 -H 'Host: dead-upstream.local' "$HTTP/" || true)
+  echo "$page" | grep -q 'The site does not answer' && break
+  [ "$i" = 15 ] && fail "502 of a dead upstream: $(echo "$page" | head -c 300)"
+  sleep 1
+done
+echo "$page" | grep -q 'Сайт не отвечает' || fail "502: no Russian text"
+echo "$page" | grep -q 'nginx</center>' && fail "502: the bare page of nginx"
+
 step "hosts: who changed test.local and when (audit log)"
 $CURL "$ADMIN/api/npmos/hosts/changes" | tr -d ' \n' | grep -q '"type":"proxy-host","object_id":1,' \
   || fail "no last change of test.local: $($CURL "$ADMIN/api/npmos/hosts/changes")"
@@ -456,6 +467,8 @@ PATH_=/.well-known/acme-challenge/missing; got=$(host_code no-host.local)
 [ "$got" = 404 ] || fail "the challenge path answered $got (a 301 sends the ACME server to the dummy certificate)"
 PATH_=/x; got=$(host_code no-host.local)
 [ "$got" = 301 ] || fail "other paths of HTTP: expected 301 to HTTPS, got $got"
+curl -sSk --max-time 10 -H 'Host: no-host.local' https://npmos/ \
+  | grep -q 'NPMOS is running' || fail "the default page is not the page of NPMOS"
 
 step "default page «no answer» (444): an unknown host gets nothing, the ACME challenge still answers"
 $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/settings/default-site" -d '{"value": "444", "meta": {}}' > /dev/null
@@ -500,6 +513,8 @@ acl_host basic.local "$basic_id"; acl_host ip-allow.local "$allow_id"; acl_host 
 sleep 2
 PATH_=/
 want "$(host_code basic.local)" 401 "Basic Auth without a login"
+curl -sS --max-time 10 -H 'Host: basic.local' "$HTTP/" | grep -q 'Sign-in required' \
+  || fail "Basic Auth: the 401 is not the page of NPMOS"
 want "$(host_code basic.local -u alice:wonderland1)" 200 "Basic Auth with the password"
 want "$(host_code ip-allow.local)" 200 "IP list, the allowed address"
 want "$(host_code ip-deny.local)" 403 "IP list, a refused address"

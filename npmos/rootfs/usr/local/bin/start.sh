@@ -271,15 +271,14 @@ touch /data/tls/ech/cron.sh \
       /data/custom_nginx/server_stream_udp.conf
 
 
-if [ ! -s /data/crowdsec/ban.html ]; then
-    cp -van /etc/ban.html.original /data/crowdsec/ban.html
-fi
-cp -a /etc/ban.html.original /data/crowdsec/ban.html.example
-
-if [ ! -s /data/crowdsec/captcha.html ]; then
-    cp -van /etc/captcha.html.original /data/crowdsec/captcha.html
-fi
-cp -a /etc/captcha.html.original /data/crowdsec/captcha.html.example
+# NPMOS: the ban and captcha pages of CrowdSec in the look of the pages of NPMOS (/etc/npmos/crowdsec-*.html). The
+# page of lua-cs-bouncer left unchanged in /data is replaced too; a page the admin changed stays.
+for page in ban captcha; do
+    if [ ! -s "/data/crowdsec/$page.html" ] || cmp -s "/etc/$page.html.original" "/data/crowdsec/$page.html"; then
+        cp -va "/etc/npmos/crowdsec-$page.html" "/data/crowdsec/$page.html"
+    fi
+    cp -a "/etc/npmos/crowdsec-$page.html" "/data/crowdsec/$page.html.example"
+done
 
 if [ ! -s /data/crowdsec/crowdsec.conf ]; then
     cp -van /etc/crowdsec.conf.example /data/crowdsec/crowdsec.conf
