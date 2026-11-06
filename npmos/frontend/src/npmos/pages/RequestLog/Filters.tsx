@@ -156,7 +156,7 @@ export function RequestFilters({ filters, set }: { filters: TrafficFilters; set:
 					</button>
 				) : undefined
 			}
-			width="26rem"
+			width="64rem"
 			triggerClassName={hostStyles.tool}
 			activeClassName={hostStyles.toolOn}
 			trigger={
@@ -171,73 +171,75 @@ export function RequestFilters({ filters, set }: { filters: TrafficFilters; set:
 		>
 			{() => (
 				<div>
-					<div className={styles.section}>
-						<div className={styles.sectionTitle}>
-							<T id="npmos.traffic.log.outcome" />
-						</div>
-						<div className={styles.options}>
-							<label>
-								<input
-									type="checkbox"
-									className="form-check-input m-0"
-									checked={filters.mitigated === "1"}
-									onChange={(e) => set({ mitigated: e.target.checked ? "1" : null })}
-								/>
-								{t("npmos.traffic.filter.mitigated.yes")}
-							</label>
-							<label>
-								<input
-									type="checkbox"
-									className="form-check-input m-0"
-									checked={filters.mitigated === "0"}
-									onChange={(e) => set({ mitigated: e.target.checked ? "0" : null })}
-								/>
-								{t("npmos.traffic.filter.mitigated.no")}
-							</label>
-							<label>
-								<input
-									type="checkbox"
-									className="form-check-input m-0"
-									checked={!!filters.unknown}
-									onChange={(e) => set({ unknown: e.target.checked ? "1" : null })}
-								/>
-								<T id="npmos.traffic.log.only-unknown" />
-							</label>
-						</div>
-					</div>
-					{CHOICES.map(({ key, options }) => (
-						<div key={key} className={styles.section}>
-							<div className={styles.sectionTitle}>{t(`npmos.traffic.filter.${key}`)}</div>
+					<div className={logStyles.columns}>
+						<div className={styles.section}>
+							<div className={styles.sectionTitle}>
+								<T id="npmos.traffic.log.outcome" />
+							</div>
 							<div className={styles.options}>
-								{options.map((o) => (
-									<label key={o}>
-										<input
-											type="checkbox"
-											className="form-check-input m-0"
-											checked={values(filters[key]).includes(o)}
-											onChange={() => toggle(key, o)}
-										/>
-										{choiceLabel(key, o)}
-									</label>
-								))}
+								<label>
+									<input
+										type="checkbox"
+										className="form-check-input m-0"
+										checked={filters.mitigated === "1"}
+										onChange={(e) => set({ mitigated: e.target.checked ? "1" : null })}
+									/>
+									{t("npmos.traffic.filter.mitigated.yes")}
+								</label>
+								<label>
+									<input
+										type="checkbox"
+										className="form-check-input m-0"
+										checked={filters.mitigated === "0"}
+										onChange={(e) => set({ mitigated: e.target.checked ? "0" : null })}
+									/>
+									{t("npmos.traffic.filter.mitigated.no")}
+								</label>
+								<label>
+									<input
+										type="checkbox"
+										className="form-check-input m-0"
+										checked={!!filters.unknown}
+										onChange={(e) => set({ unknown: e.target.checked ? "1" : null })}
+									/>
+									<T id="npmos.traffic.log.only-unknown" />
+								</label>
 							</div>
 						</div>
-					))}
-					<Range
-						title={t("npmos.traffic.log.duration-ms")}
-						min="minMs"
-						max="maxMs"
-						filters={filters}
-						set={set}
-					/>
-					<Range
-						title={t("npmos.traffic.log.size-kb")}
-						min="minBytes"
-						max="maxBytes"
-						filters={filters}
-						set={set}
-						scale={1024}
-					/>
+						{CHOICES.map(({ key, options }) => (
+							<div key={key} className={styles.section}>
+								<div className={styles.sectionTitle}>{t(`npmos.traffic.filter.${key}`)}</div>
+								<div className={styles.options}>
+									{options.map((o) => (
+										<label key={o}>
+											<input
+												type="checkbox"
+												className="form-check-input m-0"
+												checked={values(filters[key]).includes(o)}
+												onChange={() => toggle(key, o)}
+											/>
+											{choiceLabel(key, o)}
+										</label>
+									))}
+								</div>
+							</div>
+						))}
+						<Range
+							title={t("npmos.traffic.log.duration-ms")}
+							min="minMs"
+							max="maxMs"
+							filters={filters}
+							set={set}
+						/>
+						<Range
+							title={t("npmos.traffic.log.size-kb")}
+							min="minBytes"
+							max="maxBytes"
+							filters={filters}
+							set={set}
+							scale={1024}
+						/>
+					</div>
 					<div className={cn(styles.section, logStyles.fields)}>
 						{TEXT.map(({ key, placeholder }) => (
 							<div key={`text-${key}`}>
@@ -245,9 +247,7 @@ export function RequestFilters({ filters, set }: { filters: TrafficFilters; set:
 								<TextValue k={key} filters={filters} set={set} placeholder={placeholder} />
 							</div>
 						))}
-					</div>
-					<div className={styles.section}>
-						<small className="text-secondary">
+						<small className={cn("text-secondary", logStyles.hint)}>
 							<T id="npmos.traffic.log.values-hint" />
 						</small>
 					</div>
