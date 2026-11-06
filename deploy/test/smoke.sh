@@ -610,7 +610,7 @@ $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/events/settin
 expect "$(as_analyst -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/events/settings" \
   -d '{"days": 1, "aggregate_days": 1}')" 403 "analyst changes the retention"
 
-step "analytics: every request is in the request log; a domain that is not a host is marked, CrowdSec counts as attacks"
+step "analytics: every request is in the request log (search, filters, export); a domain that is not a host is marked, CrowdSec counts as attacks"
 curl -sS --max-time 10 -o /dev/null -H 'Host: not-a-host.local' "$HTTP/smoke-unknown" || true
 curl -sS --max-time 10 -o /dev/null -H 'Host: test.local' "$HTTP/smoke-known" || true
 for i in $(seq 1 20); do
@@ -622,6 +622,10 @@ done
 echo "$log" | grep -q '"known": *false' || fail "not-a-host.local is not marked as unknown: $log"
 $CURL "$ADMIN/api/npmos/analytics/requests?path=/smoke-known&limit=5" | grep -q '"known": *true' \
   || fail "the request to test.local is not in the request log as a known host"
+$CURL "$ADMIN/api/npmos/analytics/requests?q=smoke-unknown&status=4xx,5xx,2xx,3xx&maxMs=60000&limit=5" \
+  | grep -q '"not-a-host.local"' || fail "Events → Requests: search and filters miss the request"
+$CURL "$ADMIN/api/npmos/analytics/requests/export?format=csv&q=smoke-unknown" | grep -q 'not-a-host.local' \
+  || fail "Events → Requests: the export misses the request"
 for tab in requests visitors performance security cache origin; do
   $CURL "$ADMIN/api/npmos/analytics/traffic?tab=$tab&period=1h" | grep -q '"kpi":' || fail "analytics tab $tab"
 done

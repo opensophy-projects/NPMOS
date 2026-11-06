@@ -6590,8 +6590,20 @@
 	"npmos.traffic.filter.ip": {
 		"defaultMessage": "IP-адрес"
 	},
+	"npmos.traffic.filter.maxBytes": {
+		"defaultMessage": "Размер до"
+	},
+	"npmos.traffic.filter.maxMs": {
+		"defaultMessage": "Время ответа до"
+	},
 	"npmos.traffic.filter.method": {
 		"defaultMessage": "Метод"
+	},
+	"npmos.traffic.filter.minBytes": {
+		"defaultMessage": "Размер от"
+	},
+	"npmos.traffic.filter.minMs": {
+		"defaultMessage": "Время ответа от"
 	},
 	"npmos.traffic.filter.mitigated": {
 		"defaultMessage": "Исход"
@@ -6605,14 +6617,26 @@
 	"npmos.traffic.filter.origin": {
 		"defaultMessage": "Сервер за хостом"
 	},
+	"npmos.traffic.filter.originStatus": {
+		"defaultMessage": "Статус сервера"
+	},
 	"npmos.traffic.filter.os": {
 		"defaultMessage": "Операционная система"
 	},
 	"npmos.traffic.filter.path": {
 		"defaultMessage": "Путь начинается с"
 	},
+	"npmos.traffic.filter.port": {
+		"defaultMessage": "Порт"
+	},
 	"npmos.traffic.filter.protocol": {
 		"defaultMessage": "Протокол HTTP"
+	},
+	"npmos.traffic.filter.q": {
+		"defaultMessage": "Поиск"
+	},
+	"npmos.traffic.filter.referer": {
+		"defaultMessage": "Переход с"
 	},
 	"npmos.traffic.filter.remove": {
 		"defaultMessage": "Убрать фильтр «{name}»"
@@ -6734,14 +6758,23 @@
 	"npmos.traffic.log.client": {
 		"defaultMessage": "Источник"
 	},
+	"npmos.traffic.log.client-section": {
+		"defaultMessage": "Клиент"
+	},
 	"npmos.traffic.log.description": {
 		"defaultMessage": "Каждый запрос к хостам, новые сверху, — включая запросы к доменам, которые указывают сюда, но не добавлены в «Хосты». Нажмите на строку, чтобы увидеть подробности, на хост или адрес — чтобы отфильтровать по нему."
 	},
 	"npmos.traffic.log.duration": {
 		"defaultMessage": "Время ответа"
 	},
+	"npmos.traffic.log.duration-ms": {
+		"defaultMessage": "Время ответа, мс"
+	},
 	"npmos.traffic.log.empty": {
 		"defaultMessage": "Нет запросов за этот период и с этими фильтрами."
+	},
+	"npmos.traffic.log.from": {
+		"defaultMessage": "от"
 	},
 	"npmos.traffic.log.more": {
 		"defaultMessage": "Показать ещё"
@@ -6755,17 +6788,32 @@
 	"npmos.traffic.log.origin-time": {
 		"defaultMessage": "Ответ сервера"
 	},
+	"npmos.traffic.log.outcome": {
+		"defaultMessage": "Исход"
+	},
 	"npmos.traffic.log.referer": {
 		"defaultMessage": "Переход с"
 	},
 	"npmos.traffic.log.request": {
 		"defaultMessage": "Запрос"
 	},
+	"npmos.traffic.log.search": {
+		"defaultMessage": "Поиск по хосту, пути, IP, клиенту или источнику перехода"
+	},
 	"npmos.traffic.log.size": {
 		"defaultMessage": "Размер"
 	},
+	"npmos.traffic.log.size-kb": {
+		"defaultMessage": "Размер ответа, КБ"
+	},
 	"npmos.traffic.log.time": {
 		"defaultMessage": "Время"
+	},
+	"npmos.traffic.log.to": {
+		"defaultMessage": "до"
+	},
+	"npmos.traffic.log.values-hint": {
+		"defaultMessage": "Несколько значений — Enter после каждого."
 	},
 	"npmos.traffic.map": {
 		"defaultMessage": "Карта мира"

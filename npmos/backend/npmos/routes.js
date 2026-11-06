@@ -880,7 +880,8 @@ router
 /**
  * GET /api/npmos/analytics/traffic?tab=requests|visitors|performance|security|cache|origin&period=1h|24h|7d|30d
  *   &host,country,ip,method,browser,os,device,protocol,tls,cache,content_type,origin (comma-separated, exact)
- *   &status=404,4xx&path=<start>&unknown=1 (hosts not in NPMOS)&mitigated=1|0 — one tab of Analytics
+ *   &referer,port&status=404,4xx&originStatus=502,5xx&path=<start>&q=<part of host, path, IP, agent, referer>
+ *   &minMs,maxMs,minBytes,maxBytes&unknown=1 (hosts not in NPMOS)&mitigated=1|0 — one tab of Analytics
  */
 router
 	.route("/analytics/traffic")
@@ -897,6 +898,64 @@ router
 	.options((_, res) => res.sendStatus(204))
 	.all(jwtdecode())
 	.get(handle((req, res) => internalTraffic.list(res.locals.access, req.query)));
+
+const REQUEST_CSV_COLUMNS = [
+	"time",
+	"host",
+	"known",
+	"port",
+	"ip",
+	"country",
+	"method",
+	"path",
+	"status",
+	"bytes",
+	"requestBytes",
+	"durationMs",
+	"upstreamAddr",
+	"upstreamStatus",
+	"upstreamMs",
+	"cache",
+	"protocol",
+	"tls",
+	"contentType",
+	"refererHost",
+	"userAgent",
+	"browser",
+	"os",
+	"device",
+	"mitigated",
+	"id",
+];
+
+/**
+ * GET /api/npmos/analytics/requests/export?format=csv|json&<filters of /analytics/requests> — up to 100 000 requests
+ */
+router
+	.route("/analytics/requests/export")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(async (req, res, next) => {
+		try {
+			const { rows, capped } = await internalTraffic.export(res.locals.access, req.query);
+			const name = `npmos-requests-${new Date().toISOString().slice(0, 19).replaceAll(":", "-")}`;
+			res.set("X-NPMOS-Export-Capped", String(capped));
+			if (req.query.format === "json") {
+				res.set("Content-Disposition", `attachment; filename="${name}.json"`);
+				res.type("application/json").send(JSON.stringify(rows, null, 2));
+				return;
+			}
+			const lines = [
+				REQUEST_CSV_COLUMNS.join(","),
+				...rows.map((r) => REQUEST_CSV_COLUMNS.map((c) => csvCell(r[c])).join(",")),
+			];
+			res.set("Content-Disposition", `attachment; filename="${name}.csv"`);
+			res.type("text/csv").send(`\ufeff${lines.join("\r\n")}\r\n`);
+		} catch (err) {
+			debug(logger, `${req.method.toUpperCase()} ${req.originalUrl}: ${err}`);
+			next(err);
+		}
+	});
 
 /**
  * GET /api/npmos/analytics/hosts — attacks per host and hour of the last 24 h

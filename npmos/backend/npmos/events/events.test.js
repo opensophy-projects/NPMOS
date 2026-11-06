@@ -295,3 +295,26 @@ test("requests: browsers, systems and devices of user agents", async () => {
 	);
 	assert.deepEqual(parseUserAgent(""), { browser: "", os: "", device: "other" });
 });
+
+test("requests: filters of the request log (search, ranges, status of the server behind the host)", async () => {
+	const { parseTrafficFilters, needsLog } = await import("./traffic.js");
+	const f = parseTrafficFilters({
+		q: "  wp-login ",
+		referer: "google.com",
+		port: "443,abc",
+		status: "404,5xx,999",
+		originStatus: "502",
+		minMs: "500",
+		maxBytes: "1024",
+		minBytes: "-3",
+	});
+	assert.equal(f.q, "wp-login");
+	assert.deepEqual(f.text, { referer_host: ["google.com"], port: ["443"] });
+	assert.deepEqual(f.status, ["404", "5xx"]);
+	assert.deepEqual(f.originStatus, ["502"]);
+	assert.deepEqual(f.ranges, { duration_ms: [500, null], bytes: [null, 1024] });
+	assert.equal(needsLog(f), true);
+	const none = parseTrafficFilters({ host: "a.example", port: "x" });
+	assert.deepEqual(none.text, { host: ["a.example"] });
+	assert.equal(needsLog(none), false);
+});

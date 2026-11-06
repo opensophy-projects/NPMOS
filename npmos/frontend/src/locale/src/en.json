@@ -6590,8 +6590,20 @@
 	"npmos.traffic.filter.ip": {
 		"defaultMessage": "IP address"
 	},
+	"npmos.traffic.filter.maxBytes": {
+		"defaultMessage": "Size up to"
+	},
+	"npmos.traffic.filter.maxMs": {
+		"defaultMessage": "Response time up to"
+	},
 	"npmos.traffic.filter.method": {
 		"defaultMessage": "Method"
+	},
+	"npmos.traffic.filter.minBytes": {
+		"defaultMessage": "Size from"
+	},
+	"npmos.traffic.filter.minMs": {
+		"defaultMessage": "Response time from"
 	},
 	"npmos.traffic.filter.mitigated": {
 		"defaultMessage": "Outcome"
@@ -6605,14 +6617,26 @@
 	"npmos.traffic.filter.origin": {
 		"defaultMessage": "Origin server"
 	},
+	"npmos.traffic.filter.originStatus": {
+		"defaultMessage": "Origin status"
+	},
 	"npmos.traffic.filter.os": {
 		"defaultMessage": "Operating system"
 	},
 	"npmos.traffic.filter.path": {
 		"defaultMessage": "Path starts with"
 	},
+	"npmos.traffic.filter.port": {
+		"defaultMessage": "Port"
+	},
 	"npmos.traffic.filter.protocol": {
 		"defaultMessage": "HTTP protocol"
+	},
+	"npmos.traffic.filter.q": {
+		"defaultMessage": "Search"
+	},
+	"npmos.traffic.filter.referer": {
+		"defaultMessage": "Referer"
 	},
 	"npmos.traffic.filter.remove": {
 		"defaultMessage": "Remove filter {name}"
@@ -6734,14 +6758,23 @@
 	"npmos.traffic.log.client": {
 		"defaultMessage": "Source"
 	},
+	"npmos.traffic.log.client-section": {
+		"defaultMessage": "Client"
+	},
 	"npmos.traffic.log.description": {
 		"defaultMessage": "Every request to the hosts, newest first, including requests to domains that point here but are not in Hosts. Click a row for its details, a host or an address to filter by it."
 	},
 	"npmos.traffic.log.duration": {
 		"defaultMessage": "Time"
 	},
+	"npmos.traffic.log.duration-ms": {
+		"defaultMessage": "Response time, ms"
+	},
 	"npmos.traffic.log.empty": {
 		"defaultMessage": "No requests for this period and filters."
+	},
+	"npmos.traffic.log.from": {
+		"defaultMessage": "from"
 	},
 	"npmos.traffic.log.more": {
 		"defaultMessage": "Load more"
@@ -6755,17 +6788,32 @@
 	"npmos.traffic.log.origin-time": {
 		"defaultMessage": "Origin response"
 	},
+	"npmos.traffic.log.outcome": {
+		"defaultMessage": "Outcome"
+	},
 	"npmos.traffic.log.referer": {
 		"defaultMessage": "Came from"
 	},
 	"npmos.traffic.log.request": {
 		"defaultMessage": "Request"
 	},
+	"npmos.traffic.log.search": {
+		"defaultMessage": "Search by host, path, IP, client or referer"
+	},
 	"npmos.traffic.log.size": {
 		"defaultMessage": "Size"
 	},
+	"npmos.traffic.log.size-kb": {
+		"defaultMessage": "Response size, KB"
+	},
 	"npmos.traffic.log.time": {
 		"defaultMessage": "Time"
+	},
+	"npmos.traffic.log.to": {
+		"defaultMessage": "to"
+	},
+	"npmos.traffic.log.values-hint": {
+		"defaultMessage": "Several values: Enter after each one."
 	},
 	"npmos.traffic.map": {
 		"defaultMessage": "World map"

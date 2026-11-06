@@ -380,6 +380,18 @@ export interface TrafficFilters {
 	origin?: string;
 	unknown?: string;
 	mitigated?: string;
+	referer?: string;
+	port?: string;
+	/** status of the server behind the host: 502, 5xx */
+	originStatus?: string;
+	/** response time, ms */
+	minMs?: string;
+	maxMs?: string;
+	/** response size, bytes */
+	minBytes?: string;
+	maxBytes?: string;
+	/** a part of the host, path, IP, user agent or referer (the request log) */
+	q?: string;
 }
 
 export interface Traffic {
@@ -445,6 +457,12 @@ export interface RequestLogRow {
 	device: string;
 	mitigated: boolean;
 }
+
+export const downloadRequests = (params: TrafficFilters & { from?: string; to?: string }, format: "csv" | "json") =>
+	api.download(
+		{ url: "/npmos/analytics/requests/export", params: { ...params, format } },
+		`npmos-requests-${new Date().toISOString().slice(0, 19).replaceAll(":", "-")}.${format}`,
+	);
 
 export const getRequestLog = (
 	params: TrafficFilters & { from?: string; to?: string; limit?: number; before?: string },

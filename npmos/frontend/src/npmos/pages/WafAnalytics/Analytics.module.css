@@ -9,18 +9,15 @@
 		grid-template-columns: minmax(0, 1fr);
 	}
 }
-/* panels and notices as the cards of the Cloudflare dashboard: one hairline border, no inset frame of .card
+/* panels as the cards of the Cloudflare dashboard: one hairline border, no inset frame of .card
    (not clipped: the tooltips of the charts may run over the edge) */
-.panel,
-.notice {
+.panel {
 	position: relative;
 	margin: 0;
+	padding: 1rem 1.125rem;
 	border: 1px solid var(--border);
 	border-radius: var(--radius-lg);
 	background: var(--background);
-}
-.panel {
-	padding: 1rem 1.125rem;
 }
 .wide {
 	grid-column: 1 / -1;
@@ -38,46 +35,6 @@
 	font-weight: 500;
 }
 
-/* tabs of Analytics (Requests, Visitors, …) on the left, filters and the period on the right */
-.bar {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: flex-end;
-	justify-content: space-between;
-	gap: 0.75rem;
-	border-bottom: 1px solid var(--border-strong);
-}
-.tabs {
-	display: flex;
-	gap: 0.25rem;
-	max-width: 100%;
-	overflow-x: auto;
-}
-.tab {
-	margin-bottom: -1px;
-	padding: 0.5rem 0.75rem;
-	border: 0;
-	border-bottom: 2px solid transparent;
-	background: none;
-	color: var(--foreground-muted);
-	font-size: 0.875rem;
-	font-weight: 500;
-	white-space: nowrap;
-}
-.tab:hover {
-	color: var(--foreground);
-}
-.tabOn {
-	border-bottom-color: var(--accent);
-	color: var(--foreground);
-}
-.barRight {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 0.5rem;
-	padding-bottom: 0.5rem;
-}
 .filterForm select,
 .filterForm input {
 	width: 100%;
@@ -160,25 +117,11 @@
 .unknown {
 	color: var(--series-5);
 }
-.notice {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	justify-content: space-between;
-	gap: 0.75rem;
-	margin: 0;
-	padding: 0.875rem 1rem;
-	border-left: 3px solid var(--series-5);
-}
-.noticeText {
-	margin-top: 0.125rem;
-	color: var(--foreground-muted);
-	font-size: 0.8125rem;
-}
 .noticeActions {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 0.5rem;
+	margin-top: 0.625rem;
 }
 
 /* a two-way switch in a panel head */

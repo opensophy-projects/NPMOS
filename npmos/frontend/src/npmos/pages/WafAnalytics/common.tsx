@@ -31,8 +31,16 @@ export const FILTER_KEYS: (keyof TrafficFilters)[] = [
 	"cache",
 	"contentType",
 	"origin",
+	"referer",
+	"port",
+	"originStatus",
+	"minMs",
+	"maxMs",
+	"minBytes",
+	"maxBytes",
 	"unknown",
 	"mitigated",
+	"q",
 ];
 
 /** tab, period and filters of the address */

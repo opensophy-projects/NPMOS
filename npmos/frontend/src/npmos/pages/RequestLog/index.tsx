@@ -1,24 +1,67 @@
-// Events → Requests: every request of the hosts from the request log of nginx, newest first, with the filters of
-// Analytics (host, country, IP, path, status, …). Requests to names that are not hosts of NPMOS are marked: they
-// are answered by the default site and were invisible before (only security events were listed).
+// Events → Requests: every request of the hosts from the request log of nginx, newest first. The toolbar is the one
+// of the other kinds of Events (search, period with a range of dates, filters, export, retention); the filters cover
+// every field of the log. Requests to names that are not hosts of NPMOS are marked: they are answered by the
+// default site and were invisible before (only security events were listed).
+import { IconDownload } from "@tabler/icons-react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import cn from "classnames";
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import Alert from "react-bootstrap/Alert";
+import { useSearchParams } from "react-router-dom";
 import { LoadingPage } from "src/components";
 import { intl, T } from "src/locale";
-import { getRequestLog, type RequestLogRow, type TrafficFilters } from "../../api";
+import { showError } from "src/notifications";
+import { downloadRequests, getRequestLog, type RequestLogRow, type TrafficFilters } from "../../api";
+import { useCan } from "../../rbac/hooks";
 import { countryName, formatBytes, formatMs } from "../../ui/charts/format";
+import { DateTimePicker } from "../../ui/DateTimePicker";
+import { Dropdown } from "../../ui/Dropdown";
+import { SearchField } from "../../ui/SearchField";
 import { dateTime } from "../../ui/time";
 import hostStyles from "../Hosts/Hosts.module.css";
 import styles from "../WafAnalytics/Analytics.module.css";
-import { Country, FILTER_KEYS, PERIODS, t, useTrafficParams } from "../WafAnalytics/common";
-import { AddFilter, FilterChips } from "../WafAnalytics/index";
+import { Country, FILTER_KEYS, t } from "../WafAnalytics/common";
+import { FilterChips } from "../WafAnalytics/index";
 import eventStyles from "../WafEvents/Events.module.css";
+import { PERIODS, type Period } from "../WafEvents/filters";
+import { RetentionPopover } from "../WafEvents/Retention";
+import { RequestFilters } from "./Filters";
 import logStyles from "./RequestLog.module.css";
 
-const PERIOD_MS = { "1h": 3600e3, "24h": 86400e3, "7d": 7 * 86400e3, "30d": 30 * 86400e3 } as const;
+const PERIOD_MS: Record<Exclude<Period, "custom">, number> = {
+	"1h": 3600e3,
+	"24h": 86400e3,
+	"7d": 7 * 86400e3,
+	"30d": 30 * 86400e3,
+};
 const PAGE = 100;
+
+/** period, range and filters of the address (the same names as the other kinds of Events and Analytics) */
+function useRequestParams() {
+	const [params, setParams] = useSearchParams();
+	const period: Period = PERIODS.find((p) => p === params.get("period")) ?? "24h";
+	const from = period === "custom" ? params.get("from") || "" : "";
+	const to = period === "custom" ? params.get("to") || "" : "";
+	const key = params.toString();
+	// biome-ignore lint/correctness/useExhaustiveDependencies: the filters change with the address only
+	const filters = useMemo(() => {
+		const f: TrafficFilters = {};
+		for (const k of FILTER_KEYS) {
+			const v = params.get(k);
+			if (v) f[k] = v;
+		}
+		return f;
+	}, [key]);
+	const set = (changes: Record<string, string | null>) => {
+		const next = new URLSearchParams(params);
+		for (const [k, v] of Object.entries(changes)) {
+			if (v === null || v === "") next.delete(k);
+			else next.set(k, v);
+		}
+		setParams(next, { replace: true });
+	};
+	return { period: period === "custom" && !from ? ("24h" as Period) : period, from, to, filters, set };
+}
 
 /** time of a row: the day and the time to the second, without the year (the log keeps days, not years) */
 const rowTime = (iso: string) =>
@@ -63,27 +106,49 @@ function Details({ r }: { r: RequestLogRow }) {
  * kinds: the switch between the kinds of Events, shown in the head of the table.
  */
 export function RequestLogView({ kinds }: { kinds: React.ReactNode }) {
-	const { period, filters, set } = useTrafficParams();
+	const can = useCan();
+	const { period, from, to, filters, set } = useRequestParams();
 	const [open, setOpen] = useState<string | null>(null);
+	const [follow, setFollow] = useState(true);
+	const [search, setSearch] = useState(filters.q ?? "");
+	// a search set from outside (a link) shows in the field
+	useEffect(() => setSearch(filters.q ?? ""), [filters.q]);
+	// the search is applied a moment after typing stops
+	// biome-ignore lint/correctness/useExhaustiveDependencies: runs when the typed text changes, with the filters of then
+	useEffect(() => {
+		if (search === (filters.q ?? "")) return;
+		const timer = setTimeout(() => set({ q: search.trim() || null }), 300);
+		return () => clearTimeout(timer);
+	}, [search]);
+
+	/** the range of the query: a period up to now, or the dates of "custom" */
+	const range = () =>
+		period === "custom"
+			? { from, ...(to ? { to } : {}) }
+			: { from: new Date(Date.now() - PERIOD_MS[period]).toISOString() };
 	const query = useInfiniteQuery({
-		queryKey: ["npmos-request-log", period, filters],
+		queryKey: ["npmos-request-log", period, from, to, filters],
 		queryFn: ({ pageParam }) =>
-			getRequestLog({
-				...filters,
-				from: new Date(Date.now() - PERIOD_MS[period]).toISOString(),
-				limit: PAGE,
-				...(pageParam ? { before: pageParam } : {}),
-			}),
+			getRequestLog({ ...filters, ...range(), limit: PAGE, ...(pageParam ? { before: pageParam } : {}) }),
 		initialPageParam: "",
 		getNextPageParam: (last) => last.next ?? undefined,
-		refetchInterval: 15000,
+		// newer requests come in while following (not for a closed range of dates)
+		refetchInterval: follow && !(period === "custom" && to) ? 15000 : false,
 	});
 	const rows = query.data?.pages.flatMap((p) => p.rows) ?? [];
 	const filter = (key: keyof TrafficFilters, value: string) => set({ [key]: value });
+	const exportAs = async (format: "csv" | "json") => {
+		try {
+			await downloadRequests({ ...filters, ...range() }, format);
+		} catch (err: any) {
+			showError(err.message);
+		}
+	};
 
 	return (
 		<>
 			<div className={hostStyles.toolbar}>
+				<SearchField value={search} onChange={setSearch} placeholder={t("npmos.traffic.log.search")} />
 				<div className={eventStyles.periods} role="group" aria-label={t("npmos.events.period")}>
 					{PERIODS.map((p) => (
 						<button
@@ -91,18 +156,66 @@ export function RequestLogView({ kinds }: { kinds: React.ReactNode }) {
 							type="button"
 							className={cn(eventStyles.period, period === p && eventStyles.periodOn)}
 							aria-pressed={period === p}
-							onClick={() => set({ period: p === "24h" ? null : p })}
+							onClick={() =>
+								set({
+									period: p === "24h" ? null : p,
+									from: p === "custom" ? from || new Date(Date.now() - 86400e3).toISOString() : null,
+									to: null,
+								})
+							}
 						>
 							<T id={`npmos.events.period.${p}`} />
 						</button>
 					))}
 				</div>
-				<AddFilter onAdd={filter} />
+				<RequestFilters filters={filters} set={set} />
+				<Dropdown
+					floating
+					inline
+					ariaLabel={t("npmos.events.export")}
+					title={t("npmos.events.export")}
+					triggerClassName={hostStyles.tool}
+					trigger={
+						<>
+							<IconDownload size={16} />
+							<span className={hostStyles.toolText}>
+								<T id="npmos.events.export" />
+							</span>
+						</>
+					}
+					items={[
+						{ key: "csv", label: "CSV", onSelect: () => exportAs("csv") },
+						{ key: "json", label: "JSON", onSelect: () => exportAs("json") },
+					]}
+				/>
+				{can("settings") && <RetentionPopover canManage={can("settings", "manage")} />}
 			</div>
+
+			{period === "custom" && (
+				<div className={eventStyles.custom}>
+					<T id="npmos.events.from" />
+					<DateTimePicker
+						label={t("npmos.events.from")}
+						value={from}
+						max={to || new Date().toISOString()}
+						onChange={(iso) => iso && set({ from: iso })}
+					/>
+					<T id="npmos.events.to" />
+					<DateTimePicker
+						label={t("npmos.events.to")}
+						value={to}
+						min={from || undefined}
+						placeholder={t("npmos.date.now-placeholder")}
+						clearable
+						onChange={(iso) => set({ to: iso || null })}
+					/>
+				</div>
+			)}
+
 			<FilterChips
 				filters={filters}
 				remove={(k) => set({ [k]: null })}
-				clear={() => set(Object.fromEntries(FILTER_KEYS.map((k) => [k, null])))}
+				clear={() => set(Object.fromEntries(FILTER_KEYS.filter((k) => k !== "q").map((k) => [k, null])))}
 			/>
 			<div className={cn("card", hostStyles.tableCard)}>
 				<div className={hostStyles.summary}>
@@ -112,11 +225,11 @@ export function RequestLogView({ kinds }: { kinds: React.ReactNode }) {
 						<input
 							className="form-check-input"
 							type="checkbox"
-							checked={!!filters.unknown}
-							onChange={(e) => set({ unknown: e.target.checked ? "1" : null })}
+							checked={follow}
+							onChange={(e) => setFollow(e.target.checked)}
 						/>
 						<span className="form-check-label">
-							<T id="npmos.traffic.log.only-unknown" />
+							<T id="npmos.waf.events.follow" />
 						</span>
 					</label>
 				</div>

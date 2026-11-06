@@ -460,7 +460,10 @@ function KindSwitch({ current }: { current: Kind | "requests" }) {
 		if (kind !== DEFAULT_FILTERS.kind) next.set("kind", kind);
 		setParams(next, { replace: true });
 	};
-	const kinds: (Kind | "requests")[] = [...KINDS, ...(can("analytics") ? (["requests"] as const) : [])];
+	// agents, mTLS, requests (with the permission of Analytics), all
+	const kinds: (Kind | "requests")[] = KINDS.flatMap((k) =>
+		k === "all" && can("analytics") ? (["requests", k] as const) : [k],
+	);
 	return (
 		<div className={styles.kinds}>
 			{kinds.map((kind) => (

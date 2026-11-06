@@ -11,7 +11,7 @@ import { HasPermission, LoadingPage } from "src/components";
 import { T } from "src/locale";
 import { VIEW } from "src/modules/Permissions";
 import { getTraffic, type TrafficFilters } from "../../api";
-import { countryName } from "../../ui/charts/format";
+import { countryName, formatBytes, formatMs } from "../../ui/charts/format";
 import { Popover } from "../../ui/Popover";
 import { dateTime } from "../../ui/time";
 import hostStyles from "../Hosts/Hosts.module.css";
@@ -37,6 +37,9 @@ const FILTER_FIELDS: { key: keyof TrafficFilters; choices?: string[]; placeholde
 	{ key: "protocol", choices: ["HTTP/1.1", "HTTP/2.0", "HTTP/3.0"] },
 	{ key: "cache", choices: ["HIT", "MISS", "EXPIRED", "BYPASS", "STALE"] },
 	{ key: "origin", placeholder: "10.0.0.2:8080" },
+	{ key: "originStatus", placeholder: "502, 5xx" },
+	{ key: "referer", placeholder: "google.com" },
+	{ key: "port", placeholder: "443" },
 	{ key: "unknown", choices: ["1"] },
 	{ key: "mitigated", choices: ["1", "0"] },
 ];
@@ -57,7 +60,11 @@ export const filterValue = (key: keyof TrafficFilters, value: string) =>
 				? t("npmos.traffic.filter.unknown.yes")
 				: key === "mitigated"
 					? t(value === "1" ? "npmos.traffic.filter.mitigated.yes" : "npmos.traffic.filter.mitigated.no")
-					: value;
+					: key === "minMs" || key === "maxMs"
+						? formatMs(Number(value))
+						: key === "minBytes" || key === "maxBytes"
+							? formatBytes(Number(value))
+							: value;
 
 export const choiceLabel = (key: keyof TrafficFilters, value: string) =>
 	key === "device" ? t(`npmos.traffic.device.${value}`) : filterValue(key, value);
@@ -158,7 +165,8 @@ export function FilterChips({
 	remove: (key: keyof TrafficFilters) => void;
 	clear: () => void;
 }) {
-	const keys = FILTER_KEYS.filter((k) => filters[k]);
+	// the search is shown in its field
+	const keys = FILTER_KEYS.filter((k) => k !== "q" && filters[k]);
 	if (!keys.length) return null;
 	return (
 		<div className={styles.chips}>
@@ -208,41 +216,39 @@ function AnalyticsPage() {
 				</div>
 			</div>
 
-			<div className={styles.bar}>
-				<div className={styles.tabs} role="tablist" aria-label={t("npmos.analytics")}>
-					{TABS.map((x) => (
+			<ul className="nav nav-tabs">
+				{TABS.map((x) => (
+					<li key={x} className="nav-item">
 						<button
-							key={x}
 							type="button"
-							role="tab"
-							aria-selected={tab === x}
-							className={cn(styles.tab, tab === x && styles.tabOn)}
+							className={cn("nav-link", { active: tab === x })}
 							onClick={() => set({ tab: x === "requests" ? null : x })}
 						>
 							<T id={`npmos.traffic.tab.${x}`} />
 						</button>
-					))}
+					</li>
+				))}
+			</ul>
+
+			<div className={hostStyles.toolbar}>
+				<AddFilter onAdd={filter} />
+				<div className={eventStyles.periods} role="group" aria-label={t("npmos.events.period")}>
+					{VIEWS.map((p) => {
+						const on = p === "live" ? live : !live && period === p;
+						return (
+							<button
+								key={p}
+								type="button"
+								className={cn(eventStyles.period, on && eventStyles.periodOn)}
+								aria-pressed={on}
+								onClick={() => set({ period: p === "24h" ? null : p })}
+							>
+								<T id={p === "live" ? "npmos.analytics.live" : `npmos.events.period.${p}`} />
+							</button>
+						);
+					})}
 				</div>
-				<div className={styles.barRight}>
-					{isFetching && <span className="spinner-border spinner-border-sm text-secondary" />}
-					<AddFilter onAdd={filter} />
-					<div className={eventStyles.periods} role="group" aria-label={t("npmos.events.period")}>
-						{VIEWS.map((p) => {
-							const on = p === "live" ? live : !live && period === p;
-							return (
-								<button
-									key={p}
-									type="button"
-									className={cn(eventStyles.period, on && eventStyles.periodOn)}
-									aria-pressed={on}
-									onClick={() => set({ period: p === "24h" ? null : p })}
-								>
-									<T id={p === "live" ? "npmos.analytics.live" : `npmos.events.period.${p}`} />
-								</button>
-							);
-						})}
-					</div>
-				</div>
+				{isFetching && <span className="spinner-border spinner-border-sm text-secondary" />}
 			</div>
 
 			<FilterChips filters={filters} remove={(k) => set({ [k]: null })} clear={clear} />

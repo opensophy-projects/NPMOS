@@ -20,6 +20,7 @@ import {
 import { Kpi, Kpis } from "../../ui/charts/Kpi";
 import { WorldMap } from "../../ui/charts/WorldMap";
 import hostStyles from "../Hosts/Hosts.module.css";
+import { Admonition } from "../../ui/Admonition";
 import styles from "./Analytics.module.css";
 import { bucketLabel, bucketTitle, Country, Grid, Panel, Section, t, TopList } from "./common";
 
@@ -168,23 +169,19 @@ function UnknownHosts({ data }: { data: Traffic }) {
 	const total = unknown.reduce((n, r) => n + r.requests, 0);
 	if (!total) return null;
 	return (
-		<div className={styles.notice}>
-			<div>
-				<strong>
-					<T id="npmos.traffic.unknown-hosts.title" data={{ count: formatCount(total) }} />
-				</strong>
-				<div className={styles.noticeText}>
-					<T
-						id="npmos.traffic.unknown-hosts.text"
-						data={{
-							hosts: unknown
-								.slice(0, 3)
-								.map((r) => (r.value === "_" || !r.value ? t("npmos.traffic.host.none") : r.value))
-								.join(", "),
-						}}
-					/>
-				</div>
-			</div>
+		<Admonition
+			variant="caution"
+			title={<T id="npmos.traffic.unknown-hosts.title" data={{ count: formatCount(total) }} />}
+		>
+			<T
+				id="npmos.traffic.unknown-hosts.text"
+				data={{
+					hosts: unknown
+						.slice(0, 3)
+						.map((r) => (r.value === "_" || !r.value ? t("npmos.traffic.host.none") : r.value))
+						.join(", "),
+				}}
+			/>
 			<div className={styles.noticeActions}>
 				<Link className="btn btn-sm" to="/waf/events?kind=requests&unknown=1">
 					<T id="npmos.traffic.unknown-hosts.show" />
@@ -196,7 +193,7 @@ function UnknownHosts({ data }: { data: Traffic }) {
 					<T id="npmos.traffic.unknown-hosts.default" />
 				</Link>
 			</div>
-		</div>
+		</Admonition>
 	);
 }
 

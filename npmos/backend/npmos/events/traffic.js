@@ -31,7 +31,23 @@ const TEXT_FILTERS = {
 	cache: "cache",
 	contentType: "content_type",
 	origin: "upstream_addr",
+	referer: "referer_host",
+	port: "port",
 };
+
+/** ranges of the query → numeric columns (min…max, both optional) */
+const RANGE_FILTERS = {
+	ms: "duration_ms",
+	bytes: "bytes",
+};
+
+const int = (v) => {
+	const n = Number.parseInt(String(v ?? ""), 10);
+	return Number.isFinite(n) && n >= 0 ? n : null;
+};
+
+/** 404 or 4xx */
+const statuses = (v) => list(v).filter((s) => /^[1-5](\d\d|xx)$/i.test(s));
 
 const list = (v) =>
 	String(v ?? "")
@@ -42,7 +58,8 @@ const list = (v) =>
 
 /**
  * Filters of a query string.
- * @returns {{text: Record<string, string[]>, status: string[], path: string, unknown: boolean, mitigated: boolean|null}}
+ * @returns {{text: Record<string, string[]>, status: string[], originStatus: string[], path: string, q: string,
+ *   ranges: Record<string, [number|null, number|null]>, unknown: boolean, mitigated: boolean|null}}
  */
 export const parseTrafficFilters = (query = {}) => {
 	const text = {};
@@ -52,13 +69,28 @@ export const parseTrafficFilters = (query = {}) => {
 		if (!values.length) continue;
 		text[column] = column === "host" ? values.map((v) => v.toLowerCase()) : values;
 		if (column === "country") text[column] = values.map((v) => v.toUpperCase());
+		if (column === "port") text[column] = values.filter((v) => /^\d{1,5}$/.test(v));
+		if (!text[column].length) delete text[column];
+	}
+	const ranges = {};
+	for (const [key, column] of Object.entries(RANGE_FILTERS)) {
+		const cap = key[0].toUpperCase() + key.slice(1);
+		const min = int(query[`min${cap}`]);
+		const max = int(query[`max${cap}`]);
+		if (min !== null || max !== null) ranges[column] = [min, max];
 	}
 	return {
 		text,
-		// 404 or 4xx
-		status: list(query.status).filter((s) => /^[1-5](\d\d|xx)$/i.test(s)),
+		status: statuses(query.status),
+		// status of the server behind the host
+		originStatus: statuses(query.originStatus ?? query.origin_status),
 		// the start of a path
 		path: String(query.path ?? "").slice(0, 512),
+		// a part of the host, path, address, user agent or referer
+		q: String(query.q ?? "")
+			.trim()
+			.slice(0, 200),
+		ranges,
 		unknown: query.unknown === "1" || query.unknown === "true" || query.unknown === true,
 		mitigated:
 			query.mitigated === "1" || query.mitigated === "true"
@@ -73,6 +105,9 @@ export const parseTrafficFilters = (query = {}) => {
 export const needsLog = (f) =>
 	Object.keys(f.text).some((c) => c !== "host") ||
 	f.status.length > 0 ||
+	f.originStatus.length > 0 ||
+	Object.keys(f.ranges).length > 0 ||
+	!!f.q ||
 	!!f.path ||
 	f.unknown ||
 	f.mitigated !== null;
@@ -109,19 +144,38 @@ export const knownDomains = async () => {
 export const isKnownHost = (host, k = known) =>
 	k.exact.has(host) || k.wildcards.some((suffix) => host.endsWith(suffix) && host.length > suffix.length);
 
+const likeEscape = (v) => v.replace(/[\\%_]/g, (c) => `\\${c}`);
+
+/** 404 or 4xx on a status column */
+const whereStatus = (b, column, list) => {
+	if (!list.length) return;
+	b.where((q) => {
+		for (const s of list) {
+			if (/xx$/i.test(s)) {
+				const base = Number(s[0]) * 100;
+				q.orWhereBetween(column, [base, base + 99]);
+			} else q.orWhere(column, Number(s));
+		}
+	});
+};
+
+const SEARCH_COLUMNS = ["host", "path", "ip", "user_agent", "referer_host"];
+
 const applyFilters = (b, f, k) => {
 	for (const [column, values] of Object.entries(f.text)) b.whereIn(column, values);
-	if (f.status.length) {
+	whereStatus(b, "status", f.status);
+	whereStatus(b, "upstream_status", f.originStatus);
+	for (const [column, [min, max]] of Object.entries(f.ranges)) {
+		if (min !== null) b.where(column, ">=", min);
+		if (max !== null) b.where(column, "<=", max);
+	}
+	if (f.q) {
+		const like = `%${likeEscape(f.q)}%`;
 		b.where((q) => {
-			for (const s of f.status) {
-				if (/xx$/i.test(s)) {
-					const base = Number(s[0]) * 100;
-					q.orWhereBetween("status", [base, base + 99]);
-				} else q.orWhere("status", Number(s));
-			}
+			for (const column of SEARCH_COLUMNS) q.orWhereRaw("?? ILIKE ?", [column, like]);
 		});
 	}
-	if (f.path) b.where("path", "like", `${f.path.replace(/[\\%_]/g, (c) => `\\${c}`)}%`);
+	if (f.path) b.where("path", "like", `${likeEscape(f.path)}%`);
 	if (f.mitigated !== null) b.where("mitigated", f.mitigated);
 	if (f.unknown) {
 		if (k.exact.size) b.whereNotIn("host", [...k.exact]);
@@ -787,6 +841,24 @@ const toApi = (r, k) => ({
 	mitigated: r.mitigated,
 });
 
+const NEWEST = [
+	{ column: "time", order: "desc" },
+	{ column: "id", order: "desc" },
+];
+const EXPORT_MAX = 100000;
+
+/** the request log between from and to (ISO, default the last 24 h), filtered */
+const requestRange = async (query, now) => {
+	const filters = parseTrafficFilters(query);
+	const k = await knownDomains();
+	const from = query.from ? new Date(query.from) : new Date(now.getTime() - 24 * HOUR);
+	const to = query.to ? new Date(query.to) : now;
+	if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime()))
+		throw new errs.ValidationError("from, to: ISO time");
+	const b = applyFilters(db()(REQUEST_LOG_TABLE).where("time", ">=", from).where("time", "<=", to), filters, k);
+	return { b, k };
+};
+
 const internalTraffic = {
 	/**
 	 * One tab of Analytics.
@@ -818,14 +890,8 @@ const internalTraffic = {
 	list: async (access, query = {}, now = new Date()) => {
 		await access.can("analytics:view");
 		if (!isPostgres()) return { rows: [], next: null, unsupported: true };
-		const filters = parseTrafficFilters(query);
-		const k = await knownDomains();
+		const { b, k } = await requestRange(query, now);
 		const limit = Math.min(PAGE_MAX, Math.max(1, Number.parseInt(query.limit, 10) || 50));
-		const from = query.from ? new Date(query.from) : new Date(now.getTime() - 24 * HOUR);
-		const to = query.to ? new Date(query.to) : now;
-		if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime()))
-			throw new errs.ValidationError("from, to: ISO time");
-		const b = applyFilters(db()(REQUEST_LOG_TABLE).where("time", ">=", from).where("time", "<=", to), filters, k);
 		if (query.before) {
 			const [t, id] = String(query.before).split("|");
 			const time = new Date(t);
@@ -835,14 +901,27 @@ const internalTraffic = {
 		}
 		const rows = await b
 			.select()
-			.orderBy([
-				{ column: "time", order: "desc" },
-				{ column: "id", order: "desc" },
-			])
+			.orderBy(NEWEST)
 			.limit(limit + 1);
 		const page = rows.slice(0, limit).map((r) => toApi(r, k));
 		const last = page[page.length - 1];
 		return { rows: page, next: rows.length > limit && last ? `${last.time}|${last.id}` : null };
+	},
+
+	/**
+	 * Requests of the log for a file (Events → Requests → Export): the filters of list, newest first.
+	 * @param {Access} access
+	 * @returns {Promise<{rows: object[], capped: boolean}>}
+	 */
+	export: async (access, query = {}, now = new Date()) => {
+		await access.can("analytics:view");
+		if (!isPostgres()) return { rows: [], capped: false };
+		const { b, k } = await requestRange(query, now);
+		const rows = await b
+			.select()
+			.orderBy(NEWEST)
+			.limit(EXPORT_MAX + 1);
+		return { rows: rows.slice(0, EXPORT_MAX).map((r) => toApi(r, k)), capped: rows.length > EXPORT_MAX };
 	},
 };
 
