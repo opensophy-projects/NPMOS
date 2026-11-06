@@ -7,10 +7,11 @@
 1. **Всё управляется через GUI NPMOS.** После `docker compose up -d` не нужны ни терминал, ни ручная правка файлов, ни `cscli`/`open-appsec-ctl`, ни облачные консоли. Прокси, open-appsec, CrowdSec, сертификаты и mTLS, пользователи и роли, системные настройки — всё в одной панели.
 2. **Никакой зависимости от облака.** open-appsec и CrowdSec работают полностью локально и автономно, их облачные консоли (my.openappsec.io, app.crowdsec.net) заменяет NPMOS. Интернет — только опция, которую администратор включает сам (например, Let's Encrypt).
 
-## Возможности (план)
+## Возможности
 
 - Управление open-appsec из GUI: WAF по хостам и локациям, визуальный редактор политики, события, аналитика, обучение агента и разметка ложных срабатываний.
 - Управление CrowdSec из GUI: решения, алерты, hub, источники логов, профили реагирования, белые списки, AppSec.
+- Сертификаты ACME от любого центра сертификации: Let's Encrypt, ZeroSSL, Google Trust Services, SSL.com, ТЦИ / НУЦ Минцифры или свой ACME-сервер; проверка по HTTP или DNS, свой CSR; клиенты certbot и lego.
 - Собственный PKI и mTLS: защита хоста одним переключателем, выдача, скачивание, отзыв и удаление сертификатов доступа прямо в интерфейсе («Сертификаты → mTLS»).
 - RBAC с ролями, настраиваемыми в GUI, и OIDC-группами.
 - Интерфейс на русском и английском, редизайн на токенах opensophy UI.
@@ -32,7 +33,9 @@ docker compose -f deploy/compose.yaml up -d
 
 Переезд с Nginx Proxy Manager, NPMplus или open-appsec-npm — в «Администрирование → Настройки → Перенос»: хосты, сертификаты, списки доступа, пользователи и WAF-правила переносятся из архива старой установки ([подробнее](docs/MIGRATION.md)).
 
-Образы публикуются в Docker Hub `opensophy/npmos*` после слияния в ветку `work` (тег `develop`) и при выпуске версии (`X.Y.Z`, `latest`). Версии всех образов закреплены в `deploy/.env`.
+Стек — четыре контейнера: `npmos` (nginx, панель, backend), `openappsec` (WAF-агент, его сервисы обучения и управление Docker для «Обзор → Сервисы»), `crowdsec` и `postgres`; при старте один раз отрабатывает `npmos-init`. Схема и устройство — в [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md#3-архитектура-npmos).
+
+Образы публикуются в Docker Hub (`opensophy/npmos`, `opensophy/npmos-openappsec`) после слияния в ветку `work` (тег `develop`) и при выпуске версии (`X.Y.Z`, `latest`). Версии всех образов закреплены в `deploy/.env`.
 
 Собрать образы самому (первая сборка `npmos` и агента open-appsec занимает 30–60 минут):
 
@@ -57,7 +60,7 @@ pnpm vite
 
 Нужны Docker, Node.js 22+ и pnpm (`npm i -g pnpm`).
 
-Подробнее о командах и правилах — в [CLAUDE.md](CLAUDE.md).
+Подробнее о командах и правилах — в [CLAUDE.md](CLAUDE.md) и [CONTRIBUTING.md](CONTRIBUTING.md). Как оформлять баги, предложения и вопросы — в [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
 ## Документация
 
@@ -74,7 +77,7 @@ pnpm vite
 | Папка | Что это |
 |---|---|
 | `npmos/` | Основа NPMOS: NPMplus (git subtree) и наши изменения |
-| `deploy/` | Compose-файлы стека, образы open-appsec, bootstrap (`init/`), тест закрытого контура |
+| `deploy/` | Compose-файлы стека, образ `npmos-openappsec`, bootstrap (`init/`), тест закрытого контура |
 | `reference/` | Исходники open-appsec-npm, open-appsec, smartsync, smartsync-tuning — справочно ([версии](reference/VERSIONS.md)) |
 | `design/` | Токены дизайна и пример sidebar |
 | `scripts/` | Сборка образов, тест закрытого контура, обновление `reference/` |

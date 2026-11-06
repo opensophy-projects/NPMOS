@@ -65,6 +65,10 @@
 	--series-1: #2a78d6;
 	--series-2: #eb6834;
 	--series-3: #1baf7a;
+	/* more series (status classes, security products): purple, amber; neutral for "other" */
+	--series-4: #8a5cf5;
+	--series-5: #d39a12;
+	--series-neutral: #9aa0a6;
 }
 
 /* dark theme */
@@ -72,6 +76,9 @@
 	--series-1: #3987e5;
 	--series-2: #d95926;
 	--series-3: #199e70;
+	--series-4: #9b74f7;
+	--series-5: #c99118;
+	--series-neutral: #6b7076;
 	--card-frame: color-mix(in oklab, var(--background-inset), var(--foreground) 2%);
 	--background-inset: #0d0d0d;
 	--background: #090909;
@@ -526,4 +533,94 @@ a.card:focus-visible {
 }
 .Toastify__toast-body {
 	white-space: pre-line;
+}
+
+/* Notices as the highlight box of opensophy.com (HighlightBox.svelte, active): an outer frame tinted with the tone
+   of the notice (8 %, a 15 % ring) and a surface inside it (a 15 % border, the background at 60 %). Every alert of
+   the interface (react-bootstrap Alert, Admonition, toasts, notices of pages) uses it; the tone is the meaning:
+   red errors, orange warnings, yellow cautions, green success, blue information, the accent for notes, neutral
+   for plain notes (the inactive highlight box). */
+:root {
+	--tone-red: #ef4444;
+	--tone-orange: #f97316;
+	--tone-yellow: #eab308;
+	--tone-green: #22c55e;
+	--tone-blue: #3b82f6;
+}
+.alert,
+.os-highlight {
+	--hl: var(--accent);
+	--hl-frame: 0.375rem;
+	--tblr-alert-padding-x: calc(var(--hl-frame) + 1px + 1rem);
+	--tblr-alert-padding-y: calc(var(--hl-frame) + 1px + 0.75rem);
+	position: relative;
+	isolation: isolate;
+	border: 0;
+	border-radius: var(--radius-xl);
+	background: color-mix(in oklab, var(--hl) 8%, var(--background));
+	box-shadow: 0 0 0 1px color-mix(in oklab, var(--hl) 15%, transparent);
+	color: var(--foreground);
+}
+.alert::before,
+.os-highlight::before {
+	content: "";
+	position: absolute;
+	inset: var(--hl-frame);
+	z-index: -1;
+	border: 1px solid color-mix(in oklab, var(--hl) 15%, transparent);
+	border-radius: var(--radius-lg);
+	background: color-mix(in oklab, var(--background) 60%, transparent);
+	pointer-events: none;
+}
+.alert-danger,
+.os-highlight.tone-red {
+	--hl: var(--tone-red);
+}
+.alert-warning,
+.os-highlight.tone-orange {
+	--hl: var(--tone-orange);
+}
+.alert-caution,
+.os-highlight.tone-yellow {
+	--hl: var(--tone-yellow);
+}
+.alert-success,
+.os-highlight.tone-green {
+	--hl: var(--tone-green);
+}
+.alert-info,
+.os-highlight.tone-blue {
+	--hl: var(--tone-blue);
+}
+/* the inactive highlight box: the inset frame of cards around a plain surface */
+.alert-secondary,
+.alert-light,
+.alert-dark,
+.os-highlight.tone-neutral {
+	background: var(--card-frame);
+	box-shadow: var(--shadow-inset);
+}
+.alert-secondary::before,
+.alert-light::before,
+.alert-dark::before,
+.os-highlight.tone-neutral::before {
+	border-color: var(--border);
+	background: var(--background);
+}
+.alert .alert-heading,
+.alert .alert-title,
+.os-highlight .os-highlight-title {
+	color: var(--foreground);
+	font-weight: 500;
+}
+.alert .alert-icon,
+.os-highlight .os-highlight-icon {
+	color: var(--hl);
+}
+.alert-link {
+	color: var(--hl);
+}
+.alert-dismissible .btn-close {
+	top: var(--hl-frame);
+	right: var(--hl-frame);
 }

@@ -34,6 +34,14 @@ const Crowdsec = lazy(() => import("src/npmos/pages/Crowdsec"));
 // NPMOS: the decisions of CrowdSec are in Analytics → Blocks
 const Blocks = lazy(() => import("src/npmos/pages/Crowdsec").then((m) => ({ default: m.Blocks })));
 
+// NPMOS: the old address of the request log opens Events → Requests
+/** /analytics/requests?… → /waf/events?kind=requests&… (the filters kept) */
+function RequestsRedirect() {
+	const params = new URLSearchParams(window.location.search);
+	params.set("kind", "requests");
+	return <Navigate to={`/waf/events?${params}`} replace />;
+}
+
 function Router() {
 	const health = useHealth();
 	const { authenticated } = useAuthState();
@@ -90,6 +98,8 @@ function Router() {
 						<Route path="/agents/open-appsec" element={<AgentOpenappsec />} />
 						<Route path="/agents/block-page" element={<BlockPage />} />
 						<Route path="/analytics/blocks" element={<Blocks />} />
+						{/* NPMOS: every request of the hosts is a kind of Events */}
+						<Route path="/analytics/requests" element={<RequestsRedirect />} />
 						{/* the pages of before open their place on the page of the agent */}
 						<Route path="/waf/agent" element={<Navigate to="/agents/open-appsec?tab=agent" replace />} />
 						<Route path="/waf/events" element={<WafEvents />} />

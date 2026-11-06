@@ -1,7 +1,6 @@
 export * from "./useAccessList";
 export * from "./useAccessLists";
 export * from "./useAuditLog";
-export * from "./useAuditLogs";
 export * from "./useCertificate";
 export * from "./useCertificates";
 export * from "./useCheckVersion";
@@ -10,7 +9,6 @@ export * from "./useDeadHosts";
 export * from "./useDirectorySuggestions";
 export * from "./useDnsProviders";
 export * from "./useHealth";
-export * from "./useHostReport";
 export * from "./useProxyHost";
 export * from "./useProxyHosts";
 export * from "./useRedirectionHost";

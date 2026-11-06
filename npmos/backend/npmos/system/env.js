@@ -4,7 +4,6 @@
 // only these names with values of the same form (rootfs/usr/local/bin/envs.sh): a bad value can't
 // stop the container.
 
-export const LETS_ENCRYPT = "https://acme-v02.api.letsencrypt.org/directory";
 // shown instead of a secret that is set; sent back unchanged it keeps the secret
 export const SECRET_SET = "********";
 
@@ -36,16 +35,8 @@ export const SYSTEM_ENV = [
 	bool("NGINX_TRUST_SECPR1", "tls", true),
 	bool("NGINX_TRUST_RSA_PKCS1", "tls", false),
 	int("LOGROTATIONS", "logs", 3, 1, 365),
-	// ACME: where certificates of "Let's Encrypt / ACME" come from; the account is registered at the
-	// first request (npmos/acme.js), EAB is what ZeroSSL, Google and others ask for
-	{ env: "ACME_SERVER", group: "acme", type: "url", default: LETS_ENCRYPT, internet: true },
-	{ env: "ACME_EMAIL", group: "acme", type: "email", default: "" },
-	{ env: "ACME_EAB_KID", group: "acme", type: "token", default: "" },
-	{ env: "ACME_EAB_HMAC_KEY", group: "acme", type: "secret", default: "" },
-	// the term of the certificates is the CA's: it offers profiles (Let's Encrypt: classic 90 days, shortlived
-	// about 6 days, tlsserver); "none": the default of the server. Empty: as envs.sh (classic at Let's Encrypt:
-	// local-first, a few days without the internet must not leave the sites with expired certificates)
-	{ env: "ACME_PROFILE", group: "acme", type: "profile", default: "" },
+	// ACME: the servers (Let's Encrypt, ZeroSSL, your own…) are in Settings -> ACME (npmos/acme/servers.js); the
+	// ACME_SERVER, ACME_EMAIL, ACME_EAB_* and ACME_PROFILE of before became its first server. Here: the renewal
 	bool("ACME_RENEW", "acme", true),
 	// days before the end a certificate is renewed; 0: what certbot does (a third of the term, at most 30 days)
 	int("ACME_RENEW_DAYS", "acme", 0, 0, 89),
@@ -133,12 +124,6 @@ export const conflicts = (values) => {
 	}
 	if (v("NGINX_FORCE_X25519MLKEM768") === true && v("NGINX_TRUST_SECPR1") === true) {
 		problems.push("NGINX_FORCE_X25519MLKEM768 needs NGINX_TRUST_SECPR1 off");
-	}
-	if (!!v("ACME_EAB_KID") !== !!v("ACME_EAB_HMAC_KEY")) {
-		problems.push("ACME_EAB_KID and ACME_EAB_HMAC_KEY go together");
-	}
-	if ((v("ACME_EAB_KID") || /acme\.zerossl\.com/.test(v("ACME_SERVER") ?? "")) && !v("ACME_EMAIL")) {
-		problems.push("ACME_EMAIL is needed with EAB and ZeroSSL");
 	}
 	return problems;
 };

@@ -78,9 +78,9 @@ export const ingestOnce = async ({ dir = LOG_DIR, now = new Date() } = {}) => {
 const maintenance = async (now = new Date()) => {
 	await ensureCurrentPartitions(now);
 	const result = await applyRetention(await getSetting("events.retention"), now);
-	if (result.partitions.length || result.events || result.aggregates) {
+	if (result.partitions.length || result.events || result.requests || result.aggregates) {
 		logger.info(
-			`NPMOS events: retention removed ${result.partitions.length} day(s), ${result.events} event(s), ${result.aggregates} aggregate row(s)`,
+			`NPMOS events: retention removed ${result.partitions.length} day(s), ${result.events} event(s), ${result.requests} request(s), ${result.aggregates} aggregate row(s)`,
 		);
 	}
 };
@@ -109,7 +109,7 @@ export const start = () => {
 	state.running = true;
 	state.timer = setTimeout(round, 0);
 	logger.info(`NPMOS events: reading the agent's security log in ${LOG_DIR}`);
-	// requests of the hosts from the access log of nginx (Analytics)
+	// requests of the hosts from the request log of nginx (Analytics)
 	startRequests();
 };
 

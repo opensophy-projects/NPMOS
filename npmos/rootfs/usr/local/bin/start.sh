@@ -25,14 +25,9 @@ fi
 if [ "$ACME_SERVER_TLS_VERIFY" = "false" ]; then
     sed -i "s|no-verify-ssl = false|no-verify-ssl = true|g" /etc/certbot.ini
 fi
-# NPMOS: the profile is chosen in Settings -> ACME and changes with a restart of the container, so the line of
-# the last start is replaced, not only the placeholder; "preferred": an unknown profile falls back to the default
-# of the server instead of failing every request
+# NPMOS: the profile is a setting of each ACME server (Settings -> ACME), passed with --preferred-profile and kept
+# in the renewal file of the certificate: no profile for all in certbot.ini, the renewal files are left as they are
 sed -i -E "s/^#?(required|preferred)-profile.*$/#required-profile/" /etc/certbot.ini
-find /data/tls/certbot/renewal -type f -name '*.conf' -exec sed -i "/required_profile\|preferred_profile/d" {} \;
-if [ "$ACME_PROFILE" != "none" ]; then
-    sed -i "s|#required-profile|preferred-profile = $ACME_PROFILE|g" /etc/certbot.ini
-fi
 
 
 if [ "$PHP83" = "true" ]; then
@@ -478,7 +473,8 @@ fi
 
 if [ "$LOGROTATE" = "true" ]; then
     sed -i "s|rotate [0-9]\+|rotate $LOGROTATIONS|g" /etc/logrotate
-    sed -i "s|access_log off; # http|access_log /data/nginx/logs/access.log alog;|g" /usr/local/nginx/conf/nginx.conf
+    # NPMOS: next to the access log (CrowdSec reads it) the JSON log of the requests (Analytics)
+    sed -i "s|access_log off; # http|access_log /data/nginx/logs/access.log alog; access_log /data/nginx/logs/npmos-requests.log npmos_requests;|g" /usr/local/nginx/conf/nginx.conf
     sed -i "s|access_log off; # stream|access_log /data/nginx/logs/stream.log slog;|g" /usr/local/nginx/conf/nginx.conf
     # NPMOS: the interface with its port in the log (alog_admin), so that Analytics leaves it out
     sed -i "s|access_log off; # admin|access_log /data/nginx/logs/access.log alog_admin;|g" /usr/local/nginx/conf/conf.d/npmplus.conf
@@ -489,7 +485,9 @@ if [ "$LOGROTATE" = "true" ]; then
     if [ ! -L /data/nginx/error.log ] && [ ! -f /data/nginx/logs/error.log ]; then mv -vn /data/nginx/error.log* /data/nginx/logs; fi
     if [ -f /data/logrotate.state ]; then mv -vn /data/logrotate.state /data/nginx/logs/logrotate.state; fi
 
+    # NPMOS: npmos-requests.log
     touch /data/nginx/logs/access.log \
+          /data/nginx/logs/npmos-requests.log \
           /data/nginx/logs/stream.log \
           /data/nginx/logs/error.log
 

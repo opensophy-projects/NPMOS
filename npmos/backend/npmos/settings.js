@@ -60,16 +60,21 @@ const DEFINITIONS = {
 			["en", "ru"].includes(v.language ?? "en"),
 	},
 	// security events (System → Settings → Events), see events/ingest.js: raw events and hourly
-	// aggregates are kept this many days
+	// aggregates are kept this many days; requestDays: the log of every request of the hosts (Analytics → Requests)
 	"events.retention": {
-		default: () => ({ days: 30, aggregateDays: 365 }),
+		default: () => ({ days: 30, aggregateDays: 365, requestDays: 7 }),
 		validate: (v) =>
 			Number.isInteger(v?.days) &&
 			v.days >= 1 &&
 			v.days <= 365 &&
 			Number.isInteger(v?.aggregateDays) &&
 			v.aggregateDays >= v.days &&
-			v.aggregateDays <= 1830,
+			v.aggregateDays <= 1830 &&
+			(v.requestDays === undefined ||
+				(Number.isInteger(v.requestDays) &&
+					v.requestDays >= 1 &&
+					v.requestDays <= v.aggregateDays &&
+					v.requestDays <= 90)),
 	},
 	// env settings of NPMplus set in the GUI (System → Settings), see system/env.js: {ENV: value},
 	// written to runtime.env

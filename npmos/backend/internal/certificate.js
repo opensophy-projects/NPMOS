@@ -8,8 +8,17 @@ import dayjs from "dayjs";
 import _ from "lodash";
 import dnsPlugins from "../certbot/dns-plugins.json" with { type: "json" };
 import { installPlugin } from "../lib/certbot.js";
-import { acmeError, acmeRenewEnabled, applyRenewWindow, certbotAcme, ensureAcmeAccount } from "../npmos/acme.js"; // NPMOS: ACME account, errors, renewal
+import {
+	acmeError,
+	acmeRenewEnabled,
+	applyRenewWindow,
+	certbotAcme,
+	certbotServerArgs,
+	ensureAcmeAccount,
+} from "../npmos/acme.js"; // NPMOS: ACME account, errors, renewal
 import internalAcmeCsr from "../npmos/acme-csr.js"; // NPMOS: ACME with your own CSR
+import legoCerts, { clientOf, withServer } from "../npmos/acme/certs.js"; // NPMOS: lego, the second ACME client
+import acmeServers from "../npmos/acme/servers.js"; // NPMOS: the ACME server of each certificate
 import { assertKeyMatches } from "../npmos/cert-pair.js"; // NPMOS: the key must belong to the certificate
 import error from "../lib/error.js";
 import utils from "../lib/utils.js";
@@ -57,8 +66,9 @@ const internalCertificate = {
 				await applyRenewWindow();
 				const result = await certbotAcme(
 					// NPMOS: an ACME account the server forgot is registered again; none is registered up front (the
-					// timer runs at the start too, without certificates it must not reach the ACME server)
-					["--config", "/etc/certbot.ini", "renew", "--server", process.env.ACME_SERVER, "--quiet"],
+					// timer runs at the start too, without certificates it must not reach the ACME server). No
+					// --server: each certbot lineage renews at the server it was issued by (Settings -> ACME)
+					["--config", "/etc/certbot.ini", "renew", "--quiet"],
 					{ register: false },
 				);
 
@@ -66,8 +76,9 @@ const internalCertificate = {
 			} catch (err) {
 				logger.warn(`Certbot completed with errors: ${err}`);
 			}
-			// NPMOS: certificates of your own CSR have no certbot lineage: NPMOS renews them
+			// NPMOS: certificates of your own CSR and of lego have no certbot lineage: NPMOS renews them
 			await internalAcmeCsr.renewDue();
+			await legoCerts.renewDue();
 
 			try {
 				await internalNginx.reload();
@@ -119,8 +130,11 @@ const internalCertificate = {
 		await access.can("certificates:create", data);
 		data.owner_user_id = access.token.getUserId(1);
 
+		let acmeServer = null;
 		if (data.provider === "letsencrypt") {
 			data.nice_name = data.domain_names.join(", ");
+			// NPMOS: the ACME server of Settings -> ACME the certificate is issued by, and its client
+			({ meta: data.meta, server: acmeServer } = await withServer(data.meta));
 		}
 
 		// this command really should clean up and delete the cert if it can't fully succeed
@@ -129,7 +143,10 @@ const internalCertificate = {
 		try {
 			if (certificate.provider === "letsencrypt") {
 				// Request a new Cert with Certbot. Let the fun begin.
-				if (certificate.meta?.dns_challenge) {
+				if (clientOf(certificate) === "lego") {
+					// NPMOS: lego for the servers that need it (ES256 account, name in the CN)
+					await legoCerts.request(certificate);
+				} else if (certificate.meta?.dns_challenge) {
 					await internalCertificate.requestCertbotWithDnsChallenge(certificate);
 				} else {
 					await internalCertificate.requestCertbot(certificate);
@@ -166,7 +183,7 @@ const internalCertificate = {
 			// Delete the certificate here. This is a hard delete, since it never existed properly
 			await certificateModel.query().deleteById(certificate.id);
 			// NPMOS: show certbot's output instead of "Internal Error"
-			throw acmeError(err);
+			throw acmeError(err, acmeServer);
 		}
 
 		data.meta = _.assign({}, data.meta || {}, certificate.meta);
@@ -676,8 +693,9 @@ const internalCertificate = {
 	 * @returns {Promise}
 	 */
 	requestCertbot: async (certificate) => {
-		// NPMOS: the ACME account is registered on first use, not at startup
-		await ensureAcmeAccount();
+		// NPMOS: the ACME account is registered on first use, not at startup, at the server of the certificate
+		const server = await acmeServers.of(certificate.meta);
+		await ensureAcmeAccount(server);
 		logger.info(
 			`Requesting Certbot certificates for Cert #${certificate.id}: ${certificate.domain_names.join(", ")}`,
 		);
@@ -686,21 +704,23 @@ const internalCertificate = {
 		const ips = certificate.domain_names.filter((entry) => net.isIP(entry) !== 0);
 		const domains = certificate.domain_names.filter((entry) => net.isIP(entry) === 0);
 
-		const result = await certbotAcme([
-			// NPMOS: an ACME account the server forgot is registered again
-			"--config",
-			"/etc/certbot.ini",
-			"certonly",
-			"--server",
-			process.env.ACME_SERVER,
-			"--cert-name",
-			`npm-${certificate.id}`,
-			...(domains.length > 0 ? ["--domains", domains.map((domain) => domainToASCII(domain)).join(",")] : []),
-			...ips.flatMap((ip) => ["--ip-address", ip]),
-			...(certificate.meta.reuse_key ? ["--reuse-key"] : ["--no-reuse-key"]),
-			"--authenticator",
-			"webroot",
-		]);
+		const result = await certbotAcme(
+			[
+				// NPMOS: an ACME account the server forgot is registered again; the server of the certificate
+				"--config",
+				"/etc/certbot.ini",
+				"certonly",
+				...certbotServerArgs(server),
+				"--cert-name",
+				`npm-${certificate.id}`,
+				...(domains.length > 0 ? ["--domains", domains.map((domain) => domainToASCII(domain)).join(",")] : []),
+				...ips.flatMap((ip) => ["--ip-address", ip]),
+				...(certificate.meta.reuse_key ? ["--reuse-key"] : ["--no-reuse-key"]),
+				"--authenticator",
+				"webroot",
+			],
+			{ server },
+		);
 		logger.success(result);
 		return result;
 	},
@@ -715,8 +735,9 @@ const internalCertificate = {
 			throw Error(`Unknown DNS provider '${certificate.meta.dns_provider}'`);
 		}
 		await installPlugin(certificate.meta.dns_provider);
-		// NPMOS: the ACME account is registered on first use, not at startup
-		await ensureAcmeAccount();
+		// NPMOS: the ACME account is registered on first use, not at startup, at the server of the certificate
+		const server = await acmeServers.of(certificate.meta);
+		await ensureAcmeAccount(server);
 
 		logger.info(
 			`Requesting Certbot certificates via ${dnsPlugin.name} for Cert #${certificate.id}: ${certificate.domain_names.join(", ")}`,
@@ -726,27 +747,31 @@ const internalCertificate = {
 		await writeFile(credentialsLocation, certificate.meta.dns_provider_credentials, { mode: 0o600 });
 
 		try {
-			const result = await certbotAcme([
-				// NPMOS: an ACME account the server forgot is registered again
-				"--config",
-				"/etc/certbot.ini",
-				"certonly",
-				"--server",
-				process.env.ACME_SERVER,
-				"--cert-name",
-				`npm-${certificate.id}`,
-				"--domains",
-				certificate.domain_names.map((domain_name) => domainToASCII(domain_name)).join(","),
-				...(certificate.meta.reuse_key ? ["--reuse-key"] : ["--no-reuse-key"]),
-				"--authenticator",
-				dnsPlugin.full_plugin_name,
-				`--${dnsPlugin.full_plugin_name}-credentials`,
-				credentialsLocation,
-				...(certificate.meta.propagation_seconds !== undefined
-					? [`--${dnsPlugin.full_plugin_name}-propagation-seconds`]
-					: []),
-				...(certificate.meta.propagation_seconds !== undefined ? [certificate.meta.propagation_seconds] : []),
-			]);
+			const result = await certbotAcme(
+				[
+					// NPMOS: an ACME account the server forgot is registered again; the server of the certificate
+					"--config",
+					"/etc/certbot.ini",
+					"certonly",
+					...certbotServerArgs(server),
+					"--cert-name",
+					`npm-${certificate.id}`,
+					"--domains",
+					certificate.domain_names.map((domain_name) => domainToASCII(domain_name)).join(","),
+					...(certificate.meta.reuse_key ? ["--reuse-key"] : ["--no-reuse-key"]),
+					"--authenticator",
+					dnsPlugin.full_plugin_name,
+					`--${dnsPlugin.full_plugin_name}-credentials`,
+					credentialsLocation,
+					...(certificate.meta.propagation_seconds !== undefined
+						? [`--${dnsPlugin.full_plugin_name}-propagation-seconds`]
+						: []),
+					...(certificate.meta.propagation_seconds !== undefined
+						? [certificate.meta.propagation_seconds]
+						: []),
+				],
+				{ server },
+			);
 			logger.info(result);
 			return result;
 		} catch (err) {
@@ -766,16 +791,18 @@ const internalCertificate = {
 		const certificate = await internalCertificate.get(access, data);
 
 		if (certificate.provider === "letsencrypt") {
-			// NPMOS: a certificate of your own CSR is requested again with the same CSR
+			// NPMOS: a certificate of your own CSR is requested again with the same CSR, one of lego with lego
 			const renewMethod = certificate.meta.npmos_csr
 				? internalAcmeCsr.renew
-				: certificate.meta.dns_challenge
-					? internalCertificate.renewCertbotWithDnsChallenge
-					: internalCertificate.renewCertbot;
+				: clientOf(certificate) === "lego"
+					? legoCerts.renew
+					: certificate.meta.dns_challenge
+						? internalCertificate.renewCertbotWithDnsChallenge
+						: internalCertificate.renewCertbot;
 
 			// NPMOS: show certbot's output instead of "Internal Error"
-			await renewMethod(certificate).catch((err) => {
-				throw acmeError(err);
+			await renewMethod(certificate).catch(async (err) => {
+				throw acmeError(err, await acmeServers.of(certificate.meta).catch(() => null));
 			});
 			const certInfo = await internalCertificate.getCertificateInfoFromFile(
 				`${internalCertificate.getLiveCertPath(certificate.id)}/fullchain.pem`,
@@ -810,6 +837,8 @@ const internalCertificate = {
 			`Renewing Certbot certificates for Cert #${certificate.id}: ${certificate.domain_names.join(", ")}`,
 		);
 
+		// NPMOS: the ACME server of the certificate (Settings -> ACME)
+		const server = await acmeServers.of(certificate.meta);
 		try {
 			const revokeResult = await utils.execFile("certbot", [
 				"--config",
@@ -828,18 +857,17 @@ const internalCertificate = {
 
 		const renewResult = await certbotAcme(
 			[
-				// NPMOS: an ACME account the server forgot is registered again
+				// NPMOS: an ACME account the server forgot is registered again; the server of the certificate
 				"--config",
 				"/etc/certbot.ini",
 				"renew",
-				"--server",
-				process.env.ACME_SERVER,
+				...certbotServerArgs(server),
 				"--cert-name",
 				`npm-${certificate.id}`,
 				"--new-key",
 				"--force-renewal",
 			],
-			{ register: false },
+			{ register: false, server },
 		); // NPMOS: the lineage has its account already
 		logger.info(renewResult);
 
@@ -860,6 +888,8 @@ const internalCertificate = {
 			`Renewing Certbot certificates via ${dnsPlugin.name} for Cert #${certificate.id}: ${certificate.domain_names.join(", ")}`,
 		);
 
+		// NPMOS: the ACME server of the certificate (Settings -> ACME)
+		const server = await acmeServers.of(certificate.meta);
 		try {
 			const revokeResult = await utils.execFile("certbot", [
 				"--config",
@@ -878,18 +908,17 @@ const internalCertificate = {
 
 		const renewResult = await certbotAcme(
 			[
-				// NPMOS: an ACME account the server forgot is registered again
+				// NPMOS: an ACME account the server forgot is registered again; the server of the certificate
 				"--config",
 				"/etc/certbot.ini",
 				"renew",
-				"--server",
-				process.env.ACME_SERVER,
+				...certbotServerArgs(server),
 				"--cert-name",
 				`npm-${certificate.id}`,
 				"--new-key",
 				"--force-renewal",
 			],
-			{ register: false },
+			{ register: false, server },
 		); // NPMOS: the lineage has its account already
 		logger.info(renewResult);
 		return renewResult;
@@ -901,8 +930,9 @@ const internalCertificate = {
 	 * @returns {Promise}
 	 */
 	revokeCertbot: async (certificate, throwErrors) => {
-		// NPMOS: a certificate of your own CSR is revoked by its file
+		// NPMOS: a certificate of your own CSR is revoked by its file, one of lego by lego
 		if (certificate.meta?.npmos_csr) return internalAcmeCsr.revoke(certificate, throwErrors);
+		if (clientOf(certificate) === "lego") return legoCerts.revoke(certificate, throwErrors);
 		logger.info(
 			`Revoking Certbot certificates for Cert #${certificate.id}: ${certificate.domain_names.join(", ")}`,
 		);
@@ -914,8 +944,9 @@ const internalCertificate = {
 				"revoke",
 				"--cert-name",
 				`npm-${certificate.id}`,
+				// NPMOS: a reason every CA accepts (some refuse "unspecified")
 				"--reason",
-				"unspecified",
+				"cessationofoperation",
 				"--delete-after-revoke",
 			]);
 			await rm(`/data/tls/certbot/live/npm-${certificate.id}.der`, { force: true });

@@ -201,23 +201,57 @@ test("requests: proxy hosts that open the interface of NPMOS", async () => {
 	assert.equal(isInterfaceHost({ forward_host: "app", forward_port: 81 }), false);
 });
 
-test("requests: a line of the access log of nginx, admin and health checks left out", async () => {
-	const { parseLine, requestAggregates } = await import("./requests.js");
-	const line = (host, status, extra = "Mozilla/5.0") =>
-		`[30/Oct/2026:08:36:30 +0300] ${host} 203.0.113.7 0.004 "GET / HTTP/2.0" ${status} 96 1224 - ${extra}`;
-	const a = parseLine(line("App.example.com:443", 200));
+test("requests: a line of the JSON log of nginx, admin and health checks left out", async () => {
+	const { parseLine, requestAggregates, countryAggregates } = await import("./requests.js");
+	const line = (host, status, extra = {}) =>
+		JSON.stringify({
+			t: 1793338590.123,
+			h: host,
+			port: "443",
+			ip: "203.0.113.7",
+			m: "GET",
+			u: "/index.html",
+			s: status,
+			b: 1224,
+			rl: 310,
+			rt: 0.004,
+			ut: "0.001, 0.003",
+			uct: "0.000",
+			us: "502, 200",
+			ua_addr: "10.0.0.2:80, 10.0.0.3:80",
+			cache: "",
+			proto: "HTTP/2.0",
+			tls: "TLSv1.3",
+			ct: "text/html; charset=utf-8",
+			ref: "https://www.example.org/x",
+			ua: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36",
+			...extra,
+		});
+	const a = parseLine(line("App.example.com", 200));
 	assert.equal(a.host, "app.example.com");
-	assert.equal(a.time.toISOString(), "2026-10-30T05:36:30.000Z");
+	assert.equal(a.time.toISOString(), "2026-10-30T05:36:30.123Z");
 	assert.equal(a.bytes, 1224);
-	assert.equal(parseLine(line("127.0.0.1:81", 200)), null);
-	assert.equal(parseLine(line("app.example.com", 200, "NPMplus/healthcheck")), null);
+	assert.equal(a.duration_ms, 4);
+	assert.equal(a.upstream_ms, 3);
+	assert.equal(a.upstream_status, 200);
+	assert.equal(a.upstream_addr, "10.0.0.3:80");
+	assert.equal(a.content_type, "text/html");
+	assert.equal(a.referer_host, "www.example.org");
+	assert.deepEqual([a.browser, a.os, a.device], ["Chrome", "Windows", "desktop"]);
+	assert.equal(a.pageview, true);
+	assert.equal(a.visit, true);
+	assert.equal(a.mitigated, false);
+	assert.equal(parseLine(line("app.example.com", 200, { ref: "https://app.example.com/" })).visit, false);
+	assert.equal(parseLine(line("app.example.com", 200, { ct: "application/json" })).pageview, false);
+	assert.equal(parseLine(line("127.0.0.1", 200, { port: "81" })), null);
+	assert.equal(parseLine(line("app.example.com", 200, { ua: "NPMplus/healthcheck" })), null);
 	assert.equal(parseLine("garbage"), null);
-	assert.equal(parseLine(line("npmos.example.com:81", 200)), null);
-	const rows = requestAggregates([
-		a,
-		parseLine(line("app.example.com", 403)),
-		parseLine(line("app.example.com", 502)),
-	]);
+	assert.equal(parseLine("{broken"), null);
+	const blocked = parseLine(line("app.example.com", 403, { ut: "-", us: "-", ua_addr: "-" }));
+	assert.equal(blocked.mitigated, true);
+	assert.equal(blocked.upstream_ms, null);
+	assert.equal(blocked.upstream_status, null);
+	const rows = requestAggregates([a, blocked, parseLine(line("app.example.com", 502))]);
 	assert.equal(rows.length, 1);
 	assert.deepEqual(
 		{
@@ -230,4 +264,57 @@ test("requests: a line of the access log of nginx, admin and health checks left 
 		{ requests: 3, s2xx: 1, s4xx: 1, s5xx: 1, blocked: 1 },
 	);
 	assert.equal(rows[0].hour.toISOString(), "2026-10-30T05:00:00.000Z");
+	a.country = "DE";
+	blocked.country = "DE";
+	const countries = countryAggregates([a, blocked]);
+	assert.deepEqual(
+		countries.map((r) => [r.country, r.requests, r.mitigated, r.bytes]),
+		[["DE", 2, 1, 2448]],
+	);
+});
+
+test("requests: browsers, systems and devices of user agents", async () => {
+	const { parseUserAgent } = await import("./useragent.js");
+	const iphone =
+		"Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1";
+	assert.deepEqual(parseUserAgent(iphone), { browser: "Safari", os: "iOS", device: "mobile" });
+	assert.deepEqual(parseUserAgent("Mozilla/5.0 (X11; Linux x86_64; rv:131.0) Gecko/20100101 Firefox/131.0"), {
+		browser: "Firefox",
+		os: "Linux",
+		device: "desktop",
+	});
+	assert.equal(parseUserAgent("Mozilla/5.0 (compatible; Googlebot/2.1)").device, "bot");
+	assert.equal(parseUserAgent("curl/8.5.0").browser, "Bot");
+	assert.equal(
+		parseUserAgent("Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 Chrome/130.0 Safari/537.36 Edg/130.0").browser,
+		"Edge",
+	);
+	assert.equal(
+		parseUserAgent("Mozilla/5.0 (Linux; Android 14; SM-X710) AppleWebKit/537.36 Chrome/130.0").device,
+		"tablet",
+	);
+	assert.deepEqual(parseUserAgent(""), { browser: "", os: "", device: "other" });
+});
+
+test("requests: filters of the request log (search, ranges, status of the server behind the host)", async () => {
+	const { parseTrafficFilters, needsLog } = await import("./traffic.js");
+	const f = parseTrafficFilters({
+		q: "  wp-login ",
+		referer: "google.com",
+		port: "443,abc",
+		status: "404,5xx,999",
+		originStatus: "502",
+		minMs: "500",
+		maxBytes: "1024",
+		minBytes: "-3",
+	});
+	assert.equal(f.q, "wp-login");
+	assert.deepEqual(f.text, { referer_host: ["google.com"], port: ["443"] });
+	assert.deepEqual(f.status, ["404", "5xx"]);
+	assert.deepEqual(f.originStatus, ["502"]);
+	assert.deepEqual(f.ranges, { duration_ms: [500, null], bytes: [null, 1024] });
+	assert.equal(needsLog(f), true);
+	const none = parseTrafficFilters({ host: "a.example", port: "x" });
+	assert.deepEqual(none.text, { host: ["a.example"] });
+	assert.equal(needsLog(none), false);
 });

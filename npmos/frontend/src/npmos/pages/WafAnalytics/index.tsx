@@ -1,87 +1,207 @@
-// WAF → Analytics: what the open-appsec cloud dashboard showed, from the events NPMOS stores
-// (docs/ROADMAP.md, phase 4): KPI, attacks over time (prevent/detect), top hosts, sources, attack
-// types and URIs, severities, actions, countries, last blocked requests. Every list opens the
-// events behind it.
+// Analytics: the traffic of the hosts and the attacks on them, after the Cloudflare dashboard (tabs Requests,
+// Visitors, Performance, Security, Cache, Origin; KPI cards with sparklines; area charts; a world map; top lists that
+// filter the page). Data: the request log of nginx (npmos/events/traffic.js) and the security events of open-appsec,
+// CrowdSec and mTLS. "Now": the last hour, refreshed every few seconds, with what is happening now above it.
+import { useQuery } from "@tanstack/react-query";
+import { IconFilter, IconX } from "@tabler/icons-react";
 import cn from "classnames";
+import { useState } from "react";
 import Alert from "react-bootstrap/Alert";
-import { useNavigate, useSearchParams } from "react-router-dom";
 import { HasPermission, LoadingPage } from "src/components";
-import { intl, T } from "src/locale";
+import { T } from "src/locale";
 import { VIEW } from "src/modules/Permissions";
-import type { AnalyticsPeriod, SecurityEvent } from "../../api";
-import { useAnalytics } from "../../hooks";
-import { showWafEventModal } from "../../modals/WafEventModal";
-import { BarList, formatNumber, StackedBars, Tile, Tiles } from "../../ui/Charts";
-import { Dropdown } from "../../ui/Dropdown";
+import { getTraffic, type TrafficFilters } from "../../api";
+import { countryName, formatBytes, formatMs } from "../../ui/charts/format";
+import { Popover } from "../../ui/Popover";
+import { dateTime } from "../../ui/time";
 import hostStyles from "../Hosts/Hosts.module.css";
-import { ActionBadge, EventTime, SeverityBadge } from "../WafEvents/badges";
 import eventStyles from "../WafEvents/Events.module.css";
 import styles from "./Analytics.module.css";
+import { FILTER_KEYS, PERIODS, t, TABS, useTrafficParams } from "./common";
 import { LIVE_MS, LiveNow } from "./Live";
+import { TAB_VIEWS } from "./tabs";
 
-const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id }, values);
-const PERIODS: AnalyticsPeriod[] = ["1h", "24h", "7d", "30d"];
-/** "live": the last hour, refreshed every few seconds, with what is happening now above it */
 const VIEWS = ["live", ...PERIODS] as const;
 
-/** a bucket on the axis: time of day for a day or less, the date for longer periods */
-const bucketLabel = (iso: string, period: AnalyticsPeriod) =>
-	period === "1h" || period === "24h"
-		? intl.formatTime(iso, { hour: "2-digit", minute: "2-digit" })
-		: period === "7d"
-			? intl.formatDate(iso, { day: "numeric", month: "short", hour: "2-digit" })
-			: intl.formatDate(iso, { day: "numeric", month: "short" });
+/** fields of "Add filter" (those with a list of choices get a select) */
+const FILTER_FIELDS: { key: keyof TrafficFilters; choices?: string[]; placeholder?: string }[] = [
+	{ key: "host", placeholder: "example.com" },
+	{ key: "country", placeholder: "DE" },
+	{ key: "ip", placeholder: "203.0.113.7" },
+	{ key: "path", placeholder: "/api/" },
+	{ key: "status", placeholder: "404, 5xx" },
+	{ key: "method", choices: ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"] },
+	{ key: "device", choices: ["desktop", "mobile", "tablet", "bot", "other"] },
+	{ key: "browser", placeholder: "Chrome" },
+	{ key: "os", placeholder: "Windows" },
+	{ key: "protocol", choices: ["HTTP/1.1", "HTTP/2.0", "HTTP/3.0"] },
+	{ key: "cache", choices: ["HIT", "MISS", "EXPIRED", "BYPASS", "STALE"] },
+	{ key: "origin", placeholder: "10.0.0.2:8080" },
+	{ key: "originStatus", placeholder: "502, 5xx" },
+	{ key: "referer", placeholder: "google.com" },
+	{ key: "port", placeholder: "443" },
+	{ key: "unknown", choices: ["1"] },
+	{ key: "mitigated", choices: ["1", "0"] },
+];
 
-/** "12 % of all" */
-const share = (n: number, total: number) =>
-	total > 0
-		? t("npmos.analytics.traffic.share", {
-				p: intl.formatNumber(n / total, { style: "percent", maximumFractionDigits: 1 }),
-			})
-		: undefined;
+/** the value of a filter as shown in its chip */
+export const filterValue = (key: keyof TrafficFilters, value: string) =>
+	key === "country"
+		? value
+				.split(",")
+				.map((c) => countryName(c.trim()))
+				.join(", ")
+		: key === "device"
+			? value
+					.split(",")
+					.map((d) => t(`npmos.traffic.device.${d.trim()}`))
+					.join(", ")
+			: key === "unknown"
+				? t("npmos.traffic.filter.unknown.yes")
+				: key === "mitigated"
+					? t(value === "1" ? "npmos.traffic.filter.mitigated.yes" : "npmos.traffic.filter.mitigated.no")
+					: key === "minMs" || key === "maxMs"
+						? formatMs(Number(value))
+						: key === "minBytes" || key === "maxBytes"
+							? formatBytes(Number(value))
+							: value;
 
-const formatBytes = (n: number) => {
-	const units = ["B", "KB", "MB", "GB", "TB"];
-	let i = 0;
-	let v = n;
-	while (v >= 1024 && i < units.length - 1) {
-		v /= 1024;
-		i++;
-	}
-	return `${intl.formatNumber(v, { maximumFractionDigits: i ? 1 : 0 })} ${units[i]}`;
-};
+export const choiceLabel = (key: keyof TrafficFilters, value: string) =>
+	key === "device" ? t(`npmos.traffic.device.${value}`) : filterValue(key, value);
 
-function Panel({ title, children, wide }: { title: React.ReactNode; children: React.ReactNode; wide?: boolean }) {
+export function AddFilter({ onAdd }: { onAdd: (key: keyof TrafficFilters, value: string) => void }) {
+	const [key, setKey] = useState<keyof TrafficFilters>("host");
+	const [value, setValue] = useState("");
+	const field = FILTER_FIELDS.find((f) => f.key === key) ?? FILTER_FIELDS[0];
 	return (
-		<div className={cn("card", styles.panel, wide && styles.wide)}>
-			<h3 className={styles.panelTitle}>{title}</h3>
-			{children}
+		<Popover
+			ariaLabel={t("npmos.traffic.filter.add")}
+			title={<T id="npmos.traffic.filter.add" />}
+			width="20rem"
+			triggerClassName={hostStyles.tool}
+			activeClassName={hostStyles.toolOn}
+			trigger={
+				<>
+					<IconFilter size={16} />
+					<span className={hostStyles.toolText}>
+						<T id="npmos.traffic.filter.add" />
+					</span>
+				</>
+			}
+		>
+			{(close) => (
+				<form
+					className={styles.filterForm}
+					onSubmit={(e) => {
+						e.preventDefault();
+						const v = field.choices && !value ? field.choices[0] : value.trim();
+						if (!v) return;
+						onAdd(key, v);
+						setValue("");
+						close();
+					}}
+				>
+					<label htmlFor="npmos-traffic-filter-field" className="form-label small">
+						<T id="npmos.traffic.filter.field" />
+					</label>
+					<select
+						id="npmos-traffic-filter-field"
+						className="form-select form-select-sm"
+						value={key}
+						onChange={(e) => {
+							setKey(e.target.value as keyof TrafficFilters);
+							setValue("");
+						}}
+					>
+						{FILTER_FIELDS.map((f) => (
+							<option key={f.key} value={f.key}>
+								{t(`npmos.traffic.filter.${f.key}`)}
+							</option>
+						))}
+					</select>
+					<label htmlFor="npmos-traffic-filter-value" className="form-label small mt-2">
+						<T id="npmos.traffic.filter.value" />
+					</label>
+					{field.choices ? (
+						<select
+							id="npmos-traffic-filter-value"
+							className="form-select form-select-sm"
+							value={value || field.choices[0]}
+							onChange={(e) => setValue(e.target.value)}
+						>
+							{field.choices.map((c) => (
+								<option key={c} value={c}>
+									{choiceLabel(key, c)}
+								</option>
+							))}
+						</select>
+					) : (
+						<input
+							id="npmos-traffic-filter-value"
+							className="form-control form-control-sm"
+							placeholder={field.placeholder}
+							value={value}
+							autoComplete="off"
+							onChange={(e) => setValue(e.target.value)}
+						/>
+					)}
+					<div className="mt-3 text-end">
+						<button type="submit" className="btn btn-sm btn-primary">
+							<T id="npmos.traffic.filter.apply" />
+						</button>
+					</div>
+				</form>
+			)}
+		</Popover>
+	);
+}
+
+export function FilterChips({
+	filters,
+	remove,
+	clear,
+}: {
+	filters: TrafficFilters;
+	remove: (key: keyof TrafficFilters) => void;
+	clear: () => void;
+}) {
+	// the search is shown in its field
+	const keys = FILTER_KEYS.filter((k) => k !== "q" && filters[k]);
+	if (!keys.length) return null;
+	return (
+		<div className={styles.chips}>
+			{keys.map((k) => (
+				<span key={k} className={styles.chip}>
+					<span className={styles.chipKey}>{t(`npmos.traffic.filter.${k}`)}:</span>
+					<span className={styles.chipValue}>{filterValue(k, String(filters[k]))}</span>
+					<button
+						type="button"
+						className={styles.chipRemove}
+						aria-label={t("npmos.traffic.filter.remove", { name: t(`npmos.traffic.filter.${k}`) })}
+						onClick={() => remove(k)}
+					>
+						<IconX size={12} />
+					</button>
+				</span>
+			))}
+			<button type="button" className={styles.linkButton} onClick={clear}>
+				<T id="npmos.traffic.filter.clear" />
+			</button>
 		</div>
 	);
 }
 
 function AnalyticsPage() {
-	const navigate = useNavigate();
-	const [params, setParams] = useSearchParams();
-	const live = params.get("period") === "live";
-	const period: AnalyticsPeriod = live ? "1h" : (PERIODS.find((p) => p === params.get("period")) ?? "24h");
-	const host = params.get("host") ?? "";
-	const { data, isLoading, isError, error, isFetching } = useAnalytics(
-		period,
-		host,
-		live ? { refetchInterval: LIVE_MS } : {},
-	);
-
-	const set = (key: string, value: string, isDefault: boolean) => {
-		const next = new URLSearchParams(params);
-		if (isDefault) next.delete(key);
-		else next.set(key, value);
-		setParams(next, { replace: true });
-	};
-	/** the events behind a number of the page */
-	const events = (filters: Record<string, string>) =>
-		navigate(`/waf/events?${new URLSearchParams({ period, ...(host ? { host } : {}), ...filters })}`);
-	const none = t("npmos.analytics.none");
+	const { live, period, tab, filters, set } = useTrafficParams();
+	const { data, isLoading, isError, error, isFetching } = useQuery({
+		queryKey: ["npmos-traffic", tab, period, filters],
+		queryFn: () => getTraffic(tab, period, filters),
+		refetchInterval: live ? LIVE_MS : 30000,
+		placeholderData: (previous) => (previous?.tab === tab ? previous : undefined),
+	});
+	const View = TAB_VIEWS[tab];
+	const filter = (key: keyof TrafficFilters, value: string) => set({ [key]: value });
+	const clear = () => set(Object.fromEntries(FILTER_KEYS.map((k) => [k, null])));
 
 	return (
 		<div className={hostStyles.page}>
@@ -91,12 +211,27 @@ function AnalyticsPage() {
 						<T id="npmos.analytics" />
 					</h1>
 					<p className={hostStyles.subtitle}>
-						<T id="npmos.analytics.description" />
+						<T id="npmos.traffic.description" />
 					</p>
 				</div>
 			</div>
 
+			<ul className="nav nav-tabs">
+				{TABS.map((x) => (
+					<li key={x} className="nav-item">
+						<button
+							type="button"
+							className={cn("nav-link", { active: tab === x })}
+							onClick={() => set({ tab: x === "requests" ? null : x })}
+						>
+							<T id={`npmos.traffic.tab.${x}`} />
+						</button>
+					</li>
+				))}
+			</ul>
+
 			<div className={hostStyles.toolbar}>
+				<AddFilter onAdd={filter} />
 				<div className={eventStyles.periods} role="group" aria-label={t("npmos.events.period")}>
 					{VIEWS.map((p) => {
 						const on = p === "live" ? live : !live && period === p;
@@ -106,299 +241,41 @@ function AnalyticsPage() {
 								type="button"
 								className={cn(eventStyles.period, on && eventStyles.periodOn)}
 								aria-pressed={on}
-								onClick={() => set("period", p, p === "24h")}
+								onClick={() => set({ period: p === "24h" ? null : p })}
 							>
 								<T id={p === "live" ? "npmos.analytics.live" : `npmos.events.period.${p}`} />
 							</button>
 						);
 					})}
 				</div>
-				<Dropdown
-					floating
-					inline
-					ariaLabel={t("npmos.waf.events.host")}
-					triggerClassName={hostStyles.tool}
-					trigger={<span>{host || t("npmos.analytics.all-hosts")}</span>}
-					items={[
-						{
-							key: "",
-							label: t("npmos.analytics.all-hosts"),
-							active: !host,
-							onSelect: () => set("host", "", true),
-						},
-						...(data?.hosts ?? [])
-							.filter((h) => h.host !== host)
-							.map((h) => ({ key: h.host, label: h.host, onSelect: () => set("host", h.host, false) })),
-						...(host ? [{ key: host, label: host, active: true, onSelect: () => {} }] : []),
-					]}
-				/>
 				{isFetching && <span className="spinner-border spinner-border-sm text-secondary" />}
 			</div>
 
-			{isLoading ? (
+			<FilterChips filters={filters} remove={(k) => set({ [k]: null })} clear={clear} />
+
+			{live && <LiveNow host={filters.host ?? ""} />}
+
+			{isLoading && !data ? (
 				<LoadingPage noLogo />
 			) : isError || !data ? (
 				<Alert variant="danger">{error?.message || <T id="npmos.common.unknown-error" />}</Alert>
+			) : data.unsupported ? (
+				<Alert variant="warning">
+					<T id="npmos.traffic.unsupported" />
+				</Alert>
 			) : (
 				<>
-					{live && <LiveNow host={host} />}
-					<h2 className={styles.section}>
-						<T id="npmos.analytics.section.traffic" />
-					</h2>
-					<Tiles>
-						<Tile
-							value={formatNumber(data.traffic.requests)}
-							label={<T id="npmos.analytics.traffic.requests" />}
-							hint={
-								<T
-									id="npmos.analytics.traffic.sent"
-									data={{ bytes: formatBytes(data.traffic.bytes) }}
-								/>
-							}
-						/>
-						<Tile
-							value={formatNumber(data.traffic.ok)}
-							label={<T id="npmos.analytics.traffic.ok" />}
-							hint={share(data.traffic.ok, data.traffic.requests)}
-						/>
-						<Tile
-							value={formatNumber(data.traffic.s4xx)}
-							label={<T id="npmos.analytics.traffic.4xx" />}
-							hint={share(data.traffic.s4xx, data.traffic.requests)}
-						/>
-						<Tile
-							value={formatNumber(data.traffic.s5xx)}
-							label={<T id="npmos.analytics.traffic.5xx" />}
-							hint={share(data.traffic.s5xx, data.traffic.requests)}
-						/>
-						<Tile
-							value={formatNumber(data.traffic.blocked)}
-							label={<T id="npmos.analytics.traffic.blocked" />}
-							hint={share(data.traffic.blocked, data.traffic.requests)}
-						/>
-					</Tiles>
-					<div className={styles.grid}>
-						<Panel title={<T id="npmos.analytics.traffic.timeline" />} wide>
-							<StackedBars
-								data={data.traffic.timeline.map((b) => ({
-									t: b.t,
-									passed: Math.max(0, b.requests - b.blocked),
-									blocked: b.blocked,
-								}))}
-								series={[
-									{
-										key: "passed",
-										label: t("npmos.analytics.traffic.passed"),
-										color: "var(--series-3)",
-									},
-									{
-										key: "blocked",
-										label: t("npmos.analytics.traffic.blocked"),
-										color: "var(--series-2)",
-									},
-								]}
-								xLabel={(b) => bucketLabel(b.t, period)}
-								tooltipTitle={(b) => intl.formatDate(b.t, { dateStyle: "medium", timeStyle: "short" })}
-								emptyText={t("npmos.analytics.traffic.none")}
-								ariaLabel={t("npmos.analytics.traffic.timeline")}
+					{data.detailFrom && (
+						<p className={styles.note}>
+							<T
+								id="npmos.traffic.detail-from"
+								data={{ time: dateTime(data.detailFrom), days: data.requestDays }}
 							/>
-						</Panel>
-						<Panel title={<T id="npmos.analytics.traffic.hosts" />}>
-							<BarList
-								emptyText={t("npmos.analytics.traffic.none")}
-								items={data.traffic.hosts.map((h) => ({
-									key: h.host,
-									label: h.host,
-									value: h.requests,
-									sub:
-										h.errors || h.blocked
-											? t("npmos.analytics.traffic.host-sub", {
-													errors: formatNumber(h.errors),
-													blocked: formatNumber(h.blocked),
-												})
-											: undefined,
-									onClick: () => set("host", h.host, false),
-								}))}
-							/>
-						</Panel>
-					</div>
-
-					<h2 className={styles.section}>
-						<T id="npmos.analytics.section.attacks" />
-					</h2>
-					<Tiles>
-						<Tile value={formatNumber(data.kpi.attacks)} label={<T id="npmos.analytics.attacks" />} />
-						<Tile value={formatNumber(data.kpi.prevented)} label={<T id="npmos.analytics.prevented" />} />
-						<Tile value={formatNumber(data.kpi.detected)} label={<T id="npmos.analytics.detected" />} />
-						<Tile value={formatNumber(data.kpi.sources)} label={<T id="npmos.analytics.sources" />} />
-						<Tile
-							value={formatNumber(data.kpi.crowdsecBans)}
-							label={<T id="npmos.analytics.crowdsec-bans" />}
-							hint={<T id="npmos.analytics.crowdsec-alerts" data={{ count: data.kpi.crowdsecAlerts }} />}
-						/>
-					</Tiles>
-
-					<div className={styles.grid}>
-						<Panel title={<T id="npmos.analytics.timeline" />} wide>
-							<StackedBars
-								data={data.timeline}
-								series={[
-									{
-										key: "prevent",
-										label: t("npmos.analytics.series.prevent"),
-										color: "var(--series-1)",
-									},
-									{
-										key: "detect",
-										label: t("npmos.analytics.series.detect"),
-										color: "var(--series-2)",
-									},
-									{
-										key: "other",
-										label: t("npmos.analytics.series.other"),
-										color: "var(--series-3)",
-									},
-								]}
-								xLabel={(b) => bucketLabel(b.t, period)}
-								tooltipTitle={(b) => intl.formatDate(b.t, { dateStyle: "medium", timeStyle: "short" })}
-								emptyText={t("npmos.analytics.no-attacks")}
-								ariaLabel={t("npmos.analytics.timeline")}
-							/>
-						</Panel>
-						<Panel title={<T id="npmos.analytics.top-hosts" />}>
-							<BarList
-								emptyText={none}
-								items={data.hosts.map((h) => ({
-									key: h.host,
-									label: h.host,
-									value: h.events,
-									sub: t("npmos.analytics.prevented-n", { n: formatNumber(h.prevented) }),
-									onClick: () => events({ host: h.host }),
-								}))}
-							/>
-						</Panel>
-						<Panel title={<T id="npmos.analytics.top-sources" />}>
-							<BarList
-								emptyText={none}
-								items={data.sources.map((s) => ({
-									key: s.ip,
-									label: s.ip,
-									value: s.events,
-									sub: s.country || undefined,
-									onClick: () => events({ ip: s.ip, important: "1" }),
-								}))}
-							/>
-						</Panel>
-						<Panel title={<T id="npmos.analytics.top-types" />}>
-							<BarList
-								emptyText={none}
-								items={data.types.map((ty) => ({
-									key: ty.type,
-									label: ty.type,
-									value: ty.events,
-									onClick: () => events({ type: ty.type }),
-								}))}
-							/>
-						</Panel>
-						<Panel title={<T id="npmos.analytics.top-uris" />}>
-							<BarList
-								emptyText={none}
-								items={data.uris.map((u) => ({
-									key: `${u.host} ${u.uri}`,
-									label: u.uri || "/",
-									title: `${u.host}${u.uri}`,
-									value: u.events,
-									sub: u.host,
-									onClick: () => events({ host: u.host, q: u.uri }),
-								}))}
-							/>
-						</Panel>
-						<Panel title={<T id="npmos.analytics.levels" />}>
-							<BarList
-								emptyText={none}
-								items={["Critical", "High", "Medium", "Low", "Info"]
-									.map((level) => ({
-										level,
-										events:
-											data.severities.find(
-												(s) => s.severity.toLowerCase() === level.toLowerCase(),
-											)?.events ?? 0,
-									}))
-									.filter((s) => s.events > 0)
-									.map((s) => ({
-										key: s.level,
-										label: s.level,
-										value: s.events,
-										onClick: () => events({ severity: s.level }),
-									}))}
-							/>
-						</Panel>
-						<Panel title={<T id="npmos.analytics.actions" />}>
-							<BarList
-								emptyText={none}
-								items={data.actions.map((a) => ({
-									key: a.action,
-									label: a.action,
-									value: a.events,
-									onClick: () => events({ action: a.action }),
-								}))}
-							/>
-						</Panel>
-						{data.countries.length > 0 && (
-							<Panel title={<T id="npmos.analytics.countries" />}>
-								<BarList
-									emptyText={none}
-									items={data.countries.map((c) => ({
-										key: c.country,
-										label: c.country,
-										value: c.events,
-									}))}
-								/>
-							</Panel>
-						)}
-						<Panel title={<T id="npmos.analytics.last-blocked" />} wide>
-							{data.lastBlocked.length === 0 ? (
-								<div className="text-secondary small">{none}</div>
-							) : (
-								<div className={hostStyles.scroller}>
-									<table
-										className={cn("table table-vcenter table-hover card-table", hostStyles.table)}
-									>
-										<tbody>
-											{data.lastBlocked.map((e) => (
-												<tr
-													key={e.id}
-													className={eventStyles.row}
-													onClick={() => showWafEventModal(e as SecurityEvent)}
-												>
-													<td className={eventStyles.time}>
-														<EventTime time={e.time} />
-													</td>
-													<td>
-														<SeverityBadge severity={e.severity} />
-													</td>
-													<td>{e.incidentType}</td>
-													<td>
-														<ActionBadge action={e.action} />
-													</td>
-													<td>{e.sourceIp}</td>
-													<td>{e.host}</td>
-													<td className={eventStyles.request}>
-														{e.method && (
-															<span className={eventStyles.method}>{e.method}</span>
-														)}
-														{e.uri}
-													</td>
-												</tr>
-											))}
-										</tbody>
-									</table>
-								</div>
-							)}
-						</Panel>
-					</div>
+						</p>
+					)}
+					<View data={data} period={period} filter={filter} />
 					<p className={styles.note}>
-						<T id="npmos.analytics.note" />
+						<T id="npmos.traffic.note" />
 					</p>
 				</>
 			)}

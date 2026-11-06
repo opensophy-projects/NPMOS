@@ -226,6 +226,20 @@ RUN apk upgrade --no-cache -a && \
 COPY backend /app
 
 
+# NPMOS: lego, the second ACME client (npmos/backend/npmos/acme/lego.js): ES256 account keys and the name in the CN of
+# the CSR, which some CAs require and certbot does not do. Built from the source of its release (Go module proxy).
+FROM --platform="$BUILDPLATFORM" alpine:3.24.1@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b AS lego
+SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
+ARG TARGETARCH
+ARG LEGO_VERSION=v4.35.2
+RUN apk upgrade --no-cache -a && \
+    apk add --no-cache go && \
+    CGO_ENABLED=0 GOOS=linux GOARCH="$TARGETARCH" GOTOOLCHAIN=local GOFLAGS=-trimpath GOPATH=/go \
+      go install -ldflags "-s -w -X main.version=$LEGO_VERSION" "github.com/go-acme/lego/v4/cmd/lego@$LEGO_VERSION" && \
+    { cp /go/bin/lego /lego 2>/dev/null || cp /go/bin/linux_"$TARGETARCH"/lego /lego; } && \
+    rm -rf /go /root/.cache && \
+    /lego --version 2>/dev/null || file /lego
+
 # NPMOS: offline CrowdSec seed (hub snapshot) for the official crowdsec image, see npmos/crowdsec-seed/seed.sh
 FROM docker.io/crowdsecurity/crowdsec:${CROWDSEC_VERSION} AS crowdsec-seed
 ARG HUB_BRANCH=master
@@ -244,6 +258,8 @@ ARG LCSB_VER=3e82dd61508ed9683b5007f823c69b112c59ac6f # v1.0.14
 
 COPY --from=nginx /usr/local/nginx                                                                         /usr/local/nginx
 COPY --from=nginx /usr/local/bin/bssl                                                                      /usr/local/bin/bssl
+# NPMOS: lego, see the stage above
+COPY --from=lego  /lego                                                                                    /usr/local/bin/lego
 COPY --from=nginx /usr/local/lib/libssl.so                                                                 /usr/local/lib/libssl.so
 COPY --from=nginx /usr/local/lib/libcrypto.so                                                              /usr/local/lib/libcrypto.so
 COPY --from=nginx /src/attachment/core/shmem_ipc_2/libshmem_ipc_2.so                                       /usr/local/lib/libshmem_ipc_2.so

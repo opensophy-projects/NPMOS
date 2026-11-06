@@ -17,7 +17,7 @@ export const niceScale = (max: number, ticks = 4) => {
 	return { max: Math.ceil(max / step) * step, step };
 };
 
-function useWidth() {
+export function useWidth() {
 	const ref = useRef<HTMLDivElement>(null);
 	const [width, setWidth] = useState(600);
 	useLayoutEffect(() => {
@@ -186,7 +186,15 @@ export interface BarItem {
 }
 
 /** top lists: label and value in text colours, one hue for the bars */
-export function BarList({ items, emptyText }: { items: BarItem[]; emptyText: string }) {
+export function BarList({
+	items,
+	emptyText,
+	format = formatNumber,
+}: {
+	items: BarItem[];
+	emptyText: string;
+	format?: (n: number) => string;
+}) {
 	if (!items.length) return <div className={cn(styles.empty, "py-3")}>{emptyText}</div>;
 	const max = Math.max(...items.map((i) => i.value), 1);
 	return (
@@ -203,7 +211,7 @@ export function BarList({ items, emptyText }: { items: BarItem[]; emptyText: str
 						)}
 						{item.sub && <span className={styles.listSub}> · {item.sub}</span>}
 					</span>
-					<span className={styles.listValue}>{formatNumber(item.value)}</span>
+					<span className={styles.listValue}>{format(item.value)}</span>
 					<span className={styles.track}>
 						<span
 							className={styles.bar}

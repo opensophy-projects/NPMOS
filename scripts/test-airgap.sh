@@ -12,16 +12,16 @@ cd "$(dirname "$0")/.."
 
 export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-npmos-airgap}"
 compose=(docker compose -f deploy/compose.yaml -f deploy/test/compose.airgap.yaml)
-read -r -a services <<< "${SERVICES:-npmos appsec-agent appsec-shared-storage appsec-tuning-svc crowdsec socket-proxy npmos-control}"
+read -r -a services <<< "${SERVICES:-npmos openappsec crowdsec}"
 
 cleanup() {
   status=$?
   if [ $status -ne 0 ]; then
     echo "--- logs (failure) ---"
     "${compose[@]}" logs --no-color --tail 80 || true
-    if [ -n "$("${compose[@]}" ps -q appsec-agent 2> /dev/null)" ]; then
+    if [ -n "$("${compose[@]}" ps -q openappsec 2> /dev/null)" ]; then
       echo "--- open-appsec agent: log files, settings, policy status (failure) ---"
-      "${compose[@]}" exec -T appsec-agent sh -c 'ls -la /var/log/nano_agent; cat /etc/cp/conf/settings.json;
+      "${compose[@]}" exec -T openappsec sh -c 'ls -la /var/log/nano_agent; cat /etc/cp/conf/settings.json;
         cat /ext/appsec/npmos-agent.env; tail -n 5 /var/log/nano_agent/cp-nano-http-transaction-handler.log*;
         tail -n 20 /var/log/nano_agent/*.err 2> /dev/null' || true
     fi

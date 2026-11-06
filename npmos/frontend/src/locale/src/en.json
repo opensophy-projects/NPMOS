@@ -525,13 +525,13 @@
 		"defaultMessage": "HTTP Only"
 	},
 	"lets-encrypt": {
-		"defaultMessage": "Let's Encrypt / ACME"
+		"defaultMessage": "ACME"
 	},
 	"lets-encrypt-via-dns": {
-		"defaultMessage": "Let's Encrypt / ACME (DNS challenge)"
+		"defaultMessage": "ACME (DNS challenge)"
 	},
 	"lets-encrypt-via-http": {
-		"defaultMessage": "Let's Encrypt / ACME (HTTP challenge)"
+		"defaultMessage": "ACME (HTTP challenge)"
 	},
 	"loading": {
 		"defaultMessage": "Loading…"
@@ -644,6 +644,27 @@
 	"npmos.access.search": {
 		"defaultMessage": "Search by name"
 	},
+	"npmos.acme.challenge": {
+		"defaultMessage": "How the domain is checked"
+	},
+	"npmos.acme.challenge.dns": {
+		"defaultMessage": "DNS-01"
+	},
+	"npmos.acme.challenge.dns-hint": {
+		"defaultMessage": "A TXT record is made through the API of your DNS provider: works for wildcard domains and closed port 80."
+	},
+	"npmos.acme.challenge.http": {
+		"defaultMessage": "HTTP-01"
+	},
+	"npmos.acme.challenge.http-hint": {
+		"defaultMessage": "The server asks for a file on port 80: the domains must point at this server and port 80 be reachable from the ACME server."
+	},
+	"npmos.acme.client.certbot": {
+		"defaultMessage": "certbot"
+	},
+	"npmos.acme.client.lego": {
+		"defaultMessage": "lego"
+	},
 	"npmos.acme.csr.check": {
 		"defaultMessage": "Check"
 	},
@@ -686,6 +707,24 @@
 	"npmos.acme.csr.title": {
 		"defaultMessage": "ACME certificate for your own CSR"
 	},
+	"npmos.acme.lego.credentials-hint": {
+		"defaultMessage": "Lines VARIABLE=value; the variables of the provider are filled in, empty ones can stay out."
+	},
+	"npmos.acme.lego.credentials-placeholder": {
+		"defaultMessage": "VARIABLE=value"
+	},
+	"npmos.acme.lego.help-hide": {
+		"defaultMessage": "Hide the variables"
+	},
+	"npmos.acme.lego.help-show": {
+		"defaultMessage": "Show the variables of the provider"
+	},
+	"npmos.acme.lego.propagation-hint": {
+		"defaultMessage": "Empty: lego checks itself that the record is visible. A number: waits so many seconds instead."
+	},
+	"npmos.acme.lego.warning": {
+		"defaultMessage": "lego makes the TXT record through the API of your DNS provider: choose it and give its keys as the variables below (they are kept with the certificate, for renewals)."
+	},
 	"npmos.acme.log.none": {
 		"defaultMessage": "No ACME request has failed yet."
 	},
@@ -697,6 +736,111 @@
 	},
 	"npmos.acme.log.title": {
 		"defaultMessage": "Full log of the last request"
+	},
+	"npmos.acme.menu": {
+		"defaultMessage": "ACME"
+	},
+	"npmos.acme.new": {
+		"defaultMessage": "New ACME certificate"
+	},
+	"npmos.acme.server": {
+		"defaultMessage": "ACME server"
+	},
+	"npmos.acme.server.default": {
+		"defaultMessage": "default"
+	},
+	"npmos.acme.server.manage": {
+		"defaultMessage": "ACME servers"
+	},
+	"npmos.acme.servers.add": {
+		"defaultMessage": "Add ACME server"
+	},
+	"npmos.acme.servers.caa": {
+		"defaultMessage": "For the CAA record of your domains: {caa}"
+	},
+	"npmos.acme.servers.client": {
+		"defaultMessage": "ACME client"
+	},
+	"npmos.acme.servers.client-hint.certbot": {
+		"defaultMessage": "certbot: the client of NPMplus, its DNS plugins. Registers with an RSA key and sends a CSR without a subject."
+	},
+	"npmos.acme.servers.client-hint.lego": {
+		"defaultMessage": "lego: an ES256 account key and the name in the CN of the CSR (needed by the TLS CA of the Russian Federation and others), 150+ DNS providers."
+	},
+	"npmos.acme.servers.custom": {
+		"defaultMessage": "Another ACME server (URL)"
+	},
+	"npmos.acme.servers.default-set": {
+		"defaultMessage": "The default ACME server is changed"
+	},
+	"npmos.acme.servers.deleted": {
+		"defaultMessage": "The ACME server is removed"
+	},
+	"npmos.acme.servers.description": {
+		"defaultMessage": "Where ACME certificates come from: a known certificate authority or a server of your own (any RFC 8555 directory). The default one is chosen first in the certificate forms; every certificate keeps its server for renewals. The account is registered at the first certificate."
+	},
+	"npmos.acme.servers.directory": {
+		"defaultMessage": "Directory URL"
+	},
+	"npmos.acme.servers.directory-placeholder": {
+		"defaultMessage": "https://acme.example.com/directory"
+	},
+	"npmos.acme.servers.eab-hint": {
+		"defaultMessage": "External account binding, from the account page of the authority. Empty when it is not needed."
+	},
+	"npmos.acme.servers.eab-hmac": {
+		"defaultMessage": "EAB HMAC key"
+	},
+	"npmos.acme.servers.eab-kid": {
+		"defaultMessage": "EAB key ID"
+	},
+	"npmos.acme.servers.eab-required": {
+		"defaultMessage": "This authority needs both EAB keys of your account."
+	},
+	"npmos.acme.servers.edit": {
+		"defaultMessage": "ACME server"
+	},
+	"npmos.acme.servers.email": {
+		"defaultMessage": "Email of the account"
+	},
+	"npmos.acme.servers.email-hint": {
+		"defaultMessage": "Expiry notices of the authority go here. Needed with EAB."
+	},
+	"npmos.acme.servers.email-zerossl": {
+		"defaultMessage": "Needed: ZeroSSL issues the EAB keys for this email, when none are entered."
+	},
+	"npmos.acme.servers.in-use": {
+		"defaultMessage": "Certificates are issued by this server"
+	},
+	"npmos.acme.servers.make-default": {
+		"defaultMessage": "Make default"
+	},
+	"npmos.acme.servers.name": {
+		"defaultMessage": "Name"
+	},
+	"npmos.acme.servers.preset": {
+		"defaultMessage": "Certificate authority"
+	},
+	"npmos.acme.servers.profile": {
+		"defaultMessage": "Certificate profile"
+	},
+	"npmos.acme.servers.profile-default": {
+		"defaultMessage": "Default of the server"
+	},
+	"npmos.acme.servers.profile-hint": {
+		"defaultMessage": "The term is the server's: Let's Encrypt offers classic (90 days), tlsserver and shortlived (about 6 days, needs the internet every day or two)."
+	},
+	"npmos.acme.servers.title": {
+		"defaultMessage": "ACME servers"
+	},
+	"npmos.acme.servers.tls-verify": {
+		"defaultMessage": "Check the TLS certificate of the server"
+	},
+	"npmos.acme.servers.tls-verify-hint": {
+		"defaultMessage": "Off only for a server of your own with a certificate this system does not trust."
+	},
+	"npmos.acme.servers.used": {
+		"defaultMessage": "Certificates"
 	},
 	"npmos.agent.default.hint": {
 		"defaultMessage": "Applies to every host that has no policy of its own: the mode and the building blocks the agent uses."
@@ -2339,6 +2483,9 @@
 	"npmos.events.kind.mtls": {
 		"defaultMessage": "mTLS"
 	},
+	"npmos.events.kind.requests": {
+		"defaultMessage": "Requests"
+	},
 	"npmos.events.label.benign": {
 		"defaultMessage": "False positive"
 	},
@@ -2398,6 +2545,12 @@
 	},
 	"npmos.events.retention.oldest": {
 		"defaultMessage": "Oldest: {time}"
+	},
+	"npmos.events.retention.request-days": {
+		"defaultMessage": "Request log, days"
+	},
+	"npmos.events.retention.requests-stored": {
+		"defaultMessage": "Requests in the log: {requests}"
 	},
 	"npmos.events.retention.saved": {
 		"defaultMessage": "Retention saved"
@@ -2748,7 +2901,7 @@
 		"defaultMessage": "A certificate needs attention on {count, plural, one {# host} other {# hosts}}"
 	},
 	"npmos.hosts.rec.expiring.hint": {
-		"defaultMessage": "Let's Encrypt and other ACME certificates show here only when their renewal is late (see the full log of the last request in Certificates); custom ones 14 days before the end, or a third of a shorter term."
+		"defaultMessage": "ACME certificates show here only when their renewal is late (see the full log of the last request in Certificates); custom ones 14 days before the end, or a third of a shorter term."
 	},
 	"npmos.hosts.rec.less": {
 		"defaultMessage": "Show fewer"
@@ -2832,7 +2985,7 @@
 		"defaultMessage": "Expiring (< 14 days)"
 	},
 	"npmos.hosts.tls.issue": {
-		"defaultMessage": "Issue Let's Encrypt"
+		"defaultMessage": "Issue with ACME"
 	},
 	"npmos.hosts.tls.requesting": {
 		"defaultMessage": "Requesting the certificate, this can take a minute…"
@@ -5844,7 +5997,7 @@
 		"defaultMessage": "TLS certificates"
 	},
 	"npmos.rbac.resource.certificates.desc": {
-		"defaultMessage": "Let's Encrypt and uploaded certificates"
+		"defaultMessage": "ACME and uploaded certificates"
 	},
 	"npmos.rbac.resource.crowdsec": {
 		"defaultMessage": "CrowdSec"
@@ -6086,50 +6239,8 @@
 	"npmos.settings.events-retention": {
 		"defaultMessage": "Retention of security events"
 	},
-	"npmos.system.acme-profile.auto": {
-		"defaultMessage": "As NPMOS decides (Let's Encrypt: classic, 90 days)"
-	},
-	"npmos.system.acme-profile.classic": {
-		"defaultMessage": "classic — 90 days"
-	},
-	"npmos.system.acme-profile.none": {
-		"defaultMessage": "Default of the server (Let's Encrypt: 90 days)"
-	},
-	"npmos.system.acme-profile.shortlived": {
-		"defaultMessage": "shortlived — about 6 days (needs the internet every day or two)"
-	},
-	"npmos.system.acme-profile.tlsserver": {
-		"defaultMessage": "tlsserver — 90 days, server use only"
-	},
-	"npmos.system.acme.custom": {
-		"defaultMessage": "Other (URL)"
-	},
 	"npmos.system.after-restart": {
 		"defaultMessage": "after restart"
-	},
-	"npmos.system.env.ACME_EAB_HMAC_KEY": {
-		"defaultMessage": "EAB HMAC key"
-	},
-	"npmos.system.env.ACME_EAB_HMAC_KEY.hint": {
-		"defaultMessage": "The HMAC key that goes with the key ID. Not shown after saving."
-	},
-	"npmos.system.env.ACME_EAB_KID": {
-		"defaultMessage": "EAB key ID"
-	},
-	"npmos.system.env.ACME_EAB_KID.hint": {
-		"defaultMessage": "External account binding: the key ID from the account page of the authority. Empty for Let's Encrypt."
-	},
-	"npmos.system.env.ACME_EMAIL": {
-		"defaultMessage": "Email of the ACME account"
-	},
-	"npmos.system.env.ACME_EMAIL.hint": {
-		"defaultMessage": "Expiry notices of the authority go here. Needed for ZeroSSL and EAB."
-	},
-	"npmos.system.env.ACME_PROFILE": {
-		"defaultMessage": "Certificate profile (term)"
-	},
-	"npmos.system.env.ACME_PROFILE.hint": {
-		"defaultMessage": "The term is set by the ACME server through its profiles (Let's Encrypt has them; ZeroSSL, Google and others give their own term). A short term limits the harm of a stolen key, but NPMOS must reach the server before it ends: with shortlived, two or three days without the internet leave the sites with expired certificates. A profile the server does not know falls back to its default. Applies to new requests and renewals after the restart."
 	},
 	"npmos.system.env.ACME_RENEW": {
 		"defaultMessage": "Renew automatically"
@@ -6142,12 +6253,6 @@
 	},
 	"npmos.system.env.ACME_RENEW_DAYS.hint": {
 		"defaultMessage": "0: as certbot decides, a third of the term (at most 30 days). For short terms keep it below the term."
-	},
-	"npmos.system.env.ACME_SERVER": {
-		"defaultMessage": "ACME server"
-	},
-	"npmos.system.env.ACME_SERVER.hint": {
-		"defaultMessage": "The certificate authority that issues certificates. \"Other\" takes the directory URL of any ACME server, also one in your own network."
 	},
 	"npmos.system.env.DEFAULT_CERT_ID": {
 		"defaultMessage": "Default certificate"
@@ -6294,10 +6399,10 @@
 		"defaultMessage": "Auto"
 	},
 	"npmos.system.group.acme": {
-		"defaultMessage": "ACME (Let's Encrypt and others)"
+		"defaultMessage": "ACME"
 	},
 	"npmos.system.group.acme.hint": {
-		"defaultMessage": "Where certificates of \"Let's Encrypt / ACME\" come from. Let's Encrypt needs nothing else; ZeroSSL needs an email, Google Trust Services and SSL.com need EAB keys from their account page. The account is registered at the first certificate request."
+		"defaultMessage": "When ACME certificates are renewed. The servers they come from are above."
 	},
 	"npmos.system.group.external": {
 		"defaultMessage": "External services"
@@ -6365,6 +6470,597 @@
 	"npmos.system.secret.set": {
 		"defaultMessage": "set — enter a new one to replace it"
 	},
+	"npmos.traffic.answer.403": {
+		"defaultMessage": "Refused (403)"
+	},
+	"npmos.traffic.answer.429": {
+		"defaultMessage": "Rate limited (429)"
+	},
+	"npmos.traffic.answer.444": {
+		"defaultMessage": "Dropped (444)"
+	},
+	"npmos.traffic.answer.mtls": {
+		"defaultMessage": "mTLS (495/496)"
+	},
+	"npmos.traffic.attack-map": {
+		"defaultMessage": "Where attacks come from"
+	},
+	"npmos.traffic.attacks-over-time": {
+		"defaultMessage": "Attacks by security product"
+	},
+	"npmos.traffic.by-cache": {
+		"defaultMessage": "Requests by cache status"
+	},
+	"npmos.traffic.by-protocol": {
+		"defaultMessage": "Requests by HTTP protocol"
+	},
+	"npmos.traffic.by-status": {
+		"defaultMessage": "Requests by status code"
+	},
+	"npmos.traffic.bytes-cached-vs-uncached": {
+		"defaultMessage": "Data transfer: cached and uncached"
+	},
+	"npmos.traffic.bytes-over-time": {
+		"defaultMessage": "Data transfer"
+	},
+	"npmos.traffic.cache.hint": {
+		"defaultMessage": "Cache statuses come from the nginx cache of the hosts that have caching turned on (host → Caching)."
+	},
+	"npmos.traffic.cached-vs-uncached": {
+		"defaultMessage": "Cached and uncached requests"
+	},
+	"npmos.traffic.content": {
+		"defaultMessage": "Content"
+	},
+	"npmos.traffic.description": {
+		"defaultMessage": "Every request to the hosts and the attacks on them: requests, visitors, performance, security, cache and the origins behind the hosts. Click a row of a list to filter the page by it."
+	},
+	"npmos.traffic.detail-from": {
+		"defaultMessage": "The request log is kept {days} days: lists, the map and percentiles start at {time}; totals and charts cover the whole period."
+	},
+	"npmos.traffic.detail-only": {
+		"defaultMessage": "Shown for periods covered by the request log."
+	},
+	"npmos.traffic.device.bot": {
+		"defaultMessage": "Bot"
+	},
+	"npmos.traffic.device.desktop": {
+		"defaultMessage": "Desktop"
+	},
+	"npmos.traffic.device.mobile": {
+		"defaultMessage": "Mobile"
+	},
+	"npmos.traffic.device.other": {
+		"defaultMessage": "Other"
+	},
+	"npmos.traffic.device.tablet": {
+		"defaultMessage": "Tablet"
+	},
+	"npmos.traffic.devices-over-time": {
+		"defaultMessage": "Device types over time"
+	},
+	"npmos.traffic.endpoints": {
+		"defaultMessage": "Endpoints"
+	},
+	"npmos.traffic.endpoints.failed": {
+		"defaultMessage": "Connection failures"
+	},
+	"npmos.traffic.endpoints.host": {
+		"defaultMessage": "Host"
+	},
+	"npmos.traffic.endpoints.path": {
+		"defaultMessage": "Path"
+	},
+	"npmos.traffic.endpoints.requests": {
+		"defaultMessage": "Requests"
+	},
+	"npmos.traffic.endpoints.search": {
+		"defaultMessage": "Search by path or host"
+	},
+	"npmos.traffic.filter.add": {
+		"defaultMessage": "Add filter"
+	},
+	"npmos.traffic.filter.apply": {
+		"defaultMessage": "Apply"
+	},
+	"npmos.traffic.filter.browser": {
+		"defaultMessage": "Browser"
+	},
+	"npmos.traffic.filter.cache": {
+		"defaultMessage": "Cache status"
+	},
+	"npmos.traffic.filter.clear": {
+		"defaultMessage": "Clear filters"
+	},
+	"npmos.traffic.filter.contentType": {
+		"defaultMessage": "Content type"
+	},
+	"npmos.traffic.filter.country": {
+		"defaultMessage": "Country"
+	},
+	"npmos.traffic.filter.device": {
+		"defaultMessage": "Device type"
+	},
+	"npmos.traffic.filter.field": {
+		"defaultMessage": "Field"
+	},
+	"npmos.traffic.filter.host": {
+		"defaultMessage": "Host"
+	},
+	"npmos.traffic.filter.ip": {
+		"defaultMessage": "IP address"
+	},
+	"npmos.traffic.filter.maxBytes": {
+		"defaultMessage": "Size up to"
+	},
+	"npmos.traffic.filter.maxMs": {
+		"defaultMessage": "Response time up to"
+	},
+	"npmos.traffic.filter.method": {
+		"defaultMessage": "Method"
+	},
+	"npmos.traffic.filter.minBytes": {
+		"defaultMessage": "Size from"
+	},
+	"npmos.traffic.filter.minMs": {
+		"defaultMessage": "Response time from"
+	},
+	"npmos.traffic.filter.mitigated": {
+		"defaultMessage": "Outcome"
+	},
+	"npmos.traffic.filter.mitigated.no": {
+		"defaultMessage": "passed"
+	},
+	"npmos.traffic.filter.mitigated.yes": {
+		"defaultMessage": "refused"
+	},
+	"npmos.traffic.filter.origin": {
+		"defaultMessage": "Origin server"
+	},
+	"npmos.traffic.filter.originStatus": {
+		"defaultMessage": "Origin status"
+	},
+	"npmos.traffic.filter.os": {
+		"defaultMessage": "Operating system"
+	},
+	"npmos.traffic.filter.path": {
+		"defaultMessage": "Path starts with"
+	},
+	"npmos.traffic.filter.port": {
+		"defaultMessage": "Port"
+	},
+	"npmos.traffic.filter.protocol": {
+		"defaultMessage": "HTTP protocol"
+	},
+	"npmos.traffic.filter.q": {
+		"defaultMessage": "Search"
+	},
+	"npmos.traffic.filter.referer": {
+		"defaultMessage": "Referer"
+	},
+	"npmos.traffic.filter.remove": {
+		"defaultMessage": "Remove filter {name}"
+	},
+	"npmos.traffic.filter.status": {
+		"defaultMessage": "Status"
+	},
+	"npmos.traffic.filter.tls": {
+		"defaultMessage": "TLS version"
+	},
+	"npmos.traffic.filter.unknown": {
+		"defaultMessage": "Host"
+	},
+	"npmos.traffic.filter.unknown.yes": {
+		"defaultMessage": "not in Hosts"
+	},
+	"npmos.traffic.filter.value": {
+		"defaultMessage": "Value"
+	},
+	"npmos.traffic.geography": {
+		"defaultMessage": "Geography"
+	},
+	"npmos.traffic.host.none": {
+		"defaultMessage": "no name (IP address)"
+	},
+	"npmos.traffic.host.unknown": {
+		"defaultMessage": "not in Hosts"
+	},
+	"npmos.traffic.kind.crowdsec": {
+		"defaultMessage": "CrowdSec"
+	},
+	"npmos.traffic.kind.mtls": {
+		"defaultMessage": "mTLS"
+	},
+	"npmos.traffic.kind.security": {
+		"defaultMessage": "open-appsec"
+	},
+	"npmos.traffic.kpi.5xx-rate": {
+		"defaultMessage": "5xx error rate"
+	},
+	"npmos.traffic.kpi.appsec": {
+		"defaultMessage": "open-appsec events"
+	},
+	"npmos.traffic.kpi.bytes": {
+		"defaultMessage": "Data transfer"
+	},
+	"npmos.traffic.kpi.cache-hit": {
+		"defaultMessage": "Cache hit rate"
+	},
+	"npmos.traffic.kpi.cache-off": {
+		"defaultMessage": "caching is not used"
+	},
+	"npmos.traffic.kpi.cached": {
+		"defaultMessage": "Cached requests"
+	},
+	"npmos.traffic.kpi.cached-bytes": {
+		"defaultMessage": "Data from cache"
+	},
+	"npmos.traffic.kpi.connection": {
+		"defaultMessage": "Connection success"
+	},
+	"npmos.traffic.kpi.crowdsec": {
+		"defaultMessage": "CrowdSec alerts and bans"
+	},
+	"npmos.traffic.kpi.mitigated": {
+		"defaultMessage": "Refused requests"
+	},
+	"npmos.traffic.kpi.mitigated-rate": {
+		"defaultMessage": "Refused share"
+	},
+	"npmos.traffic.kpi.origin-bytes": {
+		"defaultMessage": "Data from origins"
+	},
+	"npmos.traffic.kpi.origin-errors": {
+		"defaultMessage": "Origin error rate"
+	},
+	"npmos.traffic.kpi.origin-p50": {
+		"defaultMessage": "Origin response (p50)"
+	},
+	"npmos.traffic.kpi.origin-p95": {
+		"defaultMessage": "Origin response (p95)"
+	},
+	"npmos.traffic.kpi.pageviews": {
+		"defaultMessage": "Page views"
+	},
+	"npmos.traffic.kpi.rate-limited": {
+		"defaultMessage": "Rate limited"
+	},
+	"npmos.traffic.kpi.reachability": {
+		"defaultMessage": "Origin reachability"
+	},
+	"npmos.traffic.kpi.requests": {
+		"defaultMessage": "Total requests"
+	},
+	"npmos.traffic.kpi.saved": {
+		"defaultMessage": "Bandwidth saved"
+	},
+	"npmos.traffic.kpi.to-origin": {
+		"defaultMessage": "Requests to origins"
+	},
+	"npmos.traffic.kpi.total-p50": {
+		"defaultMessage": "Full answer (p50)"
+	},
+	"npmos.traffic.kpi.total-p95": {
+		"defaultMessage": "Full answer (p95)"
+	},
+	"npmos.traffic.kpi.uncached": {
+		"defaultMessage": "Uncached requests"
+	},
+	"npmos.traffic.kpi.visits": {
+		"defaultMessage": "Visits"
+	},
+	"npmos.traffic.log": {
+		"defaultMessage": "Requests"
+	},
+	"npmos.traffic.log.agent": {
+		"defaultMessage": "Client software"
+	},
+	"npmos.traffic.log.client": {
+		"defaultMessage": "Source"
+	},
+	"npmos.traffic.log.client-section": {
+		"defaultMessage": "Client"
+	},
+	"npmos.traffic.log.description": {
+		"defaultMessage": "Every request to the hosts, newest first, including requests to domains that point here but are not in Hosts. Click a row for its details, a host or an address to filter by it."
+	},
+	"npmos.traffic.log.duration": {
+		"defaultMessage": "Time"
+	},
+	"npmos.traffic.log.duration-ms": {
+		"defaultMessage": "Response time, ms"
+	},
+	"npmos.traffic.log.empty": {
+		"defaultMessage": "No requests for this period and filters."
+	},
+	"npmos.traffic.log.from": {
+		"defaultMessage": "from"
+	},
+	"npmos.traffic.log.more": {
+		"defaultMessage": "Load more"
+	},
+	"npmos.traffic.log.only-unknown": {
+		"defaultMessage": "Only hosts not in Hosts"
+	},
+	"npmos.traffic.log.origin-status": {
+		"defaultMessage": "Origin status"
+	},
+	"npmos.traffic.log.origin-time": {
+		"defaultMessage": "Origin response"
+	},
+	"npmos.traffic.log.outcome": {
+		"defaultMessage": "Outcome"
+	},
+	"npmos.traffic.log.referer": {
+		"defaultMessage": "Came from"
+	},
+	"npmos.traffic.log.request": {
+		"defaultMessage": "Request"
+	},
+	"npmos.traffic.log.search": {
+		"defaultMessage": "Search by host, path, IP, client or referer"
+	},
+	"npmos.traffic.log.size": {
+		"defaultMessage": "Size"
+	},
+	"npmos.traffic.log.size-kb": {
+		"defaultMessage": "Response size, KB"
+	},
+	"npmos.traffic.log.time": {
+		"defaultMessage": "Time"
+	},
+	"npmos.traffic.log.to": {
+		"defaultMessage": "to"
+	},
+	"npmos.traffic.log.values-hint": {
+		"defaultMessage": "Several values: Enter after each one."
+	},
+	"npmos.traffic.map": {
+		"defaultMessage": "World map"
+	},
+	"npmos.traffic.map.attacks": {
+		"defaultMessage": "Attacks"
+	},
+	"npmos.traffic.map.empty": {
+		"defaultMessage": "No countries: there was no traffic, or the GeoIP database is missing (Administration → Settings → GeoIP)."
+	},
+	"npmos.traffic.map.less": {
+		"defaultMessage": "fewer"
+	},
+	"npmos.traffic.map.mitigated": {
+		"defaultMessage": "Refused requests"
+	},
+	"npmos.traffic.map.more": {
+		"defaultMessage": "more"
+	},
+	"npmos.traffic.mitigations-by-answer": {
+		"defaultMessage": "Refusals by answer"
+	},
+	"npmos.traffic.no-attacks": {
+		"defaultMessage": "No attacks in this period."
+	},
+	"npmos.traffic.no-data": {
+		"defaultMessage": "No data"
+	},
+	"npmos.traffic.note": {
+		"defaultMessage": "Requests: the request log of nginx (the interface of NPMOS is not counted). Attacks: events of open-appsec, CrowdSec and mTLS. Countries: the GeoIP database of NPMOS, offline."
+	},
+	"npmos.traffic.origin-breakdown": {
+		"defaultMessage": "Origin connection breakdown"
+	},
+	"npmos.traffic.origin-outcomes": {
+		"defaultMessage": "Origin connection outcomes"
+	},
+	"npmos.traffic.origin-percentiles": {
+		"defaultMessage": "Origin response time percentiles"
+	},
+	"npmos.traffic.origin-requests": {
+		"defaultMessage": "Requests to origins over time"
+	},
+	"npmos.traffic.origin-statuses": {
+		"defaultMessage": "Origin status codes over time"
+	},
+	"npmos.traffic.outcomes-over-time": {
+		"defaultMessage": "Request outcomes over time"
+	},
+	"npmos.traffic.pageviews-by-country": {
+		"defaultMessage": "Page views by country"
+	},
+	"npmos.traffic.pageviews-over-time": {
+		"defaultMessage": "Page views over time"
+	},
+	"npmos.traffic.product.appsec-detect": {
+		"defaultMessage": "open-appsec: detected"
+	},
+	"npmos.traffic.product.appsec-prevent": {
+		"defaultMessage": "open-appsec: blocked"
+	},
+	"npmos.traffic.product.crowdsec-alert": {
+		"defaultMessage": "CrowdSec: alert"
+	},
+	"npmos.traffic.product.crowdsec-ban": {
+		"defaultMessage": "CrowdSec: ban"
+	},
+	"npmos.traffic.product.crowdsec-captcha": {
+		"defaultMessage": "CrowdSec: captcha"
+	},
+	"npmos.traffic.product.mtls": {
+		"defaultMessage": "mTLS: refused"
+	},
+	"npmos.traffic.requests-n": {
+		"defaultMessage": "{n} requests"
+	},
+	"npmos.traffic.requests-over-time": {
+		"defaultMessage": "Requests over time"
+	},
+	"npmos.traffic.security-actions": {
+		"defaultMessage": "Security actions"
+	},
+	"npmos.traffic.series.attacks": {
+		"defaultMessage": "Attacks"
+	},
+	"npmos.traffic.series.bytes": {
+		"defaultMessage": "Sent"
+	},
+	"npmos.traffic.series.cached": {
+		"defaultMessage": "From cache"
+	},
+	"npmos.traffic.series.connect": {
+		"defaultMessage": "Connection"
+	},
+	"npmos.traffic.series.failed": {
+		"defaultMessage": "Connection failed"
+	},
+	"npmos.traffic.series.mitigated": {
+		"defaultMessage": "Refused"
+	},
+	"npmos.traffic.series.not-cacheable": {
+		"defaultMessage": "Not cached"
+	},
+	"npmos.traffic.series.other": {
+		"defaultMessage": "Other"
+	},
+	"npmos.traffic.series.passed": {
+		"defaultMessage": "Passed"
+	},
+	"npmos.traffic.series.reached": {
+		"defaultMessage": "Reached the origin"
+	},
+	"npmos.traffic.series.requests": {
+		"defaultMessage": "Requests"
+	},
+	"npmos.traffic.series.uncached": {
+		"defaultMessage": "Not from cache"
+	},
+	"npmos.traffic.series.wait": {
+		"defaultMessage": "Response wait"
+	},
+	"npmos.traffic.tab.cache": {
+		"defaultMessage": "Cache"
+	},
+	"npmos.traffic.tab.origin": {
+		"defaultMessage": "Origin"
+	},
+	"npmos.traffic.tab.performance": {
+		"defaultMessage": "Performance"
+	},
+	"npmos.traffic.tab.requests": {
+		"defaultMessage": "Requests"
+	},
+	"npmos.traffic.tab.security": {
+		"defaultMessage": "Security"
+	},
+	"npmos.traffic.tab.visitors": {
+		"defaultMessage": "Visitors"
+	},
+	"npmos.traffic.technology": {
+		"defaultMessage": "Technology"
+	},
+	"npmos.traffic.top.agents": {
+		"defaultMessage": "Top user agents"
+	},
+	"npmos.traffic.top.attack-paths": {
+		"defaultMessage": "Top attacked paths"
+	},
+	"npmos.traffic.top.attack-sources": {
+		"defaultMessage": "Top attack sources"
+	},
+	"npmos.traffic.top.attack-types": {
+		"defaultMessage": "Top attack types"
+	},
+	"npmos.traffic.top.browsers": {
+		"defaultMessage": "Top browsers"
+	},
+	"npmos.traffic.top.cache-statuses": {
+		"defaultMessage": "Top cache statuses"
+	},
+	"npmos.traffic.top.cached-paths": {
+		"defaultMessage": "Top cached paths"
+	},
+	"npmos.traffic.top.cached-types": {
+		"defaultMessage": "Top cached content types"
+	},
+	"npmos.traffic.top.devices": {
+		"defaultMessage": "Top device types"
+	},
+	"npmos.traffic.top.hosts": {
+		"defaultMessage": "Top hosts"
+	},
+	"npmos.traffic.top.ips": {
+		"defaultMessage": "Top client IPs"
+	},
+	"npmos.traffic.top.mitigated-ips": {
+		"defaultMessage": "Top refused client IPs"
+	},
+	"npmos.traffic.top.mitigated-paths": {
+		"defaultMessage": "Top refused paths"
+	},
+	"npmos.traffic.top.origin-paths": {
+		"defaultMessage": "Top paths by origin requests"
+	},
+	"npmos.traffic.top.origin-statuses": {
+		"defaultMessage": "Top origin status codes"
+	},
+	"npmos.traffic.top.origins": {
+		"defaultMessage": "Top origin addresses"
+	},
+	"npmos.traffic.top.os": {
+		"defaultMessage": "Top operating systems"
+	},
+	"npmos.traffic.top.paths": {
+		"defaultMessage": "Top paths"
+	},
+	"npmos.traffic.top.paths-bytes": {
+		"defaultMessage": "Top paths by data transfer"
+	},
+	"npmos.traffic.top.protocols": {
+		"defaultMessage": "Top HTTP versions"
+	},
+	"npmos.traffic.top.referers": {
+		"defaultMessage": "Top referring sites"
+	},
+	"npmos.traffic.top.slow-paths": {
+		"defaultMessage": "Slowest paths (origin p95)"
+	},
+	"npmos.traffic.top.statuses": {
+		"defaultMessage": "Top status codes"
+	},
+	"npmos.traffic.top.tls": {
+		"defaultMessage": "TLS versions"
+	},
+	"npmos.traffic.top.uncached-paths": {
+		"defaultMessage": "Top uncached paths"
+	},
+	"npmos.traffic.top.uncached-types": {
+		"defaultMessage": "Top uncached content types"
+	},
+	"npmos.traffic.unknown": {
+		"defaultMessage": "unknown"
+	},
+	"npmos.traffic.unknown-hosts.add": {
+		"defaultMessage": "Add a host"
+	},
+	"npmos.traffic.unknown-hosts.default": {
+		"defaultMessage": "Default site"
+	},
+	"npmos.traffic.unknown-hosts.show": {
+		"defaultMessage": "Show requests"
+	},
+	"npmos.traffic.unknown-hosts.text": {
+		"defaultMessage": "{hosts} point to this server but are not in Hosts: the default site answers them. Add them as hosts, or let the default site drop them (444)."
+	},
+	"npmos.traffic.unknown-hosts.title": {
+		"defaultMessage": "{count} requests to domains that are not in Hosts"
+	},
+	"npmos.traffic.unsupported": {
+		"defaultMessage": "Traffic analytics needs PostgreSQL (the database of the NPMOS stack)."
+	},
+	"npmos.traffic.visitors.hint": {
+		"defaultMessage": "A page view is an HTML page answered without an error; a visit is a page view that did not come from the same site."
+	},
+	"npmos.traffic.visits-over-time": {
+		"defaultMessage": "Visits over time"
+	},
 	"npmos.user.password-hint": {
 		"defaultMessage": "At least 8 characters. The user can change it later in their profile."
 	},
@@ -6411,7 +7107,7 @@
 		"defaultMessage": "Settings saved, the agent is restarting"
 	},
 	"npmos.waf.agent-unreachable": {
-		"defaultMessage": "The agent is not reachable. Check the appsec-agent service in Overview → Services."
+		"defaultMessage": "The agent is not reachable. Check the openappsec service in Overview → Services."
 	},
 	"npmos.waf.apply": {
 		"defaultMessage": "Apply now"
@@ -6447,7 +7143,7 @@
 		"defaultMessage": "Agent component"
 	},
 	"npmos.waf.events.description": {
-		"defaultMessage": "What the agents found and reported: attacks open-appsec detected or blocked, CrowdSec alerts and the notices of the open-appsec agent; each row names its agent. mTLS refusals have their own tab."
+		"defaultMessage": "What the agents found and reported: attacks open-appsec detected or blocked, CrowdSec alerts and the notices of the open-appsec agent; each row names its agent. mTLS refusals have their own tab; every request to the hosts is on the Requests tab."
 	},
 	"npmos.waf.events.event": {
 		"defaultMessage": "Event"

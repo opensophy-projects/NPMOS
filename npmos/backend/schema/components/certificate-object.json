@@ -87,6 +87,11 @@
 				"propagation_seconds": {
 					"type": "integer",
 					"minimum": 0
+				},
+				"acme_server_id": {
+					"type": "integer",
+					"minimum": 1,
+					"description": "NPMOS: the ACME server of Settings -> ACME the certificate is issued by"
 				}
 			},
 			"example": {

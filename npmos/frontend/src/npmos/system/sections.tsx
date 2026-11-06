@@ -3,6 +3,7 @@
 // NPM / NPMplus.
 import type { ReactNode } from "react";
 import { T } from "src/locale";
+import { AcmeServers } from "../acme/AcmeServers";
 import { RetentionForm } from "../pages/WafEvents/Retention";
 import type { EnvGroup } from "./api";
 import { EnvSection, RestartBanner } from "./EnvSection";
@@ -23,6 +24,7 @@ export const NPMOS_SETTINGS_SECTIONS: SettingsSection[] = [
 		label: `npmos.system.group.${group}`,
 		render: (canManage: boolean) => (
 			<>
+				{group === "acme" && <AcmeServers canManage={canManage} />}
 				<EnvSection group={group} />
 				{group === "logs" && (
 					<div className="px-4 pb-4">

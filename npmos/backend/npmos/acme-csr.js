@@ -14,7 +14,10 @@ import utils from "../lib/utils.js";
 import { certbot as logger } from "../logger.js";
 import certificateModel from "../models/certificate.js";
 import { checkCsr, pemBlock } from "./acme-csr-check.js";
-import { acmeError, acmeRenewEnabled, certbotAcme } from "./acme.js";
+import { acmeError, acmeRenewEnabled, certbotAcme, certbotServerArgs } from "./acme.js";
+import { clientOf, withServer } from "./acme/certs.js";
+import lego, { REASON } from "./acme/lego.js";
+import acmeServers from "./acme/servers.js";
 import { termOf } from "./cert-terms.js";
 
 const CSR_DIR = "/data/tls/certbot/csr";
@@ -23,10 +26,17 @@ const LIVE_DIR = "/data/tls/certbot/live";
 const csrDir = (id) => `${CSR_DIR}/npm-${id}`;
 const liveDir = (id) => `${LIVE_DIR}/npm-${id}`;
 
-/** certbot certonly --csr into a fresh directory (certbot picks other names when the files exist) */
+/**
+ * The certificate for the CSR from the ACME server of the certificate: lego with --csr, or certbot certonly --csr
+ * into a fresh directory (certbot picks other names when the files exist)
+ */
 const requestFor = async (cert) => {
 	const dir = csrDir(cert.id);
 	const meta = cert.meta || {};
+	const server = await acmeServers.of(meta);
+	if (clientOf(cert) === "lego") {
+		return lego.issue(cert, server, { csr: `${dir}/csr.pem`, key: `${dir}/privkey.pem` });
+	}
 	const out = await mkdtemp("/tmp/npmos-csr-out-");
 	let credentials = null;
 	try {
@@ -51,22 +61,24 @@ const requestFor = async (cert) => {
 			challenge.push("--authenticator", "webroot");
 		}
 		logger.info(`Requesting a certificate for the CSR of Cert #${cert.id}: ${cert.domain_names.join(", ")}`);
-		const result = await certbotAcme([
-			"--config",
-			"/etc/certbot.ini",
-			"certonly",
-			"--server",
-			process.env.ACME_SERVER,
-			"--csr",
-			`${dir}/csr.pem`,
-			"--cert-path",
-			`${out}/cert.pem`,
-			"--fullchain-path",
-			`${out}/fullchain.pem`,
-			"--chain-path",
-			`${out}/chain.pem`,
-			...challenge,
-		]);
+		const result = await certbotAcme(
+			[
+				"--config",
+				"/etc/certbot.ini",
+				"certonly",
+				...certbotServerArgs(server),
+				"--csr",
+				`${dir}/csr.pem`,
+				"--cert-path",
+				`${out}/cert.pem`,
+				"--fullchain-path",
+				`${out}/fullchain.pem`,
+				"--chain-path",
+				`${out}/chain.pem`,
+				...challenge,
+			],
+			{ server },
+		);
 		logger.info(result);
 		const live = liveDir(cert.id);
 		await mkdir(live, { recursive: true });
@@ -110,9 +122,22 @@ const internalAcmeCsr = {
 		await access.can("certificates:create");
 		const { csr, key, names, key_type, subject } = await checkCsr(data.csr, data.key);
 		const input = data.meta || {};
-		const meta = { npmos_csr: true, npmos_csr_key_type: key_type, npmos_csr_subject: subject };
+		// the ACME server of Settings -> ACME it is sent to, and its client
+		const { server } = await withServer({ acme_server_id: input.acme_server_id });
+		const meta = {
+			npmos_csr: true,
+			npmos_csr_key_type: key_type,
+			npmos_csr_subject: subject,
+			acme_server_id: server.id,
+			acme_client: server.client,
+		};
 		if (input.dns_challenge) {
-			if (!dnsPlugins[input.dns_provider]) throw new errs.ValidationError("Choose the DNS provider");
+			// certbot: one of its plugins; lego: a code of `lego dnshelp`
+			const known =
+				server.client === "lego"
+					? (await lego.dnsProviders()).includes(input.dns_provider)
+					: !!dnsPlugins[input.dns_provider];
+			if (!known) throw new errs.ValidationError("Choose the DNS provider");
 			Object.assign(meta, {
 				dns_challenge: true,
 				dns_provider: input.dns_provider,
@@ -147,7 +172,7 @@ const internalAcmeCsr = {
 			await certificateModel.query().deleteById(row.id);
 			await rm(csrDir(row.id), { recursive: true, force: true });
 			await rm(liveDir(row.id), { recursive: true, force: true });
-			throw err instanceof errs.ValidationError ? err : acmeError(err);
+			throw err instanceof errs.ValidationError ? err : acmeError(err, server);
 		}
 	},
 
@@ -159,19 +184,26 @@ const internalAcmeCsr = {
 
 	/** revoke by the certificate file (no certbot lineage) and remove the files */
 	revoke: async (cert, throwErrors) => {
+		const server = await acmeServers.of(cert.meta).catch(() => null);
+		if (server && clientOf(cert) === "lego") {
+			await lego.revoke(cert, server, REASON.cessationOfOperation, throwErrors);
+			await rm(csrDir(cert.id), { recursive: true, force: true });
+			return;
+		}
 		try {
+			if (!server) throw new Error("its ACME server was removed");
 			const result = await utils.execFile("certbot", [
 				"--config",
 				"/etc/certbot.ini",
 				"revoke",
-				"--server",
-				process.env.ACME_SERVER,
+				...certbotServerArgs({ ...server, profile: "" }),
 				"--cert-path",
 				`${liveDir(cert.id)}/cert.pem`,
 				"--key-path",
 				`${csrDir(cert.id)}/privkey.pem`,
+				// a reason every CA accepts (some refuse "unspecified")
 				"--reason",
-				"unspecified",
+				"cessationofoperation",
 				"--no-delete-after-revoke",
 			]);
 			logger.info(result);

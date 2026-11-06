@@ -28,7 +28,7 @@ export function LiveNow({ host }: { host: string }) {
 	const refused = events.filter((e) => ["Prevent", "ban", "captcha", "denied"].includes(e.action)).length;
 	const sources = new Set(events.map((e) => e.sourceIp).filter(Boolean)).size;
 	return (
-		<section className={cn("card", styles.panel, styles.wide, styles.live)}>
+		<section className={cn(styles.panel, styles.wide, styles.live)}>
 			<div className={styles.liveHead}>
 				<span className={styles.pulse} aria-hidden="true" />
 				<h3 className={styles.panelTitle}>

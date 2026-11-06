@@ -65,7 +65,7 @@ docker network ls --format '{{.Name}}' | grep -E '^npmos' | xargs -r docker netw
 
 # 3. образы NPMOS и сторонние образы стека, dev и тестов
 docker images --format '{{.Repository}}:{{.Tag}}' \
-  | grep -E '(^|/)(npmos(-appsec-[a-z-]+)?|crowdsecurity/crowdsec|tecnativa/docker-socket-proxy|postgres|traefik/whoami|curlimages/curl|zoeyvid/npmplus|node):' \
+  | grep -E '(^|/)(npmos(-openappsec|-appsec-[a-z-]+)?|crowdsecurity/crowdsec|tecnativa/docker-socket-proxy|postgres|traefik/whoami|curlimages/curl|zoeyvid/npmplus|node):' \
   | xargs -r docker rmi -f
 
 # 4. кэш сборки и висячие слои
@@ -99,16 +99,16 @@ Compose удаляет только то, что знает по текущим 
 
 | Что | Имена |
 |---|---|
-| Контейнеры | `npmos`, `npmos-control`, `npmos-postgres`, `npmos-crowdsec`, `npmos-socket-proxy`, `npmos-appsec-agent`, `npmos-appsec-shared-storage`, `npmos-appsec-tuning-svc`, `npmos-npmos-init-1`; dev и тесты: `npmos-test-upstream`, `npmos-attacker`, `npmos-airgap-*` |
+| Контейнеры | `npmos`, `npmos-openappsec`, `npmos-postgres`, `npmos-crowdsec`, `npmos-npmos-init-1`; от версий до ноября 2026: `npmos-control`, `npmos-socket-proxy`, `npmos-appsec-agent`, `npmos-appsec-shared-storage`, `npmos-appsec-tuning-svc`; dev и тесты: `npmos-test-upstream`, `npmos-attacker`, `npmos-airgap-*` |
 | Тома | `npmos_secrets`, `npmos_npmos-data`, `npmos_postgres-data`, `npmos_appsec-shm`, `npmos_appsec-conf`, `npmos_appsec-data`, `npmos_appsec-logs`, `npmos_appsec-localconfig`, `npmos_appsec-model`, `npmos_appsec-storage`, `npmos_crowdsec-conf`, `npmos_crowdsec-data`; тест: `npmos-airgap_*` |
-| Сети | `npmos_edge`, `npmos_internal`, `npmos_control`; тест: `npmos-airgap_*` |
+| Сети | `npmos_edge`, `npmos_internal` (и `npmos_control` старых версий); тест: `npmos-airgap_*` |
 
 ## 3. Образы
 
 Без этого шага переустановка запустит старую сборку (см. начало).
 
-- Образы NPMOS: `opensophy/npmos`, `opensophy/npmos-appsec-{agent,shared-storage,tuning}` из Docker Hub, `local/npmos*:dev` из `scripts/build-images.sh`, `npmos:dev` из dev-стека.
-- Сторонние: `crowdsecurity/crowdsec`, `tecnativa/docker-socket-proxy`, `postgres`; для dev и тестов `traefik/whoami`, `curlimages/curl`, `zoeyvid/npmplus` (база dev-образа), `node` (сборка dev-образа). Если они нужны другим проектам на машине, уберите их из команды. Удалённый образ просто скачается заново при следующем запуске того проекта.
+- Образы NPMOS: `opensophy/npmos`, `opensophy/npmos-openappsec` (и `opensophy/npmos-appsec-{agent,shared-storage,tuning}` старых версий) из Docker Hub, `local/npmos*:dev` из `scripts/build-images.sh`, `npmos:dev` из dev-стека.
+- Сторонние: `crowdsecurity/crowdsec`, `postgres` (и `tecnativa/docker-socket-proxy` старых версий); для dev и тестов `traefik/whoami`, `curlimages/curl`, `zoeyvid/npmplus` (база dev-образа), `node` (сборка dev-образа). Если они нужны другим проектам на машине, уберите их из команды. Удалённый образ просто скачается заново при следующем запуске того проекта.
 
 ## 4. Кэш сборки
 

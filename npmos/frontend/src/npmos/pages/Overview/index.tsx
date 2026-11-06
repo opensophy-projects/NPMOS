@@ -31,7 +31,8 @@ import {
 } from "../../hooks";
 import { useCan } from "../../rbac/hooks";
 import { Admonition, type AdmonitionVariant } from "../../ui/Admonition";
-import { formatNumber, StackedBars } from "../../ui/Charts";
+import { formatNumber } from "../../ui/Charts";
+import { AreaChart } from "../../ui/charts/AreaChart";
 import { timeAgo } from "../../ui/time";
 import { filtersToParams, HOST_TYPES, type HostRow, type HostType, recommendations, toRows } from "../Hosts/rows";
 import {
@@ -244,8 +245,9 @@ function OverviewPage() {
 							<b>{formatNumber(traffic.data.kpi.attacks)}</b> <T id="npmos.overview.traffic.attacks" />
 						</span>
 					</div>
-					<StackedBars
-						height={120}
+					<AreaChart
+						stacked
+						height={140}
 						data={traffic.data.traffic.timeline.map((b) => ({
 							t: b.t,
 							passed: Math.max(0, b.requests - b.blocked),
@@ -255,7 +257,7 @@ function OverviewPage() {
 							{
 								key: "passed",
 								label: intl.formatMessage({ id: "npmos.analytics.traffic.passed" }),
-								color: "var(--series-3)",
+								color: "var(--series-1)",
 							},
 							{
 								key: "blocked",

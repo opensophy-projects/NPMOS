@@ -525,13 +525,13 @@
 		"defaultMessage": "Только HTTP"
 	},
 	"lets-encrypt": {
-		"defaultMessage": "Let's Encrypt / ACME"
+		"defaultMessage": "ACME"
 	},
 	"lets-encrypt-via-dns": {
-		"defaultMessage": "Let's Encrypt / ACME (проверка по DNS)"
+		"defaultMessage": "ACME (проверка по DNS)"
 	},
 	"lets-encrypt-via-http": {
-		"defaultMessage": "Let's Encrypt / ACME (проверка по HTTP)"
+		"defaultMessage": "ACME (проверка по HTTP)"
 	},
 	"loading": {
 		"defaultMessage": "Загрузка…"
@@ -644,6 +644,27 @@
 	"npmos.access.search": {
 		"defaultMessage": "Поиск по названию"
 	},
+	"npmos.acme.challenge": {
+		"defaultMessage": "Как проверяется домен"
+	},
+	"npmos.acme.challenge.dns": {
+		"defaultMessage": "DNS-01"
+	},
+	"npmos.acme.challenge.dns-hint": {
+		"defaultMessage": "TXT-запись создаётся через API вашего DNS-провайдера: подходит для wildcard-доменов и закрытого порта 80."
+	},
+	"npmos.acme.challenge.http": {
+		"defaultMessage": "HTTP-01"
+	},
+	"npmos.acme.challenge.http-hint": {
+		"defaultMessage": "Сервер запрашивает файл по порту 80: домены должны указывать на этот сервер, а порт 80 — быть доступен ACME-серверу."
+	},
+	"npmos.acme.client.certbot": {
+		"defaultMessage": "certbot"
+	},
+	"npmos.acme.client.lego": {
+		"defaultMessage": "lego"
+	},
 	"npmos.acme.csr.check": {
 		"defaultMessage": "Проверить"
 	},
@@ -686,6 +707,24 @@
 	"npmos.acme.csr.title": {
 		"defaultMessage": "Сертификат ACME по своему CSR"
 	},
+	"npmos.acme.lego.credentials-hint": {
+		"defaultMessage": "Строки ПЕРЕМЕННАЯ=значение; переменные провайдера подставлены, пустые можно убрать."
+	},
+	"npmos.acme.lego.credentials-placeholder": {
+		"defaultMessage": "ПЕРЕМЕННАЯ=значение"
+	},
+	"npmos.acme.lego.help-hide": {
+		"defaultMessage": "Скрыть переменные"
+	},
+	"npmos.acme.lego.help-show": {
+		"defaultMessage": "Показать переменные провайдера"
+	},
+	"npmos.acme.lego.propagation-hint": {
+		"defaultMessage": "Пусто — lego сам проверит, что запись видна. Число — вместо этого ждёт столько секунд."
+	},
+	"npmos.acme.lego.warning": {
+		"defaultMessage": "lego создаёт TXT-запись через API вашего DNS-провайдера: выберите его и укажите ключи в переменных ниже (они хранятся вместе с сертификатом для продлений)."
+	},
 	"npmos.acme.log.none": {
 		"defaultMessage": "Неудачных запросов к ACME-серверу ещё не было."
 	},
@@ -697,6 +736,111 @@
 	},
 	"npmos.acme.log.title": {
 		"defaultMessage": "Полный лог последнего запроса"
+	},
+	"npmos.acme.menu": {
+		"defaultMessage": "ACME"
+	},
+	"npmos.acme.new": {
+		"defaultMessage": "Новый сертификат ACME"
+	},
+	"npmos.acme.server": {
+		"defaultMessage": "ACME-сервер"
+	},
+	"npmos.acme.server.default": {
+		"defaultMessage": "по умолчанию"
+	},
+	"npmos.acme.server.manage": {
+		"defaultMessage": "ACME-серверы"
+	},
+	"npmos.acme.servers.add": {
+		"defaultMessage": "Добавить ACME-сервер"
+	},
+	"npmos.acme.servers.caa": {
+		"defaultMessage": "Для CAA-записи ваших доменов: {caa}"
+	},
+	"npmos.acme.servers.client": {
+		"defaultMessage": "ACME-клиент"
+	},
+	"npmos.acme.servers.client-hint.certbot": {
+		"defaultMessage": "certbot — клиент NPMplus, его DNS-плагины. Регистрируется с RSA-ключом и отправляет CSR без subject."
+	},
+	"npmos.acme.servers.client-hint.lego": {
+		"defaultMessage": "lego — ключ аккаунта ES256 и имя в CN запроса (нужно ТЦИ / НУЦ Минцифры и другим), 150+ DNS-провайдеров."
+	},
+	"npmos.acme.servers.custom": {
+		"defaultMessage": "Другой ACME-сервер (URL)"
+	},
+	"npmos.acme.servers.default-set": {
+		"defaultMessage": "ACME-сервер по умолчанию изменён"
+	},
+	"npmos.acme.servers.deleted": {
+		"defaultMessage": "ACME-сервер удалён"
+	},
+	"npmos.acme.servers.description": {
+		"defaultMessage": "Откуда берутся сертификаты ACME: известный центр сертификации или свой сервер (любой directory по RFC 8555). Сервер по умолчанию выбирается первым в формах сертификатов; каждый сертификат продлевается на своём сервере. Аккаунт регистрируется при первом сертификате."
+	},
+	"npmos.acme.servers.directory": {
+		"defaultMessage": "Адрес directory"
+	},
+	"npmos.acme.servers.directory-placeholder": {
+		"defaultMessage": "https://acme.example.com/directory"
+	},
+	"npmos.acme.servers.eab-hint": {
+		"defaultMessage": "Привязка внешнего аккаунта со страницы аккаунта центра сертификации. Пусто, если не нужна."
+	},
+	"npmos.acme.servers.eab-hmac": {
+		"defaultMessage": "EAB: HMAC-ключ"
+	},
+	"npmos.acme.servers.eab-kid": {
+		"defaultMessage": "EAB: ID ключа"
+	},
+	"npmos.acme.servers.eab-required": {
+		"defaultMessage": "Этому центру сертификации нужны оба ключа EAB вашего аккаунта."
+	},
+	"npmos.acme.servers.edit": {
+		"defaultMessage": "ACME-сервер"
+	},
+	"npmos.acme.servers.email": {
+		"defaultMessage": "Email аккаунта"
+	},
+	"npmos.acme.servers.email-hint": {
+		"defaultMessage": "Сюда центр сертификации присылает напоминания об истечении. Нужен с EAB."
+	},
+	"npmos.acme.servers.email-zerossl": {
+		"defaultMessage": "Обязателен: ZeroSSL выдаёт ключи EAB на этот email, если их не ввести."
+	},
+	"npmos.acme.servers.in-use": {
+		"defaultMessage": "Этим сервером выпущены сертификаты"
+	},
+	"npmos.acme.servers.make-default": {
+		"defaultMessage": "Сделать по умолчанию"
+	},
+	"npmos.acme.servers.name": {
+		"defaultMessage": "Название"
+	},
+	"npmos.acme.servers.preset": {
+		"defaultMessage": "Центр сертификации"
+	},
+	"npmos.acme.servers.profile": {
+		"defaultMessage": "Профиль сертификата"
+	},
+	"npmos.acme.servers.profile-default": {
+		"defaultMessage": "По умолчанию сервера"
+	},
+	"npmos.acme.servers.profile-hint": {
+		"defaultMessage": "Срок задаёт сервер: у Let's Encrypt есть classic (90 дней), tlsserver и shortlived (около 6 дней, нужен интернет каждые день-два)."
+	},
+	"npmos.acme.servers.title": {
+		"defaultMessage": "ACME-серверы"
+	},
+	"npmos.acme.servers.tls-verify": {
+		"defaultMessage": "Проверять TLS-сертификат сервера"
+	},
+	"npmos.acme.servers.tls-verify-hint": {
+		"defaultMessage": "Выключайте только для своего сервера с сертификатом, которому эта система не доверяет."
+	},
+	"npmos.acme.servers.used": {
+		"defaultMessage": "Сертификатов"
 	},
 	"npmos.agent.default.hint": {
 		"defaultMessage": "Действует на все хосты без своей политики: режим и блоки, которые использует агент."
@@ -2339,6 +2483,9 @@
 	"npmos.events.kind.mtls": {
 		"defaultMessage": "mTLS"
 	},
+	"npmos.events.kind.requests": {
+		"defaultMessage": "Запросы"
+	},
 	"npmos.events.label.benign": {
 		"defaultMessage": "Ложное срабатывание"
 	},
@@ -2398,6 +2545,12 @@
 	},
 	"npmos.events.retention.oldest": {
 		"defaultMessage": "Самое старое: {time}"
+	},
+	"npmos.events.retention.request-days": {
+		"defaultMessage": "Журнал запросов, дней"
+	},
+	"npmos.events.retention.requests-stored": {
+		"defaultMessage": "Запросов в журнале: {requests}"
 	},
 	"npmos.events.retention.saved": {
 		"defaultMessage": "Срок хранения сохранён"
@@ -2748,7 +2901,7 @@
 		"defaultMessage": "Сертификат требует внимания: хостов {count}"
 	},
 	"npmos.hosts.rec.expiring.hint": {
-		"defaultMessage": "Сертификаты Let's Encrypt и других ACME попадают сюда, только если продление запаздывает (полный лог последнего запроса — в «Сертификатах»); свои — за 14 дней до конца или за треть более короткого срока."
+		"defaultMessage": "Сертификаты ACME попадают сюда, только если продление запаздывает (полный лог последнего запроса — в «Сертификатах»); свои — за 14 дней до конца или за треть более короткого срока."
 	},
 	"npmos.hosts.rec.less": {
 		"defaultMessage": "Свернуть"
@@ -2832,7 +2985,7 @@
 		"defaultMessage": "Истекает (< 14 дней)"
 	},
 	"npmos.hosts.tls.issue": {
-		"defaultMessage": "Выпустить Let's Encrypt"
+		"defaultMessage": "Выпустить через ACME"
 	},
 	"npmos.hosts.tls.requesting": {
 		"defaultMessage": "Запрашиваем сертификат, это может занять минуту…"
@@ -5844,7 +5997,7 @@
 		"defaultMessage": "TLS-сертификаты"
 	},
 	"npmos.rbac.resource.certificates.desc": {
-		"defaultMessage": "Let's Encrypt и загруженные сертификаты"
+		"defaultMessage": "Сертификаты ACME и загруженные"
 	},
 	"npmos.rbac.resource.crowdsec": {
 		"defaultMessage": "CrowdSec"
@@ -6086,50 +6239,8 @@
 	"npmos.settings.events-retention": {
 		"defaultMessage": "Срок хранения событий безопасности"
 	},
-	"npmos.system.acme-profile.auto": {
-		"defaultMessage": "Как решит NPMOS (Let's Encrypt: classic, 90 дней)"
-	},
-	"npmos.system.acme-profile.classic": {
-		"defaultMessage": "classic — 90 дней"
-	},
-	"npmos.system.acme-profile.none": {
-		"defaultMessage": "По умолчанию сервера (Let's Encrypt: 90 дней)"
-	},
-	"npmos.system.acme-profile.shortlived": {
-		"defaultMessage": "shortlived — около 6 дней (нужен интернет каждые день-два)"
-	},
-	"npmos.system.acme-profile.tlsserver": {
-		"defaultMessage": "tlsserver — 90 дней, только для серверов"
-	},
-	"npmos.system.acme.custom": {
-		"defaultMessage": "Другой (URL)"
-	},
 	"npmos.system.after-restart": {
 		"defaultMessage": "после перезапуска"
-	},
-	"npmos.system.env.ACME_EAB_HMAC_KEY": {
-		"defaultMessage": "EAB: HMAC-ключ"
-	},
-	"npmos.system.env.ACME_EAB_HMAC_KEY.hint": {
-		"defaultMessage": "HMAC-ключ к этому ID. После сохранения не показывается."
-	},
-	"npmos.system.env.ACME_EAB_KID": {
-		"defaultMessage": "EAB: ID ключа"
-	},
-	"npmos.system.env.ACME_EAB_KID.hint": {
-		"defaultMessage": "Привязка внешнего аккаунта (EAB): ID ключа со страницы аккаунта центра сертификации. Для Let's Encrypt не нужен."
-	},
-	"npmos.system.env.ACME_EMAIL": {
-		"defaultMessage": "Email аккаунта ACME"
-	},
-	"npmos.system.env.ACME_EMAIL.hint": {
-		"defaultMessage": "Сюда центр сертификации присылает напоминания об истечении. Нужен для ZeroSSL и EAB."
-	},
-	"npmos.system.env.ACME_PROFILE": {
-		"defaultMessage": "Профиль сертификата (срок)"
-	},
-	"npmos.system.env.ACME_PROFILE.hint": {
-		"defaultMessage": "Срок задаёт ACME-сервер своими профилями (они есть у Let's Encrypt; ZeroSSL, Google и другие выдают на свой срок). Короткий срок уменьшает вред от украденного ключа, но NPMOS должен успеть связаться с сервером до его конца: с shortlived два-три дня без интернета оставят сайты с просроченными сертификатами. Профиль, которого у сервера нет, заменяется профилем по умолчанию. Действует для новых выпусков и продлений после перезапуска."
 	},
 	"npmos.system.env.ACME_RENEW": {
 		"defaultMessage": "Продлевать автоматически"
@@ -6142,12 +6253,6 @@
 	},
 	"npmos.system.env.ACME_RENEW_DAYS.hint": {
 		"defaultMessage": "0 — как решит certbot: за треть срока (не больше 30 дней). Для коротких сроков ставьте меньше самого срока."
-	},
-	"npmos.system.env.ACME_SERVER": {
-		"defaultMessage": "ACME-сервер"
-	},
-	"npmos.system.env.ACME_SERVER.hint": {
-		"defaultMessage": "Центр сертификации, который выпускает сертификаты. «Другой» — адрес directory любого ACME-сервера, в том числе в вашей сети."
 	},
 	"npmos.system.env.DEFAULT_CERT_ID": {
 		"defaultMessage": "Сертификат по умолчанию"
@@ -6294,10 +6399,10 @@
 		"defaultMessage": "Авто"
 	},
 	"npmos.system.group.acme": {
-		"defaultMessage": "ACME (Let's Encrypt и другие)"
+		"defaultMessage": "ACME"
 	},
 	"npmos.system.group.acme.hint": {
-		"defaultMessage": "Откуда берутся сертификаты «Let's Encrypt / ACME». Для Let's Encrypt больше ничего не нужно; ZeroSSL нужен email, Google Trust Services и SSL.com — ключи EAB со страницы аккаунта. Аккаунт регистрируется при первом запросе сертификата."
+		"defaultMessage": "Когда продлеваются сертификаты ACME. Серверы, откуда они берутся, — выше."
 	},
 	"npmos.system.group.external": {
 		"defaultMessage": "Внешние сервисы"
@@ -6365,6 +6470,597 @@
 	"npmos.system.secret.set": {
 		"defaultMessage": "задан — введите новый, чтобы заменить"
 	},
+	"npmos.traffic.answer.403": {
+		"defaultMessage": "Отказано (403)"
+	},
+	"npmos.traffic.answer.429": {
+		"defaultMessage": "Лимит запросов (429)"
+	},
+	"npmos.traffic.answer.444": {
+		"defaultMessage": "Сброшено (444)"
+	},
+	"npmos.traffic.answer.mtls": {
+		"defaultMessage": "mTLS (495/496)"
+	},
+	"npmos.traffic.attack-map": {
+		"defaultMessage": "Откуда идут атаки"
+	},
+	"npmos.traffic.attacks-over-time": {
+		"defaultMessage": "Атаки по средствам защиты"
+	},
+	"npmos.traffic.by-cache": {
+		"defaultMessage": "Запросы по статусу кэша"
+	},
+	"npmos.traffic.by-protocol": {
+		"defaultMessage": "Запросы по протоколу HTTP"
+	},
+	"npmos.traffic.by-status": {
+		"defaultMessage": "Запросы по кодам ответа"
+	},
+	"npmos.traffic.bytes-cached-vs-uncached": {
+		"defaultMessage": "Передано данных: из кэша и нет"
+	},
+	"npmos.traffic.bytes-over-time": {
+		"defaultMessage": "Передано данных"
+	},
+	"npmos.traffic.cache.hint": {
+		"defaultMessage": "Статус кэша берётся из кэша nginx у хостов, где включено кэширование (хост → Кэширование)."
+	},
+	"npmos.traffic.cached-vs-uncached": {
+		"defaultMessage": "Запросы из кэша и мимо кэша"
+	},
+	"npmos.traffic.content": {
+		"defaultMessage": "Содержимое"
+	},
+	"npmos.traffic.description": {
+		"defaultMessage": "Все запросы к хостам и атаки на них: запросы, посетители, производительность, безопасность, кэш и серверы за хостами. Нажмите на строку списка, чтобы отфильтровать страницу по ней."
+	},
+	"npmos.traffic.detail-from": {
+		"defaultMessage": "Журнал запросов хранится {days} дн.: списки, карта и перцентили — с {time}; итоги и графики — за весь период."
+	},
+	"npmos.traffic.detail-only": {
+		"defaultMessage": "Показывается для периодов, которые покрывает журнал запросов."
+	},
+	"npmos.traffic.device.bot": {
+		"defaultMessage": "Бот"
+	},
+	"npmos.traffic.device.desktop": {
+		"defaultMessage": "Компьютер"
+	},
+	"npmos.traffic.device.mobile": {
+		"defaultMessage": "Телефон"
+	},
+	"npmos.traffic.device.other": {
+		"defaultMessage": "Другое"
+	},
+	"npmos.traffic.device.tablet": {
+		"defaultMessage": "Планшет"
+	},
+	"npmos.traffic.devices-over-time": {
+		"defaultMessage": "Типы устройств во времени"
+	},
+	"npmos.traffic.endpoints": {
+		"defaultMessage": "Адреса"
+	},
+	"npmos.traffic.endpoints.failed": {
+		"defaultMessage": "Сбои соединения"
+	},
+	"npmos.traffic.endpoints.host": {
+		"defaultMessage": "Хост"
+	},
+	"npmos.traffic.endpoints.path": {
+		"defaultMessage": "Путь"
+	},
+	"npmos.traffic.endpoints.requests": {
+		"defaultMessage": "Запросы"
+	},
+	"npmos.traffic.endpoints.search": {
+		"defaultMessage": "Поиск по пути или хосту"
+	},
+	"npmos.traffic.filter.add": {
+		"defaultMessage": "Добавить фильтр"
+	},
+	"npmos.traffic.filter.apply": {
+		"defaultMessage": "Применить"
+	},
+	"npmos.traffic.filter.browser": {
+		"defaultMessage": "Браузер"
+	},
+	"npmos.traffic.filter.cache": {
+		"defaultMessage": "Статус кэша"
+	},
+	"npmos.traffic.filter.clear": {
+		"defaultMessage": "Сбросить фильтры"
+	},
+	"npmos.traffic.filter.contentType": {
+		"defaultMessage": "Тип содержимого"
+	},
+	"npmos.traffic.filter.country": {
+		"defaultMessage": "Страна"
+	},
+	"npmos.traffic.filter.device": {
+		"defaultMessage": "Тип устройства"
+	},
+	"npmos.traffic.filter.field": {
+		"defaultMessage": "Поле"
+	},
+	"npmos.traffic.filter.host": {
+		"defaultMessage": "Хост"
+	},
+	"npmos.traffic.filter.ip": {
+		"defaultMessage": "IP-адрес"
+	},
+	"npmos.traffic.filter.maxBytes": {
+		"defaultMessage": "Размер до"
+	},
+	"npmos.traffic.filter.maxMs": {
+		"defaultMessage": "Время ответа до"
+	},
+	"npmos.traffic.filter.method": {
+		"defaultMessage": "Метод"
+	},
+	"npmos.traffic.filter.minBytes": {
+		"defaultMessage": "Размер от"
+	},
+	"npmos.traffic.filter.minMs": {
+		"defaultMessage": "Время ответа от"
+	},
+	"npmos.traffic.filter.mitigated": {
+		"defaultMessage": "Исход"
+	},
+	"npmos.traffic.filter.mitigated.no": {
+		"defaultMessage": "пропущенные"
+	},
+	"npmos.traffic.filter.mitigated.yes": {
+		"defaultMessage": "отклонённые"
+	},
+	"npmos.traffic.filter.origin": {
+		"defaultMessage": "Сервер за хостом"
+	},
+	"npmos.traffic.filter.originStatus": {
+		"defaultMessage": "Статус сервера"
+	},
+	"npmos.traffic.filter.os": {
+		"defaultMessage": "Операционная система"
+	},
+	"npmos.traffic.filter.path": {
+		"defaultMessage": "Путь начинается с"
+	},
+	"npmos.traffic.filter.port": {
+		"defaultMessage": "Порт"
+	},
+	"npmos.traffic.filter.protocol": {
+		"defaultMessage": "Протокол HTTP"
+	},
+	"npmos.traffic.filter.q": {
+		"defaultMessage": "Поиск"
+	},
+	"npmos.traffic.filter.referer": {
+		"defaultMessage": "Переход с"
+	},
+	"npmos.traffic.filter.remove": {
+		"defaultMessage": "Убрать фильтр «{name}»"
+	},
+	"npmos.traffic.filter.status": {
+		"defaultMessage": "Статус"
+	},
+	"npmos.traffic.filter.tls": {
+		"defaultMessage": "Версия TLS"
+	},
+	"npmos.traffic.filter.unknown": {
+		"defaultMessage": "Хост"
+	},
+	"npmos.traffic.filter.unknown.yes": {
+		"defaultMessage": "нет в «Хостах»"
+	},
+	"npmos.traffic.filter.value": {
+		"defaultMessage": "Значение"
+	},
+	"npmos.traffic.geography": {
+		"defaultMessage": "География"
+	},
+	"npmos.traffic.host.none": {
+		"defaultMessage": "без имени (по IP)"
+	},
+	"npmos.traffic.host.unknown": {
+		"defaultMessage": "нет в «Хостах»"
+	},
+	"npmos.traffic.kind.crowdsec": {
+		"defaultMessage": "CrowdSec"
+	},
+	"npmos.traffic.kind.mtls": {
+		"defaultMessage": "mTLS"
+	},
+	"npmos.traffic.kind.security": {
+		"defaultMessage": "open-appsec"
+	},
+	"npmos.traffic.kpi.5xx-rate": {
+		"defaultMessage": "Доля ошибок 5xx"
+	},
+	"npmos.traffic.kpi.appsec": {
+		"defaultMessage": "События open-appsec"
+	},
+	"npmos.traffic.kpi.bytes": {
+		"defaultMessage": "Передано данных"
+	},
+	"npmos.traffic.kpi.cache-hit": {
+		"defaultMessage": "Попадания в кэш"
+	},
+	"npmos.traffic.kpi.cache-off": {
+		"defaultMessage": "кэширование не используется"
+	},
+	"npmos.traffic.kpi.cached": {
+		"defaultMessage": "Запросы из кэша"
+	},
+	"npmos.traffic.kpi.cached-bytes": {
+		"defaultMessage": "Данные из кэша"
+	},
+	"npmos.traffic.kpi.connection": {
+		"defaultMessage": "Успешные соединения"
+	},
+	"npmos.traffic.kpi.crowdsec": {
+		"defaultMessage": "Алерты и баны CrowdSec"
+	},
+	"npmos.traffic.kpi.mitigated": {
+		"defaultMessage": "Отклонённые запросы"
+	},
+	"npmos.traffic.kpi.mitigated-rate": {
+		"defaultMessage": "Доля отклонённых"
+	},
+	"npmos.traffic.kpi.origin-bytes": {
+		"defaultMessage": "Данные от серверов"
+	},
+	"npmos.traffic.kpi.origin-errors": {
+		"defaultMessage": "Ошибки серверов (5xx)"
+	},
+	"npmos.traffic.kpi.origin-p50": {
+		"defaultMessage": "Ответ сервера (p50)"
+	},
+	"npmos.traffic.kpi.origin-p95": {
+		"defaultMessage": "Ответ сервера (p95)"
+	},
+	"npmos.traffic.kpi.pageviews": {
+		"defaultMessage": "Просмотры страниц"
+	},
+	"npmos.traffic.kpi.rate-limited": {
+		"defaultMessage": "Лимит запросов"
+	},
+	"npmos.traffic.kpi.reachability": {
+		"defaultMessage": "Доступность серверов"
+	},
+	"npmos.traffic.kpi.requests": {
+		"defaultMessage": "Всего запросов"
+	},
+	"npmos.traffic.kpi.saved": {
+		"defaultMessage": "Сэкономлено трафика"
+	},
+	"npmos.traffic.kpi.to-origin": {
+		"defaultMessage": "Запросы к серверам"
+	},
+	"npmos.traffic.kpi.total-p50": {
+		"defaultMessage": "Полный ответ (p50)"
+	},
+	"npmos.traffic.kpi.total-p95": {
+		"defaultMessage": "Полный ответ (p95)"
+	},
+	"npmos.traffic.kpi.uncached": {
+		"defaultMessage": "Запросы мимо кэша"
+	},
+	"npmos.traffic.kpi.visits": {
+		"defaultMessage": "Визиты"
+	},
+	"npmos.traffic.log": {
+		"defaultMessage": "Запросы"
+	},
+	"npmos.traffic.log.agent": {
+		"defaultMessage": "Клиент"
+	},
+	"npmos.traffic.log.client": {
+		"defaultMessage": "Источник"
+	},
+	"npmos.traffic.log.client-section": {
+		"defaultMessage": "Клиент"
+	},
+	"npmos.traffic.log.description": {
+		"defaultMessage": "Каждый запрос к хостам, новые сверху, — включая запросы к доменам, которые указывают сюда, но не добавлены в «Хосты». Нажмите на строку, чтобы увидеть подробности, на хост или адрес — чтобы отфильтровать по нему."
+	},
+	"npmos.traffic.log.duration": {
+		"defaultMessage": "Время ответа"
+	},
+	"npmos.traffic.log.duration-ms": {
+		"defaultMessage": "Время ответа, мс"
+	},
+	"npmos.traffic.log.empty": {
+		"defaultMessage": "Нет запросов за этот период и с этими фильтрами."
+	},
+	"npmos.traffic.log.from": {
+		"defaultMessage": "от"
+	},
+	"npmos.traffic.log.more": {
+		"defaultMessage": "Показать ещё"
+	},
+	"npmos.traffic.log.only-unknown": {
+		"defaultMessage": "Только хосты не из «Хостов»"
+	},
+	"npmos.traffic.log.origin-status": {
+		"defaultMessage": "Статус сервера"
+	},
+	"npmos.traffic.log.origin-time": {
+		"defaultMessage": "Ответ сервера"
+	},
+	"npmos.traffic.log.outcome": {
+		"defaultMessage": "Исход"
+	},
+	"npmos.traffic.log.referer": {
+		"defaultMessage": "Переход с"
+	},
+	"npmos.traffic.log.request": {
+		"defaultMessage": "Запрос"
+	},
+	"npmos.traffic.log.search": {
+		"defaultMessage": "Поиск по хосту, пути, IP, клиенту или источнику перехода"
+	},
+	"npmos.traffic.log.size": {
+		"defaultMessage": "Размер"
+	},
+	"npmos.traffic.log.size-kb": {
+		"defaultMessage": "Размер ответа, КБ"
+	},
+	"npmos.traffic.log.time": {
+		"defaultMessage": "Время"
+	},
+	"npmos.traffic.log.to": {
+		"defaultMessage": "до"
+	},
+	"npmos.traffic.log.values-hint": {
+		"defaultMessage": "Несколько значений — Enter после каждого."
+	},
+	"npmos.traffic.map": {
+		"defaultMessage": "Карта мира"
+	},
+	"npmos.traffic.map.attacks": {
+		"defaultMessage": "Атаки"
+	},
+	"npmos.traffic.map.empty": {
+		"defaultMessage": "Стран нет: трафика не было или нет базы GeoIP (Администрирование → Настройки → GeoIP)."
+	},
+	"npmos.traffic.map.less": {
+		"defaultMessage": "меньше"
+	},
+	"npmos.traffic.map.mitigated": {
+		"defaultMessage": "Отклонённые"
+	},
+	"npmos.traffic.map.more": {
+		"defaultMessage": "больше"
+	},
+	"npmos.traffic.mitigations-by-answer": {
+		"defaultMessage": "Отказы по ответу"
+	},
+	"npmos.traffic.no-attacks": {
+		"defaultMessage": "Атак за этот период нет."
+	},
+	"npmos.traffic.no-data": {
+		"defaultMessage": "Нет данных"
+	},
+	"npmos.traffic.note": {
+		"defaultMessage": "Запросы — журнал запросов nginx (интерфейс NPMOS не считается). Атаки — события open-appsec, CrowdSec и mTLS. Страны — база GeoIP NPMOS, без интернета."
+	},
+	"npmos.traffic.origin-breakdown": {
+		"defaultMessage": "Из чего складывается ответ сервера"
+	},
+	"npmos.traffic.origin-outcomes": {
+		"defaultMessage": "Соединения с серверами"
+	},
+	"npmos.traffic.origin-percentiles": {
+		"defaultMessage": "Время ответа сервера, перцентили"
+	},
+	"npmos.traffic.origin-requests": {
+		"defaultMessage": "Запросы к серверам во времени"
+	},
+	"npmos.traffic.origin-statuses": {
+		"defaultMessage": "Коды ответа серверов во времени"
+	},
+	"npmos.traffic.outcomes-over-time": {
+		"defaultMessage": "Исходы запросов во времени"
+	},
+	"npmos.traffic.pageviews-by-country": {
+		"defaultMessage": "Просмотры по странам"
+	},
+	"npmos.traffic.pageviews-over-time": {
+		"defaultMessage": "Просмотры во времени"
+	},
+	"npmos.traffic.product.appsec-detect": {
+		"defaultMessage": "open-appsec: обнаружено"
+	},
+	"npmos.traffic.product.appsec-prevent": {
+		"defaultMessage": "open-appsec: заблокировано"
+	},
+	"npmos.traffic.product.crowdsec-alert": {
+		"defaultMessage": "CrowdSec: алерт"
+	},
+	"npmos.traffic.product.crowdsec-ban": {
+		"defaultMessage": "CrowdSec: бан"
+	},
+	"npmos.traffic.product.crowdsec-captcha": {
+		"defaultMessage": "CrowdSec: капча"
+	},
+	"npmos.traffic.product.mtls": {
+		"defaultMessage": "mTLS: отказ"
+	},
+	"npmos.traffic.requests-n": {
+		"defaultMessage": "запросов: {n}"
+	},
+	"npmos.traffic.requests-over-time": {
+		"defaultMessage": "Запросы во времени"
+	},
+	"npmos.traffic.security-actions": {
+		"defaultMessage": "Действия защиты"
+	},
+	"npmos.traffic.series.attacks": {
+		"defaultMessage": "Атаки"
+	},
+	"npmos.traffic.series.bytes": {
+		"defaultMessage": "Отдано"
+	},
+	"npmos.traffic.series.cached": {
+		"defaultMessage": "Из кэша"
+	},
+	"npmos.traffic.series.connect": {
+		"defaultMessage": "Соединение"
+	},
+	"npmos.traffic.series.failed": {
+		"defaultMessage": "Сбой соединения"
+	},
+	"npmos.traffic.series.mitigated": {
+		"defaultMessage": "Отклонено"
+	},
+	"npmos.traffic.series.not-cacheable": {
+		"defaultMessage": "Без кэша"
+	},
+	"npmos.traffic.series.other": {
+		"defaultMessage": "Другое"
+	},
+	"npmos.traffic.series.passed": {
+		"defaultMessage": "Пропущено"
+	},
+	"npmos.traffic.series.reached": {
+		"defaultMessage": "Дошли до сервера"
+	},
+	"npmos.traffic.series.requests": {
+		"defaultMessage": "Запросы"
+	},
+	"npmos.traffic.series.uncached": {
+		"defaultMessage": "Мимо кэша"
+	},
+	"npmos.traffic.series.wait": {
+		"defaultMessage": "Ожидание ответа"
+	},
+	"npmos.traffic.tab.cache": {
+		"defaultMessage": "Кэш"
+	},
+	"npmos.traffic.tab.origin": {
+		"defaultMessage": "Серверы"
+	},
+	"npmos.traffic.tab.performance": {
+		"defaultMessage": "Производительность"
+	},
+	"npmos.traffic.tab.requests": {
+		"defaultMessage": "Запросы"
+	},
+	"npmos.traffic.tab.security": {
+		"defaultMessage": "Безопасность"
+	},
+	"npmos.traffic.tab.visitors": {
+		"defaultMessage": "Посетители"
+	},
+	"npmos.traffic.technology": {
+		"defaultMessage": "Технологии"
+	},
+	"npmos.traffic.top.agents": {
+		"defaultMessage": "Топ User-Agent"
+	},
+	"npmos.traffic.top.attack-paths": {
+		"defaultMessage": "Топ атакуемых путей"
+	},
+	"npmos.traffic.top.attack-sources": {
+		"defaultMessage": "Топ источников атак"
+	},
+	"npmos.traffic.top.attack-types": {
+		"defaultMessage": "Топ типов атак"
+	},
+	"npmos.traffic.top.browsers": {
+		"defaultMessage": "Топ браузеров"
+	},
+	"npmos.traffic.top.cache-statuses": {
+		"defaultMessage": "Топ статусов кэша"
+	},
+	"npmos.traffic.top.cached-paths": {
+		"defaultMessage": "Топ путей из кэша"
+	},
+	"npmos.traffic.top.cached-types": {
+		"defaultMessage": "Топ типов содержимого из кэша"
+	},
+	"npmos.traffic.top.devices": {
+		"defaultMessage": "Топ типов устройств"
+	},
+	"npmos.traffic.top.hosts": {
+		"defaultMessage": "Топ хостов"
+	},
+	"npmos.traffic.top.ips": {
+		"defaultMessage": "Топ IP-адресов клиентов"
+	},
+	"npmos.traffic.top.mitigated-ips": {
+		"defaultMessage": "Топ отклонённых IP-адресов"
+	},
+	"npmos.traffic.top.mitigated-paths": {
+		"defaultMessage": "Топ отклонённых путей"
+	},
+	"npmos.traffic.top.origin-paths": {
+		"defaultMessage": "Топ путей по запросам к серверам"
+	},
+	"npmos.traffic.top.origin-statuses": {
+		"defaultMessage": "Топ кодов ответа серверов"
+	},
+	"npmos.traffic.top.origins": {
+		"defaultMessage": "Топ адресов серверов"
+	},
+	"npmos.traffic.top.os": {
+		"defaultMessage": "Топ операционных систем"
+	},
+	"npmos.traffic.top.paths": {
+		"defaultMessage": "Топ путей"
+	},
+	"npmos.traffic.top.paths-bytes": {
+		"defaultMessage": "Топ путей по объёму"
+	},
+	"npmos.traffic.top.protocols": {
+		"defaultMessage": "Топ версий HTTP"
+	},
+	"npmos.traffic.top.referers": {
+		"defaultMessage": "Топ сайтов, с которых переходят"
+	},
+	"npmos.traffic.top.slow-paths": {
+		"defaultMessage": "Самые медленные пути (p95 сервера)"
+	},
+	"npmos.traffic.top.statuses": {
+		"defaultMessage": "Топ кодов ответа"
+	},
+	"npmos.traffic.top.tls": {
+		"defaultMessage": "Версии TLS"
+	},
+	"npmos.traffic.top.uncached-paths": {
+		"defaultMessage": "Топ путей мимо кэша"
+	},
+	"npmos.traffic.top.uncached-types": {
+		"defaultMessage": "Топ типов содержимого мимо кэша"
+	},
+	"npmos.traffic.unknown": {
+		"defaultMessage": "неизвестно"
+	},
+	"npmos.traffic.unknown-hosts.add": {
+		"defaultMessage": "Добавить хост"
+	},
+	"npmos.traffic.unknown-hosts.default": {
+		"defaultMessage": "Сайт по умолчанию"
+	},
+	"npmos.traffic.unknown-hosts.show": {
+		"defaultMessage": "Показать запросы"
+	},
+	"npmos.traffic.unknown-hosts.text": {
+		"defaultMessage": "{hosts} указывают на этот сервер, но не добавлены в «Хосты»: им отвечает сайт по умолчанию. Добавьте их как хосты или настройте сайт по умолчанию закрывать соединение (444)."
+	},
+	"npmos.traffic.unknown-hosts.title": {
+		"defaultMessage": "Запросов к доменам не из «Хостов»: {count}"
+	},
+	"npmos.traffic.unsupported": {
+		"defaultMessage": "Аналитике трафика нужен PostgreSQL (база стека NPMOS)."
+	},
+	"npmos.traffic.visitors.hint": {
+		"defaultMessage": "Просмотр — HTML-страница, отданная без ошибки; визит — просмотр, пришедший не с того же сайта."
+	},
+	"npmos.traffic.visits-over-time": {
+		"defaultMessage": "Визиты во времени"
+	},
 	"npmos.user.password-hint": {
 		"defaultMessage": "Не короче 8 символов. Пользователь сможет сменить его в профиле."
 	},
@@ -6411,7 +7107,7 @@
 		"defaultMessage": "Настройки сохранены, агент перезапускается"
 	},
 	"npmos.waf.agent-unreachable": {
-		"defaultMessage": "Агент недоступен. Проверьте сервис appsec-agent в разделе «Сервисы»."
+		"defaultMessage": "Агент недоступен. Проверьте сервис openappsec в разделе «Сервисы»."
 	},
 	"npmos.waf.apply": {
 		"defaultMessage": "Применить сейчас"
@@ -6447,7 +7143,7 @@
 		"defaultMessage": "Компонент агента"
 	},
 	"npmos.waf.events.description": {
-		"defaultMessage": "Что нашли и сообщили агенты: атаки, которые обнаружил или заблокировал open-appsec, алерты CrowdSec и служебные сообщения агента open-appsec; в каждой строке указан агент. Отказы mTLS — на своей вкладке."
+		"defaultMessage": "Что нашли и сообщили агенты: атаки, которые обнаружил или заблокировал open-appsec, алерты CrowdSec и служебные сообщения агента open-appsec; в каждой строке указан агент. Отказы mTLS — на своей вкладке, все запросы к хостам — на вкладке «Запросы»."
 	},
 	"npmos.waf.events.event": {
 		"defaultMessage": "Событие"

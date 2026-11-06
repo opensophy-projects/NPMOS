@@ -33,18 +33,6 @@
     },
     {
       "customType": "regex",
-      "description": "SOCKET_PROXY_VERSION in deploy/.env",
-      "managerFilePatterns": [
-        "/^deploy/\\.env$/"
-      ],
-      "matchStrings": [
-        "SOCKET_PROXY_VERSION=(?<currentValue>\\S+)"
-      ],
-      "datasourceTemplate": "docker",
-      "depNameTemplate": "tecnativa/docker-socket-proxy"
-    },
-    {
-      "customType": "regex",
       "description": "WHOAMI_VERSION in deploy/.env",
       "managerFilePatterns": [
         "/^deploy/\\.env$/"

@@ -5,6 +5,7 @@ import errs from "../lib/error.js";
 import jwtdecode from "../lib/express/jwt-decode.js";
 import validator from "../lib/validator/api.js";
 import { debug, express as logger } from "../logger.js";
+import internalAuditLog from "../internal/audit-log.js";
 import internalAudit from "./audit/index.js";
 import internalBlockPage from "./block-page.js";
 import internalAcmeCsr from "./acme-csr.js";
@@ -13,6 +14,7 @@ import internalCertificates from "./certificates.js";
 import internalCrowdsec from "./crowdsec/index.js";
 import internalAnalytics from "./events/analytics.js";
 import internalEvents from "./events/index.js";
+import internalTraffic from "./events/traffic.js";
 import internalHosts, { HOST_OBJECTS } from "./hosts.js";
 import internalNotifications from "./notifications/index.js";
 import internalPki from "./pki/index.js";
@@ -30,6 +32,8 @@ import internalWafHosts from "./waf/hosts.js";
 import internalWaf from "./waf/index.js";
 import internalWafObjects from "./waf/objects/api.js";
 import { lastFailureLog } from "./acme.js";
+import { dnsProviderHelp, dnsProviders } from "./acme/lego.js";
+import acmeServers from "./acme/servers.js";
 
 const router = express.Router({
 	caseSensitive: true,
@@ -874,6 +878,86 @@ router
 	.get(handle((req, res) => internalAnalytics.get(res.locals.access, req.query)));
 
 /**
+ * GET /api/npmos/analytics/traffic?tab=requests|visitors|performance|security|cache|origin&period=1h|24h|7d|30d
+ *   &host,country,ip,method,browser,os,device,protocol,tls,cache,content_type,origin (comma-separated, exact)
+ *   &referer,port&status=404,4xx&originStatus=502,5xx&path=<start>&q=<part of host, path, IP, agent, referer>
+ *   &minMs,maxMs,minBytes,maxBytes&unknown=1 (hosts not in NPMOS)&mitigated=1|0 — one tab of Analytics
+ */
+router
+	.route("/analytics/traffic")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((req, res) => internalTraffic.get(res.locals.access, req.query)));
+
+/**
+ * GET /api/npmos/analytics/requests?from,to (ISO, default the last 24 h)&limit (≤ 200)&before=<cursor>&<filters of
+ *   /analytics/traffic> — the requests of the hosts, newest first
+ */
+router
+	.route("/analytics/requests")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((req, res) => internalTraffic.list(res.locals.access, req.query)));
+
+const REQUEST_CSV_COLUMNS = [
+	"time",
+	"host",
+	"known",
+	"port",
+	"ip",
+	"country",
+	"method",
+	"path",
+	"status",
+	"bytes",
+	"requestBytes",
+	"durationMs",
+	"upstreamAddr",
+	"upstreamStatus",
+	"upstreamMs",
+	"cache",
+	"protocol",
+	"tls",
+	"contentType",
+	"refererHost",
+	"userAgent",
+	"browser",
+	"os",
+	"device",
+	"mitigated",
+	"id",
+];
+
+/**
+ * GET /api/npmos/analytics/requests/export?format=csv|json&<filters of /analytics/requests> — up to 100 000 requests
+ */
+router
+	.route("/analytics/requests/export")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(async (req, res, next) => {
+		try {
+			const { rows, capped } = await internalTraffic.export(res.locals.access, req.query);
+			const name = `npmos-requests-${new Date().toISOString().slice(0, 19).replaceAll(":", "-")}`;
+			res.set("X-NPMOS-Export-Capped", String(capped));
+			if (req.query.format === "json") {
+				res.set("Content-Disposition", `attachment; filename="${name}.json"`);
+				res.type("application/json").send(JSON.stringify(rows, null, 2));
+				return;
+			}
+			const lines = [
+				REQUEST_CSV_COLUMNS.join(","),
+				...rows.map((r) => REQUEST_CSV_COLUMNS.map((c) => csvCell(r[c])).join(",")),
+			];
+			res.set("Content-Disposition", `attachment; filename="${name}.csv"`);
+			res.type("text/csv").send(`\ufeff${lines.join("\r\n")}\r\n`);
+		} catch (err) {
+			debug(logger, `${req.method.toUpperCase()} ${req.originalUrl}: ${err}`);
+			next(err);
+		}
+	});
+
+/**
  * GET /api/npmos/analytics/hosts — attacks per host and hour of the last 24 h
  */
 router
@@ -1040,6 +1124,118 @@ router
 	);
 
 /**
+ * ACME servers (Settings -> ACME; npmos/acme/servers.js). GET: the servers (secrets masked), the presets and the
+ * clients — for everyone who can see certificates (the certificate form chooses one). POST, PUT /:id, DELETE /:id,
+ * POST /:id/default: settings:manage.
+ */
+const acmeServerSchema = {
+	type: "object",
+	additionalProperties: false,
+	properties: {
+		name: { type: "string", maxLength: 100 },
+		preset: { type: "string", maxLength: 40 },
+		directory: { type: "string", maxLength: 500 },
+		client: { type: "string", enum: ["certbot", "lego"] },
+		email: { type: "string", maxLength: 255 },
+		eab_kid: { type: "string", maxLength: 512 },
+		eab_hmac_key: { type: "string", maxLength: 512 },
+		profile: { type: "string", maxLength: 40 },
+		tls_verify: { type: "boolean" },
+		is_default: { type: "boolean" },
+	},
+};
+
+const acmeServerAudit = async (access, action, server) =>
+	internalAuditLog
+		.add(access, {
+			action,
+			object_type: "acme-server",
+			object_id: server.id,
+			meta: { name: server.name, directory: server.directory, client: server.client },
+		})
+		.catch(() => {});
+
+router
+	.route("/acme/servers")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(
+		handle(async (_, res) => {
+			await res.locals.access.can("certificates:list");
+			return acmeServers.list();
+		}),
+	)
+	.post(
+		handle(async (req, res) => {
+			await res.locals.access.can("settings:update");
+			const server = await acmeServers.create(await validator(acmeServerSchema, req.body));
+			await acmeServerAudit(res.locals.access, "created", server);
+			return server;
+		}),
+	);
+
+router
+	.route("/acme/servers/:server_id")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.put(
+		handle(async (req, res) => {
+			await res.locals.access.can("settings:update");
+			const server = await acmeServers.update(req.params.server_id, await validator(acmeServerSchema, req.body));
+			await acmeServerAudit(res.locals.access, "updated", server);
+			return server;
+		}),
+	)
+	.delete(
+		handle(async (req, res) => {
+			await res.locals.access.can("settings:update");
+			const server = await acmeServers.get(req.params.server_id);
+			const result = await acmeServers.remove(req.params.server_id);
+			if (server) await acmeServerAudit(res.locals.access, "deleted", server);
+			return result;
+		}),
+	);
+
+router
+	.route("/acme/servers/:server_id/default")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		handle(async (req, res) => {
+			await res.locals.access.can("settings:update");
+			const server = await acmeServers.setDefault(req.params.server_id);
+			await acmeServerAudit(res.locals.access, "updated", server);
+			return server;
+		}),
+	);
+
+/**
+ * GET /api/npmos/acme/lego/dns-providers — the codes of the DNS providers of lego;
+ * GET /api/npmos/acme/lego/dns-providers/:code — its variables (`lego dnshelp -c <code>`)
+ */
+router
+	.route("/acme/lego/dns-providers")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(
+		handle(async (_, res) => {
+			await res.locals.access.can("certificates:list");
+			return { items: await dnsProviders() };
+		}),
+	);
+
+router
+	.route("/acme/lego/dns-providers/:code")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(
+		handle(async (req, res) => {
+			await res.locals.access.can("certificates:list");
+			return { code: req.params.code, help: await dnsProviderHelp(req.params.code) };
+		}),
+	);
+
+/**
  * POST /api/npmos/acme/csr/check — {csr, key}: names, key type and subject of your own CSR
  * POST /api/npmos/acme/csr — {csr, key, meta: {dns_challenge?, dns_provider?, dns_provider_credentials?,
  *   propagation_seconds?}}: an ACME certificate for the CSR (npmos/acme-csr.js)
@@ -1055,6 +1251,7 @@ const csrSchema = {
 			type: "object",
 			additionalProperties: false,
 			properties: {
+				acme_server_id: { type: "integer", minimum: 1 },
 				dns_challenge: { type: "boolean" },
 				dns_provider: { type: "string", maxLength: 100 },
 				dns_provider_credentials: { type: "string", maxLength: 65536 },
@@ -1151,7 +1348,7 @@ router
 
 /**
  * GET /api/npmos/events/settings — retention, storage, state of the ingest
- * PUT /api/npmos/events/settings — {days, aggregate_days}
+ * PUT /api/npmos/events/settings — {days, aggregate_days, request_days}
  */
 router
 	.route("/events/settings")
@@ -1170,6 +1367,7 @@ router
 						properties: {
 							days: { type: "integer", minimum: 1, maximum: 365 },
 							aggregate_days: { type: "integer", minimum: 1, maximum: 1830 },
+							request_days: { type: "integer", minimum: 1, maximum: 90 },
 						},
 					},
 					req.body,

@@ -55,6 +55,15 @@ export function Popover({
 		});
 	}, [open, width]);
 
+	// a wide panel anchored to a button in the middle would run past the edge of the window: it is moved inside
+	// biome-ignore lint/correctness/useExhaustiveDependencies: measured again after each placement (style)
+	useLayoutEffect(() => {
+		if (!open || !panel.current) return;
+		const rect = panel.current.getBoundingClientRect();
+		if (rect.left < 16) setStyle((s) => ({ ...s, left: 16, right: "auto" }));
+		else if (rect.right > window.innerWidth - 16) setStyle((s) => ({ ...s, left: "auto", right: 16 }));
+	}, [open, style]);
+
 	useEffect(() => {
 		if (!open) return;
 		const outside = (e: MouseEvent) => {

@@ -21,8 +21,6 @@ import { formatDateTime, intl, T } from "src/locale";
 import {
 	showCustomCertificateModal,
 	showDeleteConfirmModal,
-	showDNSCertificateModal,
-	showHTTPCertificateModal,
 	showReachabilityModal,
 	showRenewCertificateModal,
 } from "src/modals";
@@ -37,7 +35,7 @@ import hostStyles from "../Hosts/Hosts.module.css";
 import styles from "../WafEvents/Events.module.css";
 import own from "./Certificates.module.css";
 import { SearchField } from "../../ui/SearchField";
-import { showCsrModal } from "../../certs/CsrModal";
+import { showAcmeCertificateModal } from "../../certs/AcmeCertificateModal";
 import { showAcmeLogModal } from "../../certs/AcmeLog";
 
 const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id }, values);
@@ -301,19 +299,10 @@ function CertificatesPage() {
 						}
 						items={[
 							{
-								key: "http",
-								label: <T id="lets-encrypt-via-http" />,
-								onSelect: () => showHTTPCertificateModal(),
-							},
-							{
-								key: "dns",
-								label: <T id="lets-encrypt-via-dns" />,
-								onSelect: () => showDNSCertificateModal(),
-							},
-							{
-								key: "csr",
-								label: <T id="npmos.acme.csr.menu" />,
-								onSelect: showCsrModal,
+								// one form for every ACME server (Settings → ACME); your own CSR is reached from it
+								key: "acme",
+								label: <T id="npmos.acme.menu" />,
+								onSelect: showAcmeCertificateModal,
 							},
 							{
 								key: "custom",
