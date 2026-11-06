@@ -2483,6 +2483,9 @@
 	"npmos.events.kind.mtls": {
 		"defaultMessage": "mTLS"
 	},
+	"npmos.events.kind.requests": {
+		"defaultMessage": "Requests"
+	},
 	"npmos.events.label.benign": {
 		"defaultMessage": "False positive"
 	},
@@ -7092,7 +7095,7 @@
 		"defaultMessage": "Agent component"
 	},
 	"npmos.waf.events.description": {
-		"defaultMessage": "What the agents found and reported: attacks open-appsec detected or blocked, CrowdSec alerts and the notices of the open-appsec agent; each row names its agent. mTLS refusals have their own tab."
+		"defaultMessage": "What the agents found and reported: attacks open-appsec detected or blocked, CrowdSec alerts and the notices of the open-appsec agent; each row names its agent. mTLS refusals have their own tab; every request to the hosts is on the Requests tab."
 	},
 	"npmos.waf.events.event": {
 		"defaultMessage": "Event"

@@ -165,10 +165,10 @@ function HostList({
 /** requests to names that are not hosts of NPMOS: what they are and what to do */
 function UnknownHosts({ data }: { data: Traffic }) {
 	const unknown = rows(data, "hosts").filter((r) => r.known === false);
-	if (!unknown.length) return null;
 	const total = unknown.reduce((n, r) => n + r.requests, 0);
+	if (!total) return null;
 	return (
-		<div className={cn("card", styles.notice)}>
+		<div className={styles.notice}>
 			<div>
 				<strong>
 					<T id="npmos.traffic.unknown-hosts.title" data={{ count: formatCount(total) }} />
@@ -186,7 +186,7 @@ function UnknownHosts({ data }: { data: Traffic }) {
 				</div>
 			</div>
 			<div className={styles.noticeActions}>
-				<Link className="btn btn-sm" to="/analytics/requests?unknown=1">
+				<Link className="btn btn-sm" to="/waf/events?kind=requests&unknown=1">
 					<T id="npmos.traffic.unknown-hosts.show" />
 				</Link>
 				<Link className="btn btn-sm" to="/hosts">
@@ -520,6 +520,7 @@ export function PerformanceTab({ data, period, filter }: TabProps) {
 const ACTION_LABEL: Record<string, string> = {
 	"security:prevent": "npmos.traffic.product.appsec-prevent",
 	"security:detect": "npmos.traffic.product.appsec-detect",
+	"crowdsec:alert": "npmos.traffic.product.crowdsec-alert",
 	"crowdsec:ban": "npmos.traffic.product.crowdsec-ban",
 	"crowdsec:captcha": "npmos.traffic.product.crowdsec-captcha",
 	"mtls:denied": "npmos.traffic.product.mtls",

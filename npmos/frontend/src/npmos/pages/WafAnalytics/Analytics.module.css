@@ -9,8 +9,17 @@
 		grid-template-columns: minmax(0, 1fr);
 	}
 }
-.panel {
+/* panels and notices as the cards of the Cloudflare dashboard: one hairline border, no inset frame of .card
+   (not clipped: the tooltips of the charts may run over the edge) */
+.panel,
+.notice {
+	position: relative;
 	margin: 0;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-lg);
+	background: var(--background);
+}
+.panel {
 	padding: 1rem 1.125rem;
 }
 .wide {

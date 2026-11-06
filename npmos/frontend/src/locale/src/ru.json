@@ -2483,6 +2483,9 @@
 	"npmos.events.kind.mtls": {
 		"defaultMessage": "mTLS"
 	},
+	"npmos.events.kind.requests": {
+		"defaultMessage": "Запросы"
+	},
 	"npmos.events.label.benign": {
 		"defaultMessage": "Ложное срабатывание"
 	},
@@ -7092,7 +7095,7 @@
 		"defaultMessage": "Компонент агента"
 	},
 	"npmos.waf.events.description": {
-		"defaultMessage": "Что нашли и сообщили агенты: атаки, которые обнаружил или заблокировал open-appsec, алерты CrowdSec и служебные сообщения агента open-appsec; в каждой строке указан агент. Отказы mTLS — на своей вкладке."
+		"defaultMessage": "Что нашли и сообщили агенты: атаки, которые обнаружил или заблокировал open-appsec, алерты CrowdSec и служебные сообщения агента open-appsec; в каждой строке указан агент. Отказы mTLS — на своей вкладке, все запросы к хостам — на вкладке «Запросы»."
 	},
 	"npmos.waf.events.event": {
 		"defaultMessage": "Событие"

@@ -24,8 +24,6 @@ const Hosts = lazy(() => import("src/npmos/pages/Hosts"));
 const Services = lazy(() => import("src/npmos/pages/Services"));
 const WafEvents = lazy(() => import("src/npmos/pages/WafEvents"));
 const WafAnalytics = lazy(() => import("src/npmos/pages/WafAnalytics"));
-// NPMOS: Analytics → Requests (every request of the hosts)
-const RequestLog = lazy(() => import("src/npmos/pages/RequestLog"));
 const Notifications = lazy(() => import("src/npmos/pages/Notifications"));
 // NPMOS: one page per agent: its policies (GUI or code) and the agent itself
 const AgentOpenappsec = lazy(() => import("src/npmos/pages/AgentOpenappsec"));
@@ -35,6 +33,14 @@ const Mtls = lazy(() => import("src/npmos/pages/Mtls"));
 const Crowdsec = lazy(() => import("src/npmos/pages/Crowdsec"));
 // NPMOS: the decisions of CrowdSec are in Analytics → Blocks
 const Blocks = lazy(() => import("src/npmos/pages/Crowdsec").then((m) => ({ default: m.Blocks })));
+
+// NPMOS: the old address of the request log opens Events → Requests
+/** /analytics/requests?… → /waf/events?kind=requests&… (the filters kept) */
+function RequestsRedirect() {
+	const params = new URLSearchParams(window.location.search);
+	params.set("kind", "requests");
+	return <Navigate to={`/waf/events?${params}`} replace />;
+}
 
 function Router() {
 	const health = useHealth();
@@ -92,7 +98,8 @@ function Router() {
 						<Route path="/agents/open-appsec" element={<AgentOpenappsec />} />
 						<Route path="/agents/block-page" element={<BlockPage />} />
 						<Route path="/analytics/blocks" element={<Blocks />} />
-						<Route path="/analytics/requests" element={<RequestLog />} />
+						{/* NPMOS: every request of the hosts is a kind of Events */}
+						<Route path="/analytics/requests" element={<RequestsRedirect />} />
 						{/* the pages of before open their place on the page of the agent */}
 						<Route path="/waf/agent" element={<Navigate to="/agents/open-appsec?tab=agent" replace />} />
 						<Route path="/waf/events" element={<WafEvents />} />

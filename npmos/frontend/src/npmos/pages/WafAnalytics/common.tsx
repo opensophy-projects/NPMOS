@@ -79,7 +79,7 @@ export function Panel({
 	action?: React.ReactNode;
 }) {
 	return (
-		<section className={cn("card", styles.panel, wide && styles.wide)}>
+		<section className={cn(styles.panel, wide && styles.wide)}>
 			<div className={styles.panelHead}>
 				<h3 className={styles.panelTitle}>{title}</h3>
 				{action}

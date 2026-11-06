@@ -1,4 +1,5 @@
-/* Analytics → Requests: one row per request, details below a row on click */
+/* Events → Requests: one row per request, details below a row on click. The long cells (request, client) are cut
+   in a block inside the cell: a table cell does not keep a max-width. */
 .table td {
 	font-size: 0.8125rem;
 	vertical-align: middle;
@@ -30,14 +31,19 @@
 	font-size: 0.75rem;
 }
 .request {
-	max-width: 28rem;
+	max-width: 22rem;
 	overflow: hidden;
 	font-family: var(--tblr-font-monospace);
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
+/* the client takes the room left in the row and is cut there: the table never runs past the card */
+.fill {
+	width: 100%;
+	max-width: 0;
+}
 .agent {
-	max-width: 14rem;
+	min-width: 6rem;
 	overflow: hidden;
 	color: var(--foreground-muted);
 	text-overflow: ellipsis;

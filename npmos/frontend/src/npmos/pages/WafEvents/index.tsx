@@ -18,16 +18,19 @@ import { Dropdown } from "../../ui/Dropdown";
 import { Popover } from "../../ui/Popover";
 import hostStyles from "../Hosts/Hosts.module.css";
 import { ActionBadge, EventTime, SeverityBadge } from "./badges";
+import { RequestLogView } from "../RequestLog";
 import styles from "./Events.module.css";
 import {
 	AGENT_OF,
 	AGENTS,
+	DEFAULT_FILTERS,
 	actionsFor,
 	activeCount,
 	type EventFilters,
 	FILTERS_OF,
 	filtersFromParams,
 	forKind,
+	type Kind,
 	filtersToParams,
 	filtersToQuery,
 	KINDS,
@@ -441,6 +444,55 @@ function EventRow({ event, onFilter }: { event: SecurityEvent; onFilter: (field:
 	);
 }
 
+/**
+ * The kinds of Events: the agents (open-appsec, CrowdSec), mTLS refusals, all of them, and every request of the hosts
+ * (the request log, with the permission of Analytics). Another kind keeps the period, hosts and addresses.
+ */
+function KindSwitch({ current }: { current: Kind | "requests" }) {
+	const can = useCan();
+	const [params, setParams] = useSearchParams();
+	const go = (kind: Kind | "requests") => {
+		const next = new URLSearchParams();
+		for (const key of ["period", "from", "to", "host", "ip"]) {
+			const v = params.get(key);
+			if (v) next.set(key, v);
+		}
+		if (kind !== DEFAULT_FILTERS.kind) next.set("kind", kind);
+		setParams(next, { replace: true });
+	};
+	const kinds: (Kind | "requests")[] = [...KINDS, ...(can("analytics") ? (["requests"] as const) : [])];
+	return (
+		<div className={styles.kinds}>
+			{kinds.map((kind) => (
+				<button
+					key={kind}
+					type="button"
+					className={cn(styles.period, current === kind && styles.periodOn)}
+					aria-pressed={current === kind}
+					onClick={() => go(kind)}
+				>
+					<T id={`npmos.events.kind.${kind}`} />
+				</button>
+			))}
+		</div>
+	);
+}
+
+function EventsHead() {
+	return (
+		<div className={hostStyles.head}>
+			<div>
+				<h1 className={hostStyles.title}>
+					<T id="npmos.waf.events" />
+				</h1>
+				<p className={hostStyles.subtitle}>
+					<T id="npmos.waf.events.description" />
+				</p>
+			</div>
+		</div>
+	);
+}
+
 function WafEventsPage() {
 	const can = useCan();
 	const [params, setParams] = useSearchParams();
@@ -488,16 +540,7 @@ function WafEventsPage() {
 
 	return (
 		<div className={hostStyles.page}>
-			<div className={hostStyles.head}>
-				<div>
-					<h1 className={hostStyles.title}>
-						<T id="npmos.waf.events" />
-					</h1>
-					<p className={hostStyles.subtitle}>
-						<T id="npmos.waf.events.description" />
-					</p>
-				</div>
-			</div>
+			<EventsHead />
 
 			<div className={hostStyles.toolbar}>
 				<SearchField value={search} onChange={setSearch} placeholder={t("npmos.waf.events.search")} />
@@ -562,19 +605,7 @@ function WafEventsPage() {
 
 			<div className={cn("card", hostStyles.tableCard)}>
 				<div className={hostStyles.summary}>
-					<div className={styles.kinds}>
-						{KINDS.map((kind) => (
-							<button
-								key={kind}
-								type="button"
-								className={cn(styles.period, filters.kind === kind && styles.periodOn)}
-								aria-pressed={filters.kind === kind}
-								onClick={() => setFilters(forKind(filters, kind))}
-							>
-								<T id={`npmos.events.kind.${kind}`} />
-							</button>
-						))}
-					</div>
+					<KindSwitch current={filters.kind} />
 					{isFetching && <span className="spinner-border spinner-border-sm text-secondary" />}
 					<label className="form-check form-switch m-0">
 						<input
@@ -687,10 +718,24 @@ function WafEventsPage() {
 	);
 }
 
-const WafEvents = () => (
-	<HasPermission rbac="waf_events" permission={VIEW} pageLoading loadingNoLogo>
-		<WafEventsPage />
+/** Events → Requests: the request log of the hosts in the same panel (permission of Analytics) */
+const RequestsPage = () => (
+	<HasPermission rbac="analytics" permission={VIEW} pageLoading loadingNoLogo>
+		<div className={hostStyles.page}>
+			<EventsHead />
+			<RequestLogView kinds={<KindSwitch current="requests" />} />
+		</div>
 	</HasPermission>
 );
+
+const WafEvents = () => {
+	const [params] = useSearchParams();
+	if (params.get("kind") === "requests") return <RequestsPage />;
+	return (
+		<HasPermission rbac="waf_events" permission={VIEW} pageLoading loadingNoLogo>
+			<WafEventsPage />
+		</HasPermission>
+	);
+};
 
 export default WafEvents;
