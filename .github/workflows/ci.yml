@@ -77,6 +77,13 @@ jobs:
             set -- $pair
             grep -q "^| $1 | .* | \`$2\` |" reference/VERSIONS.md || { echo "::error::$1 ref $2 differs from reference/VERSIONS.md"; exit 1; }
           done
+          # the agent is built on Alpine 3.22 (CMake 3): Alpine 3.23+ ships CMake 4, which rejects the open-appsec sources
+          alpine=$(sed -n 's/^ARG ALPINE_VERSION=//p' deploy/openappsec/Dockerfile)
+          [ "$alpine" = "3.22" ] || { echo "::error file=deploy/openappsec/Dockerfile::ALPINE_VERSION $alpine: the agent needs Alpine 3.22 (CMake 3) until OPENAPPSEC_REF is raised"; exit 1; }
+          # a rule of renovate.json for a file that was moved stops matching without a word (the Alpine pin above)
+          for f in $(jq -r '.packageRules[].matchFileNames[]? | select(test("[*?]") | not)' renovate.json); do
+            [ -e "$f" ] || { echo "::error file=renovate.json::matchFileNames: $f does not exist"; exit 1; }
+          done
       - name: registry credentials
         # validates DOCKERHUB_USERNAME / DOCKERHUB_TOKEN on every push, also when nothing is published
         if: vars.DOCKERHUB_NAMESPACE != '' && github.event_name == 'push'

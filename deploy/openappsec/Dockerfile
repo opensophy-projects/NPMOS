@@ -9,9 +9,10 @@
 #
 #   docker build --build-context control=npmos/backend/npmos/control -t npmos-openappsec deploy/openappsec
 #
-# Alpine 3.22 for the agent: newer releases ship CMake 4, which rejects the cmake_minimum_required of the pinned
-# open-appsec sources. Renovate does not bump it (renovate.json); raise it together with OPENAPPSEC_REF.
-ARG ALPINE_VERSION=3.24
+# Alpine 3.22 for the agent: newer releases (3.23+) ship CMake 4, which rejects the cmake_minimum_required (2.8.4) of
+# the pinned open-appsec sources. Renovate does not bump it (renovate.json, checked in CI); raise it together with
+# OPENAPPSEC_REF, after a build of the agent on the new release.
+ARG ALPINE_VERSION=3.22
 ARG GO_VERSION=1.18
 ARG OPENAPPSEC_REF=634f840534e07952b1a449079a0d1b2e885c6aec
 ARG SHARED_FILES_REF=
