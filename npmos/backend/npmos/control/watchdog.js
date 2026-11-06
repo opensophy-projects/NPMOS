@@ -1,8 +1,8 @@
 // NPMOS: npmos-control repairs containers that share the network namespace of another (server.js runs it).
 /**
- * Watchdog of shared network namespaces: the open-appsec agent lives in the namespace of npmos. After a reboot of
- * the server, or a restart of npmos outside this service (docker restart, a crash), the agent either fails to start
- * ("cannot join network namespace", exit 128) or keeps the dead namespace of the old npmos and loses the network.
+ * Watchdog of shared network namespaces: npmos lives in the namespaces of openappsec. After a restart of openappsec
+ * outside this service (an update, docker restart, a crash), npmos either fails to start ("cannot join network
+ * namespace", exit 128) or keeps the dead namespace of the old openappsec and loses the network.
  * Both are repaired here by a restart; a container someone stopped (another exit code) is left alone.
  * @param {() => Promise<Array<{id, service, state, networkMode}>>} list  the managed containers
  * @param {(id: string) => Promise<object>} inspectId  docker inspect

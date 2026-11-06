@@ -6507,7 +6507,7 @@
 		"defaultMessage": "Настройки сохранены, агент перезапускается"
 	},
 	"npmos.waf.agent-unreachable": {
-		"defaultMessage": "Агент недоступен. Проверьте сервис appsec-agent в разделе «Сервисы»."
+		"defaultMessage": "Агент недоступен. Проверьте сервис openappsec в разделе «Сервисы»."
 	},
 	"npmos.waf.apply": {
 		"defaultMessage": "Применить сейчас"

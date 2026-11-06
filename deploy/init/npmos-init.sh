@@ -9,7 +9,7 @@
 #      appsec/db_password
 #      appsec-agent/crowdsec_bouncer_key
 #      crowdsec/bouncer_key_{npmos,appsec}   (official image registers /run/secrets/bouncer_key_<name>)
-#      control/control_token        (npmos-control; the backend gets a copy)
+#      control/control_token        (npmos-control in openappsec; the backend gets a copy)
 # 2. Pre-created directories that other services mount by subpath.
 # 3. CrowdSec volumes seeded from the offline hub snapshot baked into the npmos image,
 #    so the official crowdsec image starts without internet.
@@ -40,7 +40,7 @@ cp /secrets/crowdsec/bouncer_key_npmos /secrets/npmos/bouncer_key
 cp /secrets/crowdsec/bouncer_key_appsec /secrets/appsec-agent/crowdsec_bouncer_key
 cp /secrets/control/control_token /secrets/npmos/control_token
 
-# Consumers run as different users (postgres uid 70, tuning-svc appuser, crowdsec and npmos root).
+# Consumers run as different users (postgres uid 70; openappsec, crowdsec and npmos root).
 # Each container mounts only its own subdirectory, so world-readable files are not shared further.
 chmod 755 /secrets/postgres /secrets/npmos /secrets/appsec /secrets/appsec-agent /secrets/crowdsec /secrets/control
 chmod 444 /secrets/*/*
@@ -72,7 +72,7 @@ if [ ! -e /crowdsec-conf/config.yaml.local ]; then
 fi
 
 # open-appsec agent installed before NPMOS_LOCAL_ONLY (phase 0) keeps the cloud Fog address in its
-# config volume across upgrades; point it to the closed local port (see appsec-agent in compose.yaml)
+# config volume across upgrades; point it to the closed local port (see openappsec in compose.yaml)
 agent_details=/appsec-conf/agent_details.json
 if [ -s "$agent_details" ] && [ "$(jq -r '."Fog domain"' "$agent_details")" != 127.0.0.1 ]; then
   jq '."Fog domain" = "127.0.0.1" | ."Fog port" = 1 | ."Encrypted connection" = false' "$agent_details" > "$agent_details.tmp"

@@ -6507,7 +6507,7 @@
 		"defaultMessage": "Settings saved, the agent is restarting"
 	},
 	"npmos.waf.agent-unreachable": {
-		"defaultMessage": "The agent is not reachable. Check the appsec-agent service in Overview → Services."
+		"defaultMessage": "The agent is not reachable. Check the openappsec service in Overview → Services."
 	},
 	"npmos.waf.apply": {
 		"defaultMessage": "Apply now"

@@ -2,7 +2,8 @@
 import { readFile } from "node:fs/promises";
 import errs from "../../lib/error.js";
 
-const CONTROL_URL = process.env.NPMOS_CONTROL_URL || "http://npmos-control:7080";
+// npmos-control runs in the openappsec container, whose network namespace npmos shares
+const CONTROL_URL = process.env.NPMOS_CONTROL_URL || "http://127.0.0.1:7080";
 const TOKEN_FILE = process.env.NPMOS_CONTROL_TOKEN_FILE || "/run/npmos-secrets/control_token";
 const TIMEOUT_MS = 20000;
 

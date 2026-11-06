@@ -3,8 +3,9 @@
 // suggestions). Both are in the internal network of the stack; nothing leaves the machine.
 import { randomUUID } from "node:crypto";
 
-export const STORAGE_URL = process.env.NPMOS_APPSEC_STORAGE_URL || "http://appsec-shared-storage";
-export const TUNING_URL = process.env.NPMOS_APPSEC_TUNING_URL || "http://appsec-tuning-svc";
+// the shared storage and tuning services of the agent run in the openappsec container, whose network npmos shares
+export const STORAGE_URL = process.env.NPMOS_APPSEC_STORAGE_URL || "http://127.0.0.1:7811";
+export const TUNING_URL = process.env.NPMOS_APPSEC_TUNING_URL || "http://127.0.0.1:7813";
 const TIMEOUT_MS = 8000;
 
 export class AppsecError extends Error {

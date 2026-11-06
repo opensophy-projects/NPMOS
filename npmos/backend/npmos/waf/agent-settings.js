@@ -19,7 +19,8 @@ const APPLIED_FILE = path.join(LOCALCONFIG_DIR, "npmos-agent.applied");
 const MODEL_DIR = process.env.NPMOS_APPSEC_MODEL_DIR || "/ext/appsec-model";
 const MODEL_FILE = path.join(MODEL_DIR, "open-appsec-advanced-model.tgz");
 const MODEL_MAX_BYTES = 1024 * 1024 * 1024;
-const AGENT_SERVICE = "appsec-agent";
+// the agent runs in the openappsec container; its "restart" restarts the agent process (npmos/control/server.js)
+const AGENT_SERVICE = "openappsec";
 
 // CrowdSec IP reputation of the agent stays off: for an IP that is not banned the agent drops the
 // cached answer right after using it (layer_7_access_control.cc), so every request waits for a new

@@ -27,7 +27,7 @@ const internalWaf = {
 
 	/**
 	 * Saves the switch and, if it differs from the running state, restarts npmos to apply it
-	 * (npmos-control answers first, then restarts npmos and the agent that shares its namespaces).
+	 * (npmos-control answers first, then restarts npmos; the agent in openappsec keeps running).
 	 * @param {Access}  access
 	 * @param {boolean} enabled
 	 * @param {boolean} [apply]  restart now

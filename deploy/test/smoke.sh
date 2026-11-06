@@ -79,18 +79,21 @@ $CURL "$ADMIN/api/version/check" | grep -q '"latest": *"unknown"' || fail "updat
 
 # --- phase 1 ---
 
-step "System → Services: npmos-control lists the stack"
+step "System → Services: npmos-control lists the stack: npmos, openappsec, crowdsec, postgres and nothing more"
 services=$($CURL "$ADMIN/api/npmos/services")
-for s in npmos postgres npmos-control; do
+for s in npmos openappsec postgres; do
   echo "$services" | grep -q "\"service\": *\"$s\"" || fail "service $s is not listed: $services"
+done
+for s in npmos-control socket-proxy appsec-agent appsec-shared-storage appsec-tuning-svc; do
+  echo "$services" | grep -q "\"service\": *\"$s\"" && fail "service $s is still a container of its own"
 done
 
 step "System → Services: service logs are readable"
 $CURL "$ADMIN/api/npmos/services/npmos/logs?tail=20" | grep -q '"line"' || fail "no npmos logs"
 
-step "System → Services: the control path cannot be restarted"
+step "System → Services: an unknown service is not found"
 code=$(curl -sS -k -b $JAR -o /dev/null -w '%{http_code}' -X POST "$ADMIN/api/npmos/services/socket-proxy/restart")
-[ "$code" = 400 ] || fail "socket-proxy restart: expected 400, got $code"
+[ "$code" = 404 ] || fail "restart of an unknown service: expected 404, got $code"
 
 step "System → Services: restart postgres, the backend reconnects"
 $CURL -X POST "$ADMIN/api/npmos/services/postgres/restart" | grep -q '"restarted": *true' || fail "postgres restart failed"
@@ -129,7 +132,7 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
     step "WAF: switch open-appsec $2 in the GUI (npmos restarts)"
     $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf" -d "{\"enabled\": $1, \"apply\": true}" \
       | grep -q '"restarting": *true' || fail "WAF switch did not restart npmos"
-    # npmos-control answers first, then restarts npmos and the agent in its namespaces
+    # npmos-control answers first, then restarts npmos (the agent in openappsec keeps running)
     sleep 7
     wait_api
     for i in $(seq 1 30); do
@@ -211,7 +214,7 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
     step "WAF -> Agent: $2"
     $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf/agent" -d "$1" \
       | grep -q '"restarting": *true' || fail "saving agent settings did not restart the agent"
-    # npmos restarts with the agent: the API is away for a while (connections are reset)
+    # the agent restarts, then npmos: the API is away for a while (connections are reset)
     for i in $(seq 1 60); do
       agent=$($CURL "$ADMIN/api/npmos/waf/agent" 2>/dev/null || true)
       echo "$agent" | grep -q '"restartRequired": *false' && break
@@ -244,8 +247,8 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
   agent_settings '{"fail_open": {"enabled": true, "timeout_ms": 50}}' \
     "a second change is applied the same way"
 
-  # applying agent settings restarts npmos with the agent: restarted alone, the agent left the nginx
-  # attachment without its IPC and every request waited for it (about 1-2 s)
+  # applying agent settings restarts the agent process in openappsec, then npmos: without the restart of npmos
+  # the nginx attachment kept its IPC with the old agent and every request waited for it (about 1-2 s)
   step "WAF -> Agent: after the agent's restart requests are not held up"
   slow=0
   for i in $(seq 1 10); do

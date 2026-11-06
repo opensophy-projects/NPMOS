@@ -115,6 +115,8 @@ const setupCertbotPlugins = async () => {
 		const promises = [];
 
 		for (const certificate of certificates) {
+			// NPMOS: a lego certificate names a DNS provider of lego, not a plugin of certbot (npmos/acme/lego.js)
+			if (certificate.meta?.acme_client === "lego") continue;
 			if (certificate.meta && certificate.meta.dns_challenge === true) {
 				if (plugins.indexOf(certificate.meta.dns_provider) === -1) {
 					plugins.push(certificate.meta.dns_provider);
@@ -128,7 +130,11 @@ const setupCertbotPlugins = async () => {
 			}
 		}
 
-		await installPlugins(plugins);
+		// NPMOS: local-first: a plugin that cannot be installed (no internet, no PyPI) must not stop the start of
+		// NPMOS; the renewal of its certificates says so instead
+		await installPlugins(plugins).catch((err) => {
+			logger.warn(`Certbot DNS plugins not installed (${plugins.join(", ")}): ${err.message}`);
+		});
 
 		if (promises.length) {
 			await Promise.all(promises);

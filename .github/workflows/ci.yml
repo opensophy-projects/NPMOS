@@ -1,7 +1,7 @@
 # NPMOS CI. Upstream workflows under npmos/.github are not run (GitHub reads only the root .github).
 #
-# Images built by NPMOS: npmos (multi-arch) and npmos-appsec-{agent,shared-storage,tuning}
-# (amd64; arm64 is experimental, upstream open-appsec ships amd64 only).
+# Images built by NPMOS: npmos (multi-arch) and npmos-openappsec (the agent, its shared storage and tuning
+# services, npmos-control; amd64, arm64 is experimental: upstream open-appsec ships amd64 only).
 # Publishing to Docker Hub (vars.DOCKERHUB_NAMESPACE, secrets.DOCKERHUB_USERNAME/DOCKERHUB_TOKEN):
 #   push to work  -> :develop and :<sha>
 #   tag vX.Y.Z    -> :X.Y.Z and :latest
@@ -114,39 +114,21 @@ jobs:
           build-args: |
             CROWDSEC_VERSION=${{ env.CROWDSEC_VERSION }}
             FLAGS=-march=x86-64-v2 -mtune=generic -fcf-protection=full
-      - name: build npmos-appsec-agent
+      - name: build npmos-openappsec
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
-          context: deploy/openappsec/agent
+          context: deploy/openappsec
+          build-contexts: control=npmos/backend/npmos/control
           load: true
-          tags: docker.io/${{ env.NAMESPACE }}/npmos-appsec-agent:${{ env.VERSION }}
-          cache-from: type=gha,scope=appsec-agent-amd64
-          cache-to: type=gha,mode=max,scope=appsec-agent-amd64
-          build-args: OPENAPPSEC_REF=${{ env.OPENAPPSEC_REF }}
-      # smartsync (central learning) is not built: it needs a Fog token the agent lacks in local-only
-      # mode and stayed idle. NPMOS learns locally; see docs/adr/0011-learning.md.
-      - name: build npmos-appsec-shared-storage
-        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
-        with:
-          context: deploy/openappsec/go-service
-          load: true
-          tags: docker.io/${{ env.NAMESPACE }}/npmos-appsec-shared-storage:${{ env.VERSION }}
-          cache-from: type=gha,scope=appsec-shared-storage
-          cache-to: type=gha,mode=max,scope=appsec-shared-storage
+          tags: docker.io/${{ env.NAMESPACE }}/npmos-openappsec:${{ env.VERSION }}
+          cache-from: type=gha,scope=openappsec-amd64
+          cache-to: type=gha,mode=max,scope=openappsec-amd64
+          # smartsync (central learning) is not built: it needs a Fog token the agent lacks in local-only
+          # mode. NPMOS learns locally; see docs/adr/0011-learning.md.
           build-args: |
-            REPO=https://github.com/openappsec/smartsync-shared-files.git
-            REF=${{ env.SHARED_FILES_REF }}
-      - name: build npmos-appsec-tuning
-        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
-        with:
-          context: deploy/openappsec/go-service
-          load: true
-          tags: docker.io/${{ env.NAMESPACE }}/npmos-appsec-tuning:${{ env.VERSION }}
-          cache-from: type=gha,scope=appsec-tuning
-          cache-to: type=gha,mode=max,scope=appsec-tuning
-          build-args: |
-            REPO=https://github.com/openappsec/smartsync-tuning.git
-            REF=${{ env.TUNING_REF }}
+            OPENAPPSEC_REF=${{ env.OPENAPPSEC_REF }}
+            SHARED_FILES_REF=${{ env.SHARED_FILES_REF }}
+            TUNING_REF=${{ env.TUNING_REF }}
       - name: closed-network test (full stack)
         env:
           NPMOS_REGISTRY: docker.io/${{ env.NAMESPACE }}
@@ -165,7 +147,7 @@ jobs:
             refs/tags/v*) tags="${GITHUB_REF#refs/tags/v} latest" ;;
             *) tags="develop" ;;
           esac
-          for img in npmos npmos-appsec-agent npmos-appsec-shared-storage npmos-appsec-tuning; do
+          for img in npmos npmos-openappsec; do
             src="docker.io/$NAMESPACE/$img:$VERSION"
             # npmos gets a multi-arch manifest in the manifest job; push its amd64 build under an arch tag
             if [ "$img" = npmos ]; then
@@ -248,7 +230,7 @@ jobs:
           done
 
   appsec-arm64:
-    name: open-appsec images (arm64, experimental)
+    name: npmos-openappsec image (arm64, experimental)
     needs: checks
     if: github.event_name == 'workflow_dispatch'
     continue-on-error: true
@@ -257,10 +239,14 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: grep -E "^[A-Z_]+=" deploy/openappsec/sources.env >> "$GITHUB_ENV"
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
-      - name: build npmos-appsec-agent (arm64)
+      - name: build npmos-openappsec (arm64)
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
-          context: deploy/openappsec/agent
-          build-args: OPENAPPSEC_REF=${{ env.OPENAPPSEC_REF }}
-          cache-from: type=gha,scope=appsec-agent-arm64
-          cache-to: type=gha,mode=max,scope=appsec-agent-arm64
+          context: deploy/openappsec
+          build-contexts: control=npmos/backend/npmos/control
+          build-args: |
+            OPENAPPSEC_REF=${{ env.OPENAPPSEC_REF }}
+            SHARED_FILES_REF=${{ env.SHARED_FILES_REF }}
+            TUNING_REF=${{ env.TUNING_REF }}
+          cache-from: type=gha,scope=openappsec-arm64
+          cache-to: type=gha,mode=max,scope=openappsec-arm64
