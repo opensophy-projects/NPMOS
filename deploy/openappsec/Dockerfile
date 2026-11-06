@@ -11,7 +11,7 @@
 #
 # Alpine 3.22 for the agent: newer releases ship CMake 4, which rejects the cmake_minimum_required of the pinned
 # open-appsec sources. Renovate does not bump it (renovate.json); raise it together with OPENAPPSEC_REF.
-ARG ALPINE_VERSION=3.22
+ARG ALPINE_VERSION=3.24
 ARG GO_VERSION=1.18
 ARG OPENAPPSEC_REF=634f840534e07952b1a449079a0d1b2e885c6aec
 ARG SHARED_FILES_REF=
