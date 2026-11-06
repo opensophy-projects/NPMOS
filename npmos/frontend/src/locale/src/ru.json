@@ -525,13 +525,13 @@
 		"defaultMessage": "Только HTTP"
 	},
 	"lets-encrypt": {
-		"defaultMessage": "Let's Encrypt / ACME"
+		"defaultMessage": "ACME"
 	},
 	"lets-encrypt-via-dns": {
-		"defaultMessage": "Let's Encrypt / ACME (проверка по DNS)"
+		"defaultMessage": "ACME (проверка по DNS)"
 	},
 	"lets-encrypt-via-http": {
-		"defaultMessage": "Let's Encrypt / ACME (проверка по HTTP)"
+		"defaultMessage": "ACME (проверка по HTTP)"
 	},
 	"loading": {
 		"defaultMessage": "Загрузка…"
@@ -644,6 +644,27 @@
 	"npmos.access.search": {
 		"defaultMessage": "Поиск по названию"
 	},
+	"npmos.acme.challenge": {
+		"defaultMessage": "Как проверяется домен"
+	},
+	"npmos.acme.challenge.dns": {
+		"defaultMessage": "DNS-01"
+	},
+	"npmos.acme.challenge.dns-hint": {
+		"defaultMessage": "TXT-запись создаётся через API вашего DNS-провайдера: подходит для wildcard-доменов и закрытого порта 80."
+	},
+	"npmos.acme.challenge.http": {
+		"defaultMessage": "HTTP-01"
+	},
+	"npmos.acme.challenge.http-hint": {
+		"defaultMessage": "Сервер запрашивает файл по порту 80: домены должны указывать на этот сервер, а порт 80 — быть доступен ACME-серверу."
+	},
+	"npmos.acme.client.certbot": {
+		"defaultMessage": "certbot"
+	},
+	"npmos.acme.client.lego": {
+		"defaultMessage": "lego"
+	},
 	"npmos.acme.csr.check": {
 		"defaultMessage": "Проверить"
 	},
@@ -686,6 +707,24 @@
 	"npmos.acme.csr.title": {
 		"defaultMessage": "Сертификат ACME по своему CSR"
 	},
+	"npmos.acme.lego.credentials-hint": {
+		"defaultMessage": "Строки ПЕРЕМЕННАЯ=значение; переменные провайдера подставлены, пустые можно убрать."
+	},
+	"npmos.acme.lego.credentials-placeholder": {
+		"defaultMessage": "ПЕРЕМЕННАЯ=значение"
+	},
+	"npmos.acme.lego.help-hide": {
+		"defaultMessage": "Скрыть переменные"
+	},
+	"npmos.acme.lego.help-show": {
+		"defaultMessage": "Показать переменные провайдера"
+	},
+	"npmos.acme.lego.propagation-hint": {
+		"defaultMessage": "Пусто — lego сам проверит, что запись видна. Число — вместо этого ждёт столько секунд."
+	},
+	"npmos.acme.lego.warning": {
+		"defaultMessage": "lego создаёт TXT-запись через API вашего DNS-провайдера: выберите его и укажите ключи в переменных ниже (они хранятся вместе с сертификатом для продлений)."
+	},
 	"npmos.acme.log.none": {
 		"defaultMessage": "Неудачных запросов к ACME-серверу ещё не было."
 	},
@@ -697,6 +736,111 @@
 	},
 	"npmos.acme.log.title": {
 		"defaultMessage": "Полный лог последнего запроса"
+	},
+	"npmos.acme.menu": {
+		"defaultMessage": "ACME"
+	},
+	"npmos.acme.new": {
+		"defaultMessage": "Новый сертификат ACME"
+	},
+	"npmos.acme.server": {
+		"defaultMessage": "ACME-сервер"
+	},
+	"npmos.acme.server.default": {
+		"defaultMessage": "по умолчанию"
+	},
+	"npmos.acme.server.manage": {
+		"defaultMessage": "ACME-серверы"
+	},
+	"npmos.acme.servers.add": {
+		"defaultMessage": "Добавить ACME-сервер"
+	},
+	"npmos.acme.servers.caa": {
+		"defaultMessage": "Для CAA-записи ваших доменов: {caa}"
+	},
+	"npmos.acme.servers.client": {
+		"defaultMessage": "ACME-клиент"
+	},
+	"npmos.acme.servers.client-hint.certbot": {
+		"defaultMessage": "certbot — клиент NPMplus, его DNS-плагины. Регистрируется с RSA-ключом и отправляет CSR без subject."
+	},
+	"npmos.acme.servers.client-hint.lego": {
+		"defaultMessage": "lego — ключ аккаунта ES256 и имя в CN запроса (нужно ТЦИ / НУЦ Минцифры и другим), 150+ DNS-провайдеров."
+	},
+	"npmos.acme.servers.custom": {
+		"defaultMessage": "Другой ACME-сервер (URL)"
+	},
+	"npmos.acme.servers.default-set": {
+		"defaultMessage": "ACME-сервер по умолчанию изменён"
+	},
+	"npmos.acme.servers.deleted": {
+		"defaultMessage": "ACME-сервер удалён"
+	},
+	"npmos.acme.servers.description": {
+		"defaultMessage": "Откуда берутся сертификаты ACME: известный центр сертификации или свой сервер (любой directory по RFC 8555). Сервер по умолчанию выбирается первым в формах сертификатов; каждый сертификат продлевается на своём сервере. Аккаунт регистрируется при первом сертификате."
+	},
+	"npmos.acme.servers.directory": {
+		"defaultMessage": "Адрес directory"
+	},
+	"npmos.acme.servers.directory-placeholder": {
+		"defaultMessage": "https://acme.example.com/directory"
+	},
+	"npmos.acme.servers.eab-hint": {
+		"defaultMessage": "Привязка внешнего аккаунта со страницы аккаунта центра сертификации. Пусто, если не нужна."
+	},
+	"npmos.acme.servers.eab-hmac": {
+		"defaultMessage": "EAB: HMAC-ключ"
+	},
+	"npmos.acme.servers.eab-kid": {
+		"defaultMessage": "EAB: ID ключа"
+	},
+	"npmos.acme.servers.eab-required": {
+		"defaultMessage": "Этому центру сертификации нужны оба ключа EAB вашего аккаунта."
+	},
+	"npmos.acme.servers.edit": {
+		"defaultMessage": "ACME-сервер"
+	},
+	"npmos.acme.servers.email": {
+		"defaultMessage": "Email аккаунта"
+	},
+	"npmos.acme.servers.email-hint": {
+		"defaultMessage": "Сюда центр сертификации присылает напоминания об истечении. Нужен с EAB."
+	},
+	"npmos.acme.servers.email-zerossl": {
+		"defaultMessage": "Обязателен: ZeroSSL выдаёт ключи EAB на этот email, если их не ввести."
+	},
+	"npmos.acme.servers.in-use": {
+		"defaultMessage": "Этим сервером выпущены сертификаты"
+	},
+	"npmos.acme.servers.make-default": {
+		"defaultMessage": "Сделать по умолчанию"
+	},
+	"npmos.acme.servers.name": {
+		"defaultMessage": "Название"
+	},
+	"npmos.acme.servers.preset": {
+		"defaultMessage": "Центр сертификации"
+	},
+	"npmos.acme.servers.profile": {
+		"defaultMessage": "Профиль сертификата"
+	},
+	"npmos.acme.servers.profile-default": {
+		"defaultMessage": "По умолчанию сервера"
+	},
+	"npmos.acme.servers.profile-hint": {
+		"defaultMessage": "Срок задаёт сервер: у Let's Encrypt есть classic (90 дней), tlsserver и shortlived (около 6 дней, нужен интернет каждые день-два)."
+	},
+	"npmos.acme.servers.title": {
+		"defaultMessage": "ACME-серверы"
+	},
+	"npmos.acme.servers.tls-verify": {
+		"defaultMessage": "Проверять TLS-сертификат сервера"
+	},
+	"npmos.acme.servers.tls-verify-hint": {
+		"defaultMessage": "Выключайте только для своего сервера с сертификатом, которому эта система не доверяет."
+	},
+	"npmos.acme.servers.used": {
+		"defaultMessage": "Сертификатов"
 	},
 	"npmos.agent.default.hint": {
 		"defaultMessage": "Действует на все хосты без своей политики: режим и блоки, которые использует агент."
@@ -2748,7 +2892,7 @@
 		"defaultMessage": "Сертификат требует внимания: хостов {count}"
 	},
 	"npmos.hosts.rec.expiring.hint": {
-		"defaultMessage": "Сертификаты Let's Encrypt и других ACME попадают сюда, только если продление запаздывает (полный лог последнего запроса — в «Сертификатах»); свои — за 14 дней до конца или за треть более короткого срока."
+		"defaultMessage": "Сертификаты ACME попадают сюда, только если продление запаздывает (полный лог последнего запроса — в «Сертификатах»); свои — за 14 дней до конца или за треть более короткого срока."
 	},
 	"npmos.hosts.rec.less": {
 		"defaultMessage": "Свернуть"
@@ -2832,7 +2976,7 @@
 		"defaultMessage": "Истекает (< 14 дней)"
 	},
 	"npmos.hosts.tls.issue": {
-		"defaultMessage": "Выпустить Let's Encrypt"
+		"defaultMessage": "Выпустить через ACME"
 	},
 	"npmos.hosts.tls.requesting": {
 		"defaultMessage": "Запрашиваем сертификат, это может занять минуту…"
@@ -5844,7 +5988,7 @@
 		"defaultMessage": "TLS-сертификаты"
 	},
 	"npmos.rbac.resource.certificates.desc": {
-		"defaultMessage": "Let's Encrypt и загруженные сертификаты"
+		"defaultMessage": "Сертификаты ACME и загруженные"
 	},
 	"npmos.rbac.resource.crowdsec": {
 		"defaultMessage": "CrowdSec"
@@ -6086,50 +6230,8 @@
 	"npmos.settings.events-retention": {
 		"defaultMessage": "Срок хранения событий безопасности"
 	},
-	"npmos.system.acme-profile.auto": {
-		"defaultMessage": "Как решит NPMOS (Let's Encrypt: classic, 90 дней)"
-	},
-	"npmos.system.acme-profile.classic": {
-		"defaultMessage": "classic — 90 дней"
-	},
-	"npmos.system.acme-profile.none": {
-		"defaultMessage": "По умолчанию сервера (Let's Encrypt: 90 дней)"
-	},
-	"npmos.system.acme-profile.shortlived": {
-		"defaultMessage": "shortlived — около 6 дней (нужен интернет каждые день-два)"
-	},
-	"npmos.system.acme-profile.tlsserver": {
-		"defaultMessage": "tlsserver — 90 дней, только для серверов"
-	},
-	"npmos.system.acme.custom": {
-		"defaultMessage": "Другой (URL)"
-	},
 	"npmos.system.after-restart": {
 		"defaultMessage": "после перезапуска"
-	},
-	"npmos.system.env.ACME_EAB_HMAC_KEY": {
-		"defaultMessage": "EAB: HMAC-ключ"
-	},
-	"npmos.system.env.ACME_EAB_HMAC_KEY.hint": {
-		"defaultMessage": "HMAC-ключ к этому ID. После сохранения не показывается."
-	},
-	"npmos.system.env.ACME_EAB_KID": {
-		"defaultMessage": "EAB: ID ключа"
-	},
-	"npmos.system.env.ACME_EAB_KID.hint": {
-		"defaultMessage": "Привязка внешнего аккаунта (EAB): ID ключа со страницы аккаунта центра сертификации. Для Let's Encrypt не нужен."
-	},
-	"npmos.system.env.ACME_EMAIL": {
-		"defaultMessage": "Email аккаунта ACME"
-	},
-	"npmos.system.env.ACME_EMAIL.hint": {
-		"defaultMessage": "Сюда центр сертификации присылает напоминания об истечении. Нужен для ZeroSSL и EAB."
-	},
-	"npmos.system.env.ACME_PROFILE": {
-		"defaultMessage": "Профиль сертификата (срок)"
-	},
-	"npmos.system.env.ACME_PROFILE.hint": {
-		"defaultMessage": "Срок задаёт ACME-сервер своими профилями (они есть у Let's Encrypt; ZeroSSL, Google и другие выдают на свой срок). Короткий срок уменьшает вред от украденного ключа, но NPMOS должен успеть связаться с сервером до его конца: с shortlived два-три дня без интернета оставят сайты с просроченными сертификатами. Профиль, которого у сервера нет, заменяется профилем по умолчанию. Действует для новых выпусков и продлений после перезапуска."
 	},
 	"npmos.system.env.ACME_RENEW": {
 		"defaultMessage": "Продлевать автоматически"
@@ -6142,12 +6244,6 @@
 	},
 	"npmos.system.env.ACME_RENEW_DAYS.hint": {
 		"defaultMessage": "0 — как решит certbot: за треть срока (не больше 30 дней). Для коротких сроков ставьте меньше самого срока."
-	},
-	"npmos.system.env.ACME_SERVER": {
-		"defaultMessage": "ACME-сервер"
-	},
-	"npmos.system.env.ACME_SERVER.hint": {
-		"defaultMessage": "Центр сертификации, который выпускает сертификаты. «Другой» — адрес directory любого ACME-сервера, в том числе в вашей сети."
 	},
 	"npmos.system.env.DEFAULT_CERT_ID": {
 		"defaultMessage": "Сертификат по умолчанию"
@@ -6294,10 +6390,10 @@
 		"defaultMessage": "Авто"
 	},
 	"npmos.system.group.acme": {
-		"defaultMessage": "ACME (Let's Encrypt и другие)"
+		"defaultMessage": "ACME"
 	},
 	"npmos.system.group.acme.hint": {
-		"defaultMessage": "Откуда берутся сертификаты «Let's Encrypt / ACME». Для Let's Encrypt больше ничего не нужно; ZeroSSL нужен email, Google Trust Services и SSL.com — ключи EAB со страницы аккаунта. Аккаунт регистрируется при первом запросе сертификата."
+		"defaultMessage": "Когда продлеваются сертификаты ACME. Серверы, откуда они берутся, — выше."
 	},
 	"npmos.system.group.external": {
 		"defaultMessage": "Внешние сервисы"

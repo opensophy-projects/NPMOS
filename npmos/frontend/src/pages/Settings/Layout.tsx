@@ -7,8 +7,10 @@ import { NPMOS_SETTINGS_SECTIONS, RestartBanner } from "src/npmos/system/section
 import DefaultSite from "./DefaultSite";
 
 export default function Layout() {
-	// NPMOS: the selected section
-	const [section, setSection] = useState("default-site");
+	// NPMOS: the selected section; ?section=<id> opens one (a link "Settings → ACME" from a certificate form)
+	const [section, setSection] = useState(
+		() => new URLSearchParams(window.location.search).get("section") || "default-site",
+	);
 	const can = useCan();
 	// Taken from https://preview.tabler.io/settings.html
 	// Refer to that when updating this content

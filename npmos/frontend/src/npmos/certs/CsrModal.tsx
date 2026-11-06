@@ -7,7 +7,8 @@ import { type ChangeEvent, useState } from "react";
 import { Alert } from "react-bootstrap";
 import Modal from "react-bootstrap/Modal";
 import * as api from "src/api/backend/base";
-import { Button, DNSProviderFields } from "src/components";
+import { Button } from "src/components";
+import { AcmeDnsFields, AcmeServerField } from "../acme/AcmeFields";
 import { T } from "src/locale";
 import { showObjectSuccess } from "src/notifications";
 import { AcmeLogButton } from "./AcmeLog";
@@ -22,6 +23,7 @@ interface Values {
 	csr: string;
 	key: string;
 	meta: {
+		acmeServerId?: number;
 		dnsChallenge: boolean;
 		dnsProvider?: string;
 		dnsProviderCredentials?: string;
@@ -34,6 +36,7 @@ const body = (v: Values) => ({
 	key: v.key,
 	meta: v.meta.dnsChallenge
 		? {
+				acmeServerId: v.meta.acmeServerId,
 				dnsChallenge: true,
 				dnsProvider: v.meta.dnsProvider,
 				dnsProviderCredentials: v.meta.dnsProviderCredentials,
@@ -42,7 +45,7 @@ const body = (v: Values) => ({
 						? null
 						: Number(v.meta.propagationSeconds),
 			}
-		: {},
+		: { acmeServerId: v.meta.acmeServerId },
 });
 
 /** a PEM field with "From file" */
@@ -131,6 +134,7 @@ const CsrModal = EasyModal.create(({ visible, remove }: InnerModalProps) => {
 								<div className="text-break">{error}</div>
 								{error && <AcmeLogButton />}
 							</Alert>
+							<AcmeServerField />
 							<PemField name="csr" label="npmos.acme.csr.csr" hint="npmos.acme.csr.csr.hint" rows={6} />
 							<PemField name="key" label="npmos.acme.csr.key" hint="npmos.acme.csr.key.hint" rows={4} />
 							<div className="d-flex align-items-center gap-2 mb-3">
@@ -171,7 +175,7 @@ const CsrModal = EasyModal.create(({ visible, remove }: InnerModalProps) => {
 									}
 								/>
 							</div>
-							{values.meta.dnsChallenge && <DNSProviderFields />}
+							{values.meta.dnsChallenge && <AcmeDnsFields />}
 						</Modal.Body>
 						<Modal.Footer>
 							<Button onClick={remove} disabled={isSubmitting}>

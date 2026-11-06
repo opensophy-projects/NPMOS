@@ -1,6 +1,8 @@
 import cn from "classnames";
 import { Field, useFormikContext } from "formik";
-import { DNSProviderFields, DomainNamesField } from "src/components";
+import { DomainNamesField } from "src/components";
+// NPMOS: the ACME server of the new certificate (Settings → ACME) and the DNS fields of its client
+import { AcmeDnsFields, AcmeServerField } from "src/npmos/acme/AcmeFields";
 import { T } from "src/locale";
 
 interface Props {
@@ -204,6 +206,10 @@ export function SSLOptionsFields({
 			{forHttp ? getHttpOptions() : null}
 			{newCertificate ? (
 				<div className="row">
+					{/* NPMOS: which ACME server issues it */}
+					<div className="col-12">
+						<AcmeServerField />
+					</div>
 					<div className="col-6">
 						<Field name="meta.reuseKey">
 							{({ field }: any) => (
@@ -240,7 +246,8 @@ export function SSLOptionsFields({
 						</Field>
 					</div>
 					{requireDomainNames ? <DomainNamesField isWildcardPermitted dnsProviderWildcardSupported /> : null}
-					{dnsChallenge ? <DNSProviderFields showBoundaryBox /> : null}
+					{/* NPMOS: certbot plugins or the providers of lego, by the client of the server */}
+					{dnsChallenge ? <AcmeDnsFields showBoundaryBox /> : null}
 				</div>
 			) : null}
 			{forProxyHost && forHttp ? getHttpAdvancedOptions() : null}

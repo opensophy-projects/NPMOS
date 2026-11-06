@@ -462,6 +462,21 @@ done
 loc=$(host_location rauto.local /p)
 [ "$loc" = "http://target.local/p" ] || fail "redirect with the scheme auto: Location '$loc' (not auto://)"
 
+step "ACME servers: a default one at the start, presets, lego in the image; the TLS CA needs lego"
+servers=$($CURL "$ADMIN/api/npmos/acme/servers")
+echo "$servers" | tr -d ' \n' | grep -q '"is_default":true' || fail "no default ACME server: $servers"
+echo "$servers" | grep -q '"tlscc-stage"' || fail "the presets have no TLS CA: $(echo "$servers" | head -c 300)"
+# the codes come from `lego dnshelp`: lego is in the image and runs
+$CURL "$ADMIN/api/npmos/acme/lego/dns-providers" | grep -q '"rfc2136"' || fail "lego does not list its DNS providers"
+got=$(curl -sk -o /dev/null -w '%{http_code}' -b "$JAR" -H 'Content-Type: application/json' "$ADMIN/api/npmos/acme/servers" \
+  -d '{"preset": "tlscc-stage", "client": "certbot"}')
+[ "$got" = 400 ] || fail "the TLS CA with certbot answered $got (certbot cannot register there)"
+own=$(new_json "$ADMIN/api/npmos/acme/servers" -d '{"name": "smoke own", "directory": "https://ca.internal/acme/directory",
+  "client": "lego", "eab_kid": "kid", "eab_hmac_key": "smoke-hmac-secret", "email": "ops@example.com"}')
+echo "$own" | grep -q 'smoke-hmac-secret' && fail "the EAB key is returned by the API"
+own_id=$(echo "$own" | id_of)
+$CURL -X DELETE "$ADMIN/api/npmos/acme/servers/$own_id" > /dev/null || fail "the ACME server is not removed"
+
 step "ACME HTTP-01: the challenge of a domain without a host is answered over HTTP, not sent to HTTPS"
 PATH_=/.well-known/acme-challenge/missing; got=$(host_code no-host.local)
 [ "$got" = 404 ] || fail "the challenge path answered $got (a 301 sends the ACME server to the dummy certificate)"
