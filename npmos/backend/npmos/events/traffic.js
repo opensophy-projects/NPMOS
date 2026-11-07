@@ -4,8 +4,8 @@
 // (top lists, percentiles) cover only the days still kept: `detailFrom` says from when. RBAC: analytics:view.
 // Postgres only (ADR-4): buckets with date_bin, percentiles with percentile_cont.
 import db from "../../db.js";
-import errs from "../../lib/error.js";
 import { isPostgres } from "../../lib/config.js";
+import errs from "../../lib/error.js";
 import { getSetting } from "../settings.js";
 import { ATTACK_KINDS, PERIODS } from "./analytics.js";
 import { EVENT_TABLE, oldestKeptDay, REQUEST_LOG_TABLE } from "./store.js";

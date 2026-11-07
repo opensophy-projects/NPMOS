@@ -3,8 +3,8 @@
 // an alert appears (and, if asked, again later and when it is resolved).
 // Messages are written in the language of the channel (ru/en); they are not part of the GUI.
 import db from "../../db.js";
-import control from "../control/client.js";
 import { termOf } from "../cert-terms.js";
+import control from "../control/client.js";
 import { EVENT_TABLE } from "../events/store.js";
 import { getSetting } from "../settings.js";
 import { getAgentStatus } from "../waf/agent.js";

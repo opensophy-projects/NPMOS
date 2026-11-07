@@ -656,6 +656,7 @@ const STATUS_RU = {
 };
 const md = (s) =>
 	String(s ?? "")
+		.replace(/\\/g, "\\\\")
 		.replace(/\|/g, "\\|")
 		.replace(/[<>]/g, (c) => (c === "<" ? "&lt;" : "&gt;"))
 		.replace(/\n/g, " ");

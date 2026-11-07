@@ -75,7 +75,7 @@ const fixups = {
  * @returns {{spec?: object, errors?: string[]}}
  */
 export const normalize = (kind, input) => {
-	if (!KINDS[kind]) return { errors: [`unknown kind ${kind}`] };
+	if (typeof kind !== "string" || !Object.hasOwn(KINDS, kind)) return { errors: [`unknown kind ${kind}`] };
 	const { name, appsecClassName, ...rest } = isObject(input) ? input : {};
 	let spec = withDefaults(itemSchema(kind), rest);
 	if (fixups[kind]) spec = fixups[kind](spec);

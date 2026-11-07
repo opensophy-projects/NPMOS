@@ -2,14 +2,16 @@
 // the server, meta.acme_client the client it was issued with (kept, so that a later change of the server does not
 // strand its certificates). certbot certificates keep their certbot lineage (internal/certificate.js); lego
 // certificates are requested, renewed and revoked here.
-import dayjs from "dayjs";
+
 import { X509Certificate } from "node:crypto";
 import { readFile } from "node:fs/promises";
+import dayjs from "dayjs";
 import errs from "../../lib/error.js";
 import { certbot as logger } from "../../logger.js";
 import certificateModel from "../../models/certificate.js";
 import { acmeRenewEnabled } from "../acme.js";
 import { termOf } from "../cert-terms.js";
+import { firstPemCertificate } from "../pem.js";
 import lego, { REASON } from "./lego.js";
 import acmeServers from "./servers.js";
 
@@ -29,9 +31,9 @@ export const withServer = async (meta = {}) => {
 
 const expiresOf = async (id) => {
 	const pem = await readFile(`/data/tls/certbot/live/npm-${id}/fullchain.pem`, "utf8");
-	const first = pem.match(/-----BEGIN CERTIFICATE-----[\s\S]+?-----END CERTIFICATE-----/);
+	const first = firstPemCertificate(pem);
 	if (!first) throw new errs.ValidationError("No certificate in the files of lego");
-	return dayjs(new Date(new X509Certificate(first[0]).validTo)).format("YYYY-MM-DD HH:mm:ss");
+	return dayjs(new Date(new X509Certificate(first).validTo)).format("YYYY-MM-DD HH:mm:ss");
 };
 
 const legoCerts = {

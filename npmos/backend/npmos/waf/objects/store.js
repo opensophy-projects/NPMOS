@@ -1,8 +1,8 @@
 // Objects of the policy in the database and the policy built from them (v1beta2 terms): the default
 // policy, a rule per protected proxy host and location, every object.
 import db from "../../../db.js";
-import { learningExceptions } from "../../learning/policy.js";
 import { ruleHost } from "../../learning/model.js";
+import { learningExceptions } from "../../learning/policy.js";
 import { getSetting } from "../../settings.js";
 import { BUILTIN, builtinSpec, DEFAULT_POLICY, KINDS, RULE_FIELDS } from "./model.js";
 

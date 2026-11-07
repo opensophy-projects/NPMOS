@@ -8,6 +8,7 @@ import path from "node:path";
 import { global as logger } from "../../logger.js";
 import control from "../control/client.js";
 import {
+	fatalMessages,
 	renderAcquis,
 	renderAllowlist,
 	renderConfigLocal,
@@ -15,7 +16,6 @@ import {
 	renderScenario,
 	renderSimulation,
 	requiredItems,
-	fatalMessages,
 	unwantedItems,
 } from "./config.js";
 import { CONF_DIR, install, remove } from "./hub.js";

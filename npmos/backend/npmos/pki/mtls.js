@@ -17,10 +17,10 @@ import errs from "../../lib/error.js";
 import { global as logger } from "../../logger.js";
 import proxyHostModel from "../../models/proxy_host.js";
 import streamModel from "../../models/stream.js";
+import { scopeHosts } from "../rbac/scope.js";
 import internalPki, { onCrlChange } from "./index.js";
 import { escapeRe, RULE_FIELDS, RULE_OPS, ruleRegex, trustSet } from "./trust.js";
 import { ASCII_VALUE } from "./x509.js";
-import { scopeHosts } from "../rbac/scope.js";
 
 const DIR = process.env.NPMOS_MTLS_DIR || "/data/npmos/pki/nginx";
 
@@ -30,7 +30,9 @@ export const MODES = ["on", "optional"];
 const REVOCATIONS = ["crl", "ocsp"];
 /** the OCSP responder of NPMOS for nginx itself (conf.d/npmos-ocsp.conf) */
 const OCSP_RESPONDER = process.env.NPMOS_OCSP_RESPONDER || "http://127.0.0.1:7089/api/npmos/pki/public/ocsp/auto";
+
 export { RULE_FIELDS, RULE_OPS, ruleRegex, trustSet };
+
 /**
  * what a refused client gets (proxy hosts): the page "a client certificate is required" (403), the block page of
  * NPMOS (403), the 404 page (the site looks absent) or no answer at all (444, the connection is closed)

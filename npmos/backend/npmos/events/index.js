@@ -6,10 +6,10 @@ import internalAuditLog from "../../internal/audit-log.js";
 import { isPostgres } from "../../lib/config.js";
 import errs from "../../lib/error.js";
 import { getSetting, setSetting } from "../settings.js";
+import { requestFilters, requestOnly } from "./feed-filters.js";
 import { status as ingestStatus, runMaintenance } from "./ingest.js";
 import { IMPORTANT_SEVERITIES } from "./normalize.js";
 import { EVENT_TABLE, REQUEST_LOG_TABLE } from "./store.js";
-import { requestFilters, requestOnly } from "./feed-filters.js";
 import { REQUEST_COUNT_CAP, requestFeed } from "./traffic.js";
 
 const MAX_LIMIT = 500;

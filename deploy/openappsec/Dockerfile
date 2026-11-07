@@ -13,7 +13,9 @@
 # the pinned open-appsec sources. Renovate does not bump it (renovate.json, checked in CI); raise it together with
 # OPENAPPSEC_REF, after a build of the agent on the new release.
 ARG ALPINE_VERSION=3.22
-ARG GO_VERSION=1.18
+# Go of the shared storage and tuning: their sources ask for 1.18, which has long been out of support (every CVE of
+# its standard library since 2023). They build unchanged on a current release.
+ARG GO_VERSION=1.27
 ARG OPENAPPSEC_REF=634f840534e07952b1a449079a0d1b2e885c6aec
 ARG SHARED_FILES_REF=
 ARG TUNING_REF=
@@ -36,21 +38,8 @@ RUN git apply --verbose /patches/*.patch
 # headers of the agent's signatures: the model takes "Sec-Fetch-Dest: style" for XSS and refuses every
 # stylesheet Chrome loads. waap-headers.json adds them with strict patterns; another value is scanned as before.
 COPY agent/waap-headers.json /patches/waap-headers.json
-RUN python3 - <<'EOF'
-import json
-path = "components/security_apps/waap/resources/waap.data"
-with open(path) as f:
-    data = json.load(f)
-with open("/patches/waap-headers.json") as f:
-    extra = json.load(f)
-headers = data["waap_signatures"]["headers_re"]
-clash = sorted(set(headers) & set(extra))
-if clash:
-    raise SystemExit(f"waap-headers.json: already in the signatures: {clash}")
-headers.update(extra)
-with open(path, "w") as f:
-    json.dump(data, f, indent=1)
-EOF
+COPY agent/merge-headers.py /patches/merge-headers.py
+RUN python3 /patches/merge-headers.py
 RUN cmake -DCMAKE_INSTALL_PREFIX=build_out . && \
     make -j"$(nproc)" install && \
     make package && \
@@ -73,14 +62,17 @@ RUN chmod +x /entry.sh /nano-service-installers/* && ln -s entry.sh cp-nano-agen
 # the same binaries and configs as their upstream images; modules are vendored under dependencies/
 FROM docker.io/library/golang:${GO_VERSION}-alpine AS go-build
 RUN apk add --no-cache patch
-ENV GOMODCACHE=/vendor CGO_ENABLED=0 GOOS=linux
+ENV GOMODCACHE=/vendor CGO_ENABLED=0 GOOS=linux GOTOOLCHAIN=local
 COPY go-service/patches/ /patches/
+# libraries raised over the ones of the sources: those have known vulnerabilities (Trivy, docs/DEVSECOPS.md)
+ARG GO_UPGRADES="golang.org/x/crypto@v0.58.0 golang.org/x/net@v0.62.0 golang.org/x/text@v0.43.0 golang.org/x/oauth2@v0.37.0"
 
 FROM go-build AS shared-storage
 ARG SHARED_FILES_REF
 ADD https://github.com/openappsec/smartsync-shared-files.git#${SHARED_FILES_REF} /app
 WORKDIR /app
 RUN for p in /patches/smartsync-shared-files/*.patch; do [ -e "$p" ] || continue; patch -p1 < "$p" || exit 1; done && \
+    go get $GO_UPGRADES && go mod tidy && \
     go build -ldflags="-w -s" -a -installsuffix cgo -o /out/app ./cmd/server/ && cp -r configs /out/configs
 
 FROM go-build AS tuning
@@ -89,6 +81,7 @@ ADD https://github.com/openappsec/smartsync-tuning.git#${TUNING_REF} /app
 WORKDIR /app
 # tuning: no database password in its log
 RUN for p in /patches/smartsync-tuning/*.patch; do [ -e "$p" ] || continue; patch -p1 < "$p" || exit 1; done && \
+    go get $GO_UPGRADES && go mod tidy && \
     go build -ldflags="-w -s" -a -installsuffix cgo -o /out/app ./cmd/server/ && cp -r configs /out/configs && \
     { [ ! -d api ] || cp -r api /out/api; }
 

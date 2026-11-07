@@ -1,40 +1,40 @@
 // NPMOS API: /api/npmos/*
 import express from "express";
 import db from "../db.js";
+import internalAuditLog from "../internal/audit-log.js";
 import errs from "../lib/error.js";
 import jwtdecode from "../lib/express/jwt-decode.js";
 import validator from "../lib/validator/api.js";
 import { debug, express as logger } from "../logger.js";
-import internalAuditLog from "../internal/audit-log.js";
+import { dnsProviderHelp, dnsProviders } from "./acme/lego.js";
+import acmeServers from "./acme/servers.js";
+import { lastFailureLog } from "./acme.js";
+import internalAcmeCsr from "./acme-csr.js";
 import internalAudit from "./audit/index.js";
 import internalBlockPage from "./block-page.js";
-import internalAcmeCsr from "./acme-csr.js";
 import { certificateTerms } from "./cert-terms.js";
 import internalCertificates from "./certificates.js";
 import internalCrowdsec from "./crowdsec/index.js";
 import internalAnalytics from "./events/analytics.js";
 import internalEvents from "./events/index.js";
 import internalTraffic from "./events/traffic.js";
+import { geoAvailable, writeGeoConf } from "./geo/index.js";
+import internalGeoip from "./geoip/index.js";
 import internalHosts, { HOST_OBJECTS } from "./hosts.js";
+import internalLearning from "./learning/index.js";
+import internalMigration from "./migration/index.js";
 import internalNotifications from "./notifications/index.js";
 import internalPki from "./pki/index.js";
-import internalMtls, { detachCas, protectedHosts, usage as mtlsUsage, usedBy as mtlsUsedBy } from "./pki/mtls.js";
+import internalMtls, { detachCas, usage as mtlsUsage, usedBy as mtlsUsedBy, protectedHosts } from "./pki/mtls.js";
 import internalRbac from "./rbac/index.js";
 import internalServices from "./services.js";
 import internalSystem from "./system/index.js";
-import { geoAvailable, writeGeoConf } from "./geo/index.js";
-import internalGeoip from "./geoip/index.js";
-import internalLearning from "./learning/index.js";
-import internalMigration from "./migration/index.js";
 import internalWafAgent from "./waf/agent-settings.js";
 import internalWafExpert from "./waf/expert.js";
-import internalWafHostCode from "./waf/hosts-code.js";
 import internalWafHosts from "./waf/hosts.js";
+import internalWafHostCode from "./waf/hosts-code.js";
 import internalWaf from "./waf/index.js";
 import internalWafObjects from "./waf/objects/api.js";
-import { lastFailureLog } from "./acme.js";
-import { dnsProviderHelp, dnsProviders } from "./acme/lego.js";
-import acmeServers from "./acme/servers.js";
 
 const router = express.Router({
 	caseSensitive: true,
@@ -1514,7 +1514,11 @@ router
 	.get(async (req, res, next) => {
 		try {
 			const format = req.query.format === "v1beta1" ? "v1beta1" : "v1beta2";
-			const section = typeof req.query.section === "string" ? req.query.section : null;
+			// a section is a word (practices, exceptions, ...): it also names the downloaded file
+			const section =
+				typeof req.query.section === "string" && /^[A-Za-z][A-Za-z0-9-]{0,63}$/.test(req.query.section)
+					? req.query.section
+					: null;
 			const content = await internalWafObjects.export(res.locals.access, format, section);
 			res.attachment(`npmos-waf-policy-${section ?? format}.yaml`);
 			res.type("application/yaml").send(content);

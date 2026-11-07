@@ -1223,7 +1223,7 @@ const internalPki = {
 	 * @param {Buffer} requestDer
 	 */
 	ocsp: async (caId, requestDer, { minutes = 60 } = {}) => {
-		if (!requestDer?.length || requestDer.length > 16 * 1024) return null;
+		if (!Buffer.isBuffer(requestDer) || !requestDer.length || requestDer.length > 16 * 1024) return null;
 		const key = `${caId}:${minutes}:${createHash("sha256").update(requestDer).digest("hex")}`;
 		const cached = ocspCache.get(key);
 		if (cached && cached.until > Date.now()) return cached.der;
@@ -1259,7 +1259,7 @@ const internalPki = {
 	 * @param {Buffer} requestDer
 	 */
 	ocspAuto: async (requestDer) => {
-		if (!requestDer?.length || requestDer.length > 16 * 1024) return null;
+		if (!Buffer.isBuffer(requestDer) || !requestDer.length || requestDer.length > 16 * 1024) return null;
 		const issuer = await ops.ocspRequestIssuer(requestDer).catch(() => null);
 		if (!issuer) return null;
 		for (const ca of await db()("npmos_pki_ca").whereNot({ kind: "external" }).whereNotNull("key_enc")) {

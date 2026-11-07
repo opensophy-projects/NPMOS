@@ -15,6 +15,16 @@ step() { echo "==> $*"; }
 fail() { echo "FAIL: $*" >&2; exit 1; }
 json_id() { tr -d ' \n' | grep -o '"id":[0-9]*' | head -1 | grep -o '[0-9]*$'; }
 api_json() { $CURL -H 'Content-Type: application/json' "$@"; }
+# a JSON request whose answer is printed; a failure shows the status and the body of the answer
+api_ok() {
+  out=$(curl -sS --max-time 30 -k -b "$JAR" -c "$JAR" -w '\n%{http_code}' -H 'Content-Type: application/json' "$@")
+  code=$(printf '%s' "$out" | tail -n 1)
+  body=$(printf '%s' "$out" | sed '$d')
+  case "$code" in
+    2*) printf '%s' "$body" ;;
+    *) fail "$1 -> $code: $body" ;;
+  esac
+}
 
 rm -f "$JAR" /state/cookie
 step "admin API is up"
@@ -29,17 +39,20 @@ api_json "$ADMIN/api/users" -d "{\"name\": \"Admin\", \"nickname\": \"admin\", \
   \"auth\": {\"type\": \"password\", \"secret\": \"$PASSWORD\"}}" > /dev/null
 api_json "$ADMIN/api/tokens" -d "{\"identity\": \"$EMAIL\", \"secret\": \"$PASSWORD\"}" > /dev/null
 
-step "a root CA and a server certificate for dast.local (PKI of NPMOS)"
-ca_id=$(api_json "$ADMIN/api/npmos/pki/cas" \
+step "a root CA, a trust domain and a server certificate for dast.local (PKI of NPMOS)"
+root_id=$(api_ok "$ADMIN/api/npmos/pki/cas" \
   -d '{"kind": "root", "name": "DAST Root", "subject": {"common_name": "DAST Root", "organization": "NPMOS"}}' | json_id)
-[ -n "$ca_id" ] || fail "root CA was not created"
-server=$(api_json "$ADMIN/api/npmos/pki/certs" -d "{\"ca_id\": $ca_id, \"profile\": \"server\",
+[ -n "$root_id" ] || fail "root CA was not created"
+ca_id=$(api_ok "$ADMIN/api/npmos/pki/cas" -d "{\"kind\": \"intermediate\", \"name\": \"DAST Servers\",
+  \"parent_id\": $root_id, \"subject\": {\"common_name\": \"DAST Servers\", \"organization\": \"NPMOS\"}}" | json_id)
+[ -n "$ca_id" ] || fail "trust domain was not created"
+server=$(api_ok "$ADMIN/api/npmos/pki/certs" -d "{\"ca_id\": $ca_id, \"profile\": \"server\",
   \"subject\": {\"common_name\": \"dast.local\"}, \"sans\": {\"dns\": [\"dast.local\"]}, \"install\": true}")
 cert_id=$(echo "$server" | tr -d ' \n' | grep -o '"certificate_id":[0-9]*' | grep -o '[0-9]*$')
 [ -n "$cert_id" ] || fail "server certificate was not installed: $server"
 
 step "a proxy host dast.local -> test-upstream: TLS forced, HTTP/2, HSTS, exploit filter"
-api_json "$ADMIN/api/nginx/proxy-hosts" -d "{\"domain_names\": [\"dast.local\"], \"forward_scheme\": \"http\",
+api_ok "$ADMIN/api/nginx/proxy-hosts" -d "{\"domain_names\": [\"dast.local\"], \"forward_scheme\": \"http\",
   \"forward_host\": \"test-upstream\", \"forward_port\": \"80\", \"certificate_id\": $cert_id, \"ssl_forced\": true,
   \"http2_support\": true, \"hsts_enabled\": true, \"hsts_subdomains\": false, \"block_exploits\": true}" | json_id > /dev/null
 

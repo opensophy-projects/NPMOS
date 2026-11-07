@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { timingSafeEqual } from "node:crypto";
 // NPMOS control plane (npmos-control): the only way the NPMOS backend reaches the Docker API.
 //
 // Runs in the openappsec container (deploy/openappsec/npmos-openappsec.sh), which has the Docker socket; the
@@ -14,7 +15,6 @@
 import { readFileSync } from "node:fs";
 import http from "node:http";
 import { hostname } from "node:os";
-import { timingSafeEqual } from "node:crypto";
 import { repairNamespaces } from "./watchdog.js";
 
 const PORT = Number.parseInt(process.env.NPMOS_CONTROL_PORT || "7080", 10);

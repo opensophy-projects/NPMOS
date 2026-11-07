@@ -232,12 +232,17 @@ FROM --platform="$BUILDPLATFORM" alpine:3.24.1@sha256:28bd5fe8b56d1bd048e5babf5b
 SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
 ARG TARGETARCH
 ARG LEGO_VERSION=v4.35.2
+# libraries raised over the ones of the release: their versions have known vulnerabilities (Trivy, docs/DEVSECOPS.md)
+ARG LEGO_UPGRADES="golang.org/x/crypto@v0.58.0 golang.org/x/net@v0.62.0 golang.org/x/text@v0.43.0 google.golang.org/grpc@v1.85.0 github.com/go-jose/go-jose/v4@v4.1.9"
 RUN apk upgrade --no-cache -a && \
     apk add --no-cache go && \
-    CGO_ENABLED=0 GOOS=linux GOARCH="$TARGETARCH" GOTOOLCHAIN=local GOFLAGS=-trimpath GOPATH=/go \
-      go install -ldflags "-s -w -X main.version=$LEGO_VERSION" "github.com/go-acme/lego/v4/cmd/lego@$LEGO_VERSION" && \
-    { cp /go/bin/lego /lego 2>/dev/null || cp /go/bin/linux_"$TARGETARCH"/lego /lego; } && \
-    rm -rf /go /root/.cache && \
+    mkdir /build && cd /build && \
+    export GOTOOLCHAIN=local GOFLAGS=-trimpath GOPATH=/go && \
+    go mod init build && \
+    go get "github.com/go-acme/lego/v4@$LEGO_VERSION" $LEGO_UPGRADES && \
+    CGO_ENABLED=0 GOOS=linux GOARCH="$TARGETARCH" \
+      go build -ldflags "-s -w -X main.version=$LEGO_VERSION" -o /lego github.com/go-acme/lego/v4/cmd/lego && \
+    cd / && rm -rf /build /go /root/.cache && \
     /lego --version 2>/dev/null || file /lego
 
 # NPMOS: offline CrowdSec seed (hub snapshot) for the official crowdsec image, see npmos/crowdsec-seed/seed.sh
@@ -310,7 +315,8 @@ RUN apk upgrade --no-cache -a && \
     sed -i "s|placeholder|$(cat /app/package.json | jq -r .version)|g" /usr/local/nginx/conf/conf.d/crowdsec.conf.disabled && \
     \
     python3 -m venv /usr/local && \
-    pip install --no-cache-dir --upgrade pip certbot && \
+# NPMOS: setuptools too: the one of the venv has known vulnerabilities (Trivy, docs/DEVSECOPS.md)
+    pip install --no-cache-dir --upgrade pip setuptools certbot && \
     \
     wget -q https://raw.githubusercontent.com/tomwassenberg/certbot-ocsp-fetcher/refs/heads/main/certbot-ocsp-fetcher -O - | sed "s|/live||g" > /usr/local/bin/certbot-ocsp-fetcher.sh && \
     wget -q https://raw.githubusercontent.com/vasilevich/nginxbeautifier/5cee8db2a505f2a253e24691399c828c043071fc/index.js -O /usr/local/bin/nginxbeautifier && \

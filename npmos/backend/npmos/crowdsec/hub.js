@@ -7,6 +7,7 @@ import { createHash } from "node:crypto";
 import { lstat, mkdir, readdir, readFile, readlink, rename, rm, stat, symlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import YAML from "yaml";
+import { readWithStat } from "../files.js";
 
 export const CONF_DIR = process.env.NPMOS_CROWDSEC_CONF_DIR || "/etc/crowdsec";
 export const DATA_DIR = process.env.NPMOS_CROWDSEC_DATA_DIR || "/var/lib/crowdsec/data";
@@ -34,14 +35,18 @@ const indexFile = (dir = CONF_DIR) => path.join(dir, "hub", ".index.json");
 /** @returns {Promise<Record<string, Record<string, object>>>} */
 const loadIndex = async (dir = CONF_DIR) => {
 	const file = indexFile(dir);
-	let st;
+	let read;
 	try {
-		st = await stat(file);
+		read = await readWithStat(file, {
+			encoding: "utf8",
+			accept: (s) => !(cache.index && cache.dir === dir && cache.mtime === s.mtimeMs),
+		});
 	} catch {
 		throw new HubError("The hub index is missing: upload a hub snapshot");
 	}
-	if (cache.index && cache.dir === dir && cache.mtime === st.mtimeMs) return cache.index;
-	const index = parseIndex(await readFile(file, "utf8"));
+	const st = read.stat;
+	if (read.data === null) return cache.index;
+	const index = parseIndex(read.data);
 	cache = { mtime: st.mtimeMs, dir, index };
 	return index;
 };

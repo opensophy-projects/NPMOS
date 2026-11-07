@@ -1,7 +1,7 @@
 // Pure helpers of the PKI: validation of subjects and names, openssl configuration texts, serial
 // numbers, the index of revoked certificates for CRLs, parsing of certificates. No database, no
 // processes (unit tested in pki.test.js).
-import { generateKeyPairSync, randomBytes, X509Certificate } from "node:crypto";
+import { generateKeyPairSync, randomBytes, randomInt, X509Certificate } from "node:crypto";
 import net from "node:net";
 
 /** key types offered; Ed25519 is not, browsers barely support it for client certificates */
@@ -298,7 +298,6 @@ const parseSans = (text) => {
 /** a random password of a .p12 that is easy to type: 4 groups of 4 */
 export const randomPassword = () => {
 	const alphabet = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-	const bytes = randomBytes(16);
-	const chars = [...bytes].map((b) => alphabet[b % alphabet.length]);
+	const chars = Array.from({ length: 16 }, () => alphabet[randomInt(alphabet.length)]);
 	return [0, 4, 8, 12].map((i) => chars.slice(i, i + 4).join("")).join("-");
 };

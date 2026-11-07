@@ -6,9 +6,9 @@
 import { global as logger } from "../../logger.js";
 import { getSetting } from "../settings.js";
 import { classify, parseChunk } from "./normalize.js";
+import { startRequests, stopRequests } from "./requests.js";
 import { applyRetention, dropCursors, ensureCurrentPartitions, loadCursors, oldestKeptDay, store } from "./store.js";
 import { scan } from "./tail.js";
-import { startRequests, stopRequests } from "./requests.js";
 
 const LOG_DIR = process.env.NPMOS_APPSEC_LOG_DIR || "/ext/appsec-logs";
 const INTERVAL_MS = 2000;

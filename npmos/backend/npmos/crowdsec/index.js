@@ -3,12 +3,14 @@
 // bouncers, metrics, the hub, settings (sources, profiles, allowlist, AppSec, the bouncer of
 // NPMOS), local blocklists and the hosts the bouncer leaves out. Fully local: the hub is updated
 // from an uploaded snapshot, or online only when the administrator allows it.
-import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
+
 import { execFile } from "node:child_process";
+import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
+import YAML from "yaml";
 import db from "../../db.js";
 import internalAuditLog from "../../internal/audit-log.js";
 import internalNginx from "../../internal/nginx.js";
@@ -21,11 +23,10 @@ import redirectionHostModel from "../../models/redirection_host.js";
 import { EVENT_TABLE } from "../events/store.js";
 import { encrypt } from "../secrets.js";
 import { getSetting, setSetting } from "../settings.js";
-import { OWN_SCENARIO, alertsStatus, startAlerts } from "./alerts.js";
+import { alertsStatus, OWN_SCENARIO, startAlerts } from "./alerts.js";
 import { apply, pending } from "./apply.js";
 import { dueLists, scenarioOf, syncList } from "./blocklists.js";
-import { HOST_TYPES, applyBouncer, perHostSupported } from "./bouncer.js";
-import YAML from "yaml";
+import { applyBouncer, HOST_TYPES, perHostSupported } from "./bouncer.js";
 import {
 	ConfigError,
 	DECISION_TYPES,
@@ -627,7 +628,7 @@ const internalCrowdsec = {
 	hubUpload: async (access, body) => {
 		await access.can("crowdsec:manage");
 		return wrap(async () => {
-			if (!body?.length) throw new errs.ValidationError("Empty file");
+			if (!Buffer.isBuffer(body) || !body.length) throw new errs.ValidationError("Empty file");
 			if (body.length > MAX_UPLOAD_BYTES) throw new errs.ValidationError("The snapshot is larger than 200 MB");
 			let indexText;
 			let data = 0;

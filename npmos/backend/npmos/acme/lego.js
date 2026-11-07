@@ -10,6 +10,7 @@ import { domainToASCII } from "node:url";
 import errs from "../../lib/error.js";
 import { certbot as logger } from "../../logger.js";
 import { eabOf } from "../acme.js";
+import { pemCertificates } from "../pem.js";
 
 const LEGO = process.env.NPMOS_LEGO || "lego";
 const LEGO_PATH = "/data/tls/lego";
@@ -107,7 +108,7 @@ export const challengeArgs = (meta = {}) => {
 	return { args, env: parseCredentials(meta.dns_provider_credentials) };
 };
 
-const pemBlocks = (pem) => pem.match(/-----BEGIN CERTIFICATE-----[\s\S]+?-----END CERTIFICATE-----/g) || [];
+const pemBlocks = (pem) => pemCertificates(pem);
 
 /** the files of lego → cert.pem, chain.pem, fullchain.pem, privkey.pem of /data/tls/certbot/live/npm-<id> */
 const install = async (id, keyFile) => {
