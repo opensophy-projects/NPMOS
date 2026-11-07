@@ -22,6 +22,21 @@
 .wide {
 	grid-column: 1 / -1;
 }
+/* a table at the bottom of a panel runs to its edges, as the tables of the other pages run to the edges of a card */
+.bleed {
+	margin: 0 -1.125rem -1rem;
+	border-bottom-left-radius: calc(var(--radius-lg) - 1px);
+	border-bottom-right-radius: calc(var(--radius-lg) - 1px);
+}
+.bleed tr > :first-child {
+	padding-left: 1.125rem;
+}
+.bleed tr > :last-child {
+	padding-right: 1.125rem;
+}
+.bleed tbody tr:last-child > td {
+	border-bottom: 0;
+}
 .panelHead {
 	display: flex;
 	align-items: center;

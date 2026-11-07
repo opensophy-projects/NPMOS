@@ -842,7 +842,7 @@ function Endpoints({ rows: list, filter }: { rows: OriginEndpoint[]; filter: Tab
 				value={q}
 				onChange={(e) => setQ(e.target.value)}
 			/>
-			<div className={hostStyles.scroller}>
+			<div className={cn(hostStyles.scroller, styles.bleed)}>
 				<table className={cn("table table-vcenter card-table", hostStyles.table)}>
 					<thead>
 						<tr>
