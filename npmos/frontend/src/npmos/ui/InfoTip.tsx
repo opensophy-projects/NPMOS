@@ -2,6 +2,7 @@
 // The text is the message `<id>.info`: a Label, or a panel or a KPI titled with a T element, gets its
 // explanation by adding that message, nothing else changes. Drawn in a portal: tables and scroll areas do not clip it.
 import { IconHelp } from "@tabler/icons-react";
+import cn from "classnames";
 import { isValidElement, type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { intl, T } from "src/locale";
@@ -57,7 +58,7 @@ export function InfoTip({ id, values }: { id: string; values?: Record<string, st
 			<button
 				ref={button}
 				type="button"
-				className={styles.button}
+				className={cn("btn", styles.button)}
 				aria-label={intl.formatMessage({ id: "npmos.common.what-is-it" })}
 				aria-expanded={shown}
 				onMouseEnter={() => setOpen(true)}
@@ -71,7 +72,7 @@ export function InfoTip({ id, values }: { id: string; values?: Record<string, st
 					setPinned(!pinned);
 				}}
 			>
-				<IconHelp size={15} />
+				<IconHelp size={14} />
 			</button>
 			{shown &&
 				createPortal(
