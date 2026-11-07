@@ -19,7 +19,7 @@ export const scenarioOf = (id) => `npmos/blocklist/${id}`;
  * GET of a list; insecure: the certificate is not verified (another NPMOS node with a self-signed one)
  * @returns {Promise<string>}
  */
-export const fetchList = (url, { token = "", insecure = false } = {}) =>
+const fetchList = (url, { token = "", insecure = false } = {}) =>
 	new Promise((resolve, reject) => {
 		if (!/^https?:\/\//.test(url)) return reject(new Error("The URL must start with http:// or https://"));
 		const client = url.startsWith("https:") ? https : http;

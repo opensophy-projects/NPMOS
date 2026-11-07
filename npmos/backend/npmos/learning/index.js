@@ -84,7 +84,7 @@ const hostById = async (id) => (await wafHosts()).find((h) => h.id === id) ?? nu
 
 // the tenant of the agent, from its events: none when it runs local only (NPMOS_LOCAL_ONLY, no registration)
 let tenantCache = { value: "", at: 0 };
-export const getTenant = async () => {
+const getTenant = async () => {
 	if (Date.now() - tenantCache.at < 10 * 60 * 1000) return tenantCache.value;
 	let tenant = "";
 	if (isPostgres()) {
@@ -213,7 +213,7 @@ const activeLabels = async (where = {}) =>
  * are written by the tuning service).
  * @param {number[]|null} hostIds  null: every host with labels, and hosts whose labels were all undone
  */
-export const syncDecisions = async (hostIds = null) => {
+const syncDecisions = async (hostIds = null) => {
 	const tenant = await getTenant();
 	const hosts = await wafHosts();
 	const ids = hostIds ?? [

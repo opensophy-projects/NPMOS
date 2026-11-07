@@ -117,7 +117,7 @@ const groupSum = (rows, name, label) => {
 };
 
 /** metrics of Prometheus that the GUI shows (cscli metrics) */
-export const summarizeMetrics = (rows) => ({
+const summarizeMetrics = (rows) => ({
 	version: rows.find((r) => r.name === "cs_info")?.labels.version || "",
 	lines_read: groupSum(rows, "cs_filesource_hits_total", "source"),
 	lines_parsed: sum(rows, "cs_parser_hits_ok_total"),
@@ -193,7 +193,7 @@ const blocklistOut = (r) => ({
 const tokenHash = (token) => createHash("sha256").update(token).digest("hex");
 
 /** ban counts of hosts from CrowdSec alerts with a decision, last 24 h */
-export const bansByHost = async () => {
+const bansByHost = async () => {
 	const rows = await db()(EVENT_TABLE)
 		.select("host")
 		.count({ n: "*" })

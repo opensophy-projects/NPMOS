@@ -27,7 +27,7 @@ const DIR = process.env.NPMOS_MTLS_DIR || "/data/npmos/pki/nginx";
 export const HOST_TYPES = ["proxy_host", "stream"];
 export const MODES = ["on", "optional"];
 /** how revocation is checked: crl (the CRL files, nginx reloads when one changes) or ocsp (asks NPMOS, no reload) */
-export const REVOCATIONS = ["crl", "ocsp"];
+const REVOCATIONS = ["crl", "ocsp"];
 /** the OCSP responder of NPMOS for nginx itself (conf.d/npmos-ocsp.conf) */
 const OCSP_RESPONDER = process.env.NPMOS_OCSP_RESPONDER || "http://127.0.0.1:7089/api/npmos/pki/public/ocsp/auto";
 export { RULE_FIELDS, RULE_OPS, ruleRegex, trustSet };
@@ -35,7 +35,7 @@ export { RULE_FIELDS, RULE_OPS, ruleRegex, trustSet };
  * what a refused client gets (proxy hosts): the page "a client certificate is required" (403), the block page of
  * NPMOS (403), the 404 page (the site looks absent) or no answer at all (444, the connection is closed)
  */
-export const DENIED_PAGES = ["certificate", "blocked", "not_found", "close"];
+const DENIED_PAGES = ["certificate", "blocked", "not_found", "close"];
 export const DEFAULTS = {
 	enabled: false,
 	ca_ids: [],

@@ -199,7 +199,7 @@ const toCa = (row, counts = {}) => ({
  * External CAs uploaded in NPMplus (Certificates → mTLS) are shown and usable as external CAs:
  * their rows follow the certificates of NPMplus.
  */
-export const syncUpstream = async () => {
+const syncUpstream = async () => {
 	const upstream = await db()("certificate")
 		.where({ provider: "mtls", is_deleted: 0 })
 		.select("id", "nice_name", "meta");
@@ -274,7 +274,7 @@ const caCounts = async () => {
  * Generates the CRL of an own CA and stores it.
  * @returns {Promise<boolean>} false: the CA has no key (nothing generated)
  */
-export const regenerateCrl = async (caId) => {
+const regenerateCrl = async (caId) => {
 	const ca = await caRow(caId);
 	if (ca.kind === "external" || !ca.key_enc) return false;
 	const s = await settings();
@@ -306,7 +306,7 @@ export const regenerateCrl = async (caId) => {
  * CRLs close to their next update are generated again (daily timer and start). nginx refuses
  * every client certificate of a CA whose CRL has expired, so this must keep running.
  */
-export const refreshCrls = async () => {
+const refreshCrls = async () => {
 	const now = Date.now();
 	const rows = await db()("npmos_pki_ca").whereNot("kind", "external").whereNotNull("key_enc");
 	const changed = [];
@@ -472,7 +472,7 @@ const audit = (access, action, objectType, id, meta) =>
 /** NPMOS itself: automatic renewals (no user) */
 const SYSTEM = { can: async () => true, token: { getUserId: () => 0 } };
 /** auto_renew of a certificate: "" none, "link" (people: next .p12 by a one-time link), "token" (services) */
-export const AUTO_RENEW = ["", "link", "token"];
+const AUTO_RENEW = ["", "link", "token"];
 const RENEW_HOURS = { min: 1, max: 8760 };
 const tokenHash = (token) => createHash("sha256").update(String(token)).digest("hex");
 /** a renewal starts when a third of the validity (at most a day) is left */

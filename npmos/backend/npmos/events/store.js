@@ -24,7 +24,7 @@ const nextDay = (day) => {
 };
 
 /** partition of a day (Postgres only), idempotent */
-export const ensurePartition = async (day, knex = db(), table = EVENT_TABLE) => {
+const ensurePartition = async (day, knex = db(), table = EVENT_TABLE) => {
 	const known = `${table}:${day}`;
 	if (!isPostgres() || knownPartitions.has(known)) return;
 	await knex.raw(

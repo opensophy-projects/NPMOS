@@ -10,7 +10,7 @@ import YAML from "yaml";
 
 export const CONF_DIR = process.env.NPMOS_CROWDSEC_CONF_DIR || "/etc/crowdsec";
 export const DATA_DIR = process.env.NPMOS_CROWDSEC_DATA_DIR || "/var/lib/crowdsec/data";
-export const ONLINE_INDEX_URL = "https://cdn-hub.crowdsec.net/crowdsecurity/master/.index.json?with_content=true";
+const ONLINE_INDEX_URL = "https://cdn-hub.crowdsec.net/crowdsecurity/master/.index.json?with_content=true";
 const DOWNLOAD_TIMEOUT_MS = 60000;
 const MAX_DATA_BYTES = 256 * 1024 * 1024;
 
@@ -32,7 +32,7 @@ let cache = { mtime: 0, dir: "", index: null };
 const indexFile = (dir = CONF_DIR) => path.join(dir, "hub", ".index.json");
 
 /** @returns {Promise<Record<string, Record<string, object>>>} */
-export const loadIndex = async (dir = CONF_DIR) => {
+const loadIndex = async (dir = CONF_DIR) => {
 	const file = indexFile(dir);
 	let st;
 	try {
@@ -83,7 +83,7 @@ export const linkPath = (type, item, dir = CONF_DIR) => {
 		: path.join(dir, type, file);
 };
 
-export const hubPath = (item, dir = CONF_DIR) => path.join(dir, "hub", safeRel(item.path));
+const hubPath = (item, dir = CONF_DIR) => path.join(dir, "hub", safeRel(item.path));
 
 const sha256 = (text) => createHash("sha256").update(text).digest("hex");
 
@@ -92,7 +92,7 @@ export const children = (item) =>
 	TYPES.flatMap((type) => (Array.isArray(item[type]) ? item[type].map((name) => [type, name]) : []));
 
 /** data files of an item: [{source_url, dest_file}] */
-export const dataFiles = (content) => {
+const dataFiles = (content) => {
 	const files = [];
 	try {
 		for (const doc of YAML.parseAllDocuments(content)) {
@@ -124,7 +124,7 @@ const exists = async (p) => {
  * installed: "hub" (symlink of cscli or NPMOS), "local" (a file of its own, never touched), false
  * @returns {Promise<{installed: false|"hub"|"local", version: string|null, status: string}>}
  */
-export const itemState = async (type, item, dir = CONF_DIR) => {
+const itemState = async (type, item, dir = CONF_DIR) => {
 	const link = linkPath(type, item, dir);
 	let st;
 	try {

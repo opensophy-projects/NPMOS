@@ -41,8 +41,3 @@ export const decrypt = (value) => {
 	decipher.setAuthTag(raw.subarray(12, 28));
 	return Buffer.concat([decipher.update(raw.subarray(28)), decipher.final()]).toString("utf8");
 };
-
-/** for tests: another key file */
-export const _resetKey = () => {
-	key = null;
-};

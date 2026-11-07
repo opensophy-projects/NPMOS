@@ -11,10 +11,10 @@ import errs from "../lib/error.js";
 
 const DAY = 86400000;
 /** "expiring": less than this many days left */
-export const EXPIRING_DAYS = 30;
+const EXPIRING_DAYS = 30;
 const MAX_LIMIT = 200;
-export const SOURCES = ["tls", "ca", "pki", "file"];
-export const STATUSES = ["valid", "expiring", "expired", "revoked"];
+const SOURCES = ["tls", "ca", "pki", "file"];
+const STATUSES = ["valid", "expiring", "expired", "revoked"];
 const SORTS = ["expires", "-expires", "name", "-created"];
 const HOST_TABLES = ["proxy_host", "redirection_host", "dead_host", "stream"];
 /** directories with certificate files of nginx, certbot, NPMplus and the PKI */

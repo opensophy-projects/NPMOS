@@ -49,7 +49,7 @@ const USER_AGENT = `NPMOS/${pjson.version}`;
  * The message of an alert as text.
  * @param {{status: string, title: string, text: string, time: string}} message
  */
-export const plainText = (message) => `${message.title}\n\n${message.text}\n\n${message.time}`;
+const plainText = (message) => `${message.title}\n\n${message.text}\n\n${message.time}`;
 
 /** signature of a webhook body: hex HMAC-SHA256 of "<timestamp>.<body>" */
 export const sign = (secret, timestamp, body) =>

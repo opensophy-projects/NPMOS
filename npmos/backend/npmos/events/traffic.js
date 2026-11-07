@@ -15,7 +15,7 @@ const TOP = 10;
 const PAGE_MAX = 200;
 const KNOWN_TTL = 30 * 1000;
 
-export const TABS = ["requests", "visitors", "performance", "security", "cache", "origin"];
+const TABS = ["requests", "visitors", "performance", "security", "cache", "origin"];
 
 /** filters of the query → columns of npmos_request_log (exact match, comma-separated values) */
 const TEXT_FILTERS = {
@@ -117,7 +117,7 @@ export const needsLog = (f) =>
 let known = { at: 0, exact: new Set(), wildcards: [] };
 
 /** domain names of the hosts in NPMOS (proxy, redirection, 404 hosts): requests to other names are "unknown" */
-export const knownDomains = async () => {
+const knownDomains = async () => {
 	if (Date.now() - known.at < KNOWN_TTL) return known;
 	const knex = db();
 	const exact = new Set();
@@ -143,7 +143,7 @@ export const knownDomains = async () => {
 };
 
 /** is a Host header one of the hosts of NPMOS */
-export const isKnownHost = (host, k = known) =>
+const isKnownHost = (host, k = known) =>
 	k.exact.has(host) || k.wildcards.some((suffix) => host.endsWith(suffix) && host.length > suffix.length);
 
 const likeEscape = (v) => v.replace(/[\\%_]/g, (c) => `\\${c}`);
@@ -230,7 +230,7 @@ const logQuery = (c, from = c.from, to = c.to) =>
 	applyFilters(db()(REQUEST_LOG_TABLE).where("time", ">=", from).where("time", "<=", to), c.filters, c.known);
 
 /** buckets of the period, filled by rows {t, ...counters} */
-export const fillBuckets = (from, to, bucket, rows, keys) => {
+const fillBuckets = (from, to, bucket, rows, keys) => {
 	const start = Math.floor(from.getTime() / bucket) * bucket;
 	const buckets = [];
 	const index = new Map();

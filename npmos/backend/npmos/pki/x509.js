@@ -27,7 +27,7 @@ export const REVOKE_REASONS = [
 export const PROFILES = ["client", "server"];
 
 /** fields of a subject (API name → X.509 name) in the order they are written, most general first */
-export const SUBJECT_FIELDS = {
+const SUBJECT_FIELDS = {
 	country: "C",
 	state: "ST",
 	locality: "L",
@@ -270,7 +270,7 @@ export const parseCert = (pem) => {
 };
 
 /** "C=RU\nO=Org\nCN=name" (as Node prints it) → {country, organization, common_name} */
-export const parseSubject = (text) => {
+const parseSubject = (text) => {
 	const names = Object.fromEntries(Object.entries(SUBJECT_FIELDS).map(([field, name]) => [name, field]));
 	const result = {};
 	for (const line of String(text || "").split("\n")) {
@@ -282,7 +282,7 @@ export const parseSubject = (text) => {
 };
 
 /** "DNS:a, IP Address:1.2.3.4, email:x@y" → {dns, ip, email} */
-export const parseSans = (text) => {
+const parseSans = (text) => {
 	const sans = { dns: [], ip: [], email: [] };
 	for (const part of String(text || "").split(/,\s*/)) {
 		const at = part.indexOf(":");

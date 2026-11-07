@@ -25,8 +25,6 @@ const state = {
 	available: false,
 	/** events stored since the start of the process */
 	stored: 0,
-	/** listeners of new events (notifications) */
-	listeners: new Set(),
 };
 
 /**
@@ -34,7 +32,7 @@ const state = {
  * @param {{dir?: string, now?: Date}} [options]
  * @returns {Promise<{events: object[], telemetry: number}>}
  */
-export const ingestOnce = async ({ dir = LOG_DIR, now = new Date() } = {}) => {
+const ingestOnce = async ({ dir = LOG_DIR, now = new Date() } = {}) => {
 	const retention = await getSetting("events.retention");
 	const oldest = oldestKeptDay(retention.days, now);
 	const cursors = await loadCursors();
@@ -91,10 +89,9 @@ const round = async () => {
 			await maintenance();
 			state.lastMaintenance = Date.now();
 		}
-		const { events } = await ingestOnce();
+		await ingestOnce();
 		state.lastRun = new Date();
 		state.lastError = null;
-		emitEvents(events);
 	} catch (err) {
 		if (state.lastError !== err.message) logger.error(`NPMOS events: ${err.message}`);
 		state.lastError = err.message;
@@ -123,24 +120,6 @@ export const stop = () => {
 export const runMaintenance = async () => {
 	await maintenance();
 	state.lastMaintenance = Date.now();
-};
-
-/** new events stored by another source (CrowdSec alerts) */
-export const emitEvents = (events) => {
-	if (!events.length) return;
-	for (const listener of state.listeners) {
-		try {
-			listener(events);
-		} catch (err) {
-			logger.error(`NPMOS events: listener failed: ${err.message}`);
-		}
-	}
-};
-
-/** @param {(events: object[]) => void} listener */
-export const onEvents = (listener) => {
-	state.listeners.add(listener);
-	return () => state.listeners.delete(listener);
 };
 
 export const status = () => ({

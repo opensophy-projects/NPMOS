@@ -19,7 +19,7 @@ const MAX_BYTES = 4 * 1024 * 1024;
 const HEAD_BYTES = 64;
 const HOUR = 3600 * 1000;
 /** answers of a refusal: the WAF and the bouncer (403), limits (429), dropped (444), mTLS (495, 496) */
-export const BLOCKED = new Set([403, 429, 444, 495, 496]);
+const BLOCKED = new Set([403, 429, 444, 495, 496]);
 
 /**
  * Refused: never reached the server behind the host. A refusal of the protection (BLOCKED), or any 4xx nginx
@@ -29,7 +29,7 @@ export const BLOCKED = new Set([403, 429, 444, 495, 496]);
 export const refused = (status, upstreamStatus) =>
 	BLOCKED.has(status) || (status >= 400 && status < 500 && (upstreamStatus === null || upstreamStatus === undefined));
 
-const state = { running: false, timer: null, lastError: null, counted: 0 };
+const state = { running: false, timer: null, lastError: null };
 const hash = (b) => createHash("sha1").update(b).digest("hex");
 
 /** "0.004, 0.002" (one value per upstream tried) or "-" → milliseconds of the last one, null when none */
@@ -268,7 +268,6 @@ export const pollOnce = async ({ file = LOG_FILE } = {}) => {
 				.whereNot("client", "scanner")
 				.update({ client: "scanner" })
 				.catch((err) => logger.warn(`NPMOS request log: marking scanners: ${err.message}`));
-		state.counted += lines.length;
 		return lines.length;
 	} finally {
 		await handle.close();
@@ -300,5 +299,3 @@ export const stopRequests = () => {
 	state.running = false;
 	clearTimeout(state.timer);
 };
-
-export const requestsStatus = () => ({ counted: state.counted, lastError: state.lastError });

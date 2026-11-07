@@ -106,17 +106,4 @@ export const locate = async (root) => {
 	};
 };
 
-/** certificates of certbot in a located tree: names of live/ or renewal/ (npm-<id>) */
-export const certbotNames = async (certbot) => {
-	if (!certbot) return [];
-	const names = new Set();
-	for (const sub of ["archive", "renewal"]) {
-		for (const d of await readdir(path.join(certbot, sub)).catch(() => [])) {
-			const m = /^(npm-\d+)(\.conf)?$/.exec(d);
-			if (m) names.add(m[1]);
-		}
-	}
-	return [...names].sort();
-};
-
 export { exists };

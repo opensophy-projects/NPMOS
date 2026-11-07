@@ -12,7 +12,7 @@ const deps = async () => ({
 	...(await import("./settings.js")),
 });
 
-export const PAGE_FILE = process.env.NPMOS_BLOCK_PAGE || "/data/npmos/block-page.html";
+const PAGE_FILE = process.env.NPMOS_BLOCK_PAGE || "/data/npmos/block-page.html";
 
 const html = (s) =>
 	String(s ?? "").replace(
@@ -93,7 +93,7 @@ export const render = (s) => {
 };
 
 /** writes the page of the settings (or removes it when the page is off) */
-export const writePage = async (settings) => {
+const writePage = async (settings) => {
 	if (!settings.enabled) {
 		await rm(PAGE_FILE, { force: true });
 		return;

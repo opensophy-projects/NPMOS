@@ -40,7 +40,7 @@ export const listObjects = async () =>
 /**
  * References of a rule ({field: id | [id]}) → names; fields not given stay undefined (inherited).
  */
-export const resolveRule = (refs, byId) => {
+const resolveRule = (refs, byId) => {
 	const out = {};
 	for (const [field, { many }] of Object.entries(RULE_FIELDS)) {
 		const value = refs?.[field];

@@ -8,7 +8,7 @@ import { fromProjection } from "../rbac/model.js";
 import { TABLES } from "./schema.js";
 
 /** tables whose ids are kept: NPMOS must have no rows in them */
-export const KEEP_IDS = [
+const KEEP_IDS = [
 	"certificate",
 	"access_list",
 	"access_list_auth",

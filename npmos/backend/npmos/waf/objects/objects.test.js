@@ -125,10 +125,7 @@ test("objects of the examples of open-appsec pass the schema", async () => {
 	const { readFile } = await import("node:fs/promises");
 	const YAML = (await import("yaml")).default;
 	for (const name of ["default", "example", "prevent"]) {
-		const file = new URL(
-			`./examples/${name}.yaml`,
-			import.meta.url,
-		);
+		const file = new URL(`./examples/${name}.yaml`, import.meta.url);
 		const doc = YAML.parse(await readFile(file, "utf8"));
 		for (const [kind, section] of Object.entries(KINDS)) {
 			for (const item of doc[section] || []) {

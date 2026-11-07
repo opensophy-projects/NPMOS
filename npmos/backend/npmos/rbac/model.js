@@ -30,19 +30,12 @@ export const RESOURCES = {
 };
 
 /** the sections of upstream user_permission, by resource */
-export const UPSTREAM_SECTIONS = [
-	"proxy_hosts",
-	"redirection_hosts",
-	"dead_hosts",
-	"streams",
-	"access_lists",
-	"certificates",
-];
+const UPSTREAM_SECTIONS = ["proxy_hosts", "redirection_hosts", "dead_hosts", "streams", "access_lists", "certificates"];
 
 // own: hosts the user created; hosts: own hosts plus the hosts given to the role
 export const SCOPES = ["all", "own", "hosts"];
 
-export const ALL_PERMISSIONS = Object.entries(RESOURCES).flatMap(([resource, actions]) =>
+const ALL_PERMISSIONS = Object.entries(RESOURCES).flatMap(([resource, actions]) =>
 	actions.map((action) => `${resource}:${action}`),
 );
 

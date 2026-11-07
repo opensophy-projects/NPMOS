@@ -21,7 +21,7 @@ const parse = (value) => (typeof value === "string" ? JSON.parse(value) : value)
  * Checks the references of a rule (default policy, host): every id is an object of the right kind.
  * @returns {object} the references, only the known fields
  */
-export const checkRefs = (refs, objects, what) => {
+const checkRefs = (refs, objects, what) => {
 	const byId = new Map(objects.map((o) => [o.id, o]));
 	const out = {};
 	for (const [field, { kind, many }] of Object.entries(RULE_FIELDS)) {

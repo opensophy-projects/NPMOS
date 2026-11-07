@@ -9,7 +9,7 @@ import db from "../db.js";
 
 export const DAY = 86400000;
 /** a certificate replaced by hand: warn this many days ahead (a third of the term when that is shorter) */
-export const MANUAL_WARN_DAYS = 14;
+const MANUAL_WARN_DAYS = 14;
 /** certbot renews a third of the term ahead, at most 30 days */
 const CERTBOT_MAX_WINDOW_DAYS = 30;
 

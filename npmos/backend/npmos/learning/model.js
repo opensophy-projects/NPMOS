@@ -9,7 +9,7 @@
 // a ban of the sources in CrowdSec.
 import { createHash } from "node:crypto";
 
-export const DECISIONS = ["benign", "malicious", "dismiss"];
+const DECISIONS = ["benign", "malicious", "dismiss"];
 /** scopes of a label: eventType of decisions.data */
 export const SCOPES = ["parameterValue", "parameterName", "url", "source"];
 /** key of an exception condition (WAF → Policy) for each scope */
@@ -20,15 +20,15 @@ export const EXCEPTION_KEYS = {
 	source: "sourceIp",
 };
 /** prefix of the ids of NPMOS in decisions.data: other entries (tuning suggestions) are left as they are */
-export const ID_PREFIX = "npmos-";
+const ID_PREFIX = "npmos-";
 /** prefix of the exceptions NPMOS adds to the policy of a host */
-export const EXCEPTION_PREFIX = "npmos-learn-";
-export const MAX_SOURCES = 50;
-export const MAX_TTL_DAYS = 90;
-export const BAN_DURATIONS = ["1h", "4h", "24h", "168h", "720h"];
+const EXCEPTION_PREFIX = "npmos-learn-";
+const MAX_SOURCES = 50;
+const MAX_TTL_DAYS = 90;
+const BAN_DURATIONS = ["1h", "4h", "24h", "168h", "720h"];
 // waapFinalScore of the agent: < 3 low, 3..6 medium (the grey zone), >= 6 high (WaapConversions.cc)
 export const GREY_MIN = 3;
-export const GREY_MAX = 6;
+const GREY_MAX = 6;
 
 /** rule name of a proxy host (policy.js) → its id and the index of the location, or null */
 export const ruleHost = (rule) => {
@@ -258,9 +258,9 @@ export const exceptionActive = (label, now = new Date()) =>
 export const assetsOf = (domains, paths = []) => [...domains, ...domains.flatMap((d) => paths.map((p) => `${d}${p}`))];
 
 /** readiness of the tuning service (0 no data … 6 PhD) → steps of the GUI */
-export const READINESS = ["none", "kindergarten", "primary", "high", "graduate", "master", "phd"];
+const READINESS = ["none", "kindergarten", "primary", "high", "graduate", "master", "phd"];
 /** recommendation of the tuning service → key of the GUI */
-export const RECOMMENDATIONS = [
+const RECOMMENDATIONS = [
 	"send_traffic",
 	"keep_learning",
 	"review_critical",

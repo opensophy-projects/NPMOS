@@ -8,7 +8,7 @@ import pjson from "../../package.json" with { type: "json" };
 import { DATA_DIR } from "./hub.js";
 
 export const LAPI_URL = process.env.NPMOS_CROWDSEC_URL || "http://crowdsec:8080";
-export const METRICS_URL = process.env.NPMOS_CROWDSEC_METRICS_URL || "http://crowdsec:6060/metrics";
+const METRICS_URL = process.env.NPMOS_CROWDSEC_METRICS_URL || "http://crowdsec:6060/metrics";
 const SECRETS_DIR = process.env.NPMOS_SECRETS_DIR || "/run/npmos-secrets";
 const TIMEOUT_MS = 10000;
 // the LAPI refuses the login of a machine whose User-Agent is not "name/version"
@@ -125,7 +125,6 @@ export const health = async () => {
 export const alerts = async (params = {}) =>
 	(await machine("GET", `/v1/alerts${qs({ include_capi: false, ...params })}`)) || [];
 export const alert = (id) => machine("GET", `/v1/alerts/${encodeURIComponent(id)}`);
-export const deleteAlert = (id) => machine("DELETE", `/v1/alerts/${encodeURIComponent(id)}`);
 
 /** active decisions as the bouncers see them */
 export const decisions = async (params = {}) =>
