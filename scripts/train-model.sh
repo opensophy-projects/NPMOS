@@ -140,7 +140,8 @@ for i in $(seq 1 90); do
   sleep 2
 done
 wait_verdicts
-rm -f "$NPMOS_FEATURES_DIR"/*.jsonl
+# the rows of the probes stay (sample "probe", not in the set): the agent keeps its files open, a file removed
+# now would take everything it writes after
 
 step "the new model: the held-out part"
 "$PYTHON" model/replay.py --samples "$samples" --split test --workers "$WORKERS" --target "$SITE" \
