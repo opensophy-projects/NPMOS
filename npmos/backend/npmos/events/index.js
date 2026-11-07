@@ -113,8 +113,15 @@ export const parseFilters = (query, now = new Date()) => {
 		q: String(query.q ?? "")
 			.trim()
 			.slice(0, 200),
+		// requests of the log only (Events → All): the class of the answer, refused or passed, who sent it
+		status: list(query.status).filter((s) => /^[1-5](\d\d|xx)$/i.test(s)),
+		outcome: ["refused", "passed"].includes(query.outcome) ? query.outcome : "",
+		client: list(query.client).filter((c) => ["human", "bot", "scanner"].includes(c)),
 	};
 };
+
+/** filters only requests have: with one of them, Events → All shows no events */
+const requestOnly = (f) => f.status.length > 0 || !!f.outcome || f.client.length > 0;
 
 const like = (q) => `%${q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
 
@@ -228,7 +235,7 @@ const internalEvents = {
 		// Events → All: every request of the log too (with the permission of Analytics, no filter of events only)
 		const withRequests = f.kind === "all" && isPostgres() && !eventOnly(f) && (await canSeeRequests(access));
 		// only the agent nginx: the requests, no event
-		const noEvents = f.nginx && !f.agent.length;
+		const noEvents = (f.nginx && !f.agent.length) || (f.kind === "all" && requestOnly(f));
 		const rows = noEvents
 			? []
 			: await applyFilters(knex(EVENT_TABLE).select(LIST_COLUMNS), f)

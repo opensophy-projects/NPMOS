@@ -21,7 +21,8 @@ export const AGENT_OF: Record<string, string> = {
 	system: "open-appsec",
 };
 /** list filters: comma-separated in the URL and the API */
-export const LIST_FIELDS = ["agent", "host", "ip", "action", "severity", "type"] as const;
+/** status and client: of the requests of the log (Events → All) */
+export const LIST_FIELDS = ["agent", "host", "ip", "action", "severity", "type", "status", "client"] as const;
 export type ListField = (typeof LIST_FIELDS)[number];
 
 export interface EventFilters {
@@ -38,8 +39,12 @@ export interface EventFilters {
 	action: string[];
 	severity: string[];
 	type: string[];
+	status: string[];
+	client: string[];
 	minScore: string;
 	maxScore: string;
+	/** requests of the log (Events → All): refused or passed, "" for both */
+	outcome: "" | "refused" | "passed";
 }
 
 export const DEFAULT_FILTERS: EventFilters = {
@@ -55,9 +60,16 @@ export const DEFAULT_FILTERS: EventFilters = {
 	action: [],
 	severity: [],
 	type: [],
+	status: [],
+	client: [],
 	minScore: "",
 	maxScore: "",
+	outcome: "",
 };
+/** Events → All: classes of the answer and who sent the requests */
+export const STATUS_CLASSES = ["2xx", "3xx", "4xx", "5xx"] as const;
+export const CLIENTS = ["human", "bot", "scanner"] as const;
+export const OUTCOMES = ["refused", "passed"] as const;
 
 const split = (value: string | null) =>
 	(value ?? "")
@@ -93,6 +105,9 @@ export const filtersFromParams = (params: URLSearchParams): EventFilters => {
 		type: split(params.get("type")),
 		minScore: validScore(params.get("min")),
 		maxScore: validScore(params.get("max")),
+		status: split(params.get("status")).filter((v) => (STATUS_CLASSES as readonly string[]).includes(v)),
+		client: split(params.get("client")).filter((v) => (CLIENTS as readonly string[]).includes(v)),
+		outcome: OUTCOMES.find((o) => o === params.get("outcome")) ?? "",
 	};
 };
 
@@ -112,6 +127,7 @@ export const filtersToParams = (f: EventFilters, base = new URLSearchParams()) =
 	for (const field of LIST_FIELDS) set(field, f[field].join(","), false);
 	set("min", f.minScore, false);
 	set("max", f.maxScore, false);
+	set("outcome", f.outcome, false);
 	return params;
 };
 
@@ -129,6 +145,7 @@ export const filtersToQuery = (f: EventFilters): EventQuery => {
 	for (const field of LIST_FIELDS) if (f[field].length) query[field] = f[field].join(",");
 	if (f.minScore) query.minScore = f.minScore;
 	if (f.maxScore) query.maxScore = f.maxScore;
+	if (f.outcome) query.outcome = f.outcome;
 	return query;
 };
 
@@ -137,7 +154,8 @@ export const activeCount = (f: EventFilters) =>
 	LIST_FIELDS.reduce((n, field) => n + f[field].length, 0) +
 	(f.important ? 1 : 0) +
 	(f.minScore ? 1 : 0) +
-	(f.maxScore ? 1 : 0);
+	(f.maxScore ? 1 : 0) +
+	(f.outcome ? 1 : 0);
 
 /** adds a value to a list filter (from a cell of the table or the event card) */
 export const withValue = (f: EventFilters, field: ListField, value: string): EventFilters =>
@@ -176,6 +194,7 @@ export const forKind = (f: EventFilters, kind: Kind): EventFilters => {
 	for (const field of LIST_FIELDS) if (!fields.includes(field)) next[field] = [];
 	// nginx (the requests) is an agent of Events → All only
 	if (kind !== "all") next.agent = next.agent.filter((a) => a !== "nginx");
+	if (kind !== "all") next.outcome = "";
 	if (!score) {
 		next.minScore = "";
 		next.maxScore = "";

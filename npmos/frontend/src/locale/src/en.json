@@ -2525,6 +2525,12 @@
 	"npmos.events.older": {
 		"defaultMessage": "Older"
 	},
+	"npmos.events.outcome.passed": {
+		"defaultMessage": "passed"
+	},
+	"npmos.events.outcome.refused": {
+		"defaultMessage": "refused"
+	},
 	"npmos.events.override": {
 		"defaultMessage": "Exception"
 	},
@@ -2551,6 +2557,9 @@
 	},
 	"npmos.events.request-row": {
 		"defaultMessage": "HTTP request"
+	},
+	"npmos.events.requests-only": {
+		"defaultMessage": "Only requests have these: with one of them, events of the agents are not shown."
 	},
 	"npmos.events.response-code": {
 		"defaultMessage": "Response code"

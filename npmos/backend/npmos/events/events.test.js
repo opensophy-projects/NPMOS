@@ -386,3 +386,12 @@ test("requests: who made a request — a person, a bot or a scanner — and an a
 	assert.deepEqual(spreadScanners(later, 2000), []);
 	assert.equal(later[0].client, "scanner");
 });
+
+test("events: filters of the requests of Events → All", async () => {
+	const { parseFilters } = await import("./index.js");
+	const f = parseFilters({ kind: "all", status: "4xx,bad,503", outcome: "refused", client: "scanner,robot" });
+	assert.deepEqual(f.status, ["4xx", "503"]);
+	assert.equal(f.outcome, "refused");
+	assert.deepEqual(f.client, ["scanner"]);
+	assert.equal(parseFilters({ outcome: "maybe" }).outcome, "");
+});
