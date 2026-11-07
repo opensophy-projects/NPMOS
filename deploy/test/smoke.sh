@@ -915,6 +915,15 @@ expect "$(curl -sS -k -b "$JAR" -o /dev/null -w '%{http_code}' -X DELETE "$ADMIN
 $CURL -X DELETE "$ADMIN/api/npmos/pki/cas/$cascade_root?cascade=true" | grep -q true || fail "cascade delete failed"
 if $CURL "$ADMIN/api/npmos/pki" | grep -q 'Smoke Cascade'; then fail "the cascade left a CA behind"; fi
 
+step "PKI: deleting the trust domain of a host turns its mTLS off and leaves no copy of the CA behind"
+$CURL -X DELETE "$ADMIN/api/npmos/pki/cas/$quick_ca?cascade=true&disable_hosts=true" | grep -q true \
+  || fail "the trust domain of quick.local was not deleted"
+$CURL "$ADMIN/api/npmos/mtls/proxy_host/$quick_id" | tr -d ' \n' | grep -q '"enabled":false' \
+  || fail "mTLS of quick.local is still on"
+if $CURL "$ADMIN/api/npmos/certificates?limit=200" | grep -q "proxy_host-$quick_id\.ca\.pem"; then
+  fail "the CA file of quick.local is left in the registry"
+fi
+
 # --- phase 7 ---
 
 page() { curl -s -o /dev/null -w '%{http_code}' --max-time 10 -H 'Host: test.local' "$HTTP$1"; }

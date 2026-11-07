@@ -8,7 +8,7 @@
 // against the selected CAs. External CAs are trusted as a whole (no issuer check).
 // Revocation: with ssl_crl, nginx checks the CRL of every CA of the chain, so the CRL file has
 // them all; when a CA of the host has no CRL (external without one), revocation is not checked.
-import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import db from "../../db.js";
 import internalAuditLog from "../../internal/audit-log.js";
 import internalNginx from "../../internal/nginx.js";
@@ -78,6 +78,33 @@ const writeFiles = async (hostType, id, set) => {
 	return changed;
 };
 
+/** a host without mTLS keeps no copies of CAs: the registry of certificates would list them as files left behind */
+const removeFiles = async (hostType, id) => {
+	const f = files(hostType, id);
+	await rm(f.ca, { force: true });
+	await rm(f.crl, { force: true });
+};
+
+/**
+ * Start: removes the files of hosts that no longer have mTLS (deleted hosts, mTLS turned off or its CAs deleted
+ * by a version that left them).
+ */
+export const pruneFiles = async () => {
+	const names = await readdir(DIR).catch(() => []);
+	if (!names.length) return;
+	const rows = await db()("npmos_mtls_host");
+	const keep = new Set();
+	for (const row of rows) {
+		if (!row.enabled || !(parse(row.ca_ids) || []).length) continue;
+		const host = await db()(row.host_type).where({ id: row.host_id, is_deleted: 0 }).first();
+		if (host) keep.add(`${row.host_type}-${row.host_id}`);
+	}
+	for (const name of names) {
+		const m = /^(proxy_host|stream)-(\d+)\.(ca|crl)\.pem$/.exec(name);
+		if (m && !keep.has(`${m[1]}-${m[2]}`)) await rm(`${DIR}/${name}`, { force: true });
+	}
+};
+
 const toBinding = (row) =>
 	row
 		? {
@@ -105,10 +132,16 @@ export const prepareHost = async (hostType, host) => {
 	try {
 		const row = await db()("npmos_mtls_host").where({ host_type: hostType, host_id: host.id }).first();
 		const binding = toBinding(row);
-		if (!binding.enabled || !binding.ca_ids.length || !(host.certificate_id > 0)) return;
+		if (!binding.enabled || !binding.ca_ids.length || !(host.certificate_id > 0)) {
+			if (host.id) await removeFiles(hostType, host.id);
+			return;
+		}
 		const cas = await db()("npmos_pki_ca");
 		const set = trustSet(binding.ca_ids, cas);
-		if (!set.ids.length) return;
+		if (!set.ids.length) {
+			await removeFiles(hostType, host.id);
+			return;
+		}
 		const ocsp = binding.revocation === "ocsp" && hostType === "proxy_host";
 		// a host that trusts a root accepts every CA under it, also the ones made later (a CA per person)
 		const rootTrusted = binding.ca_ids.some((id) => cas.find((ca) => ca.id === id)?.kind === "root");
@@ -227,6 +260,8 @@ export const detachCas = async (caIds, check = false) => {
 		await db()("npmos_mtls_host")
 			.where({ host_type: row.host_type, host_id: row.host_id })
 			.update({ ca_ids: JSON.stringify(left), enabled: row.enabled && left.length > 0, modified_on: new Date() });
+		// a disabled host is not regenerated: its files go here
+		if (!(row.enabled && left.length)) await removeFiles(row.host_type, row.host_id);
 		if (host) {
 			await reconfigure(row.host_type, row.host_id);
 			names.push(name);
