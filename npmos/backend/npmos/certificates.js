@@ -46,6 +46,18 @@ const may = (access, permission) =>
 		() => false,
 	);
 
+/** names of the ACME servers of Settings → ACME by id, and the default one (no table before its migration) */
+const acmeServerNames = async () => {
+	const rows = await db()("npmos_acme_server")
+		.select("id", "name", "is_default")
+		.orderBy("id")
+		.catch(() => []);
+	return {
+		names: Object.fromEntries(rows.map((r) => [r.id, r.name])),
+		defaultId: (rows.find((r) => r.is_default) ?? rows[0])?.id ?? 0,
+	};
+};
+
 const iso = (value) => (value ? new Date(value).toISOString() : null);
 
 /** `attention`: when the certificate needs attention (TLS of the hosts: by its term, cert-terms.js) */
@@ -196,10 +208,23 @@ const collect = async (access, now) => {
 
 	if (canTls) {
 		const certs = await db()("certificate").where({ is_deleted: 0 }).whereNot("provider", "mtls").orderBy("id");
+		const acme = await acmeServerNames();
 		for (const cert of certs) {
 			const meta = parse(cert.meta) || {};
 			const pki = pkiOf[cert.id];
 			const term = await termOf(cert);
+			// TLS certificates of NPMplus have no fingerprint in the database: their files are known by path; the
+			// issuer is read from the file (the CA of an ACME server, the issuer of an uploaded certificate)
+			let x509 = null;
+			for (const file of [
+				`/data/tls/custom/npm-${cert.id}/fullchain.pem`,
+				`/data/tls/certbot/live/npm-${cert.id}/fullchain.pem`,
+			]) {
+				const found = firstCert(await readFile(file, "utf8").catch(() => ""));
+				if (!found) continue;
+				known.add(found.fingerprint256.toUpperCase());
+				x509 ??= found;
+			}
 			rows.push({
 				key: `tls:${cert.id}`,
 				source: "tls",
@@ -208,7 +233,13 @@ const collect = async (access, now) => {
 				subjects: parse(cert.domain_names) || [],
 				kind: cert.provider,
 				dns_provider: meta.dns_challenge ? meta.dns_provider || null : null,
-				issuer: pki ? pki.issuer : "",
+				// the ACME server of Settings → ACME the certificate is issued by (the default one for those of before)
+				acme_server:
+					cert.provider === "letsencrypt"
+						? acme.names[Number(meta.acme_server_id) || acme.defaultId] || null
+						: null,
+				issuer: pki ? pki.issuer : x509 ? cn(x509.issuer) : "",
+				serial: x509?.serialNumber,
 				not_before: term.not_before,
 				not_after: term.not_after ?? iso(cert.expires_on),
 				created_on: iso(cert.created_on),
@@ -218,16 +249,6 @@ const collect = async (access, now) => {
 				used_by: usage.byCert[cert.id] || [],
 				pki_id: pki?.id ?? null,
 			});
-		}
-		// TLS certificates of NPMplus have no fingerprint in the database: their files are known by path
-		for (const cert of certs) {
-			for (const file of [
-				`/data/tls/custom/npm-${cert.id}/fullchain.pem`,
-				`/data/tls/certbot/live/npm-${cert.id}/fullchain.pem`,
-			]) {
-				const x509 = firstCert(await readFile(file, "utf8").catch(() => ""));
-				if (x509) known.add(x509.fingerprint256.toUpperCase());
-			}
 		}
 		for (const ca of await db()("certificate").where({ is_deleted: 0, provider: "mtls" })) {
 			const x509 = firstCert(await readFile(`/data/tls/mtls/npm-${ca.id}.pem`, "utf8").catch(() => ""));
@@ -291,7 +312,7 @@ export const filterRows = (rows, f) =>
 			(!f.kind.length || f.kind.includes(r.kind)) &&
 			(!f.used || (f.used === "yes") === r.used_by.length > 0) &&
 			(!f.q ||
-				[r.name, ...r.subjects, r.issuer, r.serial, r.path, ...r.used_by.map((u) => u.name)]
+				[r.name, ...r.subjects, r.issuer, r.acme_server, r.serial, r.path, ...r.used_by.map((u) => u.name)]
 					.filter(Boolean)
 					.some((v) => String(v).toLowerCase().includes(f.q))),
 	);

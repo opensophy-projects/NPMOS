@@ -244,6 +244,8 @@ export interface RegistryCert {
 	/** provider of a TLS certificate, kind of a CA (root, intermediate, external), profile of an issued one */
 	kind: string;
 	dnsProvider?: string | null;
+	/** the ACME server of Settings → ACME an ACME certificate is issued by */
+	acmeServer?: string | null;
 	issuer: string;
 	serial?: string;
 	notAfter: string | null;

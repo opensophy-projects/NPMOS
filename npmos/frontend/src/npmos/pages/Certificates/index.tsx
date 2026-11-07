@@ -53,7 +53,7 @@ const STATUS_TONE: Record<CertStatus, string> = {
 };
 
 /** what the certificate is, in the words of the interface */
-const kindLabel = (c: Pick<RegistryCert, "source" | "kind" | "dnsProvider">) => {
+const kindLabel = (c: Pick<RegistryCert, "source" | "kind" | "dnsProvider" | "acmeServer">) => {
 	const ids: Record<string, string> = {
 		"tls:letsencrypt": "lets-encrypt",
 		"tls:other": "certificates.custom",
@@ -67,7 +67,9 @@ const kindLabel = (c: Pick<RegistryCert, "source" | "kind" | "dnsProvider">) => 
 		"file:dummy": "npmos.certs.kind.dummy",
 	};
 	const id = ids[`${c.source}:${c.kind}`];
-	const name = id ? t(id) : c.kind;
+	const kind = id ? t(id) : c.kind;
+	// ACME: which server (and so which CA) issued it
+	const name = c.acmeServer ? `${kind} · ${c.acmeServer}` : kind;
 	return c.dnsProvider ? `${name} – ${c.dnsProvider}` : name;
 };
 
