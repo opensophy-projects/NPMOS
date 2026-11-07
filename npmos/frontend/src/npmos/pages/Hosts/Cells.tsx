@@ -466,7 +466,34 @@ export function MtlsCell({ row, ctx }: { row: HostRow; ctx: CellContext }) {
 	);
 }
 
+/** countries of the host (edited in its window): "Only: RU, BY", "Except: CN" */
+function GeoChip({ geo }: { geo: NonNullable<HostRow["geo"]> }) {
+	const shown =
+		geo.countries.slice(0, 3).join(", ") + (geo.countries.length > 3 ? ` +${geo.countries.length - 3}` : "");
+	return (
+		<span
+			className={cn(styles.chip, geo.mode === "allow" ? styles.accent : styles.warning)}
+			title={geo.countries.join(", ")}
+		>
+			{t(`npmos.geo.short.${geo.mode}`, { countries: shown })}
+		</span>
+	);
+}
+
 export function AccessCell({ row, ctx }: { row: HostRow; ctx: CellContext }) {
+	const geo = row.geo && <GeoChip geo={row.geo} />;
+	const access = <AccessListCell row={row} ctx={ctx} />;
+	return geo ? (
+		<span className={styles.chips}>
+			{row.accessPublic !== null && access}
+			{geo}
+		</span>
+	) : (
+		access
+	);
+}
+
+function AccessListCell({ row, ctx }: { row: HostRow; ctx: CellContext }) {
 	if (row.accessPublic === null) return <span className={styles.none}>—</span>;
 	const names = row.accessListIds
 		.map((id) => ctx.accessLists.find((l) => l.id === id)?.name)

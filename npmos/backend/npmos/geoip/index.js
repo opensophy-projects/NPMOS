@@ -65,6 +65,9 @@ const database = async () => {
 	return current;
 };
 
+/** the file of the database in use (uploaded, else the one of CrowdSec), null without one: nginx reads it too */
+export const databaseFile = async () => (await database())?.file ?? null;
+
 /** name of the country of a record (English, as the agent writes it), "" when unknown */
 const countryOf = (record) => {
 	const c = record?.country || record?.registered_country;

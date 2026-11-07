@@ -56,6 +56,8 @@ export interface HostRow {
 	/** proxy hosts: "public" or the names of the access lists */
 	accessPublic: boolean | null;
 	accessListIds: number[];
+	/** countries let in ("allow") or kept out ("deny"), meta.npmosGeo; null when off (streams have none) */
+	geo: { mode: "allow" | "deny"; countries: string[] } | null;
 	group: string;
 	modifiedOn: string;
 	/** proxy hosts and TCP streams: whether every upstream accepts connections; null: not checked */
@@ -111,6 +113,14 @@ const pkiMtls = (binding: MtlsBinding | undefined) =>
 			}
 		: {};
 
+const geoOf = (meta: Record<string, any> | undefined): HostRow["geo"] => {
+	const g = meta?.npmosGeo;
+	const countries: string[] = Array.isArray(g?.countries)
+		? g.countries.filter((c: unknown) => typeof c === "string")
+		: [];
+	return (g?.mode === "allow" || g?.mode === "deny") && countries.length ? { mode: g.mode, countries } : null;
+};
+
 const groupOf = (meta: Record<string, any> | undefined) =>
 	typeof meta?.directory === "string" ? meta.directory.trim() : "";
 
@@ -151,6 +161,7 @@ const common = (
 	...mtlsOf(host.meta),
 	mtlsPki: false,
 	mtlsCaIds: [] as number[],
+	geo: geoOf(host.meta),
 	group: groupOf(host.meta),
 	modifiedOn: host.modifiedOn,
 });

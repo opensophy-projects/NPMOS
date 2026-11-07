@@ -2585,6 +2585,51 @@
 	"npmos.events.total-capped": {
 		"defaultMessage": "More than {total} events"
 	},
+	"npmos.geo.action": {
+		"defaultMessage": "Answer to a refused country"
+	},
+	"npmos.geo.action.403": {
+		"defaultMessage": "Block page (403)"
+	},
+	"npmos.geo.action.444": {
+		"defaultMessage": "Close the connection (444)"
+	},
+	"npmos.geo.countries": {
+		"defaultMessage": "Countries"
+	},
+	"npmos.geo.countries.placeholder": {
+		"defaultMessage": "Choose countries…"
+	},
+	"npmos.geo.empty": {
+		"defaultMessage": "No country chosen: the rule is off until you choose one."
+	},
+	"npmos.geo.hint.allow": {
+		"defaultMessage": "Requests from other countries are refused by nginx before anything else of the host (WAF, CrowdSec, the server behind it). Requests from addresses of unknown country are refused too. Certificate checks (/.well-known/acme-challenge/) and private networks always pass. Search engines that crawl from abroad (Google) are refused as well."
+	},
+	"npmos.geo.hint.deny": {
+		"defaultMessage": "Requests from these countries are refused by nginx before anything else of the host. Certificate checks (/.well-known/acme-challenge/) and private networks always pass."
+	},
+	"npmos.geo.mode.allow": {
+		"defaultMessage": "Only the countries below"
+	},
+	"npmos.geo.mode.deny": {
+		"defaultMessage": "All but the countries below"
+	},
+	"npmos.geo.mode.off": {
+		"defaultMessage": "All countries"
+	},
+	"npmos.geo.no-database": {
+		"defaultMessage": "nginx has no GeoIP database, so the rule lets everyone in. Upload one in System → Settings → GeoIP (or run CrowdSec, which brings GeoLite2)."
+	},
+	"npmos.geo.short.allow": {
+		"defaultMessage": "Only {countries}"
+	},
+	"npmos.geo.short.deny": {
+		"defaultMessage": "Except {countries}"
+	},
+	"npmos.geo.title": {
+		"defaultMessage": "Countries"
+	},
 	"npmos.geoip.built": {
 		"defaultMessage": "Built"
 	},

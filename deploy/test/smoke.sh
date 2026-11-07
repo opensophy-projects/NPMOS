@@ -1059,6 +1059,21 @@ code=$(curl -sk -o /dev/null -w '%{http_code}' -b "$JAR" -X POST -H 'Content-Typ
   --data-binary 'not a database' "$ADMIN/api/npmos/system/geoip")
 [ "$code" = 400 ] || fail "a broken GeoIP database was accepted: HTTP $code"
 
+step "Hosts → Countries: nginx knows the countries; a host let in only for one country keeps answering private networks"
+$CURL "$ADMIN/api/npmos/geo" | grep -q '"available": *true' || fail "nginx has no GeoIP database: $($CURL "$ADMIN/api/npmos/geo")"
+geo_host=$($CURL -H 'Content-Type: application/json' "$ADMIN/api/nginx/dead-hosts" -d '{
+  "domain_names": ["geo.local"], "meta": {"npmos_geo": {"mode": "allow", "countries": ["AQ"], "action": "403"}}
+}')
+echo "$geo_host" | grep -q '"nginx_online": *true' || fail "nginx refused the countries of a host: $geo_host"
+geo_id=$(echo "$geo_host" | grep -o '"id": *[0-9]*' | head -1 | grep -o '[0-9]*')
+for i in $(seq 1 10); do
+  code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 -H 'Host: geo.local' "$HTTP/")
+  [ "$code" = 404 ] && break
+  [ "$i" = 10 ] && fail "a client of a private network was refused by the countries of the host: HTTP $code"
+  sleep 1
+done
+$CURL -X DELETE "$ADMIN/api/nginx/dead-hosts/$geo_id" > /dev/null
+
 step "Migration: a backup of NPM is read and analyzed; the import waits for a new NPMOS"
 mig=$(curl -sS --max-time 120 -k -b $JAR -X POST -H 'Content-Type: application/octet-stream' \
   --data-binary @/fixtures/npm-backup.tgz "$ADMIN/api/npmos/system/migration/upload")

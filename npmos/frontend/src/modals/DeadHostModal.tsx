@@ -16,6 +16,7 @@ import {
 } from "src/components";
 import { useDeadHost, useDeadHosts, useDirectorySuggestions, useSetDeadHost } from "src/hooks";
 import { intl, T } from "src/locale";
+import { GeoFields } from "src/npmos/components/GeoFields"; // NPMOS: countries let in or kept out
 import { showObjectSuccess } from "src/notifications";
 import { PanelDomainAlert } from "src/npmos/hosts/panel"; // NPMOS: domain of the panel
 import { AcmeLogIfRequested } from "src/npmos/certs/AcmeLog"; // NPMOS: full log of a failed request
@@ -175,6 +176,8 @@ const DeadHostModal = EasyModal.create(({ id, isClone = false, visible, remove }
 												{/* NPMOS: a 404 host on the domain of the panel cuts the panel off */}
 												<PanelDomainAlert action="dead" />
 												<DomainNamesField isWildcardPermitted dnsProviderWildcardSupported />
+												{/* NPMOS: countries let in or kept out */}
+												<GeoFields />
 											</div>
 											<div className="tab-pane" id="tab-ssl" role="tabpanel">
 												<SSLCertificateField

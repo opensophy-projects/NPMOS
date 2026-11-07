@@ -18,6 +18,7 @@ import {
 } from "src/components";
 import { useDirectorySuggestions, useRedirectionHost, useRedirectionHosts, useSetRedirectionHost } from "src/hooks";
 import { intl, T } from "src/locale";
+import { GeoFields } from "src/npmos/components/GeoFields"; // NPMOS: countries let in or kept out
 import { validateString } from "src/modules/Validations";
 import { showObjectSuccess } from "src/notifications";
 import { PanelDomainAlert, PermanentRedirectHint } from "src/npmos/hosts/panel"; // NPMOS: domain of the panel
@@ -364,6 +365,8 @@ const RedirectionHostModal = EasyModal.create(({ id, isClone = false, visible, r
 														</div>
 													</div>
 												</div>
+												{/* NPMOS: countries let in or kept out */}
+												<GeoFields />
 											</div>
 											<div className="tab-pane" id="tab-ssl" role="tabpanel">
 												<SSLCertificateField
