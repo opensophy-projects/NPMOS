@@ -859,6 +859,53 @@ const requestRange = async (query, now) => {
 	return { b, k };
 };
 
+/** counting of the request log stops here ("100000+") */
+export const REQUEST_COUNT_CAP = 100000;
+
+/** the count of a filtered query, up to cap + 1 */
+const countOf = async (builder, cap) => {
+	const knex = db();
+	const row = await knex
+		.count({ n: "*" })
+		.from(
+			builder
+				.clearSelect()
+				.select(knex.raw("1"))
+				.limit(cap + 1)
+				.as("c"),
+		)
+		.first();
+	return Number(row?.n ?? 0);
+};
+
+/**
+ * Requests of the log for Events → All, in its order (time, newest first; at the same time the events come first,
+ * then the requests by id), after a cursor of that list, with their count. The filters are those Events and the
+ * request log share: time range, hosts, addresses, search.
+ * @param {{from: Date, to: Date, host: string[], ip: string[], q: string}} f
+ * @param {{time: Date, id: string, src: "e"|"r"}|null} before
+ * @returns {Promise<{rows: object[], total: number}>}
+ */
+export const requestFeed = async (f, before, limit, cap) => {
+	const filters = parseTrafficFilters({ host: f.host.join(","), ip: f.ip.join(","), q: f.q });
+	const k = await knownDomains();
+	const base = () =>
+		applyFilters(db()(REQUEST_LOG_TABLE).where("time", ">=", f.from).where("time", "<=", f.to), filters, k);
+	const b = base();
+	if (before) {
+		// after an event at time t, every request of t is still to come
+		if (before.src === "e") b.where("time", "<=", before.time);
+		else
+			b.where((q) =>
+				q
+					.where("time", "<", before.time)
+					.orWhere((q2) => q2.where("time", before.time).where("id", "<", before.id)),
+			);
+	}
+	const [rows, total] = await Promise.all([b.select().orderBy(NEWEST).limit(limit), countOf(base(), cap)]);
+	return { rows: rows.map((r) => toApi(r, k)), total };
+};
+
 const internalTraffic = {
 	/**
 	 * One tab of Analytics.
@@ -899,13 +946,22 @@ const internalTraffic = {
 				b.where((q) => q.where("time", "<", time).orWhere((q2) => q2.where("time", time).where("id", "<", id)));
 			}
 		}
-		const rows = await b
-			.select()
-			.orderBy(NEWEST)
-			.limit(limit + 1);
+		const count = requestRange(query, now).then((r) => countOf(r.b, REQUEST_COUNT_CAP));
+		const [rows, total] = await Promise.all([
+			b
+				.select()
+				.orderBy(NEWEST)
+				.limit(limit + 1),
+			count,
+		]);
 		const page = rows.slice(0, limit).map((r) => toApi(r, k));
 		const last = page[page.length - 1];
-		return { rows: page, next: rows.length > limit && last ? `${last.time}|${last.id}` : null };
+		return {
+			rows: page,
+			next: rows.length > limit && last ? `${last.time}|${last.id}` : null,
+			total: Math.min(total, REQUEST_COUNT_CAP),
+			totalCapped: total > REQUEST_COUNT_CAP,
+		};
 	},
 
 	/**

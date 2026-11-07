@@ -5,13 +5,14 @@ import { IconChevronLeft, IconChevronRight, IconDownload, IconFilter, IconX } fr
 import cn from "classnames";
 import { useEffect, useMemo, useState } from "react";
 import Alert from "react-bootstrap/Alert";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { HasPermission, LoadingPage } from "src/components";
 import { intl, T } from "src/locale";
 import { VIEW } from "src/modules/Permissions";
 import { showError } from "src/notifications";
 import { downloadEvents, type SecurityEvent } from "../../api";
 import { useEvents } from "../../hooks";
+import { hostLabel, showRequestModal, statusTone } from "../../modals/RequestModal";
 import { showWafEventModal } from "../../modals/WafEventModal";
 import { useCan } from "../../rbac/hooks";
 import { Dropdown } from "../../ui/Dropdown";
@@ -19,6 +20,7 @@ import { Popover } from "../../ui/Popover";
 import hostStyles from "../Hosts/Hosts.module.css";
 import { ActionBadge, EventTime, SeverityBadge } from "./badges";
 import { RequestLogView } from "../RequestLog";
+import logStyles from "../RequestLog/RequestLog.module.css";
 import styles from "./Events.module.css";
 import {
 	AGENT_OF,
@@ -394,7 +396,64 @@ function ActiveFilters({ filters, onChange }: { filters: EventFilters; onChange:
 	);
 }
 
+/** a request of the request log in Events → All: its status in place of the action, its window on a click */
+function RequestRow({
+	event,
+	onFilter,
+}: {
+	event: SecurityEvent;
+	onFilter: (field: ListField, value: string) => void;
+}) {
+	const navigate = useNavigate();
+	const r = event.request;
+	if (!r) return null;
+	const stop = (field: ListField, value: string) => (e: React.MouseEvent) => {
+		e.stopPropagation();
+		onFilter(field, value);
+	};
+	return (
+		<tr className={styles.row} onClick={() => showRequestModal(r, onFilter, navigate)}>
+			<td className={styles.time}>
+				<EventTime time={r.time} />
+			</td>
+			<td className={styles.agent}>
+				<T id="npmos.events.agent.request" />
+			</td>
+			<td />
+			<td>
+				<div>
+					<T id="npmos.events.request-row" />
+				</div>
+				{!r.known && <div className={styles.sub}>{t("npmos.traffic.host.unknown")}</div>}
+			</td>
+			<td>
+				<span className={cn(logStyles.status, statusTone(r.status))}>{r.status}</span>
+			</td>
+			<td className={styles.score}>—</td>
+			<td>
+				<button type="button" className={styles.link} onClick={stop("ip", r.ip)}>
+					{r.ip}
+				</button>
+			</td>
+			<td>
+				{r.host && r.host !== "_" ? (
+					<button type="button" className={styles.link} onClick={stop("host", r.host)}>
+						{r.host}
+					</button>
+				) : (
+					hostLabel(r.host)
+				)}
+			</td>
+			<td className={styles.request} title={`${r.method} ${r.path}`}>
+				<span className={styles.method}>{r.method}</span>
+				{r.path}
+			</td>
+		</tr>
+	);
+}
+
 function EventRow({ event, onFilter }: { event: SecurityEvent; onFilter: (field: ListField, value: string) => void }) {
+	if (event.kind === "request") return <RequestRow event={event} onFilter={onFilter} />;
 	const stop = (field: ListField, value: string) => (e: React.MouseEvent) => {
 		e.stopPropagation();
 		onFilter(field, value);

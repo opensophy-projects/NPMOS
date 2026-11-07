@@ -2420,6 +2420,9 @@
 	"npmos.events.agent.open-appsec": {
 		"defaultMessage": "open-appsec"
 	},
+	"npmos.events.agent.request": {
+		"defaultMessage": "nginx"
+	},
 	"npmos.events.attack-type": {
 		"defaultMessage": "Тип атаки"
 	},
@@ -2524,6 +2527,9 @@
 	},
 	"npmos.events.raw": {
 		"defaultMessage": "Событие в том виде, как его записал агент"
+	},
+	"npmos.events.request-row": {
+		"defaultMessage": "HTTP-запрос"
 	},
 	"npmos.events.response-code": {
 		"defaultMessage": "Код ответа"
@@ -6776,8 +6782,8 @@
 	"npmos.traffic.log.from": {
 		"defaultMessage": "от"
 	},
-	"npmos.traffic.log.more": {
-		"defaultMessage": "Показать ещё"
+	"npmos.traffic.log.ip-events": {
+		"defaultMessage": "Всё от этого IP"
 	},
 	"npmos.traffic.log.only-unknown": {
 		"defaultMessage": "Только хосты не из «Хостов»"
@@ -6811,6 +6817,12 @@
 	},
 	"npmos.traffic.log.to": {
 		"defaultMessage": "до"
+	},
+	"npmos.traffic.log.total": {
+		"defaultMessage": "{total, plural, one {# запрос} few {# запроса} many {# запросов} other {# запроса}}"
+	},
+	"npmos.traffic.log.total-capped": {
+		"defaultMessage": "Больше {total} запросов"
 	},
 	"npmos.traffic.log.values-hint": {
 		"defaultMessage": "Несколько значений — Enter после каждого."

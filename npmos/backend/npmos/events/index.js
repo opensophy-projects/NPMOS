@@ -9,6 +9,7 @@ import { getSetting, setSetting } from "../settings.js";
 import { status as ingestStatus, runMaintenance } from "./ingest.js";
 import { IMPORTANT_SEVERITIES } from "./normalize.js";
 import { EVENT_TABLE, REQUEST_LOG_TABLE } from "./store.js";
+import { REQUEST_COUNT_CAP, requestFeed } from "./traffic.js";
 
 const MAX_LIMIT = 500;
 const MAX_EXPORT = 100000;
@@ -151,15 +152,56 @@ const applyFilters = (builder, f) => {
 	return builder;
 };
 
-/** "<ISO time>_<id>" of the last row of a page */
-const cursorOf = (row) => `${new Date(row.time).toISOString()}_${row.id}`;
+/** "<ISO time>_<id>" of the last row of a page ("_r<id>": a request of the log, in Events → All) */
+const cursorOf = (row) =>
+	`${new Date(row.time).toISOString()}_${row.kind === "request" ? "r" : ""}${row.rawId ?? row.id}`;
 
 const parseCursor = (value) => {
 	if (!value) return null;
-	const m = /^(.+)_(\d+)$/.exec(String(value));
+	const m = /^(.+)_(r?)(\d+)$/.exec(String(value));
 	const time = m && new Date(m[1]);
 	if (!m || Number.isNaN(time.getTime())) throw new errs.ValidationError("Invalid cursor");
-	return { time, id: m[2] };
+	return { time, id: m[3], src: m[2] ? "r" : "e" };
+};
+
+/** filters only events have: with one of them, Events → All shows no requests */
+const eventOnly = (f) =>
+	f.agent.length > 0 ||
+	f.important ||
+	f.action.length > 0 ||
+	f.severity.length > 0 ||
+	f.type.length > 0 ||
+	f.minScore !== null ||
+	f.maxScore !== null;
+
+/** whether the user may see the request log (permission of Analytics) */
+const canSeeRequests = (access) =>
+	access.can("analytics:view").then(
+		() => true,
+		() => false,
+	);
+
+/** a request of the log as a row of Events → All; the request itself in `request` */
+const requestRow = (r) => ({
+	kind: "request",
+	id: `r${r.id}`,
+	rawId: r.id,
+	time: r.time,
+	host: r.host,
+	source_ip: r.ip,
+	request: r,
+});
+
+/** newest first; at the same time events before requests, then the higher id */
+const feedOrder = (a, b) => {
+	const t = new Date(b.time).getTime() - new Date(a.time).getTime();
+	if (t) return t;
+	const ka = a.kind === "request" ? 1 : 0;
+	const kb = b.kind === "request" ? 1 : 0;
+	if (ka !== kb) return ka - kb;
+	const ia = BigInt(a.rawId ?? a.id);
+	const ib = BigInt(b.rawId ?? b.id);
+	return ia === ib ? 0 : ia < ib ? 1 : -1;
 };
 
 const toApi = (row) => ({
@@ -181,9 +223,13 @@ const internalEvents = {
 		const limit = Math.min(Math.max(Number.parseInt(query.limit, 10) || 100, 1), MAX_LIMIT);
 		const before = parseCursor(query.before);
 		const knex = db();
+		// Events → All: every request of the log too (with the permission of Analytics, no filter of events only)
+		const withRequests = f.kind === "all" && isPostgres() && !eventOnly(f) && (await canSeeRequests(access));
 		const rows = await applyFilters(knex(EVENT_TABLE).select(LIST_COLUMNS), f)
 			.modify((b) => {
-				if (before) {
+				// after a request at time t, the events of t came before it
+				if (before?.src === "r") b.where("time", "<", before.time);
+				else if (before) {
 					b.where((w) =>
 						w
 							.where("time", "<", before.time)
@@ -204,14 +250,22 @@ const internalEvents = {
 					.as("c"),
 			)
 			.first();
-		const total = Number(counted?.n ?? 0);
-		const page = rows.slice(0, limit);
+		let total = Number(counted?.n ?? 0);
+		let cap = COUNT_CAP;
+		let merged = rows.map(toApi);
+		if (withRequests) {
+			const requests = await requestFeed(f, before, limit + 1, REQUEST_COUNT_CAP);
+			merged = [...merged, ...requests.rows.map(requestRow)].sort(feedOrder);
+			total += requests.total;
+			cap += REQUEST_COUNT_CAP;
+		}
+		const page = merged.slice(0, limit);
 		const ingest = ingestStatus();
 		return {
-			events: page.map(toApi),
-			next: rows.length > limit ? cursorOf(page[page.length - 1]) : null,
-			total: Math.min(total, COUNT_CAP),
-			totalCapped: total > COUNT_CAP,
+			events: page.map(({ rawId, ...row }) => row),
+			next: merged.length > limit ? cursorOf(page[page.length - 1]) : null,
+			total: Math.min(total, cap),
+			totalCapped: total > cap,
 			from: f.from.toISOString(),
 			to: f.to.toISOString(),
 			// the agent's log directory is mounted and read

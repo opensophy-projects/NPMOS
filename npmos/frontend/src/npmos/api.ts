@@ -134,7 +134,9 @@ export interface SecurityEvent {
 	id: string;
 	time: string;
 	/** security: an attack the WAF decided on; system: a notice of the agent */
-	kind: "security" | "crowdsec" | "mtls" | "system";
+	kind: "security" | "crowdsec" | "mtls" | "system" | "request";
+	/** Events → All: a request of the request log (kind "request") */
+	request?: RequestLogRow;
 	name: string;
 	severity: string;
 	priority: string;
@@ -471,6 +473,8 @@ export const getRequestLog = (
 		rows: RequestLogRow[];
 		next: string | null;
 		unsupported?: boolean;
+		total?: number;
+		totalCapped?: boolean;
 	}>;
 
 export interface EventsSettings {
