@@ -377,6 +377,8 @@ export interface TrafficFilters {
 	browser?: string;
 	os?: string;
 	device?: string;
+	/** human, bot, scanner */
+	client?: string;
 	protocol?: string;
 	tls?: string;
 	cache?: string;
@@ -459,6 +461,8 @@ export interface RequestLogRow {
 	browser: string;
 	os: string;
 	device: string;
+	/** who made it: a person, a bot that says so, a scanner */
+	client: "human" | "bot" | "scanner";
 	mitigated: boolean;
 }
 

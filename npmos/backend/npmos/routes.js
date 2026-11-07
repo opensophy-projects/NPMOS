@@ -924,6 +924,7 @@ const REQUEST_CSV_COLUMNS = [
 	"browser",
 	"os",
 	"device",
+	"client",
 	"mitigated",
 	"id",
 ];

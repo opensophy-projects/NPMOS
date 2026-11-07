@@ -26,6 +26,7 @@ export const FILTER_KEYS: (keyof TrafficFilters)[] = [
 	"browser",
 	"os",
 	"device",
+	"client",
 	"protocol",
 	"tls",
 	"cache",

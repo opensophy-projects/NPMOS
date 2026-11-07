@@ -33,6 +33,8 @@ const TEXT_FILTERS = {
 	origin: "upstream_addr",
 	referer: "referer_host",
 	port: "port",
+	// human, bot, scanner (client.js)
+	client: "client",
 };
 
 /** ranges of the query → numeric columns (min…max, both optional) */
@@ -470,24 +472,35 @@ const tabs = {
 	},
 
 	visitors: async (c) => {
+		// page views and visits of people; the timeline splits them into people, bots and scanners (client.js)
+		const people = c.filters.text.client ? "" : " AND client = 'human'";
+		const by = (what, client) => `SUM(CASE WHEN ${what} AND client = '${client}' THEN 1 ELSE 0 END)`;
 		const timeline = await logTimeline(c, {
-			pageviews: "SUM(CASE WHEN pageview THEN 1 ELSE 0 END)",
-			visits: "SUM(CASE WHEN visit THEN 1 ELSE 0 END)",
-			desktop: "SUM(CASE WHEN pageview AND device = 'desktop' THEN 1 ELSE 0 END)",
-			mobile: "SUM(CASE WHEN pageview AND device = 'mobile' THEN 1 ELSE 0 END)",
-			tablet: "SUM(CASE WHEN pageview AND device = 'tablet' THEN 1 ELSE 0 END)",
-			bot: "SUM(CASE WHEN pageview AND device = 'bot' THEN 1 ELSE 0 END)",
-			other: "SUM(CASE WHEN pageview AND device = 'other' THEN 1 ELSE 0 END)",
+			pageviews: `SUM(CASE WHEN pageview${people} THEN 1 ELSE 0 END)`,
+			visits: `SUM(CASE WHEN visit${people} THEN 1 ELSE 0 END)`,
+			pvHuman: by("pageview", "human"),
+			pvBot: by("pageview", "bot"),
+			pvScanner: by("pageview", "scanner"),
+			visitHuman: by("visit", "human"),
+			visitBot: by("visit", "bot"),
+			visitScanner: by("visit", "scanner"),
+			desktop: `SUM(CASE WHEN pageview${people} AND device = 'desktop' THEN 1 ELSE 0 END)`,
+			mobile: `SUM(CASE WHEN pageview${people} AND device = 'mobile' THEN 1 ELSE 0 END)`,
+			tablet: `SUM(CASE WHEN pageview${people} AND device = 'tablet' THEN 1 ELSE 0 END)`,
+			other: `SUM(CASE WHEN pageview${people} AND device = 'other' THEN 1 ELSE 0 END)`,
 		});
 		const sum = (k) => timeline.reduce((n, b) => n + num(b[k]), 0);
 		const prev =
 			c.prevFrom >= c.logFrom
 				? await logTotals(c, c.prevFrom, c.from, {
-						pageviews: "SUM(CASE WHEN pageview THEN 1 ELSE 0 END)",
-						visits: "SUM(CASE WHEN visit THEN 1 ELSE 0 END)",
+						pageviews: `SUM(CASE WHEN pageview${people} THEN 1 ELSE 0 END)`,
+						visits: `SUM(CASE WHEN visit${people} THEN 1 ELSE 0 END)`,
 					})
 				: { pageviews: null, visits: null };
-		const pv = (b) => b.where("pageview", true);
+		const pv = (b) => {
+			b.where("pageview", true);
+			if (people) b.where("client", "human");
+		};
 		const [ctry, paths, hosts, os, browsers, agents, referers] = await Promise.all([
 			top(c, "country", { where: pv, limit: 250 }),
 			top(c, "path", { where: pv }),
@@ -495,7 +508,12 @@ const tabs = {
 			top(c, "os", { where: pv }),
 			top(c, "browser", { where: pv }),
 			top(c, "user_agent", { where: pv }),
-			top(c, "referer_host", { where: (b) => b.where("visit", true) }),
+			top(c, "referer_host", {
+				where: (b) => {
+					b.where("visit", true);
+					if (people) b.where("client", "human");
+				},
+			}),
 		]);
 		return {
 			kpi: {
@@ -839,6 +857,7 @@ const toApi = (r, k) => ({
 	os: r.os,
 	device: r.device,
 	mitigated: r.mitigated,
+	client: r.client ?? "human",
 });
 
 const NEWEST = [

@@ -6515,6 +6515,15 @@
 	"npmos.traffic.cached-vs-uncached": {
 		"defaultMessage": "Cached and uncached requests"
 	},
+	"npmos.traffic.client.bot": {
+		"defaultMessage": "Bots"
+	},
+	"npmos.traffic.client.human": {
+		"defaultMessage": "People"
+	},
+	"npmos.traffic.client.scanner": {
+		"defaultMessage": "Scanners"
+	},
 	"npmos.traffic.content": {
 		"defaultMessage": "Content"
 	},
@@ -6577,6 +6586,9 @@
 	},
 	"npmos.traffic.filter.clear": {
 		"defaultMessage": "Clear filters"
+	},
+	"npmos.traffic.filter.client": {
+		"defaultMessage": "Client"
 	},
 	"npmos.traffic.filter.contentType": {
 		"defaultMessage": "Content type"
@@ -7068,7 +7080,7 @@
 		"defaultMessage": "Traffic analytics needs PostgreSQL (the database of the NPMOS stack)."
 	},
 	"npmos.traffic.visitors.hint": {
-		"defaultMessage": "A page view is an HTML page answered without an error; a visit is a page view that did not come from the same site."
+		"defaultMessage": "Page views and visits are of people. A page view is an HTML page answered without an error; a visit is a page view that did not come from the same site. Bots say who they are (search engines, previews, monitoring, scripts) or pose as a browser without its headers; scanners probe for files and admin pages, come to the bare IP or are refused by the protection. The charts split them: click the legend to pick out one."
 	},
 	"npmos.traffic.visits-over-time": {
 		"defaultMessage": "Visits over time"

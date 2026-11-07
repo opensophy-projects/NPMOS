@@ -337,6 +337,16 @@ export function RequestsTab({ data, period, filter }: TabProps) {
 	);
 }
 
+/** who made the page views and visits: people, bots that say so, scanners (backend events/client.js) */
+const CLIENT_SERIES = [
+	{ key: "Human", label: "npmos.traffic.client.human", color: "var(--series-1)" },
+	{ key: "Bot", label: "npmos.traffic.client.bot", color: "var(--series-4)" },
+	{ key: "Scanner", label: "npmos.traffic.client.scanner", color: "var(--series-5)" },
+] as const;
+
+const byClient = (prefix: "pv" | "visit") =>
+	CLIENT_SERIES.map(({ key, label, color }) => ({ key: `${prefix}${key}`, label: t(label), color }));
+
 export function VisitorsTab({ data, period, filter }: TabProps) {
 	const tl = data.timeline;
 	return (
@@ -361,24 +371,10 @@ export function VisitorsTab({ data, period, filter }: TabProps) {
 			</p>
 			<Grid>
 				<Panel title={<T id="npmos.traffic.pageviews-over-time" />}>
-					{area(
-						tl,
-						period,
-						[{ key: "pageviews", label: t("npmos.traffic.kpi.pageviews"), color: "var(--series-1)" }],
-						{
-							aria: t("npmos.traffic.pageviews-over-time"),
-						},
-					)}
+					{area(tl, period, byClient("pv"), { stacked: true, aria: t("npmos.traffic.pageviews-over-time") })}
 				</Panel>
 				<Panel title={<T id="npmos.traffic.visits-over-time" />}>
-					{area(
-						tl,
-						period,
-						[{ key: "visits", label: t("npmos.traffic.kpi.visits"), color: "var(--series-3)" }],
-						{
-							aria: t("npmos.traffic.visits-over-time"),
-						},
-					)}
+					{area(tl, period, byClient("visit"), { stacked: true, aria: t("npmos.traffic.visits-over-time") })}
 				</Panel>
 			</Grid>
 			<Section>
@@ -413,16 +409,12 @@ export function VisitorsTab({ data, period, filter }: TabProps) {
 					{area(
 						tl,
 						period,
-						(["desktop", "mobile", "tablet", "bot", "other"] as const).map((k, i) => ({
+						(["desktop", "mobile", "tablet", "other"] as const).map((k, i) => ({
 							key: k,
 							label: t(`npmos.traffic.device.${k}`),
-							color: [
-								"var(--series-1)",
-								"var(--series-3)",
-								"var(--series-4)",
-								"var(--series-5)",
-								"var(--series-neutral)",
-							][i],
+							color: ["var(--series-1)", "var(--series-3)", "var(--series-4)", "var(--series-neutral)"][
+								i
+							],
 						})),
 						{ stacked: true, aria: t("npmos.traffic.devices-over-time") },
 					)}

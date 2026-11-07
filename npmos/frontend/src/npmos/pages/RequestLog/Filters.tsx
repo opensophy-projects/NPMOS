@@ -22,6 +22,7 @@ const values = (v?: string) =>
 		.filter(Boolean);
 
 const CHOICES: { key: Key; options: string[] }[] = [
+	{ key: "client", options: ["human", "bot", "scanner"] },
 	{ key: "status", options: ["2xx", "3xx", "4xx", "5xx"] },
 	{ key: "method", options: ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"] },
 	{ key: "device", options: ["desktop", "mobile", "tablet", "bot", "other"] },

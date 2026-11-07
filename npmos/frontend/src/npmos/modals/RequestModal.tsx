@@ -112,6 +112,10 @@ const RequestModal = EasyModal.create(({ visible, remove, request: r, onFilter, 
 						}
 					/>
 					<Field
+						label="npmos.traffic.filter.client"
+						value={t(`npmos.traffic.client.${r.client || "human"}`)}
+					/>
+					<Field
 						label="npmos.traffic.filter.mitigated"
 						value={t(
 							r.mitigated ? "npmos.traffic.filter.mitigated.yes" : "npmos.traffic.filter.mitigated.no",
