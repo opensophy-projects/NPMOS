@@ -192,6 +192,10 @@ jobs:
             --output out/trivy-config.json --skip-dirs npmos/frontend/node_modules --skip-dirs npmos/backend/node_modules .
           docker run --rm -v "$PWD:/src" "$KICS_IMAGE" scan --no-progress --disable-secrets --ignore-on-exit results \
             -p /src/deploy,/src/npmos/Dockerfile,/src/.github/workflows -o /src/out/kics --report-formats json,sarif
+          # KICS repeats CWE entries in the taxonomies of its SARIF, which code scanning rejects
+          sudo chown -R "$(id -u)" out
+          jq '(.runs[].taxonomies[]?.taxa) |= unique' out/kics/results.sarif > out/kics/results.tmp
+          mv out/kics/results.tmp out/kics/results.sarif
       - uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         if: always() && hashFiles('out/kics/results.sarif') != ''
         with:
