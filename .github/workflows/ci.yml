@@ -55,6 +55,9 @@ jobs:
           pnpm formatjs compile-folder src/locale/src src/locale/lang
           pnpm tsc --noEmit
           pnpm vitest run
+      - name: file tree
+        # every file of the code of NPMOS has a line in CODE_OF_CONDUCT.md
+        run: node scripts/check-tree.mjs
       - name: shell scripts
         run: shellcheck -x -S warning scripts/*.sh deploy/*/*.sh deploy/openappsec/*/*.sh npmos/crowdsec-seed/*.sh
       - name: compose files
