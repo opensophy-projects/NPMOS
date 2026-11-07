@@ -157,6 +157,29 @@ const internalWafAgent = {
 		}
 		return { ...(await getModel()), restarting: apply };
 	},
+
+	/**
+	 * Removes the uploaded model: at its next start the agent keeps the basic model of the image.
+	 * @param {Access}  access
+	 * @param {boolean} [apply]  restart the agent now
+	 */
+	removeModel: async (access, apply = true) => {
+		await access.can("waf_policy:manage");
+		const had = (await getModel()).present;
+		await rm(MODEL_FILE, { force: true });
+		if (had) {
+			await internalAuditLog.add(access, {
+				action: "deleted",
+				object_type: "waf",
+				meta: { name: "open-appsec advanced model" },
+			});
+		}
+		const restarting = apply && had;
+		if (restarting) {
+			await restartAgent(access);
+		}
+		return { ...(await getModel()), restarting };
+	},
 };
 
 export { bootstrap };

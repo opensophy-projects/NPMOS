@@ -516,6 +516,10 @@ export const getWafAgent = (): Promise<WafAgentState> => api.get({ url: "/npmos/
 export const setWafAgent = (data: WafAgentSettings, apply = true): Promise<WafAgentState> =>
 	api.put({ url: "/npmos/waf/agent", data: { ...data, apply } });
 
+/** back to the basic model of the image; the agent restarts */
+export const removeWafModel = (): Promise<WafAgentModel & { restarting: boolean }> =>
+	api.del({ url: "/npmos/waf/agent/model" });
+
 /** the file goes as the request body (up to 1 GB), not through the JSON client */
 export const uploadWafModel = async (file: File): Promise<WafAgentModel & { restarting: boolean }> => {
 	const response = await fetch("/api/npmos/waf/agent/model", {

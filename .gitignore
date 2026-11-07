@@ -1,0 +1,5 @@
+# training of the WAF model (scripts/train-model.sh, training.yml)
+__pycache__/
+/model-work/
+/data/
+/.venv/

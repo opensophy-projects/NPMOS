@@ -1,0 +1,14 @@
+# Training overlay (scripts/train-model.sh, docs/MODEL.md): the production stack with a site behind a proxy host and
+# the feature dump of the agent switched on. The dump (agent patch 0005) writes only while the directory
+# /var/log/npmos-features exists in the container; nothing but this overlay creates it.
+
+services:
+  test-upstream:
+    image: docker.io/traefik/whoami:${WHOAMI_VERSION}
+    container_name: npmos-train-upstream
+    networks:
+      - internal
+
+  openappsec:
+    volumes:
+      - ${NPMOS_FEATURES_DIR:?the directory of the feature dump}:/var/log/npmos-features

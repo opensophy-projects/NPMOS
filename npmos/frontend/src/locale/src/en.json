@@ -7572,10 +7572,19 @@
 		"defaultMessage": "Basic model"
 	},
 	"npmos.waf.model.description": {
-		"defaultMessage": "open-appsec ships with a basic model. The advanced model (open-appsec-advanced-model.tgz, downloaded separately from open-appsec) detects more attacks with fewer false positives. It is unpacked when the agent starts; the upload restarts the agent."
+		"defaultMessage": "open-appsec ships with a basic model. An advanced model (open-appsec-advanced-model.tgz: from open-appsec, or a model trained by NPMOS, see docs/MODEL.md) detects more attacks with fewer false positives. It is unpacked when the agent starts; the upload restarts the agent."
 	},
 	"npmos.waf.model.present": {
 		"defaultMessage": "Uploaded: {size}, {date}"
+	},
+	"npmos.waf.model.remove": {
+		"defaultMessage": "Remove model"
+	},
+	"npmos.waf.model.remove-warning": {
+		"defaultMessage": "The agent restarts and goes back to the basic model of the image."
+	},
+	"npmos.waf.model.removed": {
+		"defaultMessage": "Model removed, the agent is restarting"
 	},
 	"npmos.waf.model.upload": {
 		"defaultMessage": "Upload model (.tgz)"

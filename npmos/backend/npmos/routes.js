@@ -550,12 +550,14 @@ router
 /**
  * PUT /api/npmos/waf/agent/model?apply=false — body: open-appsec-advanced-model.tgz (application/octet-stream)
  * nginx lets up to 1 GB through for this path only (npmplus.conf)
+ * DELETE /api/npmos/waf/agent/model?apply=false — back to the basic model of the image
  */
 router
 	.route("/waf/agent/model")
 	.options((_, res) => res.sendStatus(204))
 	.all(jwtdecode())
-	.put(handle((req, res) => internalWafAgent.uploadModel(res.locals.access, req, req.query.apply !== "false")));
+	.put(handle((req, res) => internalWafAgent.uploadModel(res.locals.access, req, req.query.apply !== "false")))
+	.delete(handle((req, res) => internalWafAgent.removeModel(res.locals.access, req.query.apply !== "false")));
 
 const language = { enum: ["ru", "en"] };
 /** config of a channel by type (secrets: omitted or null keeps the stored one) */

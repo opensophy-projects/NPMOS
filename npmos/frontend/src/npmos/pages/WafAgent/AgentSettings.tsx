@@ -8,7 +8,7 @@ import { useLocaleState } from "src/context";
 import { formatDateTime, intl, T } from "src/locale";
 import { MANAGE } from "src/modules/Permissions";
 import { showError, showSuccess } from "src/notifications";
-import { setWafAgent, uploadWafModel, type WafAgentSettings } from "../../api";
+import { removeWafModel, setWafAgent, uploadWafModel, type WafAgentSettings } from "../../api";
 import { useWafAgent } from "../../hooks";
 import { showConfirmModal } from "../../modals/ConfirmModal";
 
@@ -120,6 +120,7 @@ function ModelCard() {
 	const { data } = useWafAgent();
 	const input = useRef<HTMLInputElement>(null);
 	const [uploading, setUploading] = useState(false);
+	const [removing, setRemoving] = useState(false);
 
 	const upload = async (file?: File) => {
 		if (!file) return;
@@ -135,6 +136,29 @@ function ModelCard() {
 			queryClient.invalidateQueries({ queryKey: ["npmos-waf-agent"] });
 		}
 	};
+
+	const remove = () =>
+		showConfirmModal({
+			tTitle: "npmos.waf.model.remove",
+			tConfirm: "npmos.waf.model.remove",
+			children: (
+				<p>
+					<T id="npmos.waf.model.remove-warning" />
+				</p>
+			),
+			onConfirm: async () => {
+				setRemoving(true);
+				try {
+					await removeWafModel();
+					showSuccess(intl.formatMessage({ id: "npmos.waf.model.removed" }));
+				} catch (err: any) {
+					showError(err.message);
+				} finally {
+					setRemoving(false);
+					queryClient.invalidateQueries({ queryKey: ["npmos-waf-agent"] });
+				}
+			},
+		});
 
 	return (
 		<>
@@ -170,6 +194,11 @@ function ModelCard() {
 					<Button size="sm" isLoading={uploading} onClick={() => input.current?.click()}>
 						<T id="npmos.waf.model.upload" />
 					</Button>
+					{data?.model.present && (
+						<Button size="sm" isLoading={removing} onClick={remove}>
+							<T id="npmos.waf.model.remove" />
+						</Button>
+					)}
 				</HasPermission>
 			</div>
 		</>

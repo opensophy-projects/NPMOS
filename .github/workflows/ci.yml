@@ -70,6 +70,9 @@ jobs:
       - name: file tree
         # every file of the code of NPMOS has a line in CODE_OF_CONDUCT.md
         run: node scripts/check-tree.mjs
+      - name: WAF model tooling (model/, docs/MODEL.md)
+        # the training cycle itself (numpy, scipy) is tested in training.yml; here the formats and the data
+        run: python3 -m unittest discover -s model
       - name: shell scripts
         run: shellcheck -x -S warning scripts/*.sh deploy/*/*.sh deploy/openappsec/*/*.sh npmos/crowdsec-seed/*.sh
       - name: compose files
@@ -77,6 +80,7 @@ jobs:
           docker compose -f deploy/compose.yaml config -q
           docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml config -q
           docker compose -f deploy/compose.yaml -f deploy/test/compose.airgap.yaml config -q
+          NPMOS_FEATURES_DIR=/tmp/features docker compose -f deploy/compose.yaml -f deploy/test/compose.training.yaml config -q
           if grep -nE 'image: .*:latest|:-latest' deploy/*.yaml deploy/test/*.yaml; then
             echo "::error::unpinned image version"; exit 1
           fi

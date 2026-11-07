@@ -7572,10 +7572,19 @@
 		"defaultMessage": "Базовая модель"
 	},
 	"npmos.waf.model.description": {
-		"defaultMessage": "В open-appsec встроена базовая модель. Расширенная (open-appsec-advanced-model.tgz, скачивается отдельно у open-appsec) находит больше атак при меньшем числе ложных срабатываний. Распаковывается при старте агента; после загрузки агент перезапускается."
+		"defaultMessage": "В open-appsec встроена базовая модель. Расширенная (open-appsec-advanced-model.tgz: от open-appsec или обученная NPMOS, см. docs/MODEL.md) находит больше атак при меньшем числе ложных срабатываний. Распаковывается при старте агента; после загрузки агент перезапускается."
 	},
 	"npmos.waf.model.present": {
 		"defaultMessage": "Загружена: {size}, {date}"
+	},
+	"npmos.waf.model.remove": {
+		"defaultMessage": "Удалить модель"
+	},
+	"npmos.waf.model.remove-warning": {
+		"defaultMessage": "Агент перезапустится и вернётся к базовой модели образа."
+	},
+	"npmos.waf.model.removed": {
+		"defaultMessage": "Модель удалена, агент перезапускается"
 	},
 	"npmos.waf.model.upload": {
 		"defaultMessage": "Загрузить модель (.tgz)"
