@@ -4,7 +4,6 @@
 // templates get it checked here (npmos_geo), never the raw meta. The ACME challenge and private addresses always
 // pass; without a database nothing is blocked (the GUI says so).
 import { readFile, rename, writeFile } from "node:fs/promises";
-import internalNginx from "../../internal/nginx.js";
 import { global as logger } from "../../logger.js";
 import { databaseFile } from "../geoip/index.js";
 
@@ -77,6 +76,8 @@ export const writeGeoConf = async ({ reload = true } = {}) => {
 	await rename(`${CONF}.tmp`, CONF);
 	if (reload) {
 		try {
+			// loaded here: internal/nginx.js reads the configuration of the app (and imports this module)
+			const { default: internalNginx } = await import("../../internal/nginx.js");
 			await internalNginx.reload();
 		} catch (err) {
 			logger.warn(`NPMOS geo: nginx reload: ${err.message}`);
