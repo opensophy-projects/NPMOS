@@ -1,4 +1,4 @@
-/* Events → Requests: one row per request, details below a row on click. The long cells (request, client) are cut
+/* Events → Requests: one row per request, its window on a click. The long cells (request, client) are cut
    in a block inside the cell: a table cell does not keep a max-width. */
 .table td {
 	font-size: 0.8125rem;
@@ -73,27 +73,6 @@
 .s5 {
 	background: color-mix(in oklab, var(--series-2) 16%, transparent);
 	color: var(--series-2);
-}
-.open td {
-	background: var(--background-muted);
-}
-.detailRow td {
-	background: var(--background-muted);
-}
-.details {
-	display: grid;
-	grid-template-columns: max-content minmax(0, 1fr);
-	gap: 0.25rem 1rem;
-	margin: 0;
-	font-size: 0.8125rem;
-}
-.details dt {
-	color: var(--foreground-muted);
-	font-weight: 400;
-}
-.details dd {
-	margin: 0;
-	overflow-wrap: anywhere;
 }
 
 /* the filter panel is wide, not long: the choices in columns, the text fields in a grid under them */

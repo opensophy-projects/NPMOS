@@ -87,7 +87,7 @@ export interface Notifications {
 
 export const getNotifications = () => api.get({ url: "/npmos/notifications" }) as Promise<Notifications>;
 
-export type ChannelInput = { name: string; type?: ChannelType; enabled?: boolean; config?: ChannelConfig };
+type ChannelInput = { name: string; type?: ChannelType; enabled?: boolean; config?: ChannelConfig };
 
 export const createChannel = (data: ChannelInput) =>
 	api.post({ url: "/npmos/notifications/channels", data }) as Promise<Channel>;

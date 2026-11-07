@@ -211,7 +211,7 @@ const WAF_LABEL: Record<WafState, string> = {
 };
 const WAF_TONE: Record<WafState, string | undefined> = { off: undefined, detect: "warning", prevent: "accent" };
 /** templates of the policy (npmos/backend/npmos/waf/objects/model.js) */
-export const WAF_TEMPLATES = ["recommended", "strict", "api", "monitor"];
+const WAF_TEMPLATES = ["recommended", "strict", "api", "monitor"];
 
 export function WafCell({ row, ctx }: { row: HostRow; ctx: CellContext }) {
 	if (row.waf === null) return <span className={styles.none}>—</span>;

@@ -5,7 +5,7 @@ import Alert from "react-bootstrap/Alert";
 import { T } from "src/locale";
 
 /** the domain the panel is open on */
-export const panelHostname = () => window.location.hostname.toLowerCase();
+const panelHostname = () => window.location.hostname.toLowerCase();
 
 /** whether the domain names of a host take the domain of the panel (exactly or by a wildcard) */
 export const servesPanel = (names: string[] = [], host = panelHostname()) =>
@@ -19,7 +19,7 @@ export const servesPanel = (names: string[] = [], host = panelHostname()) =>
 	});
 
 /** the panel answers on port 81 of the server whatever the hosts are */
-export const directPanelUrl = () => "https://<IP>:81";
+const directPanelUrl = () => "https://<IP>:81";
 
 /** the warning, shown where the change would cut the panel off */
 export function PanelHostWarning({ action }: { action: "disable" | "delete" | "redirect" | "dead" }) {

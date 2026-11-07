@@ -12,7 +12,7 @@ import { Country } from "../pages/WafAnalytics/common";
 import { Admonition } from "../ui/Admonition";
 import { countryName } from "../ui/charts/format";
 
-export interface GeoValue {
+interface GeoValue {
 	mode?: "off" | "allow" | "deny";
 	countries?: string[];
 	action?: "403" | "444";

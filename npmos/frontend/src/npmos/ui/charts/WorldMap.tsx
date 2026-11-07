@@ -16,7 +16,7 @@ interface MapData {
 let cached: MapData | null = null;
 
 /** the outlines, loaded once on first use (a separate chunk) */
-export function useWorldMap() {
+function useWorldMap() {
 	const [data, setData] = useState<MapData | null>(cached);
 	useEffect(() => {
 		if (cached) return;

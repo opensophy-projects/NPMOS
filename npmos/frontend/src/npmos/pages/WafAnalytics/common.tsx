@@ -127,7 +127,7 @@ function CountryFlag({ code }: { code: string }) {
 	return FlagElement ? <FlagElement className={chartStyles.flag} title={code} /> : null;
 }
 
-export type Labeler = (value: string) => React.ReactNode;
+type Labeler = (value: string) => React.ReactNode;
 
 /**
  * A top list: label, number, a bar; a click on a row filters the page by it.

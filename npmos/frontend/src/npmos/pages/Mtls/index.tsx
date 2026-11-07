@@ -57,7 +57,7 @@ const attempt = async (action: () => Promise<unknown>, refresh: () => void, mess
 };
 
 /** mTLS of a host off (its settings are kept for the next switch on) */
-export const disableMtls = async (type: MtlsHostType, id: number) => {
+const disableMtls = async (type: MtlsHostType, id: number) => {
 	const {
 		name: _n,
 		hasCertificate: _c,

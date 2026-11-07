@@ -29,7 +29,7 @@ export function useWidth() {
 	return { ref, width };
 }
 
-export interface Series<T> {
+interface Series<T> {
 	key: keyof T & string;
 	label: string;
 	/** CSS colour, e.g. var(--series-1) */
@@ -176,7 +176,7 @@ export function StackedBars<T>({
 	);
 }
 
-export interface BarItem {
+interface BarItem {
 	key: string;
 	label: ReactNode;
 	value: number;
@@ -221,19 +221,5 @@ export function BarList({
 				</li>
 			))}
 		</ul>
-	);
-}
-
-export function Tiles({ children }: { children: ReactNode }) {
-	return <div className={styles.tiles}>{children}</div>;
-}
-
-export function Tile({ value, label, hint }: { value: ReactNode; label: ReactNode; hint?: ReactNode }) {
-	return (
-		<div className={cn("card", styles.tile)}>
-			<div className={styles.tileValue}>{value}</div>
-			<div className={styles.tileLabel}>{label}</div>
-			{hint && <div className={styles.tileHint}>{hint}</div>}
-		</div>
 	);
 }

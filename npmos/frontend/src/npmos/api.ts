@@ -36,7 +36,7 @@ export interface ServiceLogLine {
 	line: string;
 }
 
-export interface RestartResult {
+interface RestartResult {
 	service: string;
 	restarted: boolean;
 	restarting?: boolean;
@@ -336,7 +336,7 @@ export const getHostAttacks = () => api.get({ url: "/npmos/analytics/hosts" }) a
 // Analytics of the traffic of the hosts (tabs like the Cloudflare dashboard), from the request log of nginx
 export type TrafficTab = "requests" | "visitors" | "performance" | "security" | "cache" | "origin";
 
-export interface TrafficKpi {
+interface TrafficKpi {
 	value: number | null;
 	/** against the previous period of the same length, null when unknown */
 	change: number | null;
@@ -494,7 +494,7 @@ export const getEventsSettings = () => api.get({ url: "/npmos/events/settings" }
 export const setEventsSettings = (retention: EventsSettings["retention"]) =>
 	api.put({ url: "/npmos/events/settings", data: retention }) as Promise<EventsSettings>;
 
-export interface WafAgentModel {
+interface WafAgentModel {
 	present: boolean;
 	size?: number;
 	modifiedOn?: string;
@@ -531,7 +531,7 @@ export const uploadWafModel = async (file: File): Promise<WafAgentModel & { rest
 	return payload;
 };
 
-export interface WafCustomVersion {
+interface WafCustomVersion {
 	id: number;
 	comment: string;
 	createdOn: string;

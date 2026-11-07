@@ -43,7 +43,7 @@ export type AcmeServerInput = Partial<Omit<AcmeServer, "id" | "usedBy">>;
 
 export const SECRET_SET = "********";
 
-export const getAcmeServers = () => api.get({ url: "/npmos/acme/servers" }) as Promise<AcmeServers>;
+const getAcmeServers = () => api.get({ url: "/npmos/acme/servers" }) as Promise<AcmeServers>;
 export const createAcmeServer = (data: AcmeServerInput) =>
 	api.post({ url: "/npmos/acme/servers", data }) as Promise<AcmeServer>;
 export const updateAcmeServer = (id: number, data: AcmeServerInput) =>

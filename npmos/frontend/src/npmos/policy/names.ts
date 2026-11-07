@@ -3,7 +3,7 @@
 // code and the agent use).
 import { intl } from "src/locale";
 
-export const BUILTIN_NAMES = [
+const BUILTIN_NAMES = [
 	"npmos-recommended",
 	"npmos-strict",
 	"npmos-api",

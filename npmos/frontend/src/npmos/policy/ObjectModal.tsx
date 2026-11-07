@@ -349,7 +349,7 @@ function FieldInput({
 	}
 }
 
-export function ObjectForm({
+function ObjectForm({
 	kind,
 	spec,
 	onChange,

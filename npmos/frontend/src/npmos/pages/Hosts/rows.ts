@@ -8,11 +8,11 @@ import type { MtlsBinding, MtlsList } from "../../pki/api";
 export const HOST_TYPES = ["proxy", "redirect", "stream", "dead"] as const;
 export type HostType = (typeof HOST_TYPES)[number];
 
-export type HostStatus = "online" | "error" | "disabled";
-export type TlsKind = "none" | "letsencrypt" | "custom";
+type HostStatus = "online" | "error" | "disabled";
+type TlsKind = "none" | "letsencrypt" | "custom";
 export type WafState = "off" | "detect" | "prevent";
 export type MtlsState = "off" | "required" | "optional";
-export type UpstreamState = "ok" | "down";
+type UpstreamState = "ok" | "down";
 
 /** object type of each host type in the audit log and the NPMOS API */
 export const OBJECT_TYPE: Record<HostType, HostObjectType> = {
@@ -129,7 +129,7 @@ const wafOf = (settings: WafSettings | undefined): WafState => {
 	return settings.mode === "prevent-learn" ? "prevent" : "detect";
 };
 
-export interface Sources {
+interface Sources {
 	proxy?: ProxyHost[];
 	redirect?: RedirectionHost[];
 	stream?: Stream[];
@@ -243,12 +243,10 @@ export function toRows(sources: Sources, now = Date.now()): HostRow[] {
 
 // ---- filters (kept in the URL), as in the Cloudflare DNS table: field, operator, value ----
 
-export type TlsFilter = TlsKind | "expiring";
-
 /** fields with a fixed list of values */
-export const ENUM_FIELDS = ["type", "status", "tls", "waf", "mtls", "access", "upstream", "group"] as const;
+const ENUM_FIELDS = ["type", "status", "tls", "waf", "mtls", "access", "upstream", "group"] as const;
 /** free-text fields */
-export const TEXT_FIELDS = ["name", "target"] as const;
+const TEXT_FIELDS = ["name", "target"] as const;
 export type FilterField = (typeof ENUM_FIELDS)[number] | (typeof TEXT_FIELDS)[number];
 export const FILTER_FIELDS: FilterField[] = [
 	"name",
@@ -431,7 +429,7 @@ export function sortRows(rows: HostRow[], sort: Sort): HostRow[] {
 
 // ---- recommendations ----
 
-export type RecommendationId =
+type RecommendationId =
 	| "waf-global-off"
 	| "no-tls"
 	| "expired"
@@ -513,7 +511,7 @@ export function recommendations(rows: HostRow[], wafGloballyEnabled: boolean | u
 
 // ---- export / import ----
 
-export const EXPORT_FORMAT = "npmos-hosts";
+const EXPORT_FORMAT = "npmos-hosts";
 
 /** fields of the API objects that are not settings of a host (accessListId: legacy, not accepted on create) */
 const READONLY = [
@@ -571,7 +569,7 @@ export function exportCsv(rows: HostRow[]): string {
 	return [head.join(","), ...lines].join("\n");
 }
 
-export interface ImportItem {
+interface ImportItem {
 	type: HostType;
 	data: Record<string, any>;
 }

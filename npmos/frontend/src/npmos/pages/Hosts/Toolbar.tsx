@@ -37,7 +37,7 @@ export const COLUMNS = [
 	"changed",
 ] as const;
 export type Column = (typeof COLUMNS)[number];
-export const COLUMN_LABEL: Record<Column, string> = {
+const COLUMN_LABEL: Record<Column, string> = {
 	type: "npmos.hosts.column.type",
 	target: "column.destination",
 	tls: "column.ssl",
@@ -92,7 +92,7 @@ const fieldLabel = (field: FilterField) =>
 	field === "waf" || field === "mtls" ? FIELD_LABEL[field] : t(FIELD_LABEL[field]);
 
 /** values of a list field with their labels */
-export function fieldValues(field: FilterField, options: FilterOptions): { value: string; label: string }[] {
+function fieldValues(field: FilterField, options: FilterOptions): { value: string; label: string }[] {
 	switch (field) {
 		case "type":
 			return options.types.map((type) => ({ value: type, label: t(`npmos.hosts.type.${type}`) }));

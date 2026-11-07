@@ -56,7 +56,7 @@ export interface Queue {
 	suggestionsError: string | null;
 }
 
-export interface GroupDetails extends QueueGroup {
+interface GroupDetails extends QueueGroup {
 	sourceList: { ip: string; events: number }[];
 	labelled: boolean;
 }
@@ -83,14 +83,14 @@ export interface Label {
 	undoneBy: { id: number; name: string } | null;
 }
 
-export interface LabelsPage {
+interface LabelsPage {
 	items: Label[];
 	total: number;
 	limit: number;
 	offset: number;
 }
 
-export interface HostStats {
+interface HostStats {
 	readiness: string;
 	level: number;
 	recommendation: string;
@@ -112,7 +112,7 @@ export interface LearningHost {
 	readyToPrevent: boolean;
 }
 
-export interface LabelInput {
+interface LabelInput {
 	key?: string;
 	/** an event of the group (the group of an event card may be out of the queue) */
 	eventId?: number;

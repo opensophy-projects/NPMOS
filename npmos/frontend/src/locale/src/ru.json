@@ -902,35 +902,8 @@
 	"npmos.analytics": {
 		"defaultMessage": "Аналитика"
 	},
-	"npmos.analytics.actions": {
-		"defaultMessage": "Действия защиты"
-	},
 	"npmos.analytics.all-hosts": {
 		"defaultMessage": "Все хосты"
-	},
-	"npmos.analytics.attacks": {
-		"defaultMessage": "Атак"
-	},
-	"npmos.analytics.countries": {
-		"defaultMessage": "Страны"
-	},
-	"npmos.analytics.crowdsec-alerts": {
-		"defaultMessage": "Алертов CrowdSec: {count}"
-	},
-	"npmos.analytics.crowdsec-bans": {
-		"defaultMessage": "Банов CrowdSec"
-	},
-	"npmos.analytics.description": {
-		"defaultMessage": "Запросы к хостам и атаки, которые в них увидели агенты, по данным NPMOS. Нажмите на строку, чтобы открыть её события."
-	},
-	"npmos.analytics.detected": {
-		"defaultMessage": "Только обнаружено"
-	},
-	"npmos.analytics.last-blocked": {
-		"defaultMessage": "Последние заблокированные запросы"
-	},
-	"npmos.analytics.levels": {
-		"defaultMessage": "Уровни атак"
 	},
 	"npmos.analytics.live": {
 		"defaultMessage": "Сейчас"
@@ -956,95 +929,14 @@
 	"npmos.analytics.live.window": {
 		"defaultMessage": "последние 5 минут, обновление каждые 5 с"
 	},
-	"npmos.analytics.no-attacks": {
-		"defaultMessage": "За этот период атак не было"
-	},
-	"npmos.analytics.none": {
-		"defaultMessage": "За этот период ничего нет"
-	},
-	"npmos.analytics.note": {
-		"defaultMessage": "Короткие периоды считаются по событиям, график длинных — по почасовой статистике; срок хранения задаётся в «Аналитика → События → Хранение». Готовность обучения по хостам появится в фазе 8."
-	},
-	"npmos.analytics.prevented": {
-		"defaultMessage": "Заблокировано"
-	},
-	"npmos.analytics.prevented-n": {
-		"defaultMessage": "заблокировано {n}"
-	},
-	"npmos.analytics.requests": {
-		"defaultMessage": "Запросов"
-	},
-	"npmos.analytics.requests.none": {
-		"defaultMessage": "Агент ещё не прислал статистику трафика"
-	},
-	"npmos.analytics.section.attacks": {
-		"defaultMessage": "Атаки"
-	},
-	"npmos.analytics.section.traffic": {
-		"defaultMessage": "Трафик хостов"
-	},
-	"npmos.analytics.series.detect": {
-		"defaultMessage": "Обнаружено (Detect)"
-	},
-	"npmos.analytics.series.other": {
-		"defaultMessage": "Другие действия"
-	},
-	"npmos.analytics.series.prevent": {
-		"defaultMessage": "Заблокировано (Prevent)"
-	},
-	"npmos.analytics.sources": {
-		"defaultMessage": "Источников атак"
-	},
-	"npmos.analytics.timeline": {
-		"defaultMessage": "Атаки во времени"
-	},
-	"npmos.analytics.top-hosts": {
-		"defaultMessage": "Самые атакуемые хосты"
-	},
-	"npmos.analytics.top-sources": {
-		"defaultMessage": "Главные источники атак (Critical, High)"
-	},
-	"npmos.analytics.top-types": {
-		"defaultMessage": "Типы атак"
-	},
-	"npmos.analytics.top-uris": {
-		"defaultMessage": "Самые атакуемые URI"
-	},
-	"npmos.analytics.traffic.4xx": {
-		"defaultMessage": "Ошибки клиента (4xx)"
-	},
-	"npmos.analytics.traffic.5xx": {
-		"defaultMessage": "Ошибки сервера (5xx)"
-	},
 	"npmos.analytics.traffic.blocked": {
 		"defaultMessage": "Отклонено"
-	},
-	"npmos.analytics.traffic.host-sub": {
-		"defaultMessage": "ошибок {errors}, отклонено {blocked}"
-	},
-	"npmos.analytics.traffic.hosts": {
-		"defaultMessage": "Запросы по хостам"
 	},
 	"npmos.analytics.traffic.none": {
 		"defaultMessage": "За этот период запросов нет"
 	},
-	"npmos.analytics.traffic.ok": {
-		"defaultMessage": "Обычные ответы (2xx, 3xx)"
-	},
 	"npmos.analytics.traffic.passed": {
 		"defaultMessage": "Пропущено"
-	},
-	"npmos.analytics.traffic.requests": {
-		"defaultMessage": "Запросов"
-	},
-	"npmos.analytics.traffic.sent": {
-		"defaultMessage": "отдано клиентам {bytes}"
-	},
-	"npmos.analytics.traffic.share": {
-		"defaultMessage": "{p} от всех"
-	},
-	"npmos.analytics.traffic.timeline": {
-		"defaultMessage": "Запросы во времени"
 	},
 	"npmos.api.not-json": {
 		"defaultMessage": "{host} дал неожиданный ответ (HTTP {status}), который пришёл не от NPMOS."
@@ -4154,14 +4046,8 @@
 	"npmos.nav.overview": {
 		"defaultMessage": "Обзор"
 	},
-	"npmos.nav.security": {
-		"defaultMessage": "Безопасность"
-	},
 	"npmos.nav.skip": {
 		"defaultMessage": "Перейти к содержимому"
-	},
-	"npmos.nav.system": {
-		"defaultMessage": "Система"
 	},
 	"npmos.nav.theme-dark": {
 		"defaultMessage": "Тёмная тема"
@@ -4169,14 +4055,8 @@
 	"npmos.nav.theme-light": {
 		"defaultMessage": "Светлая тема"
 	},
-	"npmos.nav.tls": {
-		"defaultMessage": "TLS"
-	},
 	"npmos.nav.user-menu": {
 		"defaultMessage": "Меню пользователя"
-	},
-	"npmos.nav.waf-policy": {
-		"defaultMessage": "Политика WAF"
 	},
 	"npmos.notice.alert": {
 		"defaultMessage": "Проблема"
@@ -4583,9 +4463,6 @@
 	"npmos.overview.analytics.last": {
 		"defaultMessage": "Последнее событие"
 	},
-	"npmos.overview.analytics.note": {
-		"defaultMessage": "Сохранённые события агента за последние 24 часа. Графики — в «Аналитика»."
-	},
 	"npmos.overview.analytics.prevented": {
 		"defaultMessage": "Из них заблокировано"
 	},
@@ -4673,9 +4550,6 @@
 	"npmos.overview.off": {
 		"defaultMessage": "Выключен"
 	},
-	"npmos.overview.on": {
-		"defaultMessage": "Включён"
-	},
 	"npmos.overview.open": {
 		"defaultMessage": "Открыть"
 	},
@@ -4715,17 +4589,11 @@
 	"npmos.overview.waf.agent-ok": {
 		"defaultMessage": "доступен"
 	},
-	"npmos.overview.waf.hosts": {
-		"defaultMessage": "Прокси-хосты: {mode}"
-	},
 	"npmos.overview.waf.modes": {
 		"defaultMessage": "Хосты: блокировка · обнаружение · выкл"
 	},
 	"npmos.overview.waf.modes.value": {
 		"defaultMessage": "{prevent} · {detect} · {off}"
-	},
-	"npmos.overview.waf.state": {
-		"defaultMessage": "Защита"
 	},
 	"npmos.pki": {
 		"defaultMessage": "PKI и mTLS"
@@ -6584,9 +6452,6 @@
 	"npmos.system.saved": {
 		"defaultMessage": "Сохранено: применится при следующем перезапуске NPMOS"
 	},
-	"npmos.system.secret.set": {
-		"defaultMessage": "задан — введите новый, чтобы заменить"
-	},
 	"npmos.traffic.answer.403": {
 		"defaultMessage": "Отказано (403)"
 	},
@@ -7495,12 +7360,6 @@
 	},
 	"npmos.waf.apply": {
 		"defaultMessage": "Применить сейчас"
-	},
-	"npmos.waf.badge.detect": {
-		"defaultMessage": "Обнаружение"
-	},
-	"npmos.waf.badge.prevent": {
-		"defaultMessage": "Блокировка"
 	},
 	"npmos.waf.description": {
 		"defaultMessage": "Межсетевой экран веб-приложений open-appsec на машинном обучении"

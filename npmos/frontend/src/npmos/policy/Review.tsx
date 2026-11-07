@@ -28,13 +28,13 @@ export function Diff({ diff }: { diff: DiffLine[] }) {
 }
 
 /** "rate-limit:login" → a sentence */
-export const reasonText = (reason: string) => {
+const reasonText = (reason: string) => {
 	const [kind, ...name] = reason.split(":");
 	return intl.formatMessage({ id: `npmos.policy.reason.${kind}` }, { name: name.join(":") });
 };
 
 /** "exceptions:<rule>", "missing:<rule>:<name>" → a sentence */
-export const warningText = (warning: string) => {
+const warningText = (warning: string) => {
 	const [kind, rule, ...name] = warning.split(":");
 	return intl.formatMessage({ id: `npmos.policy.warning.${kind}` }, { rule, name: name.join(":") });
 };
