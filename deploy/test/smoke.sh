@@ -198,7 +198,7 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
   # handled just before such a restart can be lost.
   event() {
     for i in $(seq 1 30); do
-      status "$SQLI" > /dev/null
+      status "$SQLI" > /dev/null || true
       $CURL "$ADMIN/api/npmos/events?important=true&host=test.local" | grep -q "\"action\": *\"$1\"" && return 0
       sleep 2
     done
@@ -233,7 +233,8 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
     done
     since=$(date -u +%Y-%m-%dT%H:%M:%S)
     for i in $(seq 1 30); do
-      status "$XSS" > /dev/null
+      # npmos restarts after the agent, possibly only now: a refused connection (curl 7) is retried, not fatal
+      status "$XSS" > /dev/null || true
       # an event newer than the restart (times are ISO, compared as text)
       $CURL "$ADMIN/api/npmos/events?important=true&host=test.local&limit=1" \
         | grep -o '"time": *"[^"]*"' | cut -d'"' -f4 | awk -v s="$since" '$0 >= s {f=1} END {exit !f}' && return 0
@@ -373,7 +374,7 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
       | grep -o '"key": *"[0-9a-f]*"' | head -1 | grep -o '[0-9a-f]\{32\}' || true)
     [ -n "$key" ] && break
     [ "$i" = 30 ] && fail "no blocked group for test.local: $($CURL "$ADMIN/api/npmos/learning/queue?period=24h")"
-    status "$SQLI" > /dev/null
+    status "$SQLI" > /dev/null || true
     sleep 2
   done
 
