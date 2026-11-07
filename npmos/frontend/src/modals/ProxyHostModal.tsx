@@ -29,6 +29,8 @@ import { showError, showObjectSuccess } from "src/notifications";
 // NPMOS: WAF tab (open-appsec settings of the host and its locations)
 import { setWafHost } from "src/npmos/api";
 import { fromWafForm, toWafForm, WafFields, wafUnchanged } from "src/npmos/components/WafFields";
+// NPMOS: countries let in or kept out of the host (meta.npmosGeo)
+import { GeoFields } from "src/npmos/components/GeoFields";
 import { useWafHost } from "src/npmos/hooks";
 import { AcmeLogIfRequested } from "src/npmos/certs/AcmeLog"; // NPMOS: full log of a failed request
 
@@ -928,6 +930,8 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, prefill, visible
 														type="npmplusAccessListType"
 													/>
 												</div>
+												{/* NPMOS: countries let in or kept out */}
+												<GeoFields />
 												<Field name="npmplusLocationConfig">
 													{({ field }: any) => (
 														<>

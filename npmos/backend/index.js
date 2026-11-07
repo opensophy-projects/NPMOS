@@ -11,6 +11,7 @@ import { migrateUp } from "./migrate.js";
 import { bootstrap as bootstrapAcmeServers } from "./npmos/acme/servers.js";
 import { bootstrap as bootstrapBlockPage } from "./npmos/block-page.js";
 import { bootstrap as bootstrapCrowdsec } from "./npmos/crowdsec/index.js";
+import { bootstrap as bootstrapGeo } from "./npmos/geo/index.js";
 import { start as startEventIngest } from "./npmos/events/ingest.js";
 import { start as startLearning } from "./npmos/learning/index.js";
 import { start as startNotifications } from "./npmos/notifications/index.js";
@@ -37,6 +38,7 @@ async function appStart() {
 			.then(bootstrapPki)
 			.then(bootstrapBlockPage)
 			.then(bootstrapCrowdsec)
+			.then(bootstrapGeo)
 			.then(startEventIngest)
 			.then(startLearning)
 			.then(startNotifications)

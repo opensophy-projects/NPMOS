@@ -11,6 +11,8 @@ import { scheduleRegenerate as scheduleWafPolicy } from "../npmos/waf/policy.js"
 import { prepareHost as prepareMtls } from "../npmos/pki/mtls.js";
 // NPMOS: hosts left out by the CrowdSec bouncer of NPMOS (CrowdSec → hosts)
 import { prepareHost as prepareCrowdsec } from "../npmos/crowdsec/bouncer.js";
+// NPMOS: countries let in or kept out of a host (Hosts → a host → Countries)
+import { prepareHost as prepareGeo } from "../npmos/geo/index.js";
 import internalProxyHostAccessList from "./proxy-host-access-list.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -281,6 +283,8 @@ const internalNginx = {
 		await prepareMtls(host_type, host);
 		// NPMOS: npmos_crowdsec_off of the templates
 		await prepareCrowdsec(host_type, host);
+		// NPMOS: npmos_geo of the templates (checked, never the raw meta)
+		prepareGeo(host_type, host);
 
 		if (
 			host.forward_host &&

@@ -2585,6 +2585,51 @@
 	"npmos.events.total-capped": {
 		"defaultMessage": "Больше {total} событий"
 	},
+	"npmos.geo.action": {
+		"defaultMessage": "Ответ запрещённой стране"
+	},
+	"npmos.geo.action.403": {
+		"defaultMessage": "Страница блокировки (403)"
+	},
+	"npmos.geo.action.444": {
+		"defaultMessage": "Оборвать соединение (444)"
+	},
+	"npmos.geo.countries": {
+		"defaultMessage": "Страны"
+	},
+	"npmos.geo.countries.placeholder": {
+		"defaultMessage": "Выберите страны…"
+	},
+	"npmos.geo.empty": {
+		"defaultMessage": "Страны не выбраны: правило не действует, пока не выберете хотя бы одну."
+	},
+	"npmos.geo.hint.allow": {
+		"defaultMessage": "Запросы из других стран nginx отклоняет раньше всего остального на хосте (WAF, CrowdSec, сервер за хостом). Адреса с неизвестной страной тоже отклоняются. Проверки сертификатов (/.well-known/acme-challenge/) и частные сети проходят всегда. Поисковики, которые обходят сайт из-за границы (Google), тоже будут отклонены."
+	},
+	"npmos.geo.hint.deny": {
+		"defaultMessage": "Запросы из этих стран nginx отклоняет раньше всего остального на хосте. Проверки сертификатов (/.well-known/acme-challenge/) и частные сети проходят всегда."
+	},
+	"npmos.geo.mode.allow": {
+		"defaultMessage": "Только перечисленные страны"
+	},
+	"npmos.geo.mode.deny": {
+		"defaultMessage": "Все, кроме перечисленных"
+	},
+	"npmos.geo.mode.off": {
+		"defaultMessage": "Все страны"
+	},
+	"npmos.geo.no-database": {
+		"defaultMessage": "У nginx нет базы GeoIP, поэтому правило пропускает всех. Загрузите её в «Система → Настройки → GeoIP» (или запустите CrowdSec — он приносит GeoLite2)."
+	},
+	"npmos.geo.short.allow": {
+		"defaultMessage": "Только {countries}"
+	},
+	"npmos.geo.short.deny": {
+		"defaultMessage": "Кроме {countries}"
+	},
+	"npmos.geo.title": {
+		"defaultMessage": "Страны"
+	},
 	"npmos.geoip.built": {
 		"defaultMessage": "Собрана"
 	},

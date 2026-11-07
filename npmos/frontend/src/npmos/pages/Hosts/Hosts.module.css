@@ -591,6 +591,13 @@
 	white-space: nowrap;
 	transition: border-color 150ms ease-out;
 }
+/* the access lists and the countries of a host side by side */
+.chips {
+	display: inline-flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.25rem;
+}
 .accent {
 	border-color: color-mix(in oklab, var(--accent) 40%, transparent);
 	background: color-mix(in oklab, var(--accent) 10%, transparent);

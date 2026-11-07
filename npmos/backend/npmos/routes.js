@@ -22,6 +22,7 @@ import internalMtls, { detachCas, protectedHosts, usage as mtlsUsage, usedBy as 
 import internalRbac from "./rbac/index.js";
 import internalServices from "./services.js";
 import internalSystem from "./system/index.js";
+import { geoAvailable, writeGeoConf } from "./geo/index.js";
 import internalGeoip from "./geoip/index.js";
 import internalLearning from "./learning/index.js";
 import internalMigration from "./migration/index.js";
@@ -788,9 +789,29 @@ router
 	.get(handle((_, res) => internalGeoip.status(res.locals.access)))
 	.post(
 		express.raw({ type: () => true, limit: "200mb" }),
-		handle((req, res) => internalGeoip.upload(res.locals.access, Buffer.isBuffer(req.body) ? req.body : null)),
+		handle(async (req, res) => {
+			const result = await internalGeoip.upload(res.locals.access, Buffer.isBuffer(req.body) ? req.body : null);
+			// nginx tells the countries of the hosts with the same database
+			await writeGeoConf();
+			return result;
+		}),
 	)
-	.delete(handle((_, res) => internalGeoip.remove(res.locals.access)));
+	.delete(
+		handle(async (_, res) => {
+			const result = await internalGeoip.remove(res.locals.access);
+			await writeGeoConf();
+			return result;
+		}),
+	);
+
+/**
+ * GET /api/npmos/geo — whether nginx can tell countries (Hosts → a host → Countries)
+ */
+router
+	.route("/geo")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle(async () => ({ available: await geoAvailable() })));
 
 /**
  * Migration from NPM / NPMplus / open-appsec-npm (npmos/migration)
