@@ -141,7 +141,8 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, prefill, visible
 	};
 
 	return (
-		<Modal show={visible} onHide={remove}>
+		// NPMOS: wide, so that the settings sit side by side instead of a long column
+		<Modal show={visible} onHide={remove} size="xl">
 			{!isLoading && (error || userError) && (
 				<Alert variant="danger" className="m-3">
 					{error?.message || userError?.message || <T id="npmos.common.unknown-error" />}
@@ -442,7 +443,7 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, prefill, visible
 													<h4 className="py-2">
 														<T id="options" />
 													</h4>
-													<div className="divide-y">
+													<div className="divide-y npmos-options-grid">
 														<div style={{ display: "none" }}>
 															<label className="row" htmlFor="cachingEnabled">
 																<span className="col">

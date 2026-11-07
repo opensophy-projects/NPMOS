@@ -21,6 +21,14 @@ const HOUR = 3600 * 1000;
 /** answers of a refusal: the WAF and the bouncer (403), limits (429), dropped (444), mTLS (495, 496) */
 export const BLOCKED = new Set([403, 429, 444, 495, 496]);
 
+/**
+ * Refused: never reached the server behind the host. A refusal of the protection (BLOCKED), or any 4xx nginx
+ * answered itself, with no answer of an upstream (a broken request 400, CONNECT 405, a 404 host, a basic auth 401).
+ * Analytics count these as "Refused", not "Passed".
+ */
+export const refused = (status, upstreamStatus) =>
+	BLOCKED.has(status) || (status >= 400 && status < 500 && (upstreamStatus === null || upstreamStatus === undefined));
+
 const state = { running: false, timer: null, lastError: null, counted: 0 };
 const hash = (b) => createHash("sha1").update(b).digest("hex");
 
@@ -117,7 +125,7 @@ export const parseLine = (line) => {
 		device,
 		pageview,
 		visit: pageview && referer !== host,
-		mitigated: BLOCKED.has(status),
+		mitigated: refused(status, lastStatus(r.us)),
 	};
 	// human, bot or scanner: Accept-Language is only read here (lines of before it was logged have none)
 	row.client = classifyClient({ ...row, acceptLanguage: r.al === undefined ? undefined : text(r.al, 64) });
@@ -185,7 +193,7 @@ export const requestAggregates = (lines, nodeId = "local") => {
 		row.requests += 1;
 		const cls = Math.floor(l.status / 100);
 		if (cls >= 2 && cls <= 5) row[`s${cls}xx`] += 1;
-		if (BLOCKED.has(l.status)) row.blocked += 1;
+		if (l.mitigated) row.blocked += 1;
 		row.bytes += l.bytes;
 	}
 	return [...groups.values()];

@@ -25,6 +25,7 @@ import styles from "./Events.module.css";
 import {
 	AGENT_OF,
 	AGENTS,
+	AGENTS_OF_ALL,
 	DEFAULT_FILTERS,
 	actionsFor,
 	activeCount,
@@ -210,7 +211,7 @@ function FilterPanel({
 								<T id="npmos.events.agent" />
 							</div>
 							<div className={styles.options}>
-								{AGENTS.map((a) => (
+								{(filters.kind === "all" ? AGENTS_OF_ALL : AGENTS).map((a) => (
 									<label key={a}>
 										<input
 											type="checkbox"

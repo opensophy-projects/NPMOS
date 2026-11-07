@@ -11,6 +11,8 @@ export type Kind = (typeof KINDS)[number];
 export const ACTIONS = ["Prevent", "Detect", "Accept", "ban", "captcha", "alert", "simulated", "denied"] as const;
 export const SEVERITIES = ["Critical", "High", "Medium", "Low", "Info"] as const;
 export const AGENTS = ["open-appsec", "crowdsec"] as const;
+/** Events → All: nginx is the agent of the requests of the log */
+export const AGENTS_OF_ALL = [...AGENTS, "nginx"] as const;
 /** the agent of an event by its kind */
 export const AGENT_OF: Record<string, string> = {
 	security: "open-appsec",
@@ -71,7 +73,7 @@ export const filtersFromParams = (params: URLSearchParams): EventFilters => {
 	const from = validDate(params.get("from"));
 	// links of before: kind=security, kind=system (open-appsec) and kind=crowdsec are the agents with one agent
 	const old = { security: "open-appsec", system: "open-appsec", crowdsec: "crowdsec" }[params.get("kind") ?? ""];
-	const agent = split(params.get("agent")).filter((a) => (AGENTS as readonly string[]).includes(a));
+	const agent = split(params.get("agent")).filter((a) => (AGENTS_OF_ALL as readonly string[]).includes(a));
 	// a period written backwards (from after to) is the same period: the dates are swapped
 	let to = validDate(params.get("to"));
 	let start = from;
@@ -172,6 +174,8 @@ export const forKind = (f: EventFilters, kind: Kind): EventFilters => {
 	const { fields, score } = FILTERS_OF[kind];
 	const next: EventFilters = { ...f, kind };
 	for (const field of LIST_FIELDS) if (!fields.includes(field)) next[field] = [];
+	// nginx (the requests) is an agent of Events → All only
+	if (kind !== "all") next.agent = next.agent.filter((a) => a !== "nginx");
 	if (!score) {
 		next.minScore = "";
 		next.maxScore = "";

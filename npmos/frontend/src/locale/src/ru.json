@@ -1607,6 +1607,18 @@
 	"npmos.crowdsec.ban.values.hint": {
 		"defaultMessage": "По одному в строке или через запятую и пробел; до 10 000."
 	},
+	"npmos.crowdsec.blocked.alerts": {
+		"defaultMessage": "Срабатывания CrowdSec"
+	},
+	"npmos.crowdsec.blocked.decisions": {
+		"defaultMessage": "Решения"
+	},
+	"npmos.crowdsec.blocked.network": {
+		"defaultMessage": "Сеть"
+	},
+	"npmos.crowdsec.blocked.requests": {
+		"defaultMessage": "Последние запросы"
+	},
 	"npmos.crowdsec.blocklist.add": {
 		"defaultMessage": "Добавить блок-лист"
 	},
@@ -2416,6 +2428,9 @@
 	},
 	"npmos.events.agent.mtls": {
 		"defaultMessage": "mTLS"
+	},
+	"npmos.events.agent.nginx": {
+		"defaultMessage": "nginx (запросы)"
 	},
 	"npmos.events.agent.open-appsec": {
 		"defaultMessage": "open-appsec"
@@ -6880,6 +6895,9 @@
 	},
 	"npmos.traffic.log.total-capped": {
 		"defaultMessage": "Больше {total} запросов"
+	},
+	"npmos.traffic.log.total-short": {
+		"defaultMessage": "Запросов за 24 ч"
 	},
 	"npmos.traffic.log.values-hint": {
 		"defaultMessage": "Несколько значений — Enter после каждого."

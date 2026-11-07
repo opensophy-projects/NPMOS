@@ -251,6 +251,11 @@ test("requests: a line of the JSON log of nginx, admin and health checks left ou
 	assert.equal(blocked.mitigated, true);
 	assert.equal(blocked.upstream_ms, null);
 	assert.equal(blocked.upstream_status, null);
+	// answered by nginx itself without the server behind the host: refused, not passed
+	assert.equal(parseLine(line("app.example.com", 400, { ut: "-", us: "-", ua_addr: "-" })).mitigated, true);
+	assert.equal(parseLine(line("1.1.1.1", 405, { m: "CONNECT", ut: "-", us: "-", ua_addr: "-" })).mitigated, true);
+	// a 404 of the server behind the host passed the proxy
+	assert.equal(parseLine(line("app.example.com", 404, { us: "404" })).mitigated, false);
 	const rows = requestAggregates([a, blocked, parseLine(line("app.example.com", 502))]);
 	assert.equal(rows.length, 1);
 	assert.deepEqual(

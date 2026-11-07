@@ -6,6 +6,8 @@ import { T } from "src/locale";
 import { showError, showSuccess } from "src/notifications";
 import { type CrowdsecAlert, type Decision, unban, useAlerts, useDecisions } from "../../crowdsec/api";
 import { showBanModal } from "../../crowdsec/BanModal";
+import { showDecisionModal } from "../../crowdsec/DecisionModal";
+import { useNavigate } from "react-router-dom";
 import { originLabel, remaining, t } from "../../crowdsec/labels";
 import { useCan } from "../../rbac/hooks";
 import { dateTime, timeAgo } from "../../ui/time";
@@ -71,6 +73,15 @@ export function DecisionsTab({ refresh }: { refresh: () => void }) {
 	const items = useMemo(() => groupDecisions(decisions.data?.items ?? []), [decisions.data]);
 	const total = decisions.data?.total ?? 0;
 	const decide = can("crowdsec", "decide");
+	const navigate = useNavigate();
+	const open = (d: DecisionRow) =>
+		showDecisionModal({
+			value: d.value,
+			type: d.type,
+			decisions: (decisions.data?.items ?? []).filter((x) => d.ids.includes(x.id)),
+			onChange: reload,
+			navigate,
+		});
 
 	const reload = () => {
 		setSelected([]);
@@ -202,7 +213,15 @@ export function DecisionsTab({ refresh }: { refresh: () => void }) {
 											/>
 										</td>
 									)}
-									<td className="font-monospace">{d.value}</td>
+									<td className="font-monospace">
+										<button
+											type="button"
+											className="btn btn-link p-0 text-reset text-decoration-underline font-monospace"
+											onClick={() => open(d)}
+										>
+											{d.value}
+										</button>
+									</td>
 									<td>
 										<span className={cn("badge", TYPE_TONE[d.type] || "bg-secondary-lt")}>
 											{["ban", "captcha"].includes(d.type)
