@@ -25,3 +25,8 @@ paths = ['''^npmos/backend/npmos/redact\.test\.js$''']
 description = "squashed imports of upstream NPMplus (git subtree): the example values of its old compose.yaml"
 commits = ["2e646bac59947309643e9d8a879efdbedad58d3d", "acb35371302bac8d980095ee67a29197d96f3bcd"]
 paths = ['''^compose\.yaml$''']
+
+[[allowlists]]
+description = "the first version of agent patch 0005 kept the git function context in a hunk header (isKeyCspReport(const std::string &key, ...)), which reads as an API key; later versions have no such context"
+commits = ["1d6a369223b4f7089df34e3db8bb5f25587c46dc"]
+paths = ['''^deploy/openappsec/agent/patches/0005-feature-dump-for-training\.patch$''']

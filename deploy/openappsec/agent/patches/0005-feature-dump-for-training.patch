@@ -11,7 +11,7 @@
  
  USE_DEBUG_FLAG(D_WAAP_SCANNER);
  USE_DEBUG_FLAG(D_OA_SCHEMA_UPDATER);
-@@ -156,6 +160,73 @@ bool Waap::Scanner::isKeyCspReport(const std::string &key, Waf2ScanResult &res,
+@@ -156,6 +160,73 @@
      return false;
  }
  
@@ -85,7 +85,7 @@
  bool Waap::Scanner::suspiciousHit(Waf2ScanResult& res, DeepParser &dp,
          const std::string& location, const std::string& param_name, const std::string& key)
  {
-@@ -180,6 +251,7 @@ bool Waap::Scanner::suspiciousHit(Waf2ScanResult& res, DeepParser &dp,
+@@ -180,6 +251,7 @@
      // call shouldIgnoreOverride post score calculation and filtering to evaluate ignore override effectivness
      res.score = score;
      m_transaction->shouldIgnoreOverride(res);
