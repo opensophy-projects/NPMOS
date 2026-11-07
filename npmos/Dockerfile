@@ -239,7 +239,7 @@ RUN apk upgrade --no-cache -a && \
     mkdir /build && cd /build && \
     export GOTOOLCHAIN=local GOFLAGS=-trimpath GOPATH=/go && \
     go mod init build && \
-    go get "github.com/go-acme/lego/v4@$LEGO_VERSION" $LEGO_UPGRADES && \
+    go get "github.com/go-acme/lego/v4/cmd/lego@$LEGO_VERSION" $LEGO_UPGRADES && \
     CGO_ENABLED=0 GOOS=linux GOARCH="$TARGETARCH" \
       go build -ldflags "-s -w -X main.version=$LEGO_VERSION" -o /lego github.com/go-acme/lego/v4/cmd/lego && \
     cd / && rm -rf /build /go /root/.cache && \
