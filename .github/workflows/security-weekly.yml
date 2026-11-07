@@ -1,0 +1,57 @@
+# Every Monday: a branch security/<date> is made from work and the full CI runs on it (build, closed-network test,
+# image scan, DAST, the images published on Docker Hub); its report job opens an issue "Отчёт безопасности <date>".
+# Branches older than 8 weeks are removed. By hand: Actions → Weekly security → Run workflow.
+#
+# A branch made with the token of a workflow starts no workflow (GitHub stops such chains), so this job starts the
+# CI of the new branch itself (workflow_dispatch, which that token may do).
+name: Weekly security
+on:
+  schedule:
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-weekly
+  cancel-in-progress: false
+
+jobs:
+  branch:
+    name: security/<date> from work, full CI on it
+    runs-on: ubuntu-latest
+    permissions:
+      # the branch
+      contents: write
+      # the CI run on it
+      actions: write
+    steps:
+      - name: branch, run, clean up
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          day=$(date -u +%F)
+          branch="security/$day"
+          sha=$(gh api "repos/$REPO/git/ref/heads/work" --jq .object.sha)
+          if gh api "repos/$REPO/git/ref/heads/$branch" > /dev/null 2>&1; then
+            gh api -X PATCH "repos/$REPO/git/refs/heads/$branch" -f sha="$sha" -F force=true > /dev/null
+          else
+            gh api "repos/$REPO/git/refs" -f ref="refs/heads/$branch" -f sha="$sha" > /dev/null
+          fi
+          echo "$branch -> work ${sha:0:9}"
+          gh workflow run ci.yml --repo "$REPO" --ref "$branch"
+          # the branches of the last 8 weeks stay
+          cutoff=$(date -u -d '56 days ago' +%F)
+          gh api "repos/$REPO/git/matching-refs/heads/security/" --jq '.[].ref' | while read -r ref; do
+            d=${ref#refs/heads/security/}
+            if [[ "$d" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ && "$d" < "$cutoff" ]]; then
+              gh api -X DELETE "repos/$REPO/git/$ref" && echo "removed $ref"
+            fi
+          done
+          {
+            echo "### Weekly security"
+            echo "Branch \`$branch\` from \`work\` (\`${sha:0:9}\`); the full CI runs on it and opens an issue with its report."
+          } >> "$GITHUB_STEP_SUMMARY"

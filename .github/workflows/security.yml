@@ -5,16 +5,14 @@
 #   called by CI (ci.yml) on every push and pull request: SAST, secrets, SCA and SBOM of the sources, IaC, the
 #     workflows, code quality. ci.yml checks the images (vulnerabilities, SBOM, CIS), attacks the running stack
 #     (DAST) and writes the summary report (job "report").
-#   weekly and by hand (Actions → Security → Run workflow): the same, plus the images published on Docker Hub (new
-#     CVEs in what is already released), with a summary report of its own.
+#   weekly through CI on the branch security/<date> (security-weekly.yml) and by hand (Actions → Security → Run
+#     workflow): the same, plus the images published on Docker Hub (new CVEs in what is already released).
 #
 # What fails the run is decided in one place, scripts/security-report.mjs (the policy at its top); accepted risks
 # are listed with their reason and an end date in .github/security/accepted-risks.json. See docs/DEVSECOPS.md.
 name: Security
 on:
   workflow_call:
-  schedule:
-    - cron: "17 3 * * 1"
   workflow_dispatch:
 
 permissions:
@@ -316,10 +314,10 @@ jobs:
           path: out/
           if-no-files-found: ignore
 
-  # ---------------------------------------------------------------- only when run on its own (weekly, by hand)
+  # ---------------------------------------------------------------- the weekly run and runs by hand
   published:
     name: Published images (Trivy, Grype)
-    if: github.workflow == 'Security'
+    if: github.workflow == 'Security' || startsWith(github.ref, 'refs/heads/security/')
     runs-on: ubuntu-latest
     permissions:
       contents: read

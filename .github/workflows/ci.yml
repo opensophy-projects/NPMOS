@@ -7,9 +7,13 @@
 #   tag vX.Y.Z    -> :X.Y.Z and :latest
 #   other events  -> build and test only (registry login is still checked when secrets exist)
 #
-# Security (DevSecOps, docs/DEVSECOPS.md): SAST, secrets, SCA, IaC and the workflows run in security.yml (job
-# "security"); the images are scanned and the running stack attacked (DAST) in "images", before anything is pushed;
-# "report" writes the summary of the run and the artifact security-report (the report, readable SBOMs, raw results).
+# Two depths (docs/DEVSECOPS.md):
+#   every push      fast checks: lint, types, tests, and security.yml (SAST, secrets, SCA, IaC, the workflows)
+#   full            also the images: build, closed-network test, image scan, DAST, the security gate before a push.
+#                   On work, tags v*, pull requests, by hand (Run workflow), on branches security/** (security-weekly.yml
+#                   makes one from work every week) and on any push whose commit message holds [full].
+# "report" writes the summary of the run and the artifact security-report (the report, readable SBOMs, raw results);
+# on a branch security/** it also opens an issue with the report.
 name: CI
 on:
   push:
@@ -114,6 +118,10 @@ jobs:
   images:
     name: Images (amd64) + closed-network test + image scan + DAST
     needs: checks
+    # the full run (see the head of this file); other branches stop after the fast checks
+    if: >-
+      github.event_name != 'push' || github.ref == 'refs/heads/work' || startsWith(github.ref, 'refs/tags/v') ||
+      startsWith(github.ref, 'refs/heads/security/') || contains(github.event.head_commit.message, '[full]')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -225,7 +233,9 @@ jobs:
   npmos-arm64:
     name: npmos image (arm64)
     needs: checks
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/work' || startsWith(github.ref, 'refs/tags/v')) || github.event_name == 'workflow_dispatch'
+    if: >-
+      github.event_name == 'push' && (github.ref == 'refs/heads/work' || startsWith(github.ref, 'refs/tags/v')) ||
+      github.event_name == 'workflow_dispatch' && !startsWith(github.ref, 'refs/heads/security/')
     runs-on: ubuntu-26.04-arm
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -301,7 +311,7 @@ jobs:
   appsec-arm64:
     name: npmos-openappsec image (arm64, experimental)
     needs: checks
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' && !startsWith(github.ref, 'refs/heads/security/')
     continue-on-error: true
     runs-on: ubuntu-26.04-arm
     steps:
@@ -327,6 +337,10 @@ jobs:
     needs: [checks, security, images]
     if: always()
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # the issue of a weekly branch security/<date>
+      issues: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -346,3 +360,20 @@ jobs:
         with:
           name: security-report
           path: security-report/
+      - name: issue with the report (weekly branch security/<date>)
+        if: always() && startsWith(github.ref, 'refs/heads/security/') && hashFiles('security-report/security-report.md') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          REF_NAME: ${{ github.ref_name }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if grep -q 'Итог: ✅' security-report/security-report.md; then mark="✅"; else mark="❌"; fi
+          {
+            echo "Еженедельная проверка ветки \`$REF_NAME\` (сделана из \`work\`). Прогон: $RUN_URL"
+            echo "Полный отчёт и SBOM — артефакт **security-report** прогона."
+            echo
+            head -c 60000 security-report/security-report.md
+          } > issue.md
+          gh label create security --repo "$REPO" --color B60205 --description "Security reports" --force > /dev/null
+          gh issue create --repo "$REPO" --label security --title "$mark Отчёт безопасности ${REF_NAME#security/}" --body-file issue.md

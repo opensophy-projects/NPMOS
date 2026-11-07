@@ -87,4 +87,6 @@ cd npmos/frontend && pnpm install && pnpm vite                                  
 - Проверки безопасности в CI (SAST, секреты, SCA, SBOM, IaC, образы, DAST) и их политика — `docs/DEVSECOPS.md`; итог —
   в Summary прогона и в артефакте `security-report`. Находку исправляют; если нельзя — вносят в
   `.github/security/accepted-risks.json` с причиной и сроком. Ложное срабатывание Semgrep — `// nosemgrep: <правило> -- почему`.
+  На обычных ветках CI быстрый (без образов и DAST); полный прогон — `work`, теги, PR, ветки `security/**` или
+  `[full]` в сообщении коммита.
 - Доступ к Docker — только у `npmos-control` (в контейнере `openappsec`, сокет `/var/run/docker.sock`): белый список операций (список, логи, перезапуск, reload контейнеров стека с меткой `npmos.managed`), токен, аудит, слушает только 127.0.0.1. Контейнер `npmos`, принимающий трафик из интернета, сокета не получает.

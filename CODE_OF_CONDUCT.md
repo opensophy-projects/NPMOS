@@ -162,10 +162,12 @@ flowchart LR
 - `renovate.json` — автообновление версий образов и зависимостей (Renovate)
 - `.semgrepignore` — что Semgrep не проверяет (зависимости, сборка, переводы, тесты)
 - **`.github/`**
-  - `workflows/ci.yml` — CI: линтеры, типы, тесты, сборка образов, закрытый контур, скан образов, DAST, отчёт
-    безопасности, публикация на Docker Hub
+  - `workflows/ci.yml` — CI: быстрые проверки на каждый push; полный прогон (сборка образов, закрытый контур, скан
+    образов, DAST, отчёт безопасности, публикация на Docker Hub) на `work`, тегах, PR, `security/**`, `[full]`
+  - `workflows/security-weekly.yml` — каждую неделю: ветка `security/<дата>` от `work`, полный CI на ней, issue с
+    отчётом, удаление веток старше 8 недель
   - `workflows/security.yml` — DevSecOps: SAST, секреты, SCA и SBOM исходников, IaC, workflow, качество кода;
-    раз в неделю — ещё и опубликованные образы (`docs/DEVSECOPS.md`)
+    в еженедельном прогоне — ещё и опубликованные образы (`docs/DEVSECOPS.md`)
   - `actionlint.yaml` — настройки actionlint (метки раннеров)
   - **`security/`** — настройки сканеров
     - `tools.env` — образы и версии всех сканеров, закреплённые по digest
