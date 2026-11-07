@@ -9,6 +9,7 @@ import { getSetting, setSetting } from "../settings.js";
 import { status as ingestStatus, runMaintenance } from "./ingest.js";
 import { IMPORTANT_SEVERITIES } from "./normalize.js";
 import { EVENT_TABLE, REQUEST_LOG_TABLE } from "./store.js";
+import { requestFilters, requestOnly } from "./feed-filters.js";
 import { REQUEST_COUNT_CAP, requestFeed } from "./traffic.js";
 
 const MAX_LIMIT = 500;
@@ -113,6 +114,7 @@ export const parseFilters = (query, now = new Date()) => {
 		q: String(query.q ?? "")
 			.trim()
 			.slice(0, 200),
+		...requestFilters(query),
 	};
 };
 
@@ -228,7 +230,7 @@ const internalEvents = {
 		// Events → All: every request of the log too (with the permission of Analytics, no filter of events only)
 		const withRequests = f.kind === "all" && isPostgres() && !eventOnly(f) && (await canSeeRequests(access));
 		// only the agent nginx: the requests, no event
-		const noEvents = f.nginx && !f.agent.length;
+		const noEvents = (f.nginx && !f.agent.length) || (f.kind === "all" && requestOnly(f));
 		const rows = noEvents
 			? []
 			: await applyFilters(knex(EVENT_TABLE).select(LIST_COLUMNS), f)

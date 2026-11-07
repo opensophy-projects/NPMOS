@@ -2525,6 +2525,12 @@
 	"npmos.events.older": {
 		"defaultMessage": "Старше"
 	},
+	"npmos.events.outcome.passed": {
+		"defaultMessage": "пропущенные"
+	},
+	"npmos.events.outcome.refused": {
+		"defaultMessage": "отклонённые"
+	},
 	"npmos.events.override": {
 		"defaultMessage": "Исключение"
 	},
@@ -2551,6 +2557,9 @@
 	},
 	"npmos.events.request-row": {
 		"defaultMessage": "HTTP-запрос"
+	},
+	"npmos.events.requests-only": {
+		"defaultMessage": "Это есть только у запросов: с любым из них события агентов не показываются."
 	},
 	"npmos.events.response-code": {
 		"defaultMessage": "Код ответа"

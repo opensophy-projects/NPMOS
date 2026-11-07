@@ -1409,6 +1409,12 @@ export const bootstrap = async () => {
 	}, 5 * 60000);
 	renewals.unref();
 	startDenials();
+	// mtls.js imports this module: loaded when it runs
+	try {
+		await (await import("./mtls.js")).pruneFiles();
+	} catch (err) {
+		logger.error(`NPMOS mTLS: ${err.message}`);
+	}
 };
 
 export default internalPki;

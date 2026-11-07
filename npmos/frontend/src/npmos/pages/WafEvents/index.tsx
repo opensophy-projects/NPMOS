@@ -27,6 +27,9 @@ import {
 	AGENT_OF,
 	AGENTS,
 	AGENTS_OF_ALL,
+	CLIENTS,
+	OUTCOMES,
+	STATUS_CLASSES,
 	DEFAULT_FILTERS,
 	actionsFor,
 	activeCount,
@@ -142,7 +145,7 @@ function FilterPanel({
 	types: string[];
 	hosts: string[];
 }) {
-	const toggle = (field: "action" | "severity" | "agent", value: string) =>
+	const toggle = (field: "action" | "severity" | "agent" | "status" | "client", value: string) =>
 		onChange(
 			filters[field].includes(value) ? withoutValue(filters, field, value) : withValue(filters, field, value),
 		);
@@ -169,8 +172,11 @@ function FilterPanel({
 								action: [],
 								severity: [],
 								type: [],
+								status: [],
+								client: [],
 								minScore: "",
 								maxScore: "",
+								outcome: "",
 							})
 						}
 					>
@@ -228,6 +234,57 @@ function FilterPanel({
 										<T id={`npmos.events.agent.${a}`} />
 									</label>
 								))}
+							</div>
+						</div>
+					)}
+					{filters.kind === "all" && (
+						<div className={styles.section}>
+							<div className={styles.sectionTitle}>
+								<T id="npmos.events.agent.nginx" />
+							</div>
+							<div className={styles.options}>
+								{OUTCOMES.map((o) => (
+									<label key={o}>
+										<input
+											type="checkbox"
+											className="form-check-input m-0"
+											checked={filters.outcome === o}
+											onChange={(e) =>
+												onChange({ ...filters, outcome: e.target.checked ? o : "" })
+											}
+										/>
+										<T id={`npmos.events.outcome.${o}`} />
+									</label>
+								))}
+							</div>
+							<div className={styles.options}>
+								{STATUS_CLASSES.map((c) => (
+									<label key={c}>
+										<input
+											type="checkbox"
+											className="form-check-input m-0"
+											checked={filters.status.includes(c)}
+											onChange={() => toggle("status", c)}
+										/>
+										{c}
+									</label>
+								))}
+							</div>
+							<div className={styles.options}>
+								{CLIENTS.map((c) => (
+									<label key={c}>
+										<input
+											type="checkbox"
+											className="form-check-input m-0"
+											checked={filters.client.includes(c)}
+											onChange={() => toggle("client", c)}
+										/>
+										<T id={`npmos.traffic.client.${c}`} />
+									</label>
+								))}
+							</div>
+							<div className={styles.hint}>
+								<T id="npmos.events.requests-only" />
 							</div>
 						</div>
 					)}
@@ -352,6 +409,8 @@ const FIELD_LABEL: Record<ListField, string> = {
 	action: "npmos.waf.events.action",
 	severity: "npmos.waf.events.severity",
 	type: "npmos.events.attack-type",
+	status: "npmos.traffic.filter.status",
+	client: "npmos.traffic.filter.client",
 };
 
 function ActiveFilters({ filters, onChange }: { filters: EventFilters; onChange: (f: EventFilters) => void }) {
@@ -369,10 +428,23 @@ function ActiveFilters({ filters, onChange }: { filters: EventFilters; onChange:
 			chips.push({
 				key: `${field}:${value}`,
 				label: t(FIELD_LABEL[field]),
-				value: field === "agent" ? t(`npmos.events.agent.${value}`) : value,
+				value:
+					field === "agent"
+						? t(`npmos.events.agent.${value}`)
+						: field === "client"
+							? t(`npmos.traffic.client.${value}`)
+							: value,
 				remove: () => onChange(withoutValue(filters, field, value)),
 			});
 		}
+	}
+	if (filters.outcome) {
+		chips.push({
+			key: "outcome",
+			label: t("npmos.traffic.log.outcome"),
+			value: t(`npmos.events.outcome.${filters.outcome}`),
+			remove: () => onChange({ ...filters, outcome: "" }),
+		});
 	}
 	if (filters.minScore || filters.maxScore) {
 		chips.push({

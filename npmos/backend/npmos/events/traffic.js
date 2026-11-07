@@ -906,7 +906,14 @@ const countOf = async (builder, cap) => {
  * @returns {Promise<{rows: object[], total: number}>}
  */
 export const requestFeed = async (f, before, limit, cap) => {
-	const filters = parseTrafficFilters({ host: f.host.join(","), ip: f.ip.join(","), q: f.q });
+	const filters = parseTrafficFilters({
+		host: f.host.join(","),
+		ip: f.ip.join(","),
+		q: f.q,
+		status: (f.status ?? []).join(","),
+		client: (f.client ?? []).join(","),
+		mitigated: f.outcome === "refused" ? "1" : f.outcome === "passed" ? "0" : undefined,
+	});
 	const k = await knownDomains();
 	const base = () =>
 		applyFilters(db()(REQUEST_LOG_TABLE).where("time", ">=", f.from).where("time", "<=", f.to), filters, k);
