@@ -21,6 +21,103 @@
 			"where": "/app/schema/paths/nginx/certificates/certID/upload/post.json",
 			"reason": "the example of the API schema of NPMplus (upload of a custom certificate): a published sample key, not a key of NPMOS",
 			"until": "2027-05-01"
+		},
+		{
+			"tool": "codeql-js",
+			"id": "js/type-confusion-through-parameter-tampering",
+			"where": "npmos/backend/npmos/crowdsec/index.js",
+			"reason": "the value is checked with Buffer.isBuffer before its length is read (an upload or an OCSP request is a Buffer or is refused); CodeQL does not take Buffer.isBuffer for a type check",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "codeql-js",
+			"id": "js/type-confusion-through-parameter-tampering",
+			"where": "npmos/backend/npmos/geoip/index.js",
+			"reason": "the value is checked with Buffer.isBuffer before its length is read (an upload or an OCSP request is a Buffer or is refused); CodeQL does not take Buffer.isBuffer for a type check",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "codeql-js",
+			"id": "js/type-confusion-through-parameter-tampering",
+			"where": "npmos/backend/npmos/geoip/mmdb.js",
+			"reason": "the value is checked with Buffer.isBuffer before its length is read (an upload or an OCSP request is a Buffer or is refused); CodeQL does not take Buffer.isBuffer for a type check",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "codeql-js",
+			"id": "js/type-confusion-through-parameter-tampering",
+			"where": "npmos/backend/npmos/pki/index.js",
+			"reason": "the value is checked with Buffer.isBuffer before its length is read (an upload or an OCSP request is a Buffer or is refused); CodeQL does not take Buffer.isBuffer for a type check",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "codeql-js",
+			"id": "js/insecure-temporary-file",
+			"where": "npmos/backend/npmos/files.js",
+			"reason": "the temporary path comes from files.test.js (mkdtempSync, a private directory of the test); the product opens only its own files under /data",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "codeql-js",
+			"id": "js/remote-property-injection",
+			"where": "npmos/backend/npmos/geoip/mmdb.js",
+			"reason": "maps of an uploaded GeoIP database are objects without a prototype (Object.create(null)) and a key __proto__ is skipped: a key cannot reach a prototype",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "trivy-npmos",
+			"id": "CVE-2025-47273",
+			"where": "setuptools 70.3.0",
+			"reason": "not installed: Trivy reads it from an SBOM file shipped inside the image (AnalyzedBy sbom); the setuptools of the image is 84.2.1 (/usr/local/lib/python3.14/site-packages)",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "testssl-ui",
+			"id": "cert_chain_of_trust",
+			"reason": "the certificate of the interface (port 81) is the self-signed one NPMplus makes at the first start; testssl judges its trust, not the TLS setup. The interface is meant to be opened through a proxy host with a certificate of its own (panel by domain). Protocols and ciphers of :81 pass",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "testssl-ui",
+			"id": "overall_grade",
+			"reason": "the certificate of the interface (port 81) is the self-signed one NPMplus makes at the first start; testssl judges its trust, not the TLS setup. The interface is meant to be opened through a proxy host with a certificate of its own (panel by domain). Protocols and ciphers of :81 pass",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "testssl-ui",
+			"id": "cert_subjectAltName",
+			"reason": "the certificate of the interface (port 81) is the self-signed one NPMplus makes at the first start; testssl judges its trust, not the TLS setup. The interface is meant to be opened through a proxy host with a certificate of its own (panel by domain). Protocols and ciphers of :81 pass",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "testssl-ui",
+			"id": "cert_trust",
+			"reason": "the certificate of the interface (port 81) is the self-signed one NPMplus makes at the first start; testssl judges its trust, not the TLS setup. The interface is meant to be opened through a proxy host with a certificate of its own (panel by domain). Protocols and ciphers of :81 pass",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "testssl-ui",
+			"id": "cert_extlifeSpan",
+			"reason": "the certificate of the interface (port 81) is the self-signed one NPMplus makes at the first start; testssl judges its trust, not the TLS setup. The interface is meant to be opened through a proxy host with a certificate of its own (panel by domain). Protocols and ciphers of :81 pass",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "testssl-ui",
+			"id": "cert_revocation",
+			"reason": "the certificate of the interface (port 81) is the self-signed one NPMplus makes at the first start; testssl judges its trust, not the TLS setup. The interface is meant to be opened through a proxy host with a certificate of its own (panel by domain). Protocols and ciphers of :81 pass",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "gixy",
+			"id": "ssl_ecdh_curve",
+			"reason": "nginx of NPMOS is built with AWS-LC, which knows X25519MLKEM768: the post-quantum group does not stop nginx (it starts in every test)",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "gixy",
+			"id": "weak_ssl_tls",
+			"reason": "gixy cannot resolve the cipher selectors of the configuration; testssl.sh checks the ciphers nginx really offers (dast.local:443) and finds none weak",
+			"until": "2027-05-01"
 		}
 	]
 }

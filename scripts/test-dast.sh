@@ -3,7 +3,7 @@
 # from containers of its edge network, each with an address of its own (a ban of one scanner does not stop another):
 #   OWASP ZAP   the API of the interface by its OpenAPI schema with a session (active scan), the pages of the
 #               interface and the proxy host dast.local (passive: headers, cookies, leaks)
-#   Nuclei      known CVEs, exposed panels and files, misconfigurations (the interface and dast.local)
+#   Nuclei      known CVEs, exposed panels and files, misconfigurations (the interface and the default host)
 #   testssl.sh  TLS of the interface (port 81) and of the proxy host (443): protocols, ciphers, HSTS, known attacks
 #   gixy        the nginx configuration the stack runs (nginx -T): SSRF, header injection, alias traversal...
 #
@@ -82,8 +82,10 @@ scan zap-api zap -e ZAP_AUTH_HEADER=Cookie -e "ZAP_AUTH_HEADER_VALUE=__Host-Http
 scan zap-ui zap "$ZAP_IMAGE" zap-baseline.py -t https://npmos:81/ -J zap-ui.json -r zap-ui.html -I -m 3
 scan zap-host zap "$ZAP_IMAGE" zap-baseline.py -t https://dast.local/ -J zap-host.json -r zap-host.html -I -m 3
 
+# what NPMOS serves itself: the interface and the default host (80, 443). Not dast.local: its site (whoami) echoes
+# every request back, which templates take for the product they look for.
 scan nuclei "${run[@]}" "$NUCLEI_IMAGE" -silent -no-color -severity low,medium,high,critical \
-  -rate-limit 60 -timeout 10 -u https://npmos:81 -u https://dast.local -u http://dast.local -jsonl -o /out/nuclei.jsonl
+  -rate-limit 60 -timeout 10 -u https://npmos:81 -u http://npmos -u https://npmos -jsonl -o /out/nuclei.jsonl
 
 # testssl.sh: its exit code counts findings; a report is what tells a finished scan
 testssl() {
@@ -105,5 +107,5 @@ for p in "${pids[@]}"; do
 done
 [ "$failed" = 0 ] || exit 1
 # an empty report of Nuclei: nothing found
-touch "$out/nuclei.jsonl"
+[ -e "$out/nuclei.jsonl" ] || touch "$out/nuclei.jsonl"
 echo "OK: DAST finished, reports in $OUT"
