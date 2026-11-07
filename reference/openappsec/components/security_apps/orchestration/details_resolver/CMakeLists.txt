@@ -1,3 +1,0 @@
-include_directories(details_resolver_handlers)
-
-add_library(details_resolver details_resolver.cc details_resolving_handler.cc)

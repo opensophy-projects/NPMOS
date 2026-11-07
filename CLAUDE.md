@@ -14,7 +14,6 @@ NPMOS — форк NPMplus с встроенными open-appsec (ML-WAF) и Cro
 | `npmos/` | NPMplus (git subtree, upstream `ZoeyVid/NPMplus`) + наши изменения | см. «Изменения в upstream-коде» |
 | `npmos/backend/npmos/`, `npmos/frontend/src/npmos/` | Наш код (модули NPMOS) | Новый код — сюда |
 | `deploy/` | `compose.yaml` (прод: `npmos`, `openappsec`, `crowdsec`, `postgres` + разовый `npmos-init`), `compose.dev.yaml`, `.env` (версии), `init/`, `openappsec/` (образ `npmos-openappsec`), `test/` | |
-| `reference/` | Исходники open-appsec-npm, open-appsec, smartsync(-tuning) — только для чтения | Не собирается, не линтится, не правится. Обновление: `scripts/update-reference.sh` |
 | `design/` | Токены дизайна, пример sidebar | |
 | `docs/` | План, ADR, инвентаризация env | |
 
@@ -64,7 +63,7 @@ scripts/test-airgap.sh
 | `npmos-openappsec` | `deploy/openappsec/Dockerfile`: агент (C++), shared storage и tuning (Go) из исходников, `npmos-control` (контекст сборки `control=npmos/backend/npmos/control`) | долго: C++ |
 | CrowdSec, Postgres | официальные образы, версии в `deploy/.env` | — |
 
-Коммиты исходников open-appsec — в `deploy/openappsec/sources.env` (совпадают с `reference/VERSIONS.md`, проверяется в CI). Локальная сборка всех образов: `scripts/build-images.sh` (тег `local/<имя>:dev`), затем `NPMOS_REGISTRY=local NPMOS_VERSION=dev scripts/test-airgap.sh`. Долгие сборки (npmos, openappsec) делаются в CI или разработчиком, не в сессии агента.
+Коммиты исходников open-appsec — в `deploy/openappsec/sources.env` (полные хэши, проверяется в CI); при обновлении `OPENAPPSEC_REF` обновите примеры политик в `npmos/backend/npmos/waf/objects/examples/`. Локальная сборка всех образов: `scripts/build-images.sh` (тег `local/<имя>:dev`), затем `NPMOS_REGISTRY=local NPMOS_VERSION=dev scripts/test-airgap.sh`. Долгие сборки (npmos, openappsec) делаются в CI или разработчиком, не в сессии агента.
 
 Контейнер `openappsec` владеет сетью и IPC: порты опубликованы на нём, `npmos` подключается к ним (`network_mode: service:openappsec`). Его процессы (`deploy/openappsec/npmos-openappsec.sh`) слушают на 127.0.0.1: агент 7777, `npmos-control` 7080, shared storage 7811, tuning 7813. Архитектура целиком — в `CODE_OF_CONDUCT.md`.
 

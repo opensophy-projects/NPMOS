@@ -1,3 +1,0 @@
-add_library(l7_access_control layer_7_access_control.cc)
-
-add_subdirectory(layer_7_access_control_ut)

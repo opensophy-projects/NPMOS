@@ -1,3 +1,0 @@
-add_library(instance_awareness instance_awareness.cc)
-
-add_subdirectory(instance_awareness_ut)

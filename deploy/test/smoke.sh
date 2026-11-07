@@ -355,7 +355,7 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
   applied_at() { $CURL "$ADMIN/api/npmos/waf" | json | grep -o '"lastPolicyUpdate":"[^"]*"'; }
   before=$(last_version)
   previous=$(applied_at)
-  example=$(sed 's/\\/\\\\/g; s/"/\\"/g' /reference/v1beta2-example.yaml | awk '{printf "%s\\n", $0}')
+  example=$(sed 's/\\/\\\\/g; s/"/\\"/g' /fixtures/v1beta2-example.yaml | awk '{printf "%s\\n", $0}')
   post_json POST "/import?dry_run=true" "{\"content\": \"$example\"}" | json | grep -q '"errors":\[\]' \
     || fail "the example is not imported: $(post_json POST "/import?dry_run=true" "{\"content\": \"$example\"}")"
   post_json POST /import "{\"content\": \"$example\"}" | json | grep -q '"applied":true' || fail "the import was not applied"

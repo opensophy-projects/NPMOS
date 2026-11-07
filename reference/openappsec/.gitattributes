@@ -1,2 +1,0 @@
-build_system/docker/install-cp-agent-intelligence-service.sh binary
-build_system/docker/install-cp-crowdsec-aux.sh binary

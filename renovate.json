@@ -3,9 +3,6 @@
   "extends": [
     "config:recommended"
   ],
-  "ignorePaths": [
-    "reference/**"
-  ],
   "customManagers": [
     {
       "customType": "regex",

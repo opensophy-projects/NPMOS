@@ -126,15 +126,10 @@ test("objects of the examples of open-appsec pass the schema", async () => {
 	const YAML = (await import("yaml")).default;
 	for (const name of ["default", "example", "prevent"]) {
 		const file = new URL(
-			`../../../../../reference/openappsec/config/linux/v1beta2/${name}/local_policy.yaml`,
+			`./examples/${name}.yaml`,
 			import.meta.url,
 		);
-		let doc;
-		try {
-			doc = YAML.parse(await readFile(file, "utf8"));
-		} catch {
-			continue;
-		}
+		const doc = YAML.parse(await readFile(file, "utf8"));
 		for (const [kind, section] of Object.entries(KINDS)) {
 			for (const item of doc[section] || []) {
 				const result = normalize(kind, item);

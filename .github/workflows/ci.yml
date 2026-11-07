@@ -72,10 +72,10 @@ jobs:
             df_cs=$(sed -n 's/^ARG CROWDSEC_VERSION=//p' "$f")
             [ "$env_cs" = "$df_cs" ] || { echo "::error file=$f::CROWDSEC_VERSION $df_cs != deploy/.env $env_cs"; exit 1; }
           done
+          # the open-appsec sources are pinned to full commits
           . deploy/openappsec/sources.env
-          for pair in "openappsec $OPENAPPSEC_REF" "smartsync $SMARTSYNC_REF" "smartsync-shared-files $SHARED_FILES_REF" "smartsync-tuning $TUNING_REF"; do
-            set -- $pair
-            grep -q "^| $1 | .* | \`$2\` |" reference/VERSIONS.md || { echo "::error::$1 ref $2 differs from reference/VERSIONS.md"; exit 1; }
+          for ref in "$OPENAPPSEC_REF" "$SHARED_FILES_REF" "$TUNING_REF"; do
+            echo "$ref" | grep -qE '^[0-9a-f]{40}$' || { echo "::error file=deploy/openappsec/sources.env::not a full commit: $ref"; exit 1; }
           done
           # the agent is built on Alpine 3.22 (CMake 3): Alpine 3.23+ ships CMake 4, which rejects the open-appsec sources
           alpine=$(sed -n 's/^ARG ALPINE_VERSION=//p' deploy/openappsec/Dockerfile)

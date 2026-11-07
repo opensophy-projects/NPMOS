@@ -1,2 +1,0 @@
-add_library(report_messaging report_messaging.cc)
-add_subdirectory(report_messaging_ut)
