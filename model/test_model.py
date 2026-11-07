@@ -166,7 +166,7 @@ class TrainingCycleTest(unittest.TestCase):
             write(d / "dump2" / "1.jsonl", dump2)
             write(d / "new.jsonl", verdicts2)
             args = ["--samples", str(d / "samples.jsonl"), "--stock", str(d / "stock.jsonl"), "--candidate",
-                    str(d / "new.jsonl"), "--dump", str(d / "dump2"), "--model", str(d / "out" / "waap.data"),
+                    str(d / "new.jsonl"), "--dump", str(d / "dump2"), "--stock-dump", str(d / "dump"), "--model", str(d / "out" / "waap.data"),
                     "--card", str(d / "out" / "model-card.json"), "--out", str(d / "metrics.json")]
             with contextlib.redirect_stdout(io.StringIO()), self.assertRaises(SystemExit) as ok:
                 evaluate.main(args)

@@ -50,13 +50,29 @@ api() {
 # the verdict of the site for a request from a source of its own: 200 passed, 403 blocked
 probe() { curl -s -o /dev/null -w '%{http_code}' --max-time 10 -H 'Host: train.local' -H "X-Forwarded-For: 10.9.9.$1" \
   -H 'X-Npmos-Sample: probe' "$SITE$2" || true; }
+XSS='/?q=%3Cscript%3Ealert(document.cookie)%3C%2Fscript%3E'
+# a round of 64 attacks over 16 connections at once (every nginx worker gets some): how many were not blocked
+missed() {
+  seq 1 64 | xargs -P 16 -I{} curl -s -o /dev/null -w '%{http_code}\n' --max-time 10 -H 'Host: train.local' \
+    -H 'X-Forwarded-For: 10.9.8.{}' -H 'X-Npmos-Sample: probe' "$SITE$XSS" | grep -vc '^403$' || true
+}
+# the WAF decides, and in every nginx worker: after a start of the agent the workers attach one by one, and one
+# that has not yet lets requests through uninspected (fail-open)
 wait_verdicts() {
   for i in $(seq 1 90); do
     ok=$(probe 1 '/?q=hello')
-    blocked=$(probe 2 '/?q=%3Cscript%3Ealert(document.cookie)%3C%2Fscript%3E')
-    [ "$ok" = 200 ] && [ "$blocked" = 403 ] && return 0
+    blocked=$(probe 2 "$XSS")
+    [ "$ok" = 200 ] && [ "$blocked" = 403 ] && break
     [ "$i" = 90 ] && fail "the WAF does not decide: a normal request -> $ok, XSS -> $blocked"
     sleep 2
+  done
+  clean=0
+  for i in $(seq 1 60); do
+    m=$(missed)
+    if [ "$m" = 0 ]; then clean=$((clean + 1)); else clean=0; fi
+    [ "$clean" = 3 ] && return 0
+    [ "$i" = 60 ] && fail "the WAF lets attacks through: $m of 64 in the last round"
+    sleep 5
   done
 }
 
@@ -135,5 +151,5 @@ mv "$NPMOS_FEATURES_DIR"/*.jsonl "$work/dump-new/" 2> /dev/null || fail "the age
 
 step "comparison and the release gate"
 "$PYTHON" model/evaluate.py --samples "$samples" --stock "$work/verdicts-stock.jsonl" \
-  --candidate "$work/verdicts-new.jsonl" --dump "$work/dump-new" --model "$work/out/waap.data" \
+  --candidate "$work/verdicts-new.jsonl" --dump "$work/dump-new" --stock-dump "$work/dump-stock" --model "$work/out/waap.data" \
   --card "$work/out/model-card.json" --summary "$work/report.md" --out "$work/metrics.json"

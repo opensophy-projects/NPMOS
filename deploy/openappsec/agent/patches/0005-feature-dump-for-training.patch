@@ -11,14 +11,16 @@
  
  USE_DEBUG_FLAG(D_WAAP_SCANNER);
  USE_DEBUG_FLAG(D_OA_SCHEMA_UPDATER);
-@@ -156,6 +160,73 @@
+@@ -156,6 +160,76 @@
      return false;
  }
  
 +// NPMOS: feature dump for training our own model (model/, docs/MODEL.md). When the directory
 +// /var/log/npmos-features exists (only the training stack creates it; never in production), every scanned value
 +// with keywords is appended as a JSON line to <pid>.jsonl: the request (X-Npmos-Sample header, URI), where the
-+// value is, the keywords and pairs the model scored and the score. The features come from the agent itself, so
++// value is, the keywords and pairs the model scored and the score. "keywords" are those scored
++// (keywordsAfterFilter: spaces stripped, a keyword contained in another one dropped), "matched" what the
++// signatures found. The features come from the agent itself, so
 +// the trained weights mean to the agent exactly what they meant to the trainer.
 +static std::string
 +npmosJson(const std::string &in)
@@ -73,9 +75,10 @@
 +        ",\"location\":" + npmosJson(res.location) +
 +        ",\"param\":" + npmosJson(res.param_name) +
 +        ",\"pool\":" + npmosJson(pool) +
-+        ",\"keywords\":" + npmosJson(res.keyword_matches) +
++        ",\"keywords\":" + npmosJson(res.keywordsAfterFilter) +
 +        ",\"combinations\":" + npmosJson(res.keywordCombinations) +
-+        ",\"keywords_raw\":" + npmosJson(raw.keyword_matches) +
++        ",\"matched\":" + npmosJson(res.keyword_matches) +
++        ",\"keywords_raw\":" + npmosJson(raw.keywordsAfterFilter) +
 +        ",\"combinations_raw\":" + npmosJson(raw.keywordCombinations) +
 +        ",\"score\":" + score + "}\n";
 +    ssize_t written = write(fd, line.data(), line.size());
@@ -85,7 +88,7 @@
  bool Waap::Scanner::suspiciousHit(Waf2ScanResult& res, DeepParser &dp,
          const std::string& location, const std::string& param_name, const std::string& key)
  {
-@@ -180,6 +251,7 @@
+@@ -180,6 +254,7 @@
      // call shouldIgnoreOverride post score calculation and filtering to evaluate ignore override effectivness
      res.score = score;
      m_transaction->shouldIgnoreOverride(res);
