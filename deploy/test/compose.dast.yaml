@@ -1,0 +1,27 @@
+# DAST overlay (scripts/test-dast.sh): the production stack with a site behind a proxy host and the container that
+# sets it up like an administrator would. Unlike the closed-network test, the networks reach the internet: the
+# scanners load their templates.
+
+services:
+  test-upstream:
+    image: docker.io/traefik/whoami:${WHOAMI_VERSION}
+    container_name: npmos-dast-upstream
+    networks:
+      - internal
+
+  dast-setup:
+    image: docker.io/curlimages/curl:${CURL_VERSION}
+    profiles:
+      - test
+    # writes the session for the scanners to the dast-state volume
+    user: "0"
+    entrypoint: ["/bin/sh", "-c", 'test -f /dast-setup.sh || { echo "dast-setup.sh not mounted" >&2; exit 1; }; exec /bin/sh /dast-setup.sh']
+    volumes:
+      # relative paths resolve from deploy/, the directory of the first compose file
+      - ./test/dast-setup.sh:/dast-setup.sh:ro
+      - dast-state:/state
+    networks:
+      - edge
+
+volumes:
+  dast-state: {}

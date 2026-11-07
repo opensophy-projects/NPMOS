@@ -1,0 +1,9 @@
+# Semgrep (.github/workflows/security.yml): what is not code of the product
+node_modules/
+dist/
+npmos/frontend/src/locale/
+deploy/test/fixtures/
+*.min.js
+*.test.js
+*.test.ts
+*.test.tsx

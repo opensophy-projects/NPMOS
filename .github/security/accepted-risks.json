@@ -1,0 +1,4 @@
+{
+	"$comment": "Accepted risks: findings that do not fail the run (scripts/security-report.mjs). Each entry names the tool, the id of the finding (a CVE, a rule), optionally a part of its location, why it is accepted and until when (YYYY-MM-DD): after that date it fails the run again and must be looked at once more.",
+	"risks": []
+}

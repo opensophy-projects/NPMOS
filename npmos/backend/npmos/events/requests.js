@@ -30,6 +30,7 @@ export const refused = (status, upstreamStatus) =>
 	BLOCKED.has(status) || (status >= 400 && status < 500 && (upstreamStatus === null || upstreamStatus === undefined));
 
 const state = { running: false, timer: null, lastError: null };
+// nosemgrep: npmos-weak-hash -- recognizes a rotated log by its first bytes (a cursor stored in the database), not a secret
 const hash = (b) => createHash("sha1").update(b).digest("hex");
 
 /** "0.004, 0.002" (one value per upstream tried) or "-" → milliseconds of the last one, null when none */

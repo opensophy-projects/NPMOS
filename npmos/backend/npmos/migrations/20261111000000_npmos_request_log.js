@@ -42,6 +42,7 @@ const up = async (knex) => {
 		visit boolean NOT NULL DEFAULT false,
 		mitigated boolean NOT NULL DEFAULT false`;
 	if (isPostgres(knex)) {
+		// nosemgrep: npmos-knex-raw-interpolation -- the columns are a constant of this migration
 		await knex.raw(
 			`CREATE TABLE npmos_request_log (id bigserial NOT NULL, ${columns}, PRIMARY KEY (time, id)) PARTITION BY RANGE (time)`,
 		);

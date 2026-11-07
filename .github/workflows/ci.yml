@@ -6,6 +6,10 @@
 #   push to work  -> :develop and :<sha>
 #   tag vX.Y.Z    -> :X.Y.Z and :latest
 #   other events  -> build and test only (registry login is still checked when secrets exist)
+#
+# Security (DevSecOps, docs/DEVSECOPS.md): SAST, secrets, SCA, IaC and the workflows run in security.yml (job
+# "security"); the images are scanned and the running stack attacked (DAST) in "images", before anything is pushed;
+# "report" writes the summary of the run and the artifact security-report (the report, readable SBOMs, raw results).
 name: CI
 on:
   push:
@@ -31,9 +35,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: lts/*
+          # no dependency cache: a cache written by one branch must not reach the build of another
+          package-manager-cache: false
       - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
         with:
           version: latest
@@ -95,18 +103,33 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+  security:
+    name: Security
+    uses: ./.github/workflows/security.yml
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+
   images:
-    name: Images (amd64) + closed-network test
+    name: Images (amd64) + closed-network test + image scan + DAST
     needs: checks
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: versions
         run: |
           v="$(git rev-parse --short HEAD)"
-          echo "VERSION=$v" >> "$GITHUB_ENV"
-          grep -E "^[A-Z_]+=" deploy/openappsec/sources.env >> "$GITHUB_ENV"
-          echo "CROWDSEC_VERSION=$(sed -n 's/^CROWDSEC_VERSION=//p' deploy/.env)" >> "$GITHUB_ENV"
+          {
+            echo "VERSION=$v"
+            grep -E "^[A-Z_]+=" deploy/openappsec/sources.env
+            echo "CROWDSEC_VERSION=$(sed -n 's/^CROWDSEC_VERSION=//p' deploy/.env)"
+          } >> "$GITHUB_ENV"
           for f in npmos/frontend/package.json npmos/backend/package.json; do
             jq --arg v "$v" '.version = $v' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
           done
@@ -144,6 +167,37 @@ jobs:
           NPMOS_REGISTRY: docker.io/${{ env.NAMESPACE }}
           NPMOS_VERSION: ${{ env.VERSION }}
         run: scripts/test-airgap.sh
+      - name: image scan (Trivy, Syft SBOM, Grype, Dockle)
+        env:
+          NPMOS_REGISTRY: docker.io/${{ env.NAMESPACE }}
+          NPMOS_VERSION: ${{ env.VERSION }}
+          OUT: reports/images
+        run: scripts/scan-images.sh
+      - name: DAST (OWASP ZAP, Nuclei, testssl.sh, gixy)
+        timeout-minutes: 50
+        env:
+          NPMOS_REGISTRY: docker.io/${{ env.NAMESPACE }}
+          NPMOS_VERSION: ${{ env.VERSION }}
+          OUT: reports/dast
+        run: scripts/test-dast.sh
+      - uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        if: always() && hashFiles('reports/images/trivy-npmos.sarif') != ''
+        with:
+          sarif_file: reports/images/trivy-npmos.sarif
+          category: trivy-npmos
+      - uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        if: always() && hashFiles('reports/images/trivy-npmos-openappsec.sarif') != ''
+        with:
+          sarif_file: reports/images/trivy-npmos-openappsec.sarif
+          category: trivy-npmos-openappsec
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: security-images
+          path: reports/
+          if-no-files-found: ignore
+      - name: security gate (nothing is pushed with a blocking finding)
+        run: node scripts/security-report.mjs --in reports --scope images,dast --expect images,dast
       - name: docker.io login
         if: env.PUBLISH == 'true'
         uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
@@ -175,15 +229,20 @@ jobs:
     runs-on: ubuntu-26.04-arm
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: versions
         run: |
           v="$(git rev-parse --short HEAD)"
-          echo "VERSION=$v" >> "$GITHUB_ENV"
-          echo "CROWDSEC_VERSION=$(sed -n 's/^CROWDSEC_VERSION=//p' deploy/.env)" >> "$GITHUB_ENV"
           case "$GITHUB_REF" in
-            refs/tags/v*) echo "TAGS=${GITHUB_REF#refs/tags/v} latest" >> "$GITHUB_ENV" ;;
-            *) echo "TAGS=develop" >> "$GITHUB_ENV" ;;
+            refs/tags/v*) tags="${GITHUB_REF#refs/tags/v} latest" ;;
+            *) tags="develop" ;;
           esac
+          {
+            echo "VERSION=$v"
+            echo "CROWDSEC_VERSION=$(sed -n 's/^CROWDSEC_VERSION=//p' deploy/.env)"
+            echo "TAGS=$tags"
+          } >> "$GITHUB_ENV"
           for f in npmos/frontend/package.json npmos/backend/package.json; do
             jq --arg v "$v" '.version = $v' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
           done
@@ -247,6 +306,8 @@ jobs:
     runs-on: ubuntu-26.04-arm
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - run: grep -E "^[A-Z_]+=" deploy/openappsec/sources.env >> "$GITHUB_ENV"
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - name: build npmos-openappsec (arm64)
@@ -260,3 +321,28 @@ jobs:
             TUNING_REF=${{ env.TUNING_REF }}
           cache-from: type=gha,scope=openappsec-arm64
           cache-to: type=gha,mode=max,scope=openappsec-arm64
+
+  report:
+    name: Security report
+    needs: [checks, security, images]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: security-*
+          path: reports
+          merge-multiple: true
+      - name: summary
+        env:
+          # the images and DAST are expected only when the images were built
+          EXPECT: ${{ needs.images.result == 'skipped' && 'source' || 'source,images,dast' }}
+        run: node scripts/security-report.mjs --in reports --out security-report --summary "$GITHUB_STEP_SUMMARY" --expect "$EXPECT"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: security-report
+          path: security-report/

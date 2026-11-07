@@ -1,0 +1,133 @@
+# DevSecOps: проверки безопасности в CI
+
+Все проверки идут внутри GitHub Actions. Ни один инструмент не требует аккаунта на другом сайте: каждый запускается
+в задаче из образа, закреплённого по версии и digest (`.github/security/tools.env`). Результаты остаются в GitHub.
+
+## Что проверяется
+
+| Категория | Инструмент | Что ищет | Где запускается |
+|---|---|---|---|
+| SAST | **Semgrep** | уязвимости JS/TS, Dockerfile и workflow: правила сообщества и правила NPMOS (`.github/security/semgrep.yml`) | `security.yml` |
+| SAST | **CodeQL** (JS/TS, Actions) | путь данных от запроса до опасного вызова: инъекции, SSRF, XSS, обход путей | `security.yml` |
+| Секреты | **Gitleaks** | ключи, пароли и токены в файлах и во **всей истории** git | `security.yml` |
+| SCA | **OSV-Scanner** | известные уязвимости npm-зависимостей backend и frontend; лицензии | `security.yml` |
+| SBOM | **Syft** | состав исходников (backend, frontend) и каждого образа: CycloneDX и SPDX | `security.yml`, `ci.yml` |
+| IaC | **hadolint**, **Trivy config**, **KICS** | Dockerfile, compose и workflow: root, лишние права, небезопасные приёмы | `security.yml` |
+| CI/CD | **actionlint**, **zizmor**, **CodeQL Actions** | ошибки и уязвимости самих workflow: инъекции в `${{ }}`, права токена, кеш, непривязанные actions | `security.yml` |
+| Цепочка поставок | **OpenSSF Scorecard** | практики репозитория (только ветка `work`) | `security.yml` |
+| Образы | **Trivy** | уязвимости пакетов и секреты в слоях `npmos` и `npmos-openappsec` | `ci.yml` → `images` |
+| Образы | **Grype** | второе мнение по SBOM образа | `ci.yml` → `images` |
+| Образы | **Dockle** | CIS Docker Benchmark | `ci.yml` → `images` |
+| DAST | **OWASP ZAP** | активная атака на API интерфейса по OpenAPI-схеме с сессией администратора; заголовки и cookies страниц интерфейса и сайта за прокси-хостом | `ci.yml` → `images` |
+| DAST | **Nuclei** | известные CVE, открытые панели и файлы, ошибки конфигурации | `ci.yml` → `images` |
+| TLS | **testssl.sh** | протоколы, шифры, HSTS, известные атаки на TLS — интерфейса (:81) и прокси-хоста (:443) | `ci.yml` → `images` |
+| nginx | **gixy** | работающая конфигурация nginx (`nginx -T`): SSRF, инъекции заголовков, обход `alias` | `ci.yml` → `images` |
+| Качество | **jscpd**, покрытие тестами | дублирование кода, покрытие backend (`node --test`) и frontend (vitest) | `security.yml` |
+
+К ним добавляются проверки, которые были и раньше: biome, tsc, тесты, shellcheck, `compose config`, закрытый контур.
+
+DAST (`scripts/test-dast.sh`) поднимает прод-стек, настраивает его как администратор в GUI (`deploy/test/dast-setup.sh`:
+первый админ, корневой CA и серверный сертификат PKI NPMOS, прокси-хост `dast.local` с TLS, HTTP/2, HSTS и фильтром
+эксплойтов) и атакует его из контейнеров той же сети. У каждого сканера свой адрес, поэтому бан CrowdSec одного сканера
+не останавливает другие. Сканеры идут параллельно.
+
+## Когда запускается
+
+- **Каждый push и pull request** (`ci.yml`): задача `security` вызывает `security.yml`; задача `images` после сборки
+  и закрытого контура сканирует образы и запускает DAST; задача `report` собирает отчёт.
+- **Раз в неделю и вручную** (Actions → Security → Run workflow): `security.yml` целиком, а также образы `develop` и
+  `latest` с Docker Hub. Так находятся новые CVE в уже выпущенных версиях.
+
+## Что блокирует
+
+Политика — одна, в начале `scripts/security-report.mjs`:
+
+| Проверка | Блокирует |
+|---|---|
+| Semgrep, CodeQL | высокие и критические находки **в коде NPMOS** (`npmos/backend/npmos`, `npmos/frontend/src/npmos`, `deploy`, `scripts`, `.github`); в коде upstream NPMplus — только в отчёт |
+| Gitleaks | любая находка (примеры upstream исключены в `.github/security/gitleaks.toml` с причинами) |
+| OSV-Scanner | высокие и критические, **если есть исправленная версия** |
+| Trivy (образы) | высокие и критические с исправленной версией; секреты в слоях — высокие и критические |
+| Dockle | FATAL |
+| hadolint | ошибки в Dockerfile из `deploy/` |
+| actionlint | любая ошибка |
+| zizmor | high |
+| ZAP | high при уверенности medium и выше |
+| Nuclei, testssl.sh, gixy | высокие и критические |
+| Grype, KICS, Trivy config, Scorecard, лицензии, качество | только в отчёт |
+
+Ещё одна проверка: если проверка, которая должна была запуститься, не дала результата (шаг упал, файл не появился),
+это тоже провал. Непрошедшая проверка — не «чисто».
+
+Образы публикуются на Docker Hub только после шага `security gate`: с блокирующей находкой в образе или DAST ничего
+не публикуется.
+
+## Отчёт
+
+- **Сводка прогона**: Actions → прогон → Summary, раздел «Отчёт безопасности NPMOS». Там итог, таблица всех
+  проверок (сколько критических, высоких, средних и низких находок, что блокирует), блокирующие находки, принятые
+  риски, SBOM, метрики качества и подробности по каждому инструменту.
+- **Артефакт `security-report`** (внизу страницы прогона):
+  - `security-report.html` — тот же отчёт страницей со всеми находками;
+  - `security-report.md` — он же в Markdown;
+  - `sbom/` — SBOM каждого состава: `source-backend`, `source-frontend`, `npmos`, `npmos-openappsec`;
+  - `raw/` — исходные результаты всех сканеров (SARIF, JSON; отчёты ZAP в HTML).
+- **Security → Code scanning**: находки Semgrep, CodeQL, Gitleaks, OSV-Scanner, KICS, zizmor, Scorecard и Trivy с
+  историей, фильтрами и привязкой к строкам кода.
+
+## SBOM
+
+Для каждого состава в артефакте лежат четыре файла:
+
+| Файл | Зачем |
+|---|---|
+| `sbom/<состав>.html` | открыть в браузере: таблица компонентов, поиск, фильтр по экосистеме, кнопки «Скопировать список» и «Скачать CSV» |
+| `sbom/<состав>.cdx.json` | CycloneDX 1.6 — для Dependency-Track, Grype, Trivy и других инструментов |
+| `sbom/<состав>.spdx.json` | SPDX 2.3 — стандартный формат для передачи и аудита |
+| `sbom/<состав>.csv` | для таблиц |
+
+Составы: `source-backend` и `source-frontend` — зависимости исходников (frontend попадает в образ собранным, поэтому
+его библиотеки видны только здесь); `npmos` и `npmos-openappsec` — всё, что есть в образе: пакеты Alpine, модули
+Node.js, бинарники Go.
+
+SBOM зависимостей репозитория также строит сам GitHub: Insights → Dependency graph → Export SBOM.
+
+## Принятые риски
+
+Если находку нельзя или не нужно исправлять (нет исправления upstream, ложное срабатывание), её вносят в
+`.github/security/accepted-risks.json`:
+
+```json
+{
+	"risks": [
+		{
+			"tool": "trivy-npmos",
+			"id": "CVE-2026-12345",
+			"where": "libfoo",
+			"reason": "уязвимая функция не вызывается: модуль собран без X; исправление ждём в Alpine 3.25",
+			"until": "2027-01-31"
+		}
+	]
+}
+```
+
+`tool` — id проверки из `scripts/security-report.mjs` (`semgrep`, `codeql-js`, `gitleaks`, `osv`, `trivy-npmos`, `zap-api`…)
+или `*`; `where` — часть места находки (необязательно). После даты `until` находка снова блокирует, и решение
+нужно принять заново. Принятые риски показываются в отчёте отдельным разделом.
+
+В коде ложное срабатывание Semgrep помечается на строке выше: `// nosemgrep: <id правила> -- почему`.
+
+## Локальный запуск
+
+```bash
+# отчёт по уже скачанным результатам (артефакты security-* прогона)
+node scripts/security-report.mjs --in reports --out security-report --expect source,images,dast
+# скан образов и DAST (нужны локальные образы, см. scripts/build-images.sh)
+NPMOS_REGISTRY=local NPMOS_VERSION=dev scripts/scan-images.sh
+NPMOS_REGISTRY=local NPMOS_VERSION=dev scripts/test-dast.sh
+```
+
+## Обновление сканеров
+
+Версии и digest образов сканеров — в `.github/security/tools.env`, их поднимает Renovate. Новая версия сканера может
+найти больше: проверьте отчёт перед слиянием.

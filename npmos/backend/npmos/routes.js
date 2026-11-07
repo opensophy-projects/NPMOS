@@ -2154,6 +2154,7 @@ router.post("/pki/public/renew", express.json({ limit: "64kb" }), async (req, re
 		if (!answer) {
 			return res.status(401).send({ error: { code: 401, message: "Unknown, used or expired renewal token" } });
 		}
+		// nosemgrep: javascript.express.security.audit.xss.direct-response-write.direct-response-write -- an object: JSON
 		res.send(answer);
 	} catch (err) {
 		next(err);

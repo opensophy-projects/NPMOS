@@ -1,0 +1,4 @@
+# actionlint (.github/workflows/security.yml): runner labels it does not know yet
+self-hosted-runner:
+  labels:
+    - ubuntu-26.04-arm

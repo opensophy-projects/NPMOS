@@ -106,4 +106,7 @@ COPY npmos-openappsec.sh /npmos-openappsec.sh
 RUN chmod 755 /npmos-entry.sh /npmos-openappsec.sh
 LABEL org.opencontainers.image.source="https://github.com/opensophy-projects/npmos" \
       org.opencontainers.image.description="open-appsec agent, its learning services and npmos-control for NPMOS"
+# root: the nano agent of open-appsec runs as root (its shared memory and IPC with the attachment of nginx), and
+# npmos-control reads the Docker socket; its own services listen on 127.0.0.1 only
+# nosemgrep: dockerfile.security.missing-user-entrypoint.missing-user-entrypoint
 ENTRYPOINT ["/npmos-openappsec.sh"]

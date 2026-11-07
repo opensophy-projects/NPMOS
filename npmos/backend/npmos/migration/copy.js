@@ -242,6 +242,7 @@ export const importInto = async (src, dst, { history = true } = {}) => {
 			await insertRows(trx, table, rows);
 			report.rows[table] = rows.length;
 			if (rows.length && "id" in rows[0]) {
+				// nosemgrep: npmos-knex-raw-interpolation -- the table is one of the tables of the migration list, not input
 				await trx.raw(
 					`SELECT setval(pg_get_serial_sequence('"${table}"', 'id'), (SELECT MAX(id) FROM "${table}"))`,
 				);

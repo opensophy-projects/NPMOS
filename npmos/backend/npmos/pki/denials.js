@@ -18,6 +18,7 @@ const TRUNCATE_BYTES = 10 * 1024 * 1024;
 const state = { running: false, timer: null, lastError: null };
 
 const str = (v, max = 255) => String(v ?? "").slice(0, max);
+// nosemgrep: npmos-weak-hash -- recognizes a rotated log by its first bytes (a cursor stored in the database), not a secret
 const hash = (b) => createHash("sha1").update(b).digest("hex");
 
 /**

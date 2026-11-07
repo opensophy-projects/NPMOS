@@ -14,6 +14,7 @@ const gunzipAsync = promisify(gunzip);
 export const LOG_FILE = /^cp-nano-[a-z0-9-]+\.log[a-z0-9_]*(\.\d+)?$/;
 const HEAD_BYTES = 128;
 
+// nosemgrep: npmos-weak-hash -- recognizes a rotated log by its first bytes (a cursor stored in the database), not a secret
 const hash = (buffer) => createHash("sha1").update(buffer).digest("hex");
 
 const readAt = async (handle, position, length) => {
