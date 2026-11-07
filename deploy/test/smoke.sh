@@ -1064,8 +1064,16 @@ $CURL "$ADMIN/api/npmos/geo" | grep -q '"available": *true' || fail "nginx has n
 geo_host=$($CURL -H 'Content-Type: application/json' "$ADMIN/api/nginx/dead-hosts" -d '{
   "domain_names": ["geo.local"], "meta": {"npmos_geo": {"mode": "allow", "countries": ["AQ"], "action": "403"}}
 }')
-echo "$geo_host" | grep -q '"nginx_online": *true' || fail "nginx refused the countries of a host: $geo_host"
 geo_id=$(echo "$geo_host" | grep -o '"id": *[0-9]*' | head -1 | grep -o '[0-9]*')
+[ -n "$geo_id" ] || fail "the 404 host was not created: $geo_host"
+# the answer of the creation comes before nginx has the config: its state is read back
+for i in $(seq 1 15); do
+  geo_host=$($CURL "$ADMIN/api/nginx/dead-hosts/$geo_id")
+  echo "$geo_host" | grep -q '"nginx_online": *true' && break
+  echo "$geo_host" | grep -q '"nginx_online": *false' && fail "nginx refused the countries of a host: $geo_host"
+  [ "$i" = 15 ] && fail "nginx did not apply the 404 host: $geo_host"
+  sleep 1
+done
 for i in $(seq 1 10); do
   code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 -H 'Host: geo.local' "$HTTP/")
   [ "$code" = 404 ] && break
