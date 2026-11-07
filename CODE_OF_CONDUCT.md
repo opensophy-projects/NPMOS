@@ -70,36 +70,78 @@
 которую включает администратор: ACME, обновления hub CrowdSec и т. п.). Правила разработки — в
 [CONTRIBUTING.md](CONTRIBUTING.md) и [CLAUDE.md](CLAUDE.md).
 
-```bash
-# ── Контейнеры (deploy/compose.yaml) ───────────────────────────────────────────────────────────────────
-#
-#  интернет ─► :80 :443/tcp+udp :81 ─┐
-#                                    ▼
-#  ┌─ openappsec (npmos-openappsec) ── владеет сетью и IPC, порты опубликованы здесь ─────────────────┐
-#  │   агент open-appsec (ML-WAF)      127.0.0.1:7777   политика /ext/appsec/local_policy.yaml         │
-#  │   shared storage (decisions.data) 127.0.0.1:7811   обучение, разметка «легитимно/атака»           │
-#  │   tuning (статистика, подсказки)  127.0.0.1:7813   база в postgres                                │
-#  │   npmos-control (Docker API GUI)  127.0.0.1:7080   /var/run/docker.sock, белый список операций    │
-#  │  ┌─ npmos (network_mode/ipc: service:openappsec) ─────────────────────────────────────────────┐   │
-#  │  │   nginx (NPMplus) + attachment open-appsec ─IPC /dev/shm/check-point─► агент               │   │
-#  │  │   bouncer CrowdSec (lua) ──────────────────────────────────────────► crowdsec:8080         │   │
-#  │  │   backend Node.js (панель :81, API /api, /api/npmos/*) ───────────► postgres:5432           │   │
-#  │  │   certbot и lego (ACME), PKI/OCSP, страницы NPMOS (блокировка, ошибки, mTLS)               │   │
-#  │  └────────────────────────────────────────────────────────────────────────────────────────────┘   │
-#  └───────────────────────────────────────────────────────────────────────────────────────────────────┘
-#  crowdsec      официальный образ; LAPI :8080, AppSec :7422; читает логи nginx и агента (тома)
-#  postgres      официальный образ; базы npmos (панель) и appsec (tuning)
-#  npmos-init    разовый при старте: секреты, каталоги томов, офлайн-снимок hub CrowdSec
-#
-#  Сети: edge (порты наружу; выход в интернет только для того, что включил админ — ACME),
-#        internal (без выхода наружу). Секреты — в томе secrets, каждому сервису свой подкаталог.
-#
-# ── Путь запроса ───────────────────────────────────────────────────────────────────────────────────────
-#
-#  клиент → nginx: mTLS (PKI NPMOS, CRL/OCSP) → страны хоста (GeoIP) → bouncer CrowdSec (бан по IP)
-#        → attachment → агент
-#        → прокси на upstream хоста; отказ 403 → страница блокировки NPMOS, ошибки nginx → страница ошибок
-#  логи nginx и агента → CrowdSec (сценарии, баны) и → backend (события «Аналитика → События»)
+### Контейнеры
+
+Стек описан в `deploy/compose.yaml`. Контейнер `openappsec` владеет сетью и IPC: порты опубликованы на нём, а
+`npmos` подключается к его сети (`network_mode: service:openappsec`), поэтому сервисы обоих общаются через
+`127.0.0.1`.
+
+```mermaid
+flowchart TB
+    internet(["Интернет<br/>:80 · :443 tcp/udp · :81"])
+
+    subgraph oa["контейнер openappsec"]
+        agent["Агент open-appsec (ML-WAF)<br/>127.0.0.1:7777<br/>политика /ext/appsec/local_policy.yaml"]
+        storage["Shared storage<br/>127.0.0.1:7811<br/>обучение, decisions.data"]
+        tuning["Tuning<br/>127.0.0.1:7813<br/>статистика, подсказки"]
+        control["npmos-control<br/>127.0.0.1:7080<br/>Docker API по белому списку"]
+
+        subgraph np["контейнер npmos"]
+            nginx["nginx (NPMplus)<br/>+ attachment open-appsec"]
+            bouncer["Баунсер CrowdSec (Lua)"]
+            backend["Backend Node.js<br/>панель :81, API /api, /api/npmos/*"]
+            certs["certbot и lego (ACME), PKI и OCSP"]
+        end
+    end
+
+    crowdsec["crowdsec — официальный образ<br/>LAPI :8080, AppSec :7422"]
+    postgres[("postgres — официальный образ<br/>базы npmos и appsec")]
+    init["npmos-init — разовый при старте<br/>секреты, тома, снимок hub CrowdSec"]
+    docker[["/var/run/docker.sock"]]
+
+    internet --> nginx
+    nginx -- "IPC /dev/shm/check-point" --> agent
+    bouncer --> crowdsec
+    backend --> postgres
+    backend --> control
+    backend --> storage
+    backend --> tuning
+    tuning --> postgres
+    control --> docker
+    crowdsec -. "читает логи nginx и агента (тома)" .-> nginx
+    init -. "до остальных сервисов" .-> postgres
+```
+
+- **Сети.** `edge` — порты наружу; выход в интернет только для того, что включил администратор (ACME). `internal` —
+  без выхода наружу: там `crowdsec` и `postgres`.
+- **Секреты.** Их создаёт `npmos-init` в томе `secrets`; каждый сервис монтирует только свой подкаталог.
+- **Доступ к Docker** есть только у `npmos-control`: список, логи и перезапуск контейнеров стека, с токеном и
+  аудитом. Контейнер `npmos`, который принимает трафик из интернета, сокета не получает.
+
+### Путь запроса
+
+```mermaid
+flowchart LR
+    client(["Клиент"]) --> mtls{"mTLS хоста?<br/>PKI NPMOS, CRL/OCSP"}
+    mtls -- "нет сертификата" --> mtlsPage["Страница «нужен<br/>клиентский сертификат»"]
+    mtls -- "ок или не нужен" --> geo{"Страны хоста<br/>GeoIP"}
+    geo -- "страна не пускается" --> refused["403 или 444"]
+    geo -- "ок" --> cs{"Баунсер CrowdSec<br/>бан по IP"}
+    cs -- "бан или капча" --> block["Страница блокировки NPMOS"]
+    cs -- "ок" --> waf{"Агент open-appsec<br/>через attachment"}
+    waf -- "атака, режим блокировки" --> block
+    waf -- "ок" --> upstream["Сервис за хостом<br/>(upstream)"]
+    upstream -. "ошибка nginx" .-> errorPage["Страница ошибок NPMOS"]
+```
+
+Логи nginx и агента читают два потребителя: CrowdSec (сценарии и баны) и backend (Аналитика и События).
+
+```mermaid
+flowchart LR
+    logs[("Логи nginx<br/>и агента")] --> crowdsec["CrowdSec<br/>сценарии → баны"]
+    logs --> backend["Backend<br/>Аналитика, События"]
+    crowdsec -- "решения" --> bouncer["Баунсер в nginx"]
+    crowdsec -- "алерты" --> backend
 ```
 
 ## 4. Дерево файлов
@@ -165,11 +207,6 @@
 - `LEARNING-RESEARCH.md` — исследование обучения агента open-appsec (перед фазой 8)
 - `tutor.md` — черновик статьи об open-appsec
 - `adr/` — архитектурные решения: сеть (0001), RBAC (0007), политика WAF (0008), PKI и mTLS (0009), CrowdSec (0010), обучение (0011)
-
-### `design/` — дизайн
-
-- `tokens.md` — токены дизайн-системы opensophy (цвета, отступы, радиусы); в коде — `ui/tokens.css`
-- `sidebar-example.md` — образец бокового меню
 
 ### `npmos/` — образ npmos (NPMplus + NPMOS)
 

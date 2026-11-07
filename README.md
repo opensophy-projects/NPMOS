@@ -78,6 +78,5 @@ pnpm vite
 |---|---|
 | `npmos/` | Основа NPMOS: NPMplus (git subtree) и наши изменения |
 | `deploy/` | Compose-файлы стека, образ `npmos-openappsec`, bootstrap (`init/`), тест закрытого контура |
-| `design/` | Токены дизайна и пример sidebar |
 | `scripts/` | Сборка образов, тест закрытого контура, проверка переводов |
 | `docs/` | План и документация |

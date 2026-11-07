@@ -14,7 +14,6 @@ NPMOS — форк NPMplus с встроенными open-appsec (ML-WAF) и Cro
 | `npmos/` | NPMplus (git subtree, upstream `ZoeyVid/NPMplus`) + наши изменения | см. «Изменения в upstream-коде» |
 | `npmos/backend/npmos/`, `npmos/frontend/src/npmos/` | Наш код (модули NPMOS) | Новый код — сюда |
 | `deploy/` | `compose.yaml` (прод: `npmos`, `openappsec`, `crowdsec`, `postgres` + разовый `npmos-init`), `compose.dev.yaml`, `.env` (версии), `init/`, `openappsec/` (образ `npmos-openappsec`), `test/` | |
-| `design/` | Токены дизайна, пример sidebar | |
 | `docs/` | План, ADR, инвентаризация env | |
 
 ## Изменения в upstream-коде (`npmos/`)
