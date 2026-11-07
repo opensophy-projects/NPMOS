@@ -63,6 +63,18 @@ export const getLegoDnsProviderHelp = (code: string) =>
 export const useAcmeServers = () =>
 	useQuery({ queryKey: ["npmos-acme-servers"], queryFn: getAcmeServers, staleTime: 30000 });
 
+/**
+ * The name of the ACME server of a certificate of NPMplus ("letsencrypt": meta.acmeServerId, the default server for
+ * those of before), to tell which CA issued it. Undefined while the servers load or are not visible.
+ */
+export const useAcmeServerOf = () => {
+	const { data } = useAcmeServers();
+	return (cert?: { provider: string; meta?: Record<string, any> }) =>
+		cert?.provider === "letsencrypt" && data?.items?.length
+			? chosenServer(data, cert.meta?.acmeServerId)?.name
+			: undefined;
+};
+
 /** the server a form chose, the default one when none is chosen */
 export const chosenServer = (servers: AcmeServers | undefined, id: unknown): AcmeServer | undefined => {
 	const items = servers?.items ?? [];

@@ -8,7 +8,8 @@ import { open } from "node:fs/promises";
 import db from "../../db.js";
 import { global as logger } from "../../logger.js";
 import { countryCodes } from "../geoip/index.js";
-import { loadCursors, REQUEST_COUNTERS, store } from "./store.js";
+import { classifyClient, scans } from "./client.js";
+import { loadCursors, REQUEST_COUNTERS, REQUEST_LOG_TABLE, store } from "./store.js";
 import { parseUserAgent } from "./useragent.js";
 
 export const LOG_FILE = process.env.NPMOS_REQUEST_LOG || "/data/nginx/logs/npmos-requests.log";
@@ -83,7 +84,7 @@ export const parseLine = (line) => {
 	// a page view: a page (HTML) answered without error; a visit: a page view not coming from the same site
 	const pageview = method === "GET" && status >= 200 && status < 400 && contentType === "text/html";
 	const { browser, os, device } = parseUserAgent(ua);
-	return {
+	const row = {
 		node_id: "local",
 		time,
 		host,
@@ -118,6 +119,33 @@ export const parseLine = (line) => {
 		visit: pageview && referer !== host,
 		mitigated: BLOCKED.has(status),
 	};
+	// human, bot or scanner: Accept-Language is only read here (lines of before it was logged have none)
+	row.client = classifyClient({ ...row, acceptLanguage: r.al === undefined ? undefined : text(r.al, 64) });
+	return row;
+};
+
+const SCANNER_TTL = 24 * HOUR;
+const SCANNER_MAX = 100000;
+/** addresses seen scanning (ip → until when): their other requests are a scanner's too */
+const scanners = new Map();
+
+/**
+ * Once an address scans, it is a scanner for a day: its requests in the same batch and later ones are marked so,
+ * whatever they look like (a scanner opens the home page before it probes /.env). Returns the addresses new in
+ * this batch, whose requests of the last hour are marked in the log too (pollOnce).
+ */
+export const spreadScanners = (lines, now = Date.now()) => {
+	const fresh = new Set();
+	for (const l of lines) {
+		if (!l.ip || !scans(l)) continue;
+		if (!((scanners.get(l.ip) ?? 0) > now)) fresh.add(l.ip);
+		scanners.set(l.ip, now + SCANNER_TTL);
+	}
+	for (const l of lines) if (l.client !== "scanner" && (scanners.get(l.ip) ?? 0) > now) l.client = "scanner";
+	if (scanners.size > SCANNER_MAX) {
+		for (const [ip, until] of scanners) if (until <= now || scanners.size > SCANNER_MAX) scanners.delete(ip);
+	}
+	return [...fresh];
 };
 
 /** a proxy host that forwards to the interface of NPMOS itself (port 81 of this container) */
@@ -214,6 +242,7 @@ export const pollOnce = async ({ file = LOG_FILE } = {}) => {
 			.filter((l) => l && !skip.has(l.host));
 		const countries = await countryCodes(new Set(lines.map((l) => l.ip)));
 		for (const l of lines) l.country = countries.get(l.ip) || "";
+		const newScanners = spreadScanners(lines);
 		offset += end + 1;
 		await store({
 			events: [],
@@ -223,6 +252,14 @@ export const pollOnce = async ({ file = LOG_FILE } = {}) => {
 			countries: countryAggregates(lines),
 			cursors: [{ key: CURSOR, file, offset, head: hash(headBuf), head_length: headBuf.length }],
 		});
+		// the requests an address made in the last hour before it was seen scanning
+		if (newScanners.length)
+			await db()(REQUEST_LOG_TABLE)
+				.where("time", ">=", new Date(Date.now() - HOUR))
+				.whereIn("ip", newScanners.slice(0, 1000))
+				.whereNot("client", "scanner")
+				.update({ client: "scanner" })
+				.catch((err) => logger.warn(`NPMOS request log: marking scanners: ${err.message}`));
 		state.counted += lines.length;
 		return lines.length;
 	} finally {

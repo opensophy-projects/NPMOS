@@ -5,6 +5,8 @@ import type { Certificate } from "src/api/backend";
 import { useLocaleState } from "src/context";
 import { useCertificates } from "src/hooks";
 import { formatDateTime, intl, T } from "src/locale";
+// NPMOS: the ACME server of a certificate tells which CA issued it
+import { useAcmeServerOf } from "src/npmos/acme/api";
 
 interface CertOption {
 	readonly value: number | "new";
@@ -48,6 +50,7 @@ export function SSLCertificateField({
 }: Props) {
 	const { locale } = useLocaleState();
 	const { isLoading, isError, error, data } = useCertificates();
+	const acmeServerOf = useAcmeServerOf();
 	const { values, setFieldValue } = useFormikContext();
 	const v: any = values || {};
 
@@ -91,7 +94,8 @@ export function SSLCertificateField({
 			.map((cert: Certificate) => ({
 				value: cert.id,
 				label: cert.niceName,
-				subLabel: `${cert.provider === "letsencrypt" ? intl.formatMessage({ id: "lets-encrypt" }) : cert.provider} — ${intl.formatMessage({ id: "expires.on" }, { date: cert.expiresOn ? formatDateTime(cert.expiresOn, locale) : "N/A" })}`,
+				// NPMOS: "ACME · <server>", the server of the certificate
+				subLabel: `${cert.provider === "letsencrypt" ? [intl.formatMessage({ id: "lets-encrypt" }), acmeServerOf(cert)].filter(Boolean).join(" · ") : cert.provider} — ${intl.formatMessage({ id: "expires.on" }, { date: cert.expiresOn ? formatDateTime(cert.expiresOn, locale) : "N/A" })}`,
 				icon: <IconShield size={14} className="text-pink" />,
 			})) || [];
 

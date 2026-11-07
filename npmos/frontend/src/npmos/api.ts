@@ -134,7 +134,9 @@ export interface SecurityEvent {
 	id: string;
 	time: string;
 	/** security: an attack the WAF decided on; system: a notice of the agent */
-	kind: "security" | "crowdsec" | "mtls" | "system";
+	kind: "security" | "crowdsec" | "mtls" | "system" | "request";
+	/** Events → All: a request of the request log (kind "request") */
+	request?: RequestLogRow;
 	name: string;
 	severity: string;
 	priority: string;
@@ -242,6 +244,8 @@ export interface RegistryCert {
 	/** provider of a TLS certificate, kind of a CA (root, intermediate, external), profile of an issued one */
 	kind: string;
 	dnsProvider?: string | null;
+	/** the ACME server of Settings → ACME an ACME certificate is issued by */
+	acmeServer?: string | null;
 	issuer: string;
 	serial?: string;
 	notAfter: string | null;
@@ -373,6 +377,8 @@ export interface TrafficFilters {
 	browser?: string;
 	os?: string;
 	device?: string;
+	/** human, bot, scanner */
+	client?: string;
 	protocol?: string;
 	tls?: string;
 	cache?: string;
@@ -455,6 +461,8 @@ export interface RequestLogRow {
 	browser: string;
 	os: string;
 	device: string;
+	/** who made it: a person, a bot that says so, a scanner */
+	client: "human" | "bot" | "scanner";
 	mitigated: boolean;
 }
 
@@ -471,6 +479,8 @@ export const getRequestLog = (
 		rows: RequestLogRow[];
 		next: string | null;
 		unsupported?: boolean;
+		total?: number;
+		totalCapped?: boolean;
 	}>;
 
 export interface EventsSettings {

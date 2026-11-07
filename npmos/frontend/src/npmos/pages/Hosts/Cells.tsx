@@ -19,6 +19,7 @@ import { intl, T } from "src/locale";
 import { showReachabilityModal } from "src/modals";
 import type { HostAttacks } from "../../api";
 import type { PkiCa, PkiCert } from "../../pki/api";
+import { useAcmeServerOf } from "../../acme/api";
 import { Dropdown, type DropdownItem } from "../../ui/Dropdown";
 import { dateTime, timeAgo } from "../../ui/time";
 import styles from "./Hosts.module.css";
@@ -135,11 +136,13 @@ export function NameCell({ row, ctx }: { row: HostRow; ctx: CellContext }) {
 export function TlsCell({ row, ctx }: { row: HostRow; ctx: CellContext }) {
 	const days = row.expiresInDays;
 	const tone = days === null ? undefined : days < 0 ? "alert" : row.certAttention ? "warning" : undefined;
+	const acmeServerOf = useAcmeServerOf();
+	// an ACME certificate is named by its server (the CA that issued it), not by Let's Encrypt for all of them
 	const label =
 		row.tls === "none"
 			? t("no-tls")
 			: row.tls === "letsencrypt"
-				? "Let's Encrypt"
+				? acmeServerOf(row.certificate) || t("lets-encrypt")
 				: row.certificate?.niceName || t("certificates.custom");
 	const content = (
 		<span className={styles.tls}>
@@ -172,7 +175,19 @@ export function TlsCell({ row, ctx }: { row: HostRow; ctx: CellContext }) {
 		},
 		...hostCerts.map((c) => ({
 			key: `c${c.id}`,
-			label: <span className={styles.ellipsis}>{c.niceName || c.domainNames.join(", ")}</span>,
+			label: (
+				<span className={styles.certItem}>
+					<span className={styles.ellipsis}>{c.niceName || c.domainNames.join(", ")}</span>
+					<span className={styles.certSub}>
+						{c.provider === "letsencrypt"
+							? acmeServerOf(c) || t("lets-encrypt")
+							: c.provider === "other"
+								? t("certificates.custom")
+								: c.provider}
+						{c.expiresOn && ` · ${t("expires.on", { date: dateTime(c.expiresOn) })}`}
+					</span>
+				</span>
+			),
 			active: row.certificate?.id === c.id,
 			onSelect: () => ctx.setCertificate(row, c.id),
 		})),

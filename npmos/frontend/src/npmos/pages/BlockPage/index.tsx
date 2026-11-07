@@ -3,7 +3,7 @@
 // The settings in the interface or as code, with the page as it will look.
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import cn from "classnames";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import { Button, HasPermission, LoadingPage } from "src/components";
 import { intl, T } from "src/locale";
@@ -38,31 +38,34 @@ const sample = (html: string) => Object.entries(SAMPLE).reduce((s, [k, v]) => s.
 const STYLE = /<style>([\s\S]*?)<\/style>/gi;
 
 /**
- * The page as visitors see it. A srcdoc frame takes the CSP of the panel, which refuses inline <style>: the
- * styles go to the frame through the CSSOM instead (a constructed sheet is not an inline style).
+ * The page as visitors see it, in a shadow root: its styles stay inside and the panel's do not reach it. Not a
+ * sandboxed srcdoc frame: browser extensions inject their scripts into every frame, and a frame without scripts
+ * filled the console with "Blocked script execution in 'about:srcdoc'". The page has no scripts; its markup is parsed
+ * by DOMParser (which runs none) and the inline <style> (refused by the CSP of the panel) goes in as a constructed
+ * sheet, with the selectors of the document (:root, body, 100vh) moved to the box of the preview.
  */
 function PreviewFrame({ html }: { html: string }) {
-	const ref = useRef<HTMLIFrameElement>(null);
-	const css = [...html.matchAll(STYLE)].map((m) => m[1]).join("\n");
-	const body = html.replace(STYLE, "");
-	const apply = () => {
-		const win = ref.current?.contentWindow as (Window & typeof globalThis) | null;
-		if (!win?.document) return;
-		const sheet = new win.CSSStyleSheet();
+	const ref = useRef<HTMLDivElement>(null);
+	useLayoutEffect(() => {
+		const host = ref.current;
+		if (!host) return;
+		const root = host.shadowRoot ?? host.attachShadow({ mode: "open" });
+		const css = [...html.matchAll(STYLE)]
+			.map((m) => m[1])
+			.join("\n")
+			.replaceAll(":root", ":host")
+			.replace(/\bbody\b/g, ".page")
+			.replaceAll("100vh", "100%");
+		const sheet = new CSSStyleSheet();
 		sheet.replaceSync(css);
-		win.document.adoptedStyleSheets = [sheet];
-	};
-	return (
-		<iframe
-			ref={ref}
-			title={t("npmos.block-page.preview")}
-			className={own.frame}
-			srcDoc={body}
-			// no scripts in the frame; same origin only so that the styles can be given to it
-			sandbox="allow-same-origin"
-			onLoad={apply}
-		/>
-	);
+		root.adoptedStyleSheets = [sheet];
+		const doc = new DOMParser().parseFromString(html.replace(STYLE, ""), "text/html");
+		const page = document.createElement("div");
+		page.className = "page";
+		page.append(...doc.body.childNodes);
+		root.replaceChildren(page);
+	}, [html]);
+	return <div ref={ref} role="img" aria-label={t("npmos.block-page.preview")} className={own.frame} />;
 }
 
 function Form({ initial, manage }: { initial: BlockPageSettings; manage: boolean }) {

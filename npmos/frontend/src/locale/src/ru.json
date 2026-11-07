@@ -2420,6 +2420,9 @@
 	"npmos.events.agent.open-appsec": {
 		"defaultMessage": "open-appsec"
 	},
+	"npmos.events.agent.request": {
+		"defaultMessage": "nginx"
+	},
 	"npmos.events.attack-type": {
 		"defaultMessage": "Тип атаки"
 	},
@@ -2524,6 +2527,9 @@
 	},
 	"npmos.events.raw": {
 		"defaultMessage": "Событие в том виде, как его записал агент"
+	},
+	"npmos.events.request-row": {
+		"defaultMessage": "HTTP-запрос"
 	},
 	"npmos.events.response-code": {
 		"defaultMessage": "Код ответа"
@@ -6509,6 +6515,15 @@
 	"npmos.traffic.cached-vs-uncached": {
 		"defaultMessage": "Запросы из кэша и мимо кэша"
 	},
+	"npmos.traffic.client.bot": {
+		"defaultMessage": "Боты"
+	},
+	"npmos.traffic.client.human": {
+		"defaultMessage": "Люди"
+	},
+	"npmos.traffic.client.scanner": {
+		"defaultMessage": "Сканеры"
+	},
 	"npmos.traffic.content": {
 		"defaultMessage": "Содержимое"
 	},
@@ -6571,6 +6586,9 @@
 	},
 	"npmos.traffic.filter.clear": {
 		"defaultMessage": "Сбросить фильтры"
+	},
+	"npmos.traffic.filter.client": {
+		"defaultMessage": "Клиент"
 	},
 	"npmos.traffic.filter.contentType": {
 		"defaultMessage": "Тип содержимого"
@@ -6776,8 +6794,8 @@
 	"npmos.traffic.log.from": {
 		"defaultMessage": "от"
 	},
-	"npmos.traffic.log.more": {
-		"defaultMessage": "Показать ещё"
+	"npmos.traffic.log.ip-events": {
+		"defaultMessage": "Всё от этого IP"
 	},
 	"npmos.traffic.log.only-unknown": {
 		"defaultMessage": "Только хосты не из «Хостов»"
@@ -6811,6 +6829,12 @@
 	},
 	"npmos.traffic.log.to": {
 		"defaultMessage": "до"
+	},
+	"npmos.traffic.log.total": {
+		"defaultMessage": "{total, plural, one {# запрос} few {# запроса} many {# запросов} other {# запроса}}"
+	},
+	"npmos.traffic.log.total-capped": {
+		"defaultMessage": "Больше {total} запросов"
 	},
 	"npmos.traffic.log.values-hint": {
 		"defaultMessage": "Несколько значений — Enter после каждого."
@@ -7056,7 +7080,7 @@
 		"defaultMessage": "Аналитике трафика нужен PostgreSQL (база стека NPMOS)."
 	},
 	"npmos.traffic.visitors.hint": {
-		"defaultMessage": "Просмотр — HTML-страница, отданная без ошибки; визит — просмотр, пришедший не с того же сайта."
+		"defaultMessage": "Просмотры и визиты считаются по людям. Просмотр — HTML-страница, отданная без ошибки; визит — просмотр, пришедший не с того же сайта. Боты называют себя (поисковики, превью ссылок, мониторинг, скрипты) или выдают себя за браузер без его заголовков; сканеры ищут файлы и админки, ходят на голый IP или получают отказ защиты. На графиках они показаны отдельно: нажмите на легенду, чтобы выделить одних."
 	},
 	"npmos.traffic.visits-over-time": {
 		"defaultMessage": "Визиты во времени"

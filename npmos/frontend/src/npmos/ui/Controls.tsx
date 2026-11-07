@@ -85,10 +85,6 @@ export function UserMenu() {
 			trigger={
 				<>
 					<span className={styles.triggerLabel}>
-						<span
-							className={styles.avatar}
-							style={{ backgroundImage: `url(${me?.avatar || "/images/default-avatar.jpg"})` }}
-						/>
 						{me?.nickname || me?.name}
 						<span>·</span>
 						{role ? roleName(role) : <T id="npmos.rbac.no-roles" />}

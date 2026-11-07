@@ -31,6 +31,7 @@ const FILTER_FIELDS: { key: keyof TrafficFilters; choices?: string[]; placeholde
 	{ key: "path", placeholder: "/api/" },
 	{ key: "status", placeholder: "404, 5xx" },
 	{ key: "method", choices: ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"] },
+	{ key: "client", choices: ["human", "bot", "scanner"] },
 	{ key: "device", choices: ["desktop", "mobile", "tablet", "bot", "other"] },
 	{ key: "browser", placeholder: "Chrome" },
 	{ key: "os", placeholder: "Windows" },
@@ -51,10 +52,10 @@ export const filterValue = (key: keyof TrafficFilters, value: string) =>
 				.split(",")
 				.map((c) => countryName(c.trim()))
 				.join(", ")
-		: key === "device"
+		: key === "device" || key === "client"
 			? value
 					.split(",")
-					.map((d) => t(`npmos.traffic.device.${d.trim()}`))
+					.map((d) => t(`npmos.traffic.${key}.${d.trim()}`))
 					.join(", ")
 			: key === "unknown"
 				? t("npmos.traffic.filter.unknown.yes")
@@ -67,7 +68,7 @@ export const filterValue = (key: keyof TrafficFilters, value: string) =>
 							: value;
 
 export const choiceLabel = (key: keyof TrafficFilters, value: string) =>
-	key === "device" ? t(`npmos.traffic.device.${value}`) : filterValue(key, value);
+	key === "device" || key === "client" ? t(`npmos.traffic.${key}.${value}`) : filterValue(key, value);
 
 export function AddFilter({ onAdd }: { onAdd: (key: keyof TrafficFilters, value: string) => void }) {
 	const [key, setKey] = useState<keyof TrafficFilters>("host");

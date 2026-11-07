@@ -318,3 +318,66 @@ test("requests: filters of the request log (search, ranges, status of the server
 	assert.deepEqual(none.text, { host: ["a.example"] });
 	assert.equal(needsLog(none), false);
 });
+
+test("requests: who made a request — a person, a bot or a scanner — and an address that scans stays a scanner", async () => {
+	const { classifyClient } = await import("./client.js");
+	const { spreadScanners } = await import("./requests.js");
+	const chrome =
+		"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36";
+	const r = (extra) => ({
+		user_agent: chrome,
+		host: "app.example.com",
+		path: "/",
+		status: 200,
+		device: "desktop",
+		protocol: "HTTP/2.0",
+		acceptLanguage: "ru-RU,ru;q=0.9",
+		...extra,
+	});
+	assert.equal(classifyClient(r()), "human");
+	// lines written before Accept-Language was logged
+	assert.equal(classifyClient(r({ acceptLanguage: undefined })), "human");
+	assert.equal(classifyClient(r({ acceptLanguage: "" })), "bot");
+	assert.equal(classifyClient(r({ protocol: "HTTP/1.0" })), "bot");
+	assert.equal(classifyClient(r({ user_agent: "Googlebot/2.1", device: "bot" })), "bot");
+	for (const scanner of [
+		{ user_agent: "" },
+		{ user_agent: "Mozilla/5.0 zgrab/0.x" },
+		{ user_agent: "Mozilla/5.0 (compatible; CensysInspect/1.1)" },
+		{ host: "203.0.113.10" },
+		{ host: "[2001:db8::1]" },
+		{ host: "_" },
+		{ path: "/.env" },
+		{ path: "/.git/config" },
+		{ path: "/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php" },
+		{ path: "/wp-login.php", status: 404 },
+		{ path: "/index.php", status: 404 },
+		{ status: 403 },
+		{ status: 444 },
+	])
+		assert.equal(classifyClient(r(scanner)), "scanner", JSON.stringify(scanner));
+	// a site that has the page: a person
+	assert.equal(classifyClient(r({ path: "/wp-login.php", status: 200 })), "human");
+	assert.equal(classifyClient(r({ path: "/admin", status: 401 })), "human");
+	assert.equal(classifyClient(r({ status: 429 })), "human");
+	assert.equal(classifyClient(r({ host: "cafe.example.com" })), "human");
+
+	const page = { user_agent: chrome, host: "app.example.com", path: "/", status: 200 };
+	const lines = [
+		{ ...page, ip: "198.51.100.1", client: "human" },
+		{ ...page, path: "/.env", status: 404, ip: "198.51.100.1", client: "scanner" },
+		{ ...page, ip: "198.51.100.2", client: "human" },
+		// refused by the WAF: this request only
+		{ ...page, status: 403, ip: "198.51.100.3", client: "scanner" },
+		{ ...page, ip: "198.51.100.3", client: "human" },
+	];
+	assert.deepEqual(spreadScanners(lines, 1000), ["198.51.100.1"]);
+	assert.deepEqual(
+		lines.map((l) => l.client),
+		["scanner", "scanner", "human", "scanner", "human"],
+	);
+	// later: the address is still a scanner, and not new any more
+	const later = [{ ...page, ip: "198.51.100.1", client: "human" }];
+	assert.deepEqual(spreadScanners(later, 2000), []);
+	assert.equal(later[0].client, "scanner");
+});

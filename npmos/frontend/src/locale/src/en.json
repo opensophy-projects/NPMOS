@@ -2420,6 +2420,9 @@
 	"npmos.events.agent.open-appsec": {
 		"defaultMessage": "open-appsec"
 	},
+	"npmos.events.agent.request": {
+		"defaultMessage": "nginx"
+	},
 	"npmos.events.attack-type": {
 		"defaultMessage": "Attack type"
 	},
@@ -2524,6 +2527,9 @@
 	},
 	"npmos.events.raw": {
 		"defaultMessage": "Event as written by the agent"
+	},
+	"npmos.events.request-row": {
+		"defaultMessage": "HTTP request"
 	},
 	"npmos.events.response-code": {
 		"defaultMessage": "Response code"
@@ -6509,6 +6515,15 @@
 	"npmos.traffic.cached-vs-uncached": {
 		"defaultMessage": "Cached and uncached requests"
 	},
+	"npmos.traffic.client.bot": {
+		"defaultMessage": "Bots"
+	},
+	"npmos.traffic.client.human": {
+		"defaultMessage": "People"
+	},
+	"npmos.traffic.client.scanner": {
+		"defaultMessage": "Scanners"
+	},
 	"npmos.traffic.content": {
 		"defaultMessage": "Content"
 	},
@@ -6571,6 +6586,9 @@
 	},
 	"npmos.traffic.filter.clear": {
 		"defaultMessage": "Clear filters"
+	},
+	"npmos.traffic.filter.client": {
+		"defaultMessage": "Client"
 	},
 	"npmos.traffic.filter.contentType": {
 		"defaultMessage": "Content type"
@@ -6776,8 +6794,8 @@
 	"npmos.traffic.log.from": {
 		"defaultMessage": "from"
 	},
-	"npmos.traffic.log.more": {
-		"defaultMessage": "Load more"
+	"npmos.traffic.log.ip-events": {
+		"defaultMessage": "Everything from this IP"
 	},
 	"npmos.traffic.log.only-unknown": {
 		"defaultMessage": "Only hosts not in Hosts"
@@ -6811,6 +6829,12 @@
 	},
 	"npmos.traffic.log.to": {
 		"defaultMessage": "to"
+	},
+	"npmos.traffic.log.total": {
+		"defaultMessage": "{total, plural, one {# request} other {# requests}}"
+	},
+	"npmos.traffic.log.total-capped": {
+		"defaultMessage": "More than {total} requests"
 	},
 	"npmos.traffic.log.values-hint": {
 		"defaultMessage": "Several values: Enter after each one."
@@ -7056,7 +7080,7 @@
 		"defaultMessage": "Traffic analytics needs PostgreSQL (the database of the NPMOS stack)."
 	},
 	"npmos.traffic.visitors.hint": {
-		"defaultMessage": "A page view is an HTML page answered without an error; a visit is a page view that did not come from the same site."
+		"defaultMessage": "Page views and visits are of people. A page view is an HTML page answered without an error; a visit is a page view that did not come from the same site. Bots say who they are (search engines, previews, monitoring, scripts) or pose as a browser without its headers; scanners probe for files and admin pages, come to the bare IP or are refused by the protection. The charts split them: click the legend to pick out one."
 	},
 	"npmos.traffic.visits-over-time": {
 		"defaultMessage": "Visits over time"

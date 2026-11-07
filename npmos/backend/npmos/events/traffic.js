@@ -33,6 +33,8 @@ const TEXT_FILTERS = {
 	origin: "upstream_addr",
 	referer: "referer_host",
 	port: "port",
+	// human, bot, scanner (client.js)
+	client: "client",
 };
 
 /** ranges of the query → numeric columns (min…max, both optional) */
@@ -470,24 +472,35 @@ const tabs = {
 	},
 
 	visitors: async (c) => {
+		// page views and visits of people; the timeline splits them into people, bots and scanners (client.js)
+		const people = c.filters.text.client ? "" : " AND client = 'human'";
+		const by = (what, client) => `SUM(CASE WHEN ${what} AND client = '${client}' THEN 1 ELSE 0 END)`;
 		const timeline = await logTimeline(c, {
-			pageviews: "SUM(CASE WHEN pageview THEN 1 ELSE 0 END)",
-			visits: "SUM(CASE WHEN visit THEN 1 ELSE 0 END)",
-			desktop: "SUM(CASE WHEN pageview AND device = 'desktop' THEN 1 ELSE 0 END)",
-			mobile: "SUM(CASE WHEN pageview AND device = 'mobile' THEN 1 ELSE 0 END)",
-			tablet: "SUM(CASE WHEN pageview AND device = 'tablet' THEN 1 ELSE 0 END)",
-			bot: "SUM(CASE WHEN pageview AND device = 'bot' THEN 1 ELSE 0 END)",
-			other: "SUM(CASE WHEN pageview AND device = 'other' THEN 1 ELSE 0 END)",
+			pageviews: `SUM(CASE WHEN pageview${people} THEN 1 ELSE 0 END)`,
+			visits: `SUM(CASE WHEN visit${people} THEN 1 ELSE 0 END)`,
+			pvHuman: by("pageview", "human"),
+			pvBot: by("pageview", "bot"),
+			pvScanner: by("pageview", "scanner"),
+			visitHuman: by("visit", "human"),
+			visitBot: by("visit", "bot"),
+			visitScanner: by("visit", "scanner"),
+			desktop: `SUM(CASE WHEN pageview${people} AND device = 'desktop' THEN 1 ELSE 0 END)`,
+			mobile: `SUM(CASE WHEN pageview${people} AND device = 'mobile' THEN 1 ELSE 0 END)`,
+			tablet: `SUM(CASE WHEN pageview${people} AND device = 'tablet' THEN 1 ELSE 0 END)`,
+			other: `SUM(CASE WHEN pageview${people} AND device = 'other' THEN 1 ELSE 0 END)`,
 		});
 		const sum = (k) => timeline.reduce((n, b) => n + num(b[k]), 0);
 		const prev =
 			c.prevFrom >= c.logFrom
 				? await logTotals(c, c.prevFrom, c.from, {
-						pageviews: "SUM(CASE WHEN pageview THEN 1 ELSE 0 END)",
-						visits: "SUM(CASE WHEN visit THEN 1 ELSE 0 END)",
+						pageviews: `SUM(CASE WHEN pageview${people} THEN 1 ELSE 0 END)`,
+						visits: `SUM(CASE WHEN visit${people} THEN 1 ELSE 0 END)`,
 					})
 				: { pageviews: null, visits: null };
-		const pv = (b) => b.where("pageview", true);
+		const pv = (b) => {
+			b.where("pageview", true);
+			if (people) b.where("client", "human");
+		};
 		const [ctry, paths, hosts, os, browsers, agents, referers] = await Promise.all([
 			top(c, "country", { where: pv, limit: 250 }),
 			top(c, "path", { where: pv }),
@@ -495,7 +508,12 @@ const tabs = {
 			top(c, "os", { where: pv }),
 			top(c, "browser", { where: pv }),
 			top(c, "user_agent", { where: pv }),
-			top(c, "referer_host", { where: (b) => b.where("visit", true) }),
+			top(c, "referer_host", {
+				where: (b) => {
+					b.where("visit", true);
+					if (people) b.where("client", "human");
+				},
+			}),
 		]);
 		return {
 			kpi: {
@@ -839,6 +857,7 @@ const toApi = (r, k) => ({
 	os: r.os,
 	device: r.device,
 	mitigated: r.mitigated,
+	client: r.client ?? "human",
 });
 
 const NEWEST = [
@@ -857,6 +876,53 @@ const requestRange = async (query, now) => {
 		throw new errs.ValidationError("from, to: ISO time");
 	const b = applyFilters(db()(REQUEST_LOG_TABLE).where("time", ">=", from).where("time", "<=", to), filters, k);
 	return { b, k };
+};
+
+/** counting of the request log stops here ("100000+") */
+export const REQUEST_COUNT_CAP = 100000;
+
+/** the count of a filtered query, up to cap + 1 */
+const countOf = async (builder, cap) => {
+	const knex = db();
+	const row = await knex
+		.count({ n: "*" })
+		.from(
+			builder
+				.clearSelect()
+				.select(knex.raw("1"))
+				.limit(cap + 1)
+				.as("c"),
+		)
+		.first();
+	return Number(row?.n ?? 0);
+};
+
+/**
+ * Requests of the log for Events → All, in its order (time, newest first; at the same time the events come first,
+ * then the requests by id), after a cursor of that list, with their count. The filters are those Events and the
+ * request log share: time range, hosts, addresses, search.
+ * @param {{from: Date, to: Date, host: string[], ip: string[], q: string}} f
+ * @param {{time: Date, id: string, src: "e"|"r"}|null} before
+ * @returns {Promise<{rows: object[], total: number}>}
+ */
+export const requestFeed = async (f, before, limit, cap) => {
+	const filters = parseTrafficFilters({ host: f.host.join(","), ip: f.ip.join(","), q: f.q });
+	const k = await knownDomains();
+	const base = () =>
+		applyFilters(db()(REQUEST_LOG_TABLE).where("time", ">=", f.from).where("time", "<=", f.to), filters, k);
+	const b = base();
+	if (before) {
+		// after an event at time t, every request of t is still to come
+		if (before.src === "e") b.where("time", "<=", before.time);
+		else
+			b.where((q) =>
+				q
+					.where("time", "<", before.time)
+					.orWhere((q2) => q2.where("time", before.time).where("id", "<", before.id)),
+			);
+	}
+	const [rows, total] = await Promise.all([b.select().orderBy(NEWEST).limit(limit), countOf(base(), cap)]);
+	return { rows: rows.map((r) => toApi(r, k)), total };
 };
 
 const internalTraffic = {
@@ -899,13 +965,22 @@ const internalTraffic = {
 				b.where((q) => q.where("time", "<", time).orWhere((q2) => q2.where("time", time).where("id", "<", id)));
 			}
 		}
-		const rows = await b
-			.select()
-			.orderBy(NEWEST)
-			.limit(limit + 1);
+		const count = requestRange(query, now).then((r) => countOf(r.b, REQUEST_COUNT_CAP));
+		const [rows, total] = await Promise.all([
+			b
+				.select()
+				.orderBy(NEWEST)
+				.limit(limit + 1),
+			count,
+		]);
 		const page = rows.slice(0, limit).map((r) => toApi(r, k));
 		const last = page[page.length - 1];
-		return { rows: page, next: rows.length > limit && last ? `${last.time}|${last.id}` : null };
+		return {
+			rows: page,
+			next: rows.length > limit && last ? `${last.time}|${last.id}` : null,
+			total: Math.min(total, REQUEST_COUNT_CAP),
+			totalCapped: total > REQUEST_COUNT_CAP,
+		};
 	},
 
 	/**

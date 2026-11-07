@@ -644,6 +644,17 @@
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
+/* a certificate of the TLS menu: its name, and under it who issued it and until when */
+.certItem {
+	display: flex;
+	flex-direction: column;
+	gap: 0.125rem;
+}
+.certSub {
+	color: var(--foreground-muted);
+	font-size: 0.75rem;
+	white-space: nowrap;
+}
 .status {
 	display: inline-flex;
 	align-items: center;

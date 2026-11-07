@@ -2,18 +2,19 @@
 // of the other kinds of Events (search, period with a range of dates, filters, export, retention); the filters cover
 // every field of the log. Requests to names that are not hosts of NPMOS are marked: they are answered by the
 // default site and were invisible before (only security events were listed).
-import { IconDownload } from "@tabler/icons-react";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { IconChevronLeft, IconChevronRight, IconDownload } from "@tabler/icons-react";
+import { useQuery } from "@tanstack/react-query";
 import cn from "classnames";
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Alert from "react-bootstrap/Alert";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { LoadingPage } from "src/components";
 import { intl, T } from "src/locale";
 import { showError } from "src/notifications";
-import { downloadRequests, getRequestLog, type RequestLogRow, type TrafficFilters } from "../../api";
+import { downloadRequests, getRequestLog, type TrafficFilters } from "../../api";
+import { hostLabel, showRequestModal, statusTone } from "../../modals/RequestModal";
 import { useCan } from "../../rbac/hooks";
-import { countryName, formatBytes, formatMs } from "../../ui/charts/format";
+import { formatBytes, formatMs } from "../../ui/charts/format";
 import { DateTimePicker } from "../../ui/DateTimePicker";
 import { Dropdown } from "../../ui/Dropdown";
 import { SearchField } from "../../ui/SearchField";
@@ -67,40 +68,6 @@ function useRequestParams() {
 const rowTime = (iso: string) =>
 	intl.formatDate(iso, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", second: "2-digit" });
 
-const statusTone = (s: number) =>
-	s >= 500 ? logStyles.s5 : s >= 400 ? logStyles.s4 : s >= 300 ? logStyles.s3 : logStyles.s2;
-
-function Details({ r }: { r: RequestLogRow }) {
-	const items: [string, React.ReactNode][] = [
-		["npmos.traffic.log.time", dateTime(r.time)],
-		["npmos.traffic.filter.host", `${r.host || "—"}${r.port ? `:${r.port}` : ""}`],
-		["npmos.traffic.filter.ip", r.ip],
-		["npmos.traffic.filter.country", r.country ? countryName(r.country) : "—"],
-		["npmos.traffic.log.request", `${r.method} ${r.path}`],
-		["npmos.traffic.filter.status", r.status],
-		["npmos.traffic.log.size", `${formatBytes(r.bytes)} / ${formatBytes(r.requestBytes)}`],
-		["npmos.traffic.log.duration", formatMs(r.durationMs)],
-		["npmos.traffic.filter.origin", r.upstreamAddr || "—"],
-		["npmos.traffic.log.origin-status", r.upstreamStatus ?? "—"],
-		["npmos.traffic.log.origin-time", formatMs(r.upstreamMs)],
-		["npmos.traffic.filter.cache", r.cache || "—"],
-		["npmos.traffic.filter.protocol", `${r.protocol}${r.tls ? ` · ${r.tls}` : ""}`],
-		["npmos.traffic.filter.contentType", r.contentType || "—"],
-		["npmos.traffic.log.referer", r.refererHost || "—"],
-		["npmos.traffic.log.agent", r.userAgent || "—"],
-	];
-	return (
-		<dl className={logStyles.details}>
-			{items.map(([id, v]) => (
-				<Fragment key={id}>
-					<dt>{t(id)}</dt>
-					<dd>{v}</dd>
-				</Fragment>
-			))}
-		</dl>
-	);
-}
-
 /**
  * The request log inside Events (one panel of logs: attacks, bans, mTLS refusals and every request).
  * kinds: the switch between the kinds of Events, shown in the head of the table.
@@ -108,7 +75,14 @@ function Details({ r }: { r: RequestLogRow }) {
 export function RequestLogView({ kinds }: { kinds: React.ReactNode }) {
 	const can = useCan();
 	const { period, from, to, filters, set } = useRequestParams();
-	const [open, setOpen] = useState<string | null>(null);
+	const navigate = useNavigate();
+	/** cursors of the pages before the current one (the first page has none) */
+	const [cursors, setCursors] = useState<string[]>([]);
+	const before = cursors[cursors.length - 1];
+	const page = cursors.length;
+	// other filters, another period: the first page again
+	// biome-ignore lint/correctness/useExhaustiveDependencies: reset on a change of the query only
+	useEffect(() => setCursors([]), [period, from, to, filters]);
 	const [follow, setFollow] = useState(true);
 	const [search, setSearch] = useState(filters.q ?? "");
 	// a search set from outside (a link) shows in the field
@@ -126,16 +100,15 @@ export function RequestLogView({ kinds }: { kinds: React.ReactNode }) {
 		period === "custom"
 			? { from, ...(to ? { to } : {}) }
 			: { from: new Date(Date.now() - PERIOD_MS[period]).toISOString() };
-	const query = useInfiniteQuery({
-		queryKey: ["npmos-request-log", period, from, to, filters],
-		queryFn: ({ pageParam }) =>
-			getRequestLog({ ...filters, ...range(), limit: PAGE, ...(pageParam ? { before: pageParam } : {}) }),
-		initialPageParam: "",
-		getNextPageParam: (last) => last.next ?? undefined,
-		// newer requests come in while following (not for a closed range of dates)
-		refetchInterval: follow && !(period === "custom" && to) ? 15000 : false,
+	const query = useQuery({
+		queryKey: ["npmos-request-log", period, from, to, filters, before],
+		queryFn: () => getRequestLog({ ...filters, ...range(), limit: PAGE, ...(before ? { before } : {}) }),
+		// newer requests come in while following the first page (not for a closed range of dates)
+		refetchInterval: follow && !before && !(period === "custom" && to) ? 15000 : false,
+		placeholderData: (previous) => previous,
 	});
-	const rows = query.data?.pages.flatMap((p) => p.rows) ?? [];
+	const data = query.data;
+	const rows = data?.rows ?? [];
 	const filter = (key: keyof TrafficFilters, value: string) => set({ [key]: value });
 	const exportAs = async (format: "csv" | "json") => {
 		try {
@@ -241,7 +214,7 @@ export function RequestLogView({ kinds }: { kinds: React.ReactNode }) {
 							{query.error.message}
 						</Alert>
 					</div>
-				) : query.data?.pages[0]?.unsupported ? (
+				) : data?.unsupported ? (
 					<div className="card-body">
 						<Alert variant="warning" className="mb-0">
 							<T id="npmos.traffic.unsupported" />
@@ -288,96 +261,104 @@ export function RequestLogView({ kinds }: { kinds: React.ReactNode }) {
 										</tr>
 									) : (
 										rows.map((r) => (
-											<Fragment key={r.id}>
-												<tr
-													className={cn(eventStyles.row, open === r.id && logStyles.open)}
-													onClick={() => setOpen(open === r.id ? null : r.id)}
-												>
-													<td className={logStyles.time} title={dateTime(r.time)}>
-														{rowTime(r.time)}
-													</td>
-													<td className={logStyles.host}>
-														<button
-															type="button"
-															className={styles.linkButton}
-															onClick={(e) => {
-																e.stopPropagation();
-																filter("host", r.host);
-															}}
-														>
-															{r.host === "_" || !r.host
-																? t("npmos.traffic.host.none")
-																: r.host}
-														</button>
-														{!r.known && (
-															<span className={cn(styles.unknown, logStyles.mark)}>
-																{t("npmos.traffic.host.unknown")}
-															</span>
-														)}
-													</td>
-													<td className={logStyles.client}>
-														<button
-															type="button"
-															className={styles.linkButton}
-															onClick={(e) => {
-																e.stopPropagation();
-																filter("ip", r.ip);
-															}}
-														>
-															{r.ip}
-														</button>
-														{r.country && (
-															<span className={logStyles.country}>
-																<Country code={r.country} />
-															</span>
-														)}
-													</td>
-													<td title={r.path}>
-														<div className={logStyles.request}>
-															<span className={eventStyles.method}>{r.method}</span>
-															{r.path}
-														</div>
-													</td>
-													<td className="text-end">
-														<span className={cn(logStyles.status, statusTone(r.status))}>
-															{r.status}
+											<tr
+												key={r.id}
+												className={eventStyles.row}
+												onClick={() => showRequestModal(r, filter, navigate)}
+											>
+												<td className={logStyles.time} title={dateTime(r.time)}>
+													{rowTime(r.time)}
+												</td>
+												<td className={logStyles.host}>
+													<button
+														type="button"
+														className={styles.linkButton}
+														onClick={(e) => {
+															e.stopPropagation();
+															filter("host", r.host);
+														}}
+													>
+														{hostLabel(r.host)}
+													</button>
+													{!r.known && (
+														<span className={cn(styles.unknown, logStyles.mark)}>
+															{t("npmos.traffic.host.unknown")}
 														</span>
-													</td>
-													<td className="text-end text-nowrap">{formatBytes(r.bytes)}</td>
-													<td className="text-end text-nowrap">{formatMs(r.durationMs)}</td>
-													<td className={logStyles.fill} title={r.userAgent}>
-														<div className={logStyles.agent}>
-															{r.device === "bot" || !r.browser
-																? r.userAgent || "—"
-																: `${r.browser} · ${r.os} · ${t(`npmos.traffic.device.${r.device}`)}`}
-														</div>
-													</td>
-												</tr>
-												{open === r.id && (
-													<tr className={logStyles.detailRow}>
-														<td colSpan={8}>
-															<Details r={r} />
-														</td>
-													</tr>
-												)}
-											</Fragment>
+													)}
+												</td>
+												<td className={logStyles.client}>
+													<button
+														type="button"
+														className={styles.linkButton}
+														onClick={(e) => {
+															e.stopPropagation();
+															filter("ip", r.ip);
+														}}
+													>
+														{r.ip}
+													</button>
+													{r.country && (
+														<span className={logStyles.country}>
+															<Country code={r.country} />
+														</span>
+													)}
+												</td>
+												<td title={r.path}>
+													<div className={logStyles.request}>
+														<span className={eventStyles.method}>{r.method}</span>
+														{r.path}
+													</div>
+												</td>
+												<td className="text-end">
+													<span className={cn(logStyles.status, statusTone(r.status))}>
+														{r.status}
+													</span>
+												</td>
+												<td className="text-end text-nowrap">{formatBytes(r.bytes)}</td>
+												<td className="text-end text-nowrap">{formatMs(r.durationMs)}</td>
+												<td className={logStyles.fill} title={r.userAgent}>
+													<div className={logStyles.agent}>
+														{r.device === "bot" || !r.browser
+															? r.userAgent || "—"
+															: `${r.browser} · ${r.os} · ${t(`npmos.traffic.device.${r.device}`)}`}
+													</div>
+												</td>
+											</tr>
 										))
 									)}
 								</tbody>
 							</table>
 						</div>
-						{query.hasNextPage && (
-							<div className="p-3 text-center">
+						<div className={eventStyles.pager}>
+							<span>
+								<T
+									id={
+										data?.totalCapped ? "npmos.traffic.log.total-capped" : "npmos.traffic.log.total"
+									}
+									data={{ total: data?.total ?? rows.length }}
+								/>
+							</span>
+							<div className={eventStyles.pagerButtons}>
 								<button
 									type="button"
-									className="btn btn-sm"
-									disabled={query.isFetchingNextPage}
-									onClick={() => query.fetchNextPage()}
+									className={hostStyles.tool}
+									disabled={page === 0}
+									onClick={() => setCursors(cursors.slice(0, -1))}
 								>
-									<T id="npmos.traffic.log.more" />
+									<IconChevronLeft size={16} />
+									<T id="npmos.events.newer" />
+								</button>
+								<button
+									type="button"
+									className={hostStyles.tool}
+									disabled={!data?.next}
+									onClick={() => data?.next && setCursors([...cursors, data.next])}
+								>
+									<T id="npmos.events.older" />
+									<IconChevronRight size={16} />
 								</button>
 							</div>
-						)}
+						</div>
 					</>
 				)}
 			</div>

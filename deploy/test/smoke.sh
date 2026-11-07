@@ -198,7 +198,7 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
   # handled just before such a restart can be lost.
   event() {
     for i in $(seq 1 30); do
-      status "$SQLI" > /dev/null
+      status "$SQLI" > /dev/null || true
       $CURL "$ADMIN/api/npmos/events?important=true&host=test.local" | grep -q "\"action\": *\"$1\"" && return 0
       sleep 2
     done
@@ -233,7 +233,8 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
     done
     since=$(date -u +%Y-%m-%dT%H:%M:%S)
     for i in $(seq 1 30); do
-      status "$XSS" > /dev/null
+      # npmos restarts after the agent, possibly only now: a refused connection (curl 7) is retried, not fatal
+      status "$XSS" > /dev/null || true
       # an event newer than the restart (times are ISO, compared as text)
       $CURL "$ADMIN/api/npmos/events?important=true&host=test.local&limit=1" \
         | grep -o '"time": *"[^"]*"' | cut -d'"' -f4 | awk -v s="$since" '$0 >= s {f=1} END {exit !f}' && return 0
@@ -373,7 +374,7 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
       | grep -o '"key": *"[0-9a-f]*"' | head -1 | grep -o '[0-9a-f]\{32\}' || true)
     [ -n "$key" ] && break
     [ "$i" = 30 ] && fail "no blocked group for test.local: $($CURL "$ADMIN/api/npmos/learning/queue?period=24h")"
-    status "$SQLI" > /dev/null
+    status "$SQLI" > /dev/null || true
     sleep 2
   done
 
@@ -610,7 +611,7 @@ $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/events/settin
 expect "$(as_analyst -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/events/settings" \
   -d '{"days": 1, "aggregate_days": 1}')" 403 "analyst changes the retention"
 
-step "analytics: every request is in the request log (search, filters, export); a domain that is not a host is marked, CrowdSec counts as attacks"
+step "analytics: every request is in the request log (search, filters, export, pages, Events → All); a domain that is not a host is marked, CrowdSec counts as attacks"
 curl -sS --max-time 10 -o /dev/null -H 'Host: not-a-host.local' "$HTTP/smoke-unknown" || true
 curl -sS --max-time 10 -o /dev/null -H 'Host: test.local' "$HTTP/smoke-known" || true
 for i in $(seq 1 20); do
@@ -626,6 +627,10 @@ $CURL "$ADMIN/api/npmos/analytics/requests?q=smoke-unknown&status=4xx,5xx,2xx,3x
   | grep -q '"not-a-host.local"' || fail "Events → Requests: search and filters miss the request"
 $CURL "$ADMIN/api/npmos/analytics/requests/export?format=csv&q=smoke-unknown" | grep -q 'not-a-host.local' \
   || fail "Events → Requests: the export misses the request"
+$CURL "$ADMIN/api/npmos/events?kind=all&q=smoke-unknown&limit=5" | grep -q '"kind": *"request"' \
+  || fail "Events → All: the requests of the log are missing"
+$CURL "$ADMIN/api/npmos/analytics/requests?q=smoke-unknown&limit=1" | grep -q '"total":' \
+  || fail "Events → Requests: no count for the pages"
 for tab in requests visitors performance security cache origin; do
   $CURL "$ADMIN/api/npmos/analytics/traffic?tab=$tab&period=1h" | grep -q '"kpi":' || fail "analytics tab $tab"
 done
