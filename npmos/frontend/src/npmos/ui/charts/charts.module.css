@@ -131,6 +131,9 @@ button.legendItem:hover {
 	padding: 0.75rem 0.875rem 0;
 }
 .kpiLabel {
+	display: flex;
+	align-items: center;
+	gap: 0.25rem;
 	color: var(--foreground-muted);
 	font-size: 0.8125rem;
 }

@@ -1508,6 +1508,9 @@
 	"npmos.common.warning": {
 		"defaultMessage": "Предупреждение"
 	},
+	"npmos.common.what-is-it": {
+		"defaultMessage": "Что это?"
+	},
 	"npmos.crowdsec": {
 		"defaultMessage": "CrowdSec"
 	},
@@ -2426,6 +2429,9 @@
 	"npmos.events.agent.crowdsec": {
 		"defaultMessage": "CrowdSec"
 	},
+	"npmos.events.agent.info": {
+		"defaultMessage": "Кто сообщил: open-appsec (WAF, проверяет каждый запрос), CrowdSec (банит по поведению в логах), mTLS (отклонённый клиентский сертификат) или nginx (запрос из журнала запросов)."
+	},
 	"npmos.events.agent.mtls": {
 		"defaultMessage": "mTLS"
 	},
@@ -2584,6 +2590,9 @@
 	},
 	"npmos.events.score": {
 		"defaultMessage": "Оценка"
+	},
+	"npmos.events.score.info": {
+		"defaultMessage": "Уверенность open-appsec, что запрос — атака, от 0 до 10. С порога политики (обычно 7–8) в режиме блокировки запрос отклоняется. У других агентов пусто."
 	},
 	"npmos.events.score.max": {
 		"defaultMessage": "Оценка до"
@@ -2875,6 +2884,39 @@
 	},
 	"npmos.hosts.import.text": {
 		"defaultMessage": "Из файла будет создано хостов: {count}."
+	},
+	"npmos.hosts.info.access": {
+		"defaultMessage": "Кого пускают: список доступа (адреса и пароль) и страны блокировки по GeoIP."
+	},
+	"npmos.hosts.info.attacks": {
+		"defaultMessage": "События защиты по хосту за последние 24 часа."
+	},
+	"npmos.hosts.info.changed": {
+		"defaultMessage": "Когда и кем хост изменён последний раз. Клик показывает историю."
+	},
+	"npmos.hosts.info.crowdsec": {
+		"defaultMessage": "Проверяет ли баунсер CrowdSec клиентов хоста на баны."
+	},
+	"npmos.hosts.info.mtls": {
+		"defaultMessage": "Требует ли хост клиентский сертификат (mTLS) и от какого УЦ."
+	},
+	"npmos.hosts.info.name": {
+		"defaultMessage": "Домены хоста. Клик открывает его настройки."
+	},
+	"npmos.hosts.info.status": {
+		"defaultMessage": "Включён ли хост и принял ли nginx его конфигурацию, отвечает ли ваш сервер."
+	},
+	"npmos.hosts.info.target": {
+		"defaultMessage": "Куда идут запросы: адрес вашего сервера или адрес перенаправления."
+	},
+	"npmos.hosts.info.tls": {
+		"defaultMessage": "Сертификат хоста, кем выпущен и до какого числа действует."
+	},
+	"npmos.hosts.info.type": {
+		"defaultMessage": "Прокси — передаёт запросы вашему серверу, перенаправление — отправляет на другой адрес, 404 — отвечает, что страницы нет, поток — передаёт TCP/UDP."
+	},
+	"npmos.hosts.info.waf": {
+		"defaultMessage": "Режим open-appsec для хоста: блокировка отклоняет атаки, обнаружение только записывает, выкл — без проверки."
 	},
 	"npmos.hosts.mtls.ca": {
 		"defaultMessage": "CA: {name}"
@@ -6551,29 +6593,53 @@
 	"npmos.traffic.attack-map": {
 		"defaultMessage": "Откуда идут атаки"
 	},
+	"npmos.traffic.attack-map.info": {
+		"defaultMessage": "События защиты по стране атакующего адреса."
+	},
 	"npmos.traffic.attacks-over-time": {
 		"defaultMessage": "Атаки по средствам защиты"
+	},
+	"npmos.traffic.attacks-over-time.info": {
+		"defaultMessage": "События защиты в каждом интервале: open-appsec — заблокировано и обнаружено, CrowdSec — баны и срабатывания."
 	},
 	"npmos.traffic.by-cache": {
 		"defaultMessage": "Запросы по статусу кэша"
 	},
+	"npmos.traffic.by-cache.info": {
+		"defaultMessage": "Запросы по статусу кэша nginx. «Нет» — у хоста нет кэша."
+	},
 	"npmos.traffic.by-protocol": {
 		"defaultMessage": "Запросы по протоколу HTTP"
+	},
+	"npmos.traffic.by-protocol.info": {
+		"defaultMessage": "Запросы по версии HTTP в каждом интервале."
 	},
 	"npmos.traffic.by-status": {
 		"defaultMessage": "Запросы по кодам ответа"
 	},
+	"npmos.traffic.by-status.info": {
+		"defaultMessage": "Запросы по классу кода ответа: 2xx успех, 3xx перенаправление, 4xx отказ или не найдено, 5xx ошибка сервера."
+	},
 	"npmos.traffic.bytes-cached-vs-uncached": {
 		"defaultMessage": "Передано данных: из кэша и нет"
 	},
+	"npmos.traffic.bytes-cached-vs-uncached.info": {
+		"defaultMessage": "Данные, отданные из кэша и от ваших серверов, в каждом интервале."
+	},
 	"npmos.traffic.bytes-over-time": {
 		"defaultMessage": "Передано данных"
+	},
+	"npmos.traffic.bytes-over-time.info": {
+		"defaultMessage": "Данные, отправленные клиентам, в каждом интервале."
 	},
 	"npmos.traffic.cache.hint": {
 		"defaultMessage": "Статус кэша берётся из кэша nginx у хостов, где включено кэширование (хост → Кэширование)."
 	},
 	"npmos.traffic.cached-vs-uncached": {
 		"defaultMessage": "Запросы из кэша и мимо кэша"
+	},
+	"npmos.traffic.cached-vs-uncached.info": {
+		"defaultMessage": "Запросы, на которые ответил кэш и ваш сервер, в каждом интервале."
 	},
 	"npmos.traffic.client.bot": {
 		"defaultMessage": "Боты"
@@ -6614,6 +6680,9 @@
 	"npmos.traffic.devices-over-time": {
 		"defaultMessage": "Типы устройств во времени"
 	},
+	"npmos.traffic.devices-over-time.info": {
+		"defaultMessage": "Просмотры страниц по типу устройства в каждом интервале."
+	},
 	"npmos.traffic.endpoints": {
 		"defaultMessage": "Адреса"
 	},
@@ -6622,6 +6691,9 @@
 	},
 	"npmos.traffic.endpoints.host": {
 		"defaultMessage": "Хост"
+	},
+	"npmos.traffic.endpoints.info": {
+		"defaultMessage": "Каждый путь каждого хоста: число запросов, скорость и ошибки сервера. Сортируйте по колонке, чтобы найти медленные и сбойные."
 	},
 	"npmos.traffic.endpoints.path": {
 		"defaultMessage": "Путь"
@@ -6664,6 +6736,9 @@
 	},
 	"npmos.traffic.filter.host": {
 		"defaultMessage": "Хост"
+	},
+	"npmos.traffic.filter.host.info": {
+		"defaultMessage": "Домен, на который отправлен запрос. Домен не из «Хостов» помечен: на такие запросы отвечает страница по умолчанию."
 	},
 	"npmos.traffic.filter.ip": {
 		"defaultMessage": "IP-адрес"
@@ -6722,6 +6797,9 @@
 	"npmos.traffic.filter.status": {
 		"defaultMessage": "Статус"
 	},
+	"npmos.traffic.filter.status.info": {
+		"defaultMessage": "Код ответа nginx. 2xx — успех, 3xx — перенаправление, 4xx — отказ или не найдено (отказ защиты — 403/444), 5xx — ошибка вашего сервера или связи с ним."
+	},
 	"npmos.traffic.filter.tls": {
 		"defaultMessage": "Версия TLS"
 	},
@@ -6736,6 +6814,9 @@
 	},
 	"npmos.traffic.geography": {
 		"defaultMessage": "География"
+	},
+	"npmos.traffic.geography.info": {
+		"defaultMessage": "Запросы по стране клиента (GeoIP). Клик по стране фильтрует страницу."
 	},
 	"npmos.traffic.host.none": {
 		"defaultMessage": "без имени (по IP)"
@@ -6755,14 +6836,26 @@
 	"npmos.traffic.kpi.5xx-rate": {
 		"defaultMessage": "Доля ошибок 5xx"
 	},
+	"npmos.traffic.kpi.5xx-rate.info": {
+		"defaultMessage": "Доля ответов с кодом 5xx: ошибки ваших серверов или нет связи с ними. В норме близко к 0."
+	},
 	"npmos.traffic.kpi.appsec": {
 		"defaultMessage": "События open-appsec"
+	},
+	"npmos.traffic.kpi.appsec.info": {
+		"defaultMessage": "События open-appsec: атаки, которые он заблокировал, и которые только обнаружил (хосты в режиме обнаружения)."
 	},
 	"npmos.traffic.kpi.bytes": {
 		"defaultMessage": "Передано данных"
 	},
+	"npmos.traffic.kpi.bytes.info": {
+		"defaultMessage": "Сколько отправлено клиентам в ответах (тела и заголовки)."
+	},
 	"npmos.traffic.kpi.cache-hit": {
 		"defaultMessage": "Попадания в кэш"
+	},
+	"npmos.traffic.kpi.cache-hit.info": {
+		"defaultMessage": "Доля запросов, на которые ответил кэш nginx без обращения к вашему серверу, среди прошедших через кэш."
 	},
 	"npmos.traffic.kpi.cache-off": {
 		"defaultMessage": "кэширование не используется"
@@ -6773,11 +6866,23 @@
 	"npmos.traffic.kpi.cached-bytes": {
 		"defaultMessage": "Данные из кэша"
 	},
+	"npmos.traffic.kpi.cached-bytes.info": {
+		"defaultMessage": "Сколько из отправленных данных взято из кэша."
+	},
+	"npmos.traffic.kpi.cached.info": {
+		"defaultMessage": "Запросы, на которые ответил кэш nginx (HIT, STALE и т. п.)."
+	},
 	"npmos.traffic.kpi.connection": {
 		"defaultMessage": "Успешные соединения"
 	},
+	"npmos.traffic.kpi.connection.info": {
+		"defaultMessage": "Доля соединений с вашими серверами, которые удалось установить."
+	},
 	"npmos.traffic.kpi.crowdsec": {
 		"defaultMessage": "Алерты и баны CrowdSec"
+	},
+	"npmos.traffic.kpi.crowdsec.info": {
+		"defaultMessage": "Срабатывания сценариев CrowdSec и выданные им баны и капчи."
 	},
 	"npmos.traffic.kpi.mitigated": {
 		"defaultMessage": "Отклонённые запросы"
@@ -6785,47 +6890,95 @@
 	"npmos.traffic.kpi.mitigated-rate": {
 		"defaultMessage": "Доля отклонённых"
 	},
+	"npmos.traffic.kpi.mitigated-rate.info": {
+		"defaultMessage": "Отклонённые запросы от всех запросов."
+	},
+	"npmos.traffic.kpi.mitigated.info": {
+		"defaultMessage": "Запросы, не дошедшие до ваших серверов: отклонены open-appsec, CrowdSec, блокировкой по странам, списком доступа, лимитом, или nginx сам ответил 4xx (битые запросы, неизвестные методы, 404-хост)."
+	},
 	"npmos.traffic.kpi.origin-bytes": {
 		"defaultMessage": "Данные от серверов"
+	},
+	"npmos.traffic.kpi.origin-bytes.info": {
+		"defaultMessage": "Сколько ваши серверы отправили nginx."
 	},
 	"npmos.traffic.kpi.origin-errors": {
 		"defaultMessage": "Ошибки серверов (5xx)"
 	},
+	"npmos.traffic.kpi.origin-errors.info": {
+		"defaultMessage": "Ответы ваших серверов с кодом 5xx."
+	},
 	"npmos.traffic.kpi.origin-p50": {
 		"defaultMessage": "Ответ сервера (p50)"
+	},
+	"npmos.traffic.kpi.origin-p50.info": {
+		"defaultMessage": "Половина запросов к вашим серверам получила ответ быстрее этого: обычная скорость сервера."
 	},
 	"npmos.traffic.kpi.origin-p95": {
 		"defaultMessage": "Ответ сервера (p95)"
 	},
+	"npmos.traffic.kpi.origin-p95.info": {
+		"defaultMessage": "95% запросов к вашим серверам получили ответ быстрее этого: насколько медленны медленные."
+	},
 	"npmos.traffic.kpi.pageviews": {
 		"defaultMessage": "Просмотры страниц"
+	},
+	"npmos.traffic.kpi.pageviews.info": {
+		"defaultMessage": "Страницы (HTML), которые люди открыли без ошибки. Файлы, картинки и запросы к API не считаются, боты и сканеры тоже."
 	},
 	"npmos.traffic.kpi.rate-limited": {
 		"defaultMessage": "Лимит запросов"
 	},
+	"npmos.traffic.kpi.rate-limited.info": {
+		"defaultMessage": "Запросы с ответом 429: клиент превысил лимит запросов."
+	},
 	"npmos.traffic.kpi.reachability": {
 		"defaultMessage": "Доступность серверов"
+	},
+	"npmos.traffic.kpi.reachability.info": {
+		"defaultMessage": "Доля запросов к вашим серверам, получивших ответ: без ошибки соединения и таймаута."
 	},
 	"npmos.traffic.kpi.requests": {
 		"defaultMessage": "Всего запросов"
 	},
+	"npmos.traffic.kpi.requests.info": {
+		"defaultMessage": "Все запросы, которые получил nginx за период: люди, боты и сканеры, включая отклонённые. Процент — изменение к предыдущему периоду той же длины."
+	},
 	"npmos.traffic.kpi.saved": {
 		"defaultMessage": "Сэкономлено трафика"
+	},
+	"npmos.traffic.kpi.saved.info": {
+		"defaultMessage": "Доля отправленных данных, которую вашим серверам не пришлось отдавать благодаря кэшу."
 	},
 	"npmos.traffic.kpi.to-origin": {
 		"defaultMessage": "Запросы к серверам"
 	},
+	"npmos.traffic.kpi.to-origin.info": {
+		"defaultMessage": "Запросы, которые nginx передал вашим серверам (прокси-хосты). Отклонённые, перенаправления и ответы из кэша сюда не входят."
+	},
 	"npmos.traffic.kpi.total-p50": {
 		"defaultMessage": "Полный ответ (p50)"
+	},
+	"npmos.traffic.kpi.total-p50.info": {
+		"defaultMessage": "Обычное время всего ответа: ваш сервер плюс сеть до клиента."
 	},
 	"npmos.traffic.kpi.total-p95": {
 		"defaultMessage": "Полный ответ (p95)"
 	},
+	"npmos.traffic.kpi.total-p95.info": {
+		"defaultMessage": "Весь ответ для 95% запросов был быстрее этого."
+	},
 	"npmos.traffic.kpi.uncached": {
 		"defaultMessage": "Запросы мимо кэша"
 	},
+	"npmos.traffic.kpi.uncached.info": {
+		"defaultMessage": "Запросы, прошедшие через кэш, но ответ на которые дал ваш сервер (MISS, BYPASS, EXPIRED)."
+	},
 	"npmos.traffic.kpi.visits": {
 		"defaultMessage": "Визиты"
+	},
+	"npmos.traffic.kpi.visits.info": {
+		"defaultMessage": "Просмотры страниц людьми, пришедшими с другого сайта или напрямую, а не по ссылке этого же сайта: примерно сколько раз сайт открывали."
 	},
 	"npmos.traffic.log": {
 		"defaultMessage": "Запросы"
@@ -6833,11 +6986,17 @@
 	"npmos.traffic.log.agent": {
 		"defaultMessage": "Клиент"
 	},
+	"npmos.traffic.log.agent.info": {
+		"defaultMessage": "User-Agent: браузер и система, которые он называет, или бот."
+	},
 	"npmos.traffic.log.client": {
 		"defaultMessage": "Источник"
 	},
 	"npmos.traffic.log.client-section": {
 		"defaultMessage": "Клиент"
+	},
+	"npmos.traffic.log.client.info": {
+		"defaultMessage": "Адрес клиента, страна по GeoIP и кто это: человек, бот, который себя называет, или сканер."
 	},
 	"npmos.traffic.log.description": {
 		"defaultMessage": "Каждый запрос к хостам, новые сверху, — включая запросы к доменам, которые указывают сюда, но не добавлены в «Хосты». Нажмите на строку, чтобы увидеть подробности, на хост или адрес — чтобы отфильтровать по нему."
@@ -6847,6 +7006,9 @@
 	},
 	"npmos.traffic.log.duration-ms": {
 		"defaultMessage": "Время ответа, мс"
+	},
+	"npmos.traffic.log.duration.info": {
+		"defaultMessage": "От первого байта запроса до последнего байта ответа: ваш сервер и сеть до клиента вместе."
 	},
 	"npmos.traffic.log.empty": {
 		"defaultMessage": "Нет запросов за этот период и с этими фильтрами."
@@ -6875,6 +7037,9 @@
 	"npmos.traffic.log.request": {
 		"defaultMessage": "Запрос"
 	},
+	"npmos.traffic.log.request.info": {
+		"defaultMessage": "Метод, путь и версия HTTP."
+	},
 	"npmos.traffic.log.search": {
 		"defaultMessage": "Поиск по хосту, пути, IP, клиенту или источнику перехода"
 	},
@@ -6884,8 +7049,14 @@
 	"npmos.traffic.log.size-kb": {
 		"defaultMessage": "Размер ответа, КБ"
 	},
+	"npmos.traffic.log.size.info": {
+		"defaultMessage": "Сколько байт отправлено клиенту в ответе."
+	},
 	"npmos.traffic.log.time": {
 		"defaultMessage": "Время"
+	},
+	"npmos.traffic.log.time.info": {
+		"defaultMessage": "Когда nginx ответил на запрос, во времени вашего браузера."
 	},
 	"npmos.traffic.log.to": {
 		"defaultMessage": "до"
@@ -6923,6 +7094,9 @@
 	"npmos.traffic.mitigations-by-answer": {
 		"defaultMessage": "Отказы по ответу"
 	},
+	"npmos.traffic.mitigations-by-answer.info": {
+		"defaultMessage": "Отклонённые запросы по коду ответа: 403 — отказ защиты, 444 — соединение закрыто без ответа, 429 — лимит, 400/405 и прочие 4xx — nginx отказал сам."
+	},
 	"npmos.traffic.no-attacks": {
 		"defaultMessage": "Атак за этот период нет."
 	},
@@ -6935,26 +7109,50 @@
 	"npmos.traffic.origin-breakdown": {
 		"defaultMessage": "Из чего складывается ответ сервера"
 	},
+	"npmos.traffic.origin-breakdown.info": {
+		"defaultMessage": "Из чего складывается время ответа: соединение с сервером, ожидание заголовков, получение тела."
+	},
 	"npmos.traffic.origin-outcomes": {
 		"defaultMessage": "Соединения с серверами"
+	},
+	"npmos.traffic.origin-outcomes.info": {
+		"defaultMessage": "Соединения с вашими серверами: ответил, ошибка соединения, таймаут."
 	},
 	"npmos.traffic.origin-percentiles": {
 		"defaultMessage": "Время ответа сервера, перцентили"
 	},
+	"npmos.traffic.origin-percentiles.info": {
+		"defaultMessage": "Сколько ваши серверы отвечали: p50 — обычное время, p95 и p99 — медленные запросы. Растёт p95 при ровном p50 — замедлилась часть запросов."
+	},
 	"npmos.traffic.origin-requests": {
 		"defaultMessage": "Запросы к серверам во времени"
+	},
+	"npmos.traffic.origin-requests.info": {
+		"defaultMessage": "Запросы, переданные nginx вашим серверам, в каждом интервале."
 	},
 	"npmos.traffic.origin-statuses": {
 		"defaultMessage": "Коды ответа серверов во времени"
 	},
+	"npmos.traffic.origin-statuses.info": {
+		"defaultMessage": "Коды ответа ваших серверов в каждом интервале (не nginx)."
+	},
 	"npmos.traffic.outcomes-over-time": {
 		"defaultMessage": "Исходы запросов во времени"
+	},
+	"npmos.traffic.outcomes-over-time.info": {
+		"defaultMessage": "Запросы, прошедшие к вашим серверам, и отклонённые (защитой или самим nginx), в каждом интервале."
 	},
 	"npmos.traffic.pageviews-by-country": {
 		"defaultMessage": "Просмотры по странам"
 	},
+	"npmos.traffic.pageviews-by-country.info": {
+		"defaultMessage": "Просмотры страниц людьми по стране клиента."
+	},
 	"npmos.traffic.pageviews-over-time": {
 		"defaultMessage": "Просмотры во времени"
+	},
+	"npmos.traffic.pageviews-over-time.info": {
+		"defaultMessage": "Просмотры страниц в каждом интервале. Цвета делят их на людей, ботов и сканеры; число на карточке — только люди."
 	},
 	"npmos.traffic.product.appsec-detect": {
 		"defaultMessage": "open-appsec: обнаружено"
@@ -6980,8 +7178,14 @@
 	"npmos.traffic.requests-over-time": {
 		"defaultMessage": "Запросы во времени"
 	},
+	"npmos.traffic.requests-over-time.info": {
+		"defaultMessage": "Все запросы в каждом интервале периода. Наведите на точку, чтобы увидеть числа."
+	},
 	"npmos.traffic.security-actions": {
 		"defaultMessage": "Действия защиты"
+	},
+	"npmos.traffic.security-actions.info": {
+		"defaultMessage": "Что делала защита, по числу событий."
 	},
 	"npmos.traffic.series.attacks": {
 		"defaultMessage": "Атаки"
@@ -7046,53 +7250,104 @@
 	"npmos.traffic.top.agents": {
 		"defaultMessage": "Топ User-Agent"
 	},
+	"npmos.traffic.top.agents.info": {
+		"defaultMessage": "Самые частые строки User-Agent, как их прислали клиенты."
+	},
 	"npmos.traffic.top.attack-paths": {
 		"defaultMessage": "Топ атакуемых путей"
+	},
+	"npmos.traffic.top.attack-paths.info": {
+		"defaultMessage": "Пути, которые атаковали чаще всего."
 	},
 	"npmos.traffic.top.attack-sources": {
 		"defaultMessage": "Топ источников атак"
 	},
+	"npmos.traffic.top.attack-sources.info": {
+		"defaultMessage": "Адреса с наибольшим числом событий защиты. Клик фильтрует по адресу."
+	},
 	"npmos.traffic.top.attack-types": {
 		"defaultMessage": "Топ типов атак"
+	},
+	"npmos.traffic.top.attack-types.info": {
+		"defaultMessage": "Самые частые типы атак (open-appsec) и сценарии (CrowdSec)."
 	},
 	"npmos.traffic.top.browsers": {
 		"defaultMessage": "Топ браузеров"
 	},
+	"npmos.traffic.top.browsers.info": {
+		"defaultMessage": "Браузеры по их User-Agent."
+	},
 	"npmos.traffic.top.cache-statuses": {
 		"defaultMessage": "Топ статусов кэша"
+	},
+	"npmos.traffic.top.cache-statuses.info": {
+		"defaultMessage": "Статусы кэша: HIT — из кэша, MISS — ещё нет в кэше, EXPIRED — устарело, BYPASS — кэш пропущен, STALE — старая копия, пока сервер недоступен."
 	},
 	"npmos.traffic.top.cached-paths": {
 		"defaultMessage": "Топ путей из кэша"
 	},
+	"npmos.traffic.top.cached-paths.info": {
+		"defaultMessage": "Пути, на которые чаще всего отвечал кэш."
+	},
 	"npmos.traffic.top.cached-types": {
 		"defaultMessage": "Топ типов содержимого из кэша"
+	},
+	"npmos.traffic.top.cached-types.info": {
+		"defaultMessage": "Типы содержимого (Content-Type), отданные из кэша."
 	},
 	"npmos.traffic.top.devices": {
 		"defaultMessage": "Топ типов устройств"
 	},
+	"npmos.traffic.top.devices.info": {
+		"defaultMessage": "Компьютер, телефон, планшет или бот — по User-Agent."
+	},
 	"npmos.traffic.top.hosts": {
 		"defaultMessage": "Топ хостов"
+	},
+	"npmos.traffic.top.hosts.info": {
+		"defaultMessage": "Домены, получившие больше всего запросов."
 	},
 	"npmos.traffic.top.ips": {
 		"defaultMessage": "Топ IP-адресов клиентов"
 	},
+	"npmos.traffic.top.ips.info": {
+		"defaultMessage": "Адреса клиентов, отправившие больше всего запросов. Клик фильтрует по адресу."
+	},
 	"npmos.traffic.top.mitigated-ips": {
 		"defaultMessage": "Топ отклонённых IP-адресов"
+	},
+	"npmos.traffic.top.mitigated-ips.info": {
+		"defaultMessage": "Адреса с наибольшим числом отклонённых запросов."
 	},
 	"npmos.traffic.top.mitigated-paths": {
 		"defaultMessage": "Топ отклонённых путей"
 	},
+	"npmos.traffic.top.mitigated-paths.info": {
+		"defaultMessage": "Пути отклонённых запросов."
+	},
 	"npmos.traffic.top.origin-paths": {
 		"defaultMessage": "Топ путей по запросам к серверам"
+	},
+	"npmos.traffic.top.origin-paths.info": {
+		"defaultMessage": "Пути с наибольшим числом запросов к вашим серверам."
 	},
 	"npmos.traffic.top.origin-statuses": {
 		"defaultMessage": "Топ кодов ответа серверов"
 	},
+	"npmos.traffic.top.origin-statuses.info": {
+		"defaultMessage": "Самые частые коды ответа ваших серверов."
+	},
 	"npmos.traffic.top.origins": {
 		"defaultMessage": "Топ адресов серверов"
 	},
+	"npmos.traffic.top.origins.info": {
+		"defaultMessage": "Адреса ваших серверов (upstream), куда nginx отправлял запросы."
+	},
 	"npmos.traffic.top.os": {
 		"defaultMessage": "Топ операционных систем"
+	},
+	"npmos.traffic.top.os.info": {
+		"defaultMessage": "Операционные системы по User-Agent."
 	},
 	"npmos.traffic.top.paths": {
 		"defaultMessage": "Топ путей"
@@ -7100,26 +7355,53 @@
 	"npmos.traffic.top.paths-bytes": {
 		"defaultMessage": "Топ путей по объёму"
 	},
+	"npmos.traffic.top.paths-bytes.info": {
+		"defaultMessage": "Пути, которые отдали больше всего данных: большие файлы, видео, архивы."
+	},
+	"npmos.traffic.top.paths.info": {
+		"defaultMessage": "Пути, которые запрашивали чаще всего. Клик фильтрует страницу по пути."
+	},
 	"npmos.traffic.top.protocols": {
 		"defaultMessage": "Топ версий HTTP"
+	},
+	"npmos.traffic.top.protocols.info": {
+		"defaultMessage": "Версии HTTP, по которым приходили клиенты."
 	},
 	"npmos.traffic.top.referers": {
 		"defaultMessage": "Топ сайтов, с которых переходят"
 	},
+	"npmos.traffic.top.referers.info": {
+		"defaultMessage": "Сайты, с которых люди пришли по ссылке (заголовок Referer). Прямые заходы сюда не входят."
+	},
 	"npmos.traffic.top.slow-paths": {
 		"defaultMessage": "Самые медленные пути (p95 сервера)"
+	},
+	"npmos.traffic.top.slow-paths.info": {
+		"defaultMessage": "Пути, на которые ваши серверы отвечают медленнее всего (p95 времени ответа)."
 	},
 	"npmos.traffic.top.statuses": {
 		"defaultMessage": "Топ кодов ответа"
 	},
+	"npmos.traffic.top.statuses.info": {
+		"defaultMessage": "Самые частые коды ответа."
+	},
 	"npmos.traffic.top.tls": {
 		"defaultMessage": "Версии TLS"
+	},
+	"npmos.traffic.top.tls.info": {
+		"defaultMessage": "Версии TLS у HTTPS-соединений. Старые (1.0, 1.1) — старые клиенты или сканеры."
 	},
 	"npmos.traffic.top.uncached-paths": {
 		"defaultMessage": "Топ путей мимо кэша"
 	},
+	"npmos.traffic.top.uncached-paths.info": {
+		"defaultMessage": "Пути, которые чаще всего шли к серверу мимо кэша: кандидаты на кэширование."
+	},
 	"npmos.traffic.top.uncached-types": {
 		"defaultMessage": "Топ типов содержимого мимо кэша"
+	},
+	"npmos.traffic.top.uncached-types.info": {
+		"defaultMessage": "Типы содержимого, прошедшие мимо кэша."
 	},
 	"npmos.traffic.unknown": {
 		"defaultMessage": "неизвестно"
@@ -7139,6 +7421,9 @@
 	"npmos.traffic.unknown-hosts.title": {
 		"defaultMessage": "Запросов к доменам не из «Хостов»: {count}"
 	},
+	"npmos.traffic.unknown-hosts.title.info": {
+		"defaultMessage": "Запросы к доменам, которых нет в «Хостах»: на них отвечает страница по умолчанию. Обычно это сканеры, перебирающие адреса, или DNS-запись, указывающая сюда по ошибке."
+	},
 	"npmos.traffic.unsupported": {
 		"defaultMessage": "Аналитике трафика нужен PostgreSQL (база стека NPMOS)."
 	},
@@ -7147,6 +7432,9 @@
 	},
 	"npmos.traffic.visits-over-time": {
 		"defaultMessage": "Визиты во времени"
+	},
+	"npmos.traffic.visits-over-time.info": {
+		"defaultMessage": "Визиты в каждом интервале, с разделением на людей, ботов и сканеры."
 	},
 	"npmos.user.password-hint": {
 		"defaultMessage": "Не короче 8 символов. Пользователь сможет сменить его в профиле."
@@ -7226,6 +7514,9 @@
 	"npmos.waf.events.action": {
 		"defaultMessage": "Действие"
 	},
+	"npmos.waf.events.action.info": {
+		"defaultMessage": "Что сделала защита: заблокировано (запрос не дошёл до вашего сервера), обнаружено (прошёл, только записан), бан или капча CrowdSec."
+	},
 	"npmos.waf.events.component": {
 		"defaultMessage": "Компонент агента"
 	},
@@ -7235,11 +7526,17 @@
 	"npmos.waf.events.event": {
 		"defaultMessage": "Событие"
 	},
+	"npmos.waf.events.event.info": {
+		"defaultMessage": "Что произошло: тип атаки или сценарий CrowdSec и его название."
+	},
 	"npmos.waf.events.follow": {
 		"defaultMessage": "Обновлять"
 	},
 	"npmos.waf.events.host": {
 		"defaultMessage": "Хост"
+	},
+	"npmos.waf.events.host.info": {
+		"defaultMessage": "Домен, на который был отправлен запрос."
 	},
 	"npmos.waf.events.matched": {
 		"defaultMessage": "Что обнаружил WAF"
@@ -7259,17 +7556,29 @@
 	"npmos.waf.events.request": {
 		"defaultMessage": "Запрос"
 	},
+	"npmos.waf.events.request.info": {
+		"defaultMessage": "Метод и путь запроса. Откройте событие, чтобы увидеть параметр и фрагмент, на которые сработала защита."
+	},
 	"npmos.waf.events.search": {
 		"defaultMessage": "Поиск: IP, хост, атака…"
 	},
 	"npmos.waf.events.severity": {
 		"defaultMessage": "Важность"
 	},
+	"npmos.waf.events.severity.info": {
+		"defaultMessage": "Насколько опасным агент считает событие: критическая и высокая — атаки, на которые стоит посмотреть, средняя и низкая — подозрительное, информация — для истории."
+	},
 	"npmos.waf.events.source-ip": {
 		"defaultMessage": "IP источника"
 	},
+	"npmos.waf.events.source-ip.info": {
+		"defaultMessage": "Адрес клиента и его страна по базе GeoIP. Клик добавляет его в фильтры."
+	},
 	"npmos.waf.events.time": {
 		"defaultMessage": "Время"
+	},
+	"npmos.waf.events.time.info": {
+		"defaultMessage": "Когда агент зафиксировал событие, во времени вашего браузера."
 	},
 	"npmos.waf.events.unavailable": {
 		"defaultMessage": "Каталог логов агента недоступен: запущен ли агент open-appsec?"
