@@ -17,6 +17,7 @@ import { useCan } from "../../rbac/hooks";
 import { formatBytes, formatMs } from "../../ui/charts/format";
 import { DateTimePicker } from "../../ui/DateTimePicker";
 import { Dropdown } from "../../ui/Dropdown";
+import { Label } from "../../ui/InfoTip";
 import { SearchField } from "../../ui/SearchField";
 import { dateTime } from "../../ui/time";
 import hostStyles from "../Hosts/Hosts.module.css";
@@ -227,28 +228,28 @@ export function RequestLogView({ kinds }: { kinds: React.ReactNode }) {
 								<thead>
 									<tr>
 										<th>
-											<T id="npmos.traffic.log.time" />
+											<Label id="npmos.traffic.log.time" />
 										</th>
 										<th>
-											<T id="npmos.traffic.filter.host" />
+											<Label id="npmos.traffic.filter.host" />
 										</th>
 										<th>
-											<T id="npmos.traffic.log.client" />
+											<Label id="npmos.traffic.log.client" />
 										</th>
 										<th>
-											<T id="npmos.traffic.log.request" />
+											<Label id="npmos.traffic.log.request" />
 										</th>
 										<th className="text-end">
-											<T id="npmos.traffic.filter.status" />
+											<Label id="npmos.traffic.filter.status" />
 										</th>
 										<th className="text-end">
-											<T id="npmos.traffic.log.size" />
+											<Label id="npmos.traffic.log.size" />
 										</th>
 										<th className="text-end">
-											<T id="npmos.traffic.log.duration" />
+											<Label id="npmos.traffic.log.duration" />
 										</th>
 										<th>
-											<T id="npmos.traffic.log.agent" />
+											<Label id="npmos.traffic.log.agent" />
 										</th>
 									</tr>
 								</thead>

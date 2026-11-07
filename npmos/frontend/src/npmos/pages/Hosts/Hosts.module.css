@@ -448,6 +448,11 @@
 	letter-spacing: inherit;
 	text-transform: inherit;
 }
+.headCell {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.375rem;
+}
 .sortArrow {
 	color: var(--foreground-muted);
 	opacity: 0.5;

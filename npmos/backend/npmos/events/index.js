@@ -100,6 +100,8 @@ export const parseFilters = (query, now = new Date()) => {
 		to,
 		kind,
 		agent: list(query.agent).flatMap((a) => AGENT_KINDS[a.toLowerCase()] ?? []),
+		// "nginx": the requests of the log (Events → All); with no other agent, no events at all
+		nginx: list(query.agent).some((a) => a.toLowerCase() === "nginx"),
 		important: query.important === "true" || query.important === true,
 		host: list(query.host).map((h) => h.toLowerCase()),
 		ip: list(query.ip),
@@ -166,7 +168,7 @@ const parseCursor = (value) => {
 
 /** filters only events have: with one of them, Events → All shows no requests */
 const eventOnly = (f) =>
-	f.agent.length > 0 ||
+	(f.agent.length > 0 && !f.nginx) ||
 	f.important ||
 	f.action.length > 0 ||
 	f.severity.length > 0 ||
@@ -225,31 +227,37 @@ const internalEvents = {
 		const knex = db();
 		// Events → All: every request of the log too (with the permission of Analytics, no filter of events only)
 		const withRequests = f.kind === "all" && isPostgres() && !eventOnly(f) && (await canSeeRequests(access));
-		const rows = await applyFilters(knex(EVENT_TABLE).select(LIST_COLUMNS), f)
-			.modify((b) => {
-				// after a request at time t, the events of t came before it
-				if (before?.src === "r") b.where("time", "<", before.time);
-				else if (before) {
-					b.where((w) =>
-						w
-							.where("time", "<", before.time)
-							.orWhere((x) => x.where("time", before.time).where("id", "<", before.id)),
-					);
-				}
-			})
-			.orderBy([
-				{ column: "time", order: "desc" },
-				{ column: "id", order: "desc" },
-			])
-			.limit(limit + 1);
-		const counted = await knex
-			.count({ n: "*" })
-			.from(
-				applyFilters(knex(EVENT_TABLE).select(knex.raw("1")), f)
-					.limit(COUNT_CAP + 1)
-					.as("c"),
-			)
-			.first();
+		// only the agent nginx: the requests, no event
+		const noEvents = f.nginx && !f.agent.length;
+		const rows = noEvents
+			? []
+			: await applyFilters(knex(EVENT_TABLE).select(LIST_COLUMNS), f)
+					.modify((b) => {
+						// after a request at time t, the events of t came before it
+						if (before?.src === "r") b.where("time", "<", before.time);
+						else if (before) {
+							b.where((w) =>
+								w
+									.where("time", "<", before.time)
+									.orWhere((x) => x.where("time", before.time).where("id", "<", before.id)),
+							);
+						}
+					})
+					.orderBy([
+						{ column: "time", order: "desc" },
+						{ column: "id", order: "desc" },
+					])
+					.limit(limit + 1);
+		const counted = noEvents
+			? { n: 0 }
+			: await knex
+					.count({ n: "*" })
+					.from(
+						applyFilters(knex(EVENT_TABLE).select(knex.raw("1")), f)
+							.limit(COUNT_CAP + 1)
+							.as("c"),
+					)
+					.first();
 		let total = Number(counted?.n ?? 0);
 		let cap = COUNT_CAP;
 		let merged = rows.map(toApi);

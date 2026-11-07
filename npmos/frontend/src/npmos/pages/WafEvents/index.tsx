@@ -16,6 +16,7 @@ import { hostLabel, showRequestModal, statusTone } from "../../modals/RequestMod
 import { showWafEventModal } from "../../modals/WafEventModal";
 import { useCan } from "../../rbac/hooks";
 import { Dropdown } from "../../ui/Dropdown";
+import { Label } from "../../ui/InfoTip";
 import { Popover } from "../../ui/Popover";
 import hostStyles from "../Hosts/Hosts.module.css";
 import { ActionBadge, EventTime, SeverityBadge } from "./badges";
@@ -25,6 +26,7 @@ import styles from "./Events.module.css";
 import {
 	AGENT_OF,
 	AGENTS,
+	AGENTS_OF_ALL,
 	DEFAULT_FILTERS,
 	actionsFor,
 	activeCount,
@@ -210,7 +212,7 @@ function FilterPanel({
 								<T id="npmos.events.agent" />
 							</div>
 							<div className={styles.options}>
-								{AGENTS.map((a) => (
+								{(filters.kind === "all" ? AGENTS_OF_ALL : AGENTS).map((a) => (
 									<label key={a}>
 										<input
 											type="checkbox"
@@ -696,31 +698,31 @@ function WafEventsPage() {
 								<thead>
 									<tr>
 										<th>
-											<T id="npmos.waf.events.time" />
+											<Label id="npmos.waf.events.time" />
 										</th>
 										<th>
-											<T id="npmos.events.agent" />
+											<Label id="npmos.events.agent" />
 										</th>
 										<th>
-											<T id="npmos.waf.events.severity" />
+											<Label id="npmos.waf.events.severity" />
 										</th>
 										<th>
-											<T id="npmos.waf.events.event" />
+											<Label id="npmos.waf.events.event" />
 										</th>
 										<th>
-											<T id="npmos.waf.events.action" />
+											<Label id="npmos.waf.events.action" />
 										</th>
 										<th>
-											<T id="npmos.events.score" />
+											<Label id="npmos.events.score" />
 										</th>
 										<th>
-											<T id="npmos.waf.events.source-ip" />
+											<Label id="npmos.waf.events.source-ip" />
 										</th>
 										<th>
-											<T id="npmos.waf.events.host" />
+											<Label id="npmos.waf.events.host" />
 										</th>
 										<th>
-											<T id="npmos.waf.events.request" />
+											<Label id="npmos.waf.events.request" />
 										</th>
 									</tr>
 								</thead>

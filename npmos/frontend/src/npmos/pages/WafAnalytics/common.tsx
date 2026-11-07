@@ -8,6 +8,7 @@ import { useSearchParams } from "react-router-dom";
 import { intl } from "src/locale";
 import type { AnalyticsPeriod, TopRow, TrafficFilters, TrafficTab } from "../../api";
 import { BarList } from "../../ui/Charts";
+import { InfoTip, infoOfNode } from "../../ui/InfoTip";
 import chartStyles from "../../ui/charts/charts.module.css";
 import { countryName, formatCount } from "../../ui/charts/format";
 import styles from "./Analytics.module.css";
@@ -87,10 +88,14 @@ export function Panel({
 	wide?: boolean;
 	action?: React.ReactNode;
 }) {
+	const info = infoOfNode(title);
 	return (
 		<section className={cn(styles.panel, wide && styles.wide)}>
 			<div className={styles.panelHead}>
-				<h3 className={styles.panelTitle}>{title}</h3>
+				<h3 className={styles.panelTitle}>
+					{title}
+					{info && <InfoTip id={info} />}
+				</h3>
 				{action}
 			</div>
 			{children}

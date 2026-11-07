@@ -46,6 +46,7 @@ import {
 	useWafStatus,
 } from "../../hooks";
 import { showConfirmModal } from "../../modals/ConfirmModal";
+import { InfoTip } from "../../ui/InfoTip";
 import { showHostHistoryModal } from "../../modals/HostHistoryModal";
 import { setHostBouncer, useCrowdsecHosts } from "../../crowdsec/api";
 import {
@@ -670,14 +671,21 @@ function HostsPage() {
 		const on = key && sort.key === key;
 		return (
 			<th key={column} aria-sort={on ? (sort.desc ? "descending" : "ascending") : undefined}>
-				{key ? (
-					<button type="button" className={cn(styles.sort, on && styles.sortOn)} onClick={() => setSort(key)}>
-						{label}
-						<span className={styles.sortArrow}>{on ? (sort.desc ? "↓" : "↑") : "↕"}</span>
-					</button>
-				) : (
-					label
-				)}
+				<span className={styles.headCell}>
+					{key ? (
+						<button
+							type="button"
+							className={cn(styles.sort, on && styles.sortOn)}
+							onClick={() => setSort(key)}
+						>
+							{label}
+							<span className={styles.sortArrow}>{on ? (sort.desc ? "↓" : "↑") : "↕"}</span>
+						</button>
+					) : (
+						label
+					)}
+					<InfoTip id={`npmos.hosts.info.${column}`} />
+				</span>
 			</th>
 		);
 	};

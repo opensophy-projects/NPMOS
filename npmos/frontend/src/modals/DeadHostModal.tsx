@@ -88,7 +88,8 @@ const DeadHostModal = EasyModal.create(({ id, isClone = false, visible, remove }
 	};
 
 	return (
-		<Modal show={visible} onHide={remove}>
+		// NPMOS: wide, so that the settings sit side by side instead of a long column
+		<Modal show={visible} onHide={remove} size="xl">
 			{!isLoading && error && (
 				<Alert variant="danger" className="m-3">
 					{error?.message || <T id="npmos.common.unknown-error" />}

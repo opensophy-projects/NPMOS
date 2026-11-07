@@ -91,7 +91,8 @@ const RedirectionHostModal = EasyModal.create(({ id, isClone = false, visible, r
 	};
 
 	return (
-		<Modal show={visible} onHide={remove}>
+		// NPMOS: wide, so that the settings sit side by side instead of a long column
+		<Modal show={visible} onHide={remove} size="xl">
 			{!isLoading && error && (
 				<Alert variant="danger" className="m-3">
 					{error?.message || <T id="npmos.common.unknown-error" />}
@@ -316,7 +317,7 @@ const RedirectionHostModal = EasyModal.create(({ id, isClone = false, visible, r
 													<h4 className="py-2">
 														<T id="options" />
 													</h4>
-													<div className="divide-y">
+													<div className="divide-y npmos-options-grid">
 														<div>
 															<label className="row" htmlFor="preservePath">
 																<span className="col">

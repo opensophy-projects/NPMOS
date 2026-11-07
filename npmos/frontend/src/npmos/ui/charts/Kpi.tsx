@@ -3,6 +3,7 @@
 import cn from "classnames";
 import type { ReactNode } from "react";
 import { intl } from "src/locale";
+import { InfoTip, infoOfNode } from "../InfoTip";
 import { Sparkline } from "./AreaChart";
 import styles from "./charts.module.css";
 import { formatChange } from "./format";
@@ -22,10 +23,14 @@ interface KpiProps {
 
 export function Kpi({ label, value, change, riseIsBad, series, color, hint, title }: KpiProps) {
 	const text = formatChange(change);
+	const info = infoOfNode(label);
 	const good = change !== null && change !== undefined && (riseIsBad ? change <= 0 : change >= 0);
 	return (
 		<div className={cn(styles.surface, styles.kpi)} title={title}>
-			<div className={styles.kpiLabel}>{label}</div>
+			<div className={styles.kpiLabel}>
+				{label}
+				{info && <InfoTip id={info} />}
+			</div>
 			<div className={styles.kpiValue}>
 				{value}
 				{text && <span className={cn(styles.change, good ? styles.up : styles.down)}>{text}</span>}

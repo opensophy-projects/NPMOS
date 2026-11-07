@@ -1508,6 +1508,9 @@
 	"npmos.common.warning": {
 		"defaultMessage": "Warning"
 	},
+	"npmos.common.what-is-it": {
+		"defaultMessage": "What is it?"
+	},
 	"npmos.crowdsec": {
 		"defaultMessage": "CrowdSec"
 	},
@@ -1606,6 +1609,18 @@
 	},
 	"npmos.crowdsec.ban.values.hint": {
 		"defaultMessage": "One per line, or separated by commas or spaces; up to 10,000."
+	},
+	"npmos.crowdsec.blocked.alerts": {
+		"defaultMessage": "Alerts of CrowdSec"
+	},
+	"npmos.crowdsec.blocked.decisions": {
+		"defaultMessage": "Decisions"
+	},
+	"npmos.crowdsec.blocked.network": {
+		"defaultMessage": "Network"
+	},
+	"npmos.crowdsec.blocked.requests": {
+		"defaultMessage": "Last requests"
 	},
 	"npmos.crowdsec.blocklist.add": {
 		"defaultMessage": "Add blocklist"
@@ -2414,8 +2429,14 @@
 	"npmos.events.agent.crowdsec": {
 		"defaultMessage": "CrowdSec"
 	},
+	"npmos.events.agent.info": {
+		"defaultMessage": "Who reported it: open-appsec (the WAF that inspects each request), CrowdSec (bans by behaviour seen in the logs), mTLS (a rejected client certificate) or nginx (a request from the request log)."
+	},
 	"npmos.events.agent.mtls": {
 		"defaultMessage": "mTLS"
+	},
+	"npmos.events.agent.nginx": {
+		"defaultMessage": "nginx (requests)"
 	},
 	"npmos.events.agent.open-appsec": {
 		"defaultMessage": "open-appsec"
@@ -2569,6 +2590,9 @@
 	},
 	"npmos.events.score": {
 		"defaultMessage": "Score"
+	},
+	"npmos.events.score.info": {
+		"defaultMessage": "Confidence of open-appsec that the request is an attack, from 0 to 10. From the threshold of the policy (usually 7–8) it blocks in prevention mode. Empty for other agents."
 	},
 	"npmos.events.score.max": {
 		"defaultMessage": "Score to"
@@ -2860,6 +2884,39 @@
 	},
 	"npmos.hosts.import.text": {
 		"defaultMessage": "{count, plural, one {# host} other {# hosts}} will be created from the file."
+	},
+	"npmos.hosts.info.access": {
+		"defaultMessage": "Who is let in: an access list (addresses and password) and the countries of geo-blocking."
+	},
+	"npmos.hosts.info.attacks": {
+		"defaultMessage": "Events of the protection for the host in the last 24 hours."
+	},
+	"npmos.hosts.info.changed": {
+		"defaultMessage": "When and by whom the host was changed last. A click shows the history."
+	},
+	"npmos.hosts.info.crowdsec": {
+		"defaultMessage": "Whether the bouncer of CrowdSec checks the clients of the host against bans."
+	},
+	"npmos.hosts.info.mtls": {
+		"defaultMessage": "Whether the host asks for a client certificate (mTLS) and from which CA."
+	},
+	"npmos.hosts.info.name": {
+		"defaultMessage": "The domains of the host. A click opens its settings."
+	},
+	"npmos.hosts.info.status": {
+		"defaultMessage": "Whether the host is on and nginx accepted its configuration, and whether your server answers."
+	},
+	"npmos.hosts.info.target": {
+		"defaultMessage": "Where the requests go: the address of your server or the address of the redirect."
+	},
+	"npmos.hosts.info.tls": {
+		"defaultMessage": "The certificate of the host, who issued it and until when it is valid."
+	},
+	"npmos.hosts.info.type": {
+		"defaultMessage": "Proxy — passes requests to your server, redirect — sends to another address, 404 — answers that there is no such page, stream — passes TCP/UDP."
+	},
+	"npmos.hosts.info.waf": {
+		"defaultMessage": "The mode of open-appsec for the host: prevention blocks attacks, detection only records them, off — no inspection."
 	},
 	"npmos.hosts.mtls.ca": {
 		"defaultMessage": "CA: {name}"
@@ -6536,29 +6593,53 @@
 	"npmos.traffic.attack-map": {
 		"defaultMessage": "Where attacks come from"
 	},
+	"npmos.traffic.attack-map.info": {
+		"defaultMessage": "Events of the protection by the country of the attacking address."
+	},
 	"npmos.traffic.attacks-over-time": {
 		"defaultMessage": "Attacks by security product"
+	},
+	"npmos.traffic.attacks-over-time.info": {
+		"defaultMessage": "Events of the protection in each interval: open-appsec blocked and detected, CrowdSec bans and alerts."
 	},
 	"npmos.traffic.by-cache": {
 		"defaultMessage": "Requests by cache status"
 	},
+	"npmos.traffic.by-cache.info": {
+		"defaultMessage": "Requests by the status of the cache of nginx. «None» — the host has no cache."
+	},
 	"npmos.traffic.by-protocol": {
 		"defaultMessage": "Requests by HTTP protocol"
+	},
+	"npmos.traffic.by-protocol.info": {
+		"defaultMessage": "Requests by the version of HTTP in each interval."
 	},
 	"npmos.traffic.by-status": {
 		"defaultMessage": "Requests by status code"
 	},
+	"npmos.traffic.by-status.info": {
+		"defaultMessage": "Requests by the class of the answer code: 2xx success, 3xx redirect, 4xx refused or not found, 5xx server error."
+	},
 	"npmos.traffic.bytes-cached-vs-uncached": {
 		"defaultMessage": "Data transfer: cached and uncached"
 	},
+	"npmos.traffic.bytes-cached-vs-uncached.info": {
+		"defaultMessage": "Data sent from the cache and from your servers, in each interval."
+	},
 	"npmos.traffic.bytes-over-time": {
 		"defaultMessage": "Data transfer"
+	},
+	"npmos.traffic.bytes-over-time.info": {
+		"defaultMessage": "Data sent to clients in each interval."
 	},
 	"npmos.traffic.cache.hint": {
 		"defaultMessage": "Cache statuses come from the nginx cache of the hosts that have caching turned on (host → Caching)."
 	},
 	"npmos.traffic.cached-vs-uncached": {
 		"defaultMessage": "Cached and uncached requests"
+	},
+	"npmos.traffic.cached-vs-uncached.info": {
+		"defaultMessage": "Requests answered from the cache and by your server, in each interval."
 	},
 	"npmos.traffic.client.bot": {
 		"defaultMessage": "Bots"
@@ -6599,6 +6680,9 @@
 	"npmos.traffic.devices-over-time": {
 		"defaultMessage": "Device types over time"
 	},
+	"npmos.traffic.devices-over-time.info": {
+		"defaultMessage": "Page views by the type of device in each interval."
+	},
 	"npmos.traffic.endpoints": {
 		"defaultMessage": "Endpoints"
 	},
@@ -6607,6 +6691,9 @@
 	},
 	"npmos.traffic.endpoints.host": {
 		"defaultMessage": "Host"
+	},
+	"npmos.traffic.endpoints.info": {
+		"defaultMessage": "Each path of each host with its number of requests, speed and errors of the server. Sort by a column to find the slow and failing ones."
 	},
 	"npmos.traffic.endpoints.path": {
 		"defaultMessage": "Path"
@@ -6649,6 +6736,9 @@
 	},
 	"npmos.traffic.filter.host": {
 		"defaultMessage": "Host"
+	},
+	"npmos.traffic.filter.host.info": {
+		"defaultMessage": "The domain the request was sent to. A domain that is not in Hosts is marked: such requests are answered by the default page."
 	},
 	"npmos.traffic.filter.ip": {
 		"defaultMessage": "IP address"
@@ -6707,6 +6797,9 @@
 	"npmos.traffic.filter.status": {
 		"defaultMessage": "Status"
 	},
+	"npmos.traffic.filter.status.info": {
+		"defaultMessage": "The code nginx answered with. 2xx — success, 3xx — redirect, 4xx — refused or not found (a refusal of the protection is 403/444), 5xx — an error of your server or of the connection to it."
+	},
 	"npmos.traffic.filter.tls": {
 		"defaultMessage": "TLS version"
 	},
@@ -6721,6 +6814,9 @@
 	},
 	"npmos.traffic.geography": {
 		"defaultMessage": "Geography"
+	},
+	"npmos.traffic.geography.info": {
+		"defaultMessage": "Requests by the country of the client (GeoIP). A click on a country filters the page by it."
 	},
 	"npmos.traffic.host.none": {
 		"defaultMessage": "no name (IP address)"
@@ -6740,14 +6836,26 @@
 	"npmos.traffic.kpi.5xx-rate": {
 		"defaultMessage": "5xx error rate"
 	},
+	"npmos.traffic.kpi.5xx-rate.info": {
+		"defaultMessage": "The share of answers with a 5xx code: errors of your servers or no connection to them. Normally close to 0."
+	},
 	"npmos.traffic.kpi.appsec": {
 		"defaultMessage": "open-appsec events"
+	},
+	"npmos.traffic.kpi.appsec.info": {
+		"defaultMessage": "Events of open-appsec: attacks it blocked and those it only detected (hosts in detection mode)."
 	},
 	"npmos.traffic.kpi.bytes": {
 		"defaultMessage": "Data transfer"
 	},
+	"npmos.traffic.kpi.bytes.info": {
+		"defaultMessage": "How much was sent to clients in answers (bodies and headers)."
+	},
 	"npmos.traffic.kpi.cache-hit": {
 		"defaultMessage": "Cache hit rate"
+	},
+	"npmos.traffic.kpi.cache-hit.info": {
+		"defaultMessage": "The share of requests the cache of nginx answered without asking your server, of those that went through the cache."
 	},
 	"npmos.traffic.kpi.cache-off": {
 		"defaultMessage": "caching is not used"
@@ -6758,11 +6866,23 @@
 	"npmos.traffic.kpi.cached-bytes": {
 		"defaultMessage": "Data from cache"
 	},
+	"npmos.traffic.kpi.cached-bytes.info": {
+		"defaultMessage": "How much of the sent data came from the cache."
+	},
+	"npmos.traffic.kpi.cached.info": {
+		"defaultMessage": "Requests answered from the cache of nginx (HIT, STALE and the like)."
+	},
 	"npmos.traffic.kpi.connection": {
 		"defaultMessage": "Connection success"
 	},
+	"npmos.traffic.kpi.connection.info": {
+		"defaultMessage": "The share of connections to your servers that were established."
+	},
 	"npmos.traffic.kpi.crowdsec": {
 		"defaultMessage": "CrowdSec alerts and bans"
+	},
+	"npmos.traffic.kpi.crowdsec.info": {
+		"defaultMessage": "Alerts of CrowdSec scenarios and the bans and captchas it gave."
 	},
 	"npmos.traffic.kpi.mitigated": {
 		"defaultMessage": "Refused requests"
@@ -6770,47 +6890,95 @@
 	"npmos.traffic.kpi.mitigated-rate": {
 		"defaultMessage": "Refused share"
 	},
+	"npmos.traffic.kpi.mitigated-rate.info": {
+		"defaultMessage": "Refused requests out of all requests."
+	},
+	"npmos.traffic.kpi.mitigated.info": {
+		"defaultMessage": "Requests that did not reach your servers: refused by open-appsec, CrowdSec, geo-blocking, an access list, a limit, or answered with 4xx by nginx itself (broken requests, unknown methods, a 404 host)."
+	},
 	"npmos.traffic.kpi.origin-bytes": {
 		"defaultMessage": "Data from origins"
+	},
+	"npmos.traffic.kpi.origin-bytes.info": {
+		"defaultMessage": "How much your servers sent to nginx."
 	},
 	"npmos.traffic.kpi.origin-errors": {
 		"defaultMessage": "Origin error rate"
 	},
+	"npmos.traffic.kpi.origin-errors.info": {
+		"defaultMessage": "Answers of your servers with a 5xx code."
+	},
 	"npmos.traffic.kpi.origin-p50": {
 		"defaultMessage": "Origin response (p50)"
+	},
+	"npmos.traffic.kpi.origin-p50.info": {
+		"defaultMessage": "Half of the requests to your servers were answered faster than this: the usual speed of the server."
 	},
 	"npmos.traffic.kpi.origin-p95": {
 		"defaultMessage": "Origin response (p95)"
 	},
+	"npmos.traffic.kpi.origin-p95.info": {
+		"defaultMessage": "95% of the requests to your servers were answered faster than this: how slow the slow ones are."
+	},
 	"npmos.traffic.kpi.pageviews": {
 		"defaultMessage": "Page views"
+	},
+	"npmos.traffic.kpi.pageviews.info": {
+		"defaultMessage": "Pages (HTML) people opened without an error. Files, images and API calls are not counted, nor are bots and scanners."
 	},
 	"npmos.traffic.kpi.rate-limited": {
 		"defaultMessage": "Rate limited"
 	},
+	"npmos.traffic.kpi.rate-limited.info": {
+		"defaultMessage": "Requests answered with 429: the client exceeded a limit of requests."
+	},
 	"npmos.traffic.kpi.reachability": {
 		"defaultMessage": "Origin reachability"
+	},
+	"npmos.traffic.kpi.reachability.info": {
+		"defaultMessage": "The share of requests to your servers that got an answer: no connection error or timeout."
 	},
 	"npmos.traffic.kpi.requests": {
 		"defaultMessage": "Total requests"
 	},
+	"npmos.traffic.kpi.requests.info": {
+		"defaultMessage": "All requests nginx received for the period, people, bots and scanners, including refused. The percent is the change against the previous period of the same length."
+	},
 	"npmos.traffic.kpi.saved": {
 		"defaultMessage": "Bandwidth saved"
+	},
+	"npmos.traffic.kpi.saved.info": {
+		"defaultMessage": "The share of the sent data your servers did not have to send thanks to the cache."
 	},
 	"npmos.traffic.kpi.to-origin": {
 		"defaultMessage": "Requests to origins"
 	},
+	"npmos.traffic.kpi.to-origin.info": {
+		"defaultMessage": "Requests nginx passed to your servers (proxy hosts). Refused requests, redirects and answers from the cache are not here."
+	},
 	"npmos.traffic.kpi.total-p50": {
 		"defaultMessage": "Full answer (p50)"
+	},
+	"npmos.traffic.kpi.total-p50.info": {
+		"defaultMessage": "The usual time of the whole answer: your server plus the network to the client."
 	},
 	"npmos.traffic.kpi.total-p95": {
 		"defaultMessage": "Full answer (p95)"
 	},
+	"npmos.traffic.kpi.total-p95.info": {
+		"defaultMessage": "The whole answer for 95% of requests was faster than this."
+	},
 	"npmos.traffic.kpi.uncached": {
 		"defaultMessage": "Uncached requests"
 	},
+	"npmos.traffic.kpi.uncached.info": {
+		"defaultMessage": "Requests that went through the cache but were answered by your server (MISS, BYPASS, EXPIRED)."
+	},
 	"npmos.traffic.kpi.visits": {
 		"defaultMessage": "Visits"
+	},
+	"npmos.traffic.kpi.visits.info": {
+		"defaultMessage": "Page views of people that came from another site or directly, not by a link of the same site: close to the number of times someone opened the site."
 	},
 	"npmos.traffic.log": {
 		"defaultMessage": "Requests"
@@ -6818,11 +6986,17 @@
 	"npmos.traffic.log.agent": {
 		"defaultMessage": "Client software"
 	},
+	"npmos.traffic.log.agent.info": {
+		"defaultMessage": "The User-Agent: the browser and the system it names, or the bot."
+	},
 	"npmos.traffic.log.client": {
 		"defaultMessage": "Source"
 	},
 	"npmos.traffic.log.client-section": {
 		"defaultMessage": "Client"
+	},
+	"npmos.traffic.log.client.info": {
+		"defaultMessage": "The address of the client, its country by GeoIP and who it is: a person, a bot that names itself or a scanner."
 	},
 	"npmos.traffic.log.description": {
 		"defaultMessage": "Every request to the hosts, newest first, including requests to domains that point here but are not in Hosts. Click a row for its details, a host or an address to filter by it."
@@ -6832,6 +7006,9 @@
 	},
 	"npmos.traffic.log.duration-ms": {
 		"defaultMessage": "Response time, ms"
+	},
+	"npmos.traffic.log.duration.info": {
+		"defaultMessage": "From the first byte of the request to the last byte of the answer: your server and the network to the client together."
 	},
 	"npmos.traffic.log.empty": {
 		"defaultMessage": "No requests for this period and filters."
@@ -6860,6 +7037,9 @@
 	"npmos.traffic.log.request": {
 		"defaultMessage": "Request"
 	},
+	"npmos.traffic.log.request.info": {
+		"defaultMessage": "The method, the path and the version of HTTP."
+	},
 	"npmos.traffic.log.search": {
 		"defaultMessage": "Search by host, path, IP, client or referer"
 	},
@@ -6869,8 +7049,14 @@
 	"npmos.traffic.log.size-kb": {
 		"defaultMessage": "Response size, KB"
 	},
+	"npmos.traffic.log.size.info": {
+		"defaultMessage": "How many bytes were sent to the client in the answer."
+	},
 	"npmos.traffic.log.time": {
 		"defaultMessage": "Time"
+	},
+	"npmos.traffic.log.time.info": {
+		"defaultMessage": "When nginx answered the request, in the time zone of your browser."
 	},
 	"npmos.traffic.log.to": {
 		"defaultMessage": "to"
@@ -6880,6 +7066,9 @@
 	},
 	"npmos.traffic.log.total-capped": {
 		"defaultMessage": "More than {total} requests"
+	},
+	"npmos.traffic.log.total-short": {
+		"defaultMessage": "Requests in 24 h"
 	},
 	"npmos.traffic.log.values-hint": {
 		"defaultMessage": "Several values: Enter after each one."
@@ -6905,6 +7094,9 @@
 	"npmos.traffic.mitigations-by-answer": {
 		"defaultMessage": "Refusals by answer"
 	},
+	"npmos.traffic.mitigations-by-answer.info": {
+		"defaultMessage": "Refused requests by the code nginx answered with: 403 — refused by the protection, 444 — the connection was closed without an answer, 429 — a limit, 400/405 and other 4xx — nginx refused itself."
+	},
 	"npmos.traffic.no-attacks": {
 		"defaultMessage": "No attacks in this period."
 	},
@@ -6917,26 +7109,50 @@
 	"npmos.traffic.origin-breakdown": {
 		"defaultMessage": "Origin connection breakdown"
 	},
+	"npmos.traffic.origin-breakdown.info": {
+		"defaultMessage": "What the answer time is made of: connecting to the server, waiting for the headers, receiving the body."
+	},
 	"npmos.traffic.origin-outcomes": {
 		"defaultMessage": "Origin connection outcomes"
+	},
+	"npmos.traffic.origin-outcomes.info": {
+		"defaultMessage": "Connections to your servers: answered, an error of connection, a timeout."
 	},
 	"npmos.traffic.origin-percentiles": {
 		"defaultMessage": "Origin response time percentiles"
 	},
+	"npmos.traffic.origin-percentiles.info": {
+		"defaultMessage": "How long your servers took to answer: p50 is the usual time, p95 and p99 are the slow requests. A rising p95 with a flat p50 — some requests got slow."
+	},
 	"npmos.traffic.origin-requests": {
 		"defaultMessage": "Requests to origins over time"
+	},
+	"npmos.traffic.origin-requests.info": {
+		"defaultMessage": "Requests nginx passed to your servers, in each interval."
 	},
 	"npmos.traffic.origin-statuses": {
 		"defaultMessage": "Origin status codes over time"
 	},
+	"npmos.traffic.origin-statuses.info": {
+		"defaultMessage": "Answer codes of your servers in each interval (not those of nginx)."
+	},
 	"npmos.traffic.outcomes-over-time": {
 		"defaultMessage": "Request outcomes over time"
+	},
+	"npmos.traffic.outcomes-over-time.info": {
+		"defaultMessage": "Requests that passed to your servers and those refused (by the protection or by nginx itself), in each interval."
 	},
 	"npmos.traffic.pageviews-by-country": {
 		"defaultMessage": "Page views by country"
 	},
+	"npmos.traffic.pageviews-by-country.info": {
+		"defaultMessage": "Page views of people by the country of the client."
+	},
 	"npmos.traffic.pageviews-over-time": {
 		"defaultMessage": "Page views over time"
+	},
+	"npmos.traffic.pageviews-over-time.info": {
+		"defaultMessage": "Page views in each interval. The colours split them into people, bots and scanners; the number on the card counts people only."
 	},
 	"npmos.traffic.product.appsec-detect": {
 		"defaultMessage": "open-appsec: detected"
@@ -6962,8 +7178,14 @@
 	"npmos.traffic.requests-over-time": {
 		"defaultMessage": "Requests over time"
 	},
+	"npmos.traffic.requests-over-time.info": {
+		"defaultMessage": "All requests in each interval of the period. Hover a point to see the numbers."
+	},
 	"npmos.traffic.security-actions": {
 		"defaultMessage": "Security actions"
+	},
+	"npmos.traffic.security-actions.info": {
+		"defaultMessage": "What the protection did, by the number of events."
 	},
 	"npmos.traffic.series.attacks": {
 		"defaultMessage": "Attacks"
@@ -7028,53 +7250,104 @@
 	"npmos.traffic.top.agents": {
 		"defaultMessage": "Top user agents"
 	},
+	"npmos.traffic.top.agents.info": {
+		"defaultMessage": "The most frequent User-Agent strings as the clients sent them."
+	},
 	"npmos.traffic.top.attack-paths": {
 		"defaultMessage": "Top attacked paths"
+	},
+	"npmos.traffic.top.attack-paths.info": {
+		"defaultMessage": "The paths attacked most often."
 	},
 	"npmos.traffic.top.attack-sources": {
 		"defaultMessage": "Top attack sources"
 	},
+	"npmos.traffic.top.attack-sources.info": {
+		"defaultMessage": "The addresses with the most protection events. A click filters by the address."
+	},
 	"npmos.traffic.top.attack-types": {
 		"defaultMessage": "Top attack types"
+	},
+	"npmos.traffic.top.attack-types.info": {
+		"defaultMessage": "The most frequent types of attacks (open-appsec) and scenarios (CrowdSec)."
 	},
 	"npmos.traffic.top.browsers": {
 		"defaultMessage": "Top browsers"
 	},
+	"npmos.traffic.top.browsers.info": {
+		"defaultMessage": "Browsers by their User-Agent."
+	},
 	"npmos.traffic.top.cache-statuses": {
 		"defaultMessage": "Top cache statuses"
+	},
+	"npmos.traffic.top.cache-statuses.info": {
+		"defaultMessage": "Statuses of the cache: HIT — from the cache, MISS — not in it yet, EXPIRED — outdated, BYPASS — the cache was skipped, STALE — an old copy while the server is unavailable."
 	},
 	"npmos.traffic.top.cached-paths": {
 		"defaultMessage": "Top cached paths"
 	},
+	"npmos.traffic.top.cached-paths.info": {
+		"defaultMessage": "The paths answered from the cache most often."
+	},
 	"npmos.traffic.top.cached-types": {
 		"defaultMessage": "Top cached content types"
+	},
+	"npmos.traffic.top.cached-types.info": {
+		"defaultMessage": "Types of content (Content-Type) answered from the cache."
 	},
 	"npmos.traffic.top.devices": {
 		"defaultMessage": "Top device types"
 	},
+	"npmos.traffic.top.devices.info": {
+		"defaultMessage": "Desktop, phone, tablet or bot, by the User-Agent."
+	},
 	"npmos.traffic.top.hosts": {
 		"defaultMessage": "Top hosts"
+	},
+	"npmos.traffic.top.hosts.info": {
+		"defaultMessage": "The domains that got the most requests."
 	},
 	"npmos.traffic.top.ips": {
 		"defaultMessage": "Top client IPs"
 	},
+	"npmos.traffic.top.ips.info": {
+		"defaultMessage": "The client addresses that sent the most requests. A click filters by the address."
+	},
 	"npmos.traffic.top.mitigated-ips": {
 		"defaultMessage": "Top refused client IPs"
+	},
+	"npmos.traffic.top.mitigated-ips.info": {
+		"defaultMessage": "The addresses with the most refused requests."
 	},
 	"npmos.traffic.top.mitigated-paths": {
 		"defaultMessage": "Top refused paths"
 	},
+	"npmos.traffic.top.mitigated-paths.info": {
+		"defaultMessage": "The paths of refused requests."
+	},
 	"npmos.traffic.top.origin-paths": {
 		"defaultMessage": "Top paths by origin requests"
+	},
+	"npmos.traffic.top.origin-paths.info": {
+		"defaultMessage": "The paths with the most requests to your servers."
 	},
 	"npmos.traffic.top.origin-statuses": {
 		"defaultMessage": "Top origin status codes"
 	},
+	"npmos.traffic.top.origin-statuses.info": {
+		"defaultMessage": "The most frequent answer codes of your servers."
+	},
 	"npmos.traffic.top.origins": {
 		"defaultMessage": "Top origin addresses"
 	},
+	"npmos.traffic.top.origins.info": {
+		"defaultMessage": "The addresses of your servers (upstreams) nginx sent requests to."
+	},
 	"npmos.traffic.top.os": {
 		"defaultMessage": "Top operating systems"
+	},
+	"npmos.traffic.top.os.info": {
+		"defaultMessage": "Operating systems by the User-Agent."
 	},
 	"npmos.traffic.top.paths": {
 		"defaultMessage": "Top paths"
@@ -7082,26 +7355,53 @@
 	"npmos.traffic.top.paths-bytes": {
 		"defaultMessage": "Top paths by data transfer"
 	},
+	"npmos.traffic.top.paths-bytes.info": {
+		"defaultMessage": "The paths that sent the most data: large files, video, backups."
+	},
+	"npmos.traffic.top.paths.info": {
+		"defaultMessage": "The paths asked for most often. A click filters the page by the path."
+	},
 	"npmos.traffic.top.protocols": {
 		"defaultMessage": "Top HTTP versions"
+	},
+	"npmos.traffic.top.protocols.info": {
+		"defaultMessage": "Versions of HTTP the clients used."
 	},
 	"npmos.traffic.top.referers": {
 		"defaultMessage": "Top referring sites"
 	},
+	"npmos.traffic.top.referers.info": {
+		"defaultMessage": "The sites people came from by a link (the Referer header). Direct visits are not here."
+	},
 	"npmos.traffic.top.slow-paths": {
 		"defaultMessage": "Slowest paths (origin p95)"
+	},
+	"npmos.traffic.top.slow-paths.info": {
+		"defaultMessage": "The paths your servers answer slowest (p95 of the answer time)."
 	},
 	"npmos.traffic.top.statuses": {
 		"defaultMessage": "Top status codes"
 	},
+	"npmos.traffic.top.statuses.info": {
+		"defaultMessage": "The most frequent answer codes."
+	},
 	"npmos.traffic.top.tls": {
 		"defaultMessage": "TLS versions"
+	},
+	"npmos.traffic.top.tls.info": {
+		"defaultMessage": "Versions of TLS of the HTTPS connections. Old versions (1.0, 1.1) mean old clients or scanners."
 	},
 	"npmos.traffic.top.uncached-paths": {
 		"defaultMessage": "Top uncached paths"
 	},
+	"npmos.traffic.top.uncached-paths.info": {
+		"defaultMessage": "The paths that went to your server past the cache most often: candidates to cache."
+	},
 	"npmos.traffic.top.uncached-types": {
 		"defaultMessage": "Top uncached content types"
+	},
+	"npmos.traffic.top.uncached-types.info": {
+		"defaultMessage": "Types of content that went past the cache."
 	},
 	"npmos.traffic.unknown": {
 		"defaultMessage": "unknown"
@@ -7121,6 +7421,9 @@
 	"npmos.traffic.unknown-hosts.title": {
 		"defaultMessage": "{count} requests to domains that are not in Hosts"
 	},
+	"npmos.traffic.unknown-hosts.title.info": {
+		"defaultMessage": "Requests to domains that are not in Hosts: they are answered by the default page. Usually scanners walking addresses, or a DNS record pointing here by mistake."
+	},
 	"npmos.traffic.unsupported": {
 		"defaultMessage": "Traffic analytics needs PostgreSQL (the database of the NPMOS stack)."
 	},
@@ -7129,6 +7432,9 @@
 	},
 	"npmos.traffic.visits-over-time": {
 		"defaultMessage": "Visits over time"
+	},
+	"npmos.traffic.visits-over-time.info": {
+		"defaultMessage": "Visits in each interval, split into people, bots and scanners."
 	},
 	"npmos.user.password-hint": {
 		"defaultMessage": "At least 8 characters. The user can change it later in their profile."
@@ -7208,6 +7514,9 @@
 	"npmos.waf.events.action": {
 		"defaultMessage": "Action"
 	},
+	"npmos.waf.events.action.info": {
+		"defaultMessage": "What the protection did: blocked (the request did not reach your server), detected (it passed and was only recorded), a ban or captcha of CrowdSec."
+	},
 	"npmos.waf.events.component": {
 		"defaultMessage": "Agent component"
 	},
@@ -7217,11 +7526,17 @@
 	"npmos.waf.events.event": {
 		"defaultMessage": "Event"
 	},
+	"npmos.waf.events.event.info": {
+		"defaultMessage": "What happened: the type of attack or the scenario of CrowdSec, and its name."
+	},
 	"npmos.waf.events.follow": {
 		"defaultMessage": "Live"
 	},
 	"npmos.waf.events.host": {
 		"defaultMessage": "Host"
+	},
+	"npmos.waf.events.host.info": {
+		"defaultMessage": "The domain the request was sent to."
 	},
 	"npmos.waf.events.matched": {
 		"defaultMessage": "What the WAF matched"
@@ -7241,17 +7556,29 @@
 	"npmos.waf.events.request": {
 		"defaultMessage": "Request"
 	},
+	"npmos.waf.events.request.info": {
+		"defaultMessage": "The method and the path of the request. Open the event to see the parameter and the sample that triggered it."
+	},
 	"npmos.waf.events.search": {
 		"defaultMessage": "Search: IP, host, attack…"
 	},
 	"npmos.waf.events.severity": {
 		"defaultMessage": "Severity"
 	},
+	"npmos.waf.events.severity.info": {
+		"defaultMessage": "How dangerous the agent considers it: critical and high are attacks to look at, medium and low are suspicious, info is for the record."
+	},
 	"npmos.waf.events.source-ip": {
 		"defaultMessage": "Source IP"
 	},
+	"npmos.waf.events.source-ip.info": {
+		"defaultMessage": "The address of the client and its country by the GeoIP database. A click adds it to the filters."
+	},
 	"npmos.waf.events.time": {
 		"defaultMessage": "Time"
+	},
+	"npmos.waf.events.time.info": {
+		"defaultMessage": "When the agent saw the event, in the time zone of your browser."
 	},
 	"npmos.waf.events.unavailable": {
 		"defaultMessage": "The agent's log directory is not readable: is the open-appsec agent running?"
