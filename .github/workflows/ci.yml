@@ -192,15 +192,25 @@ jobs:
           NGINXIONS_VERSION: ${{ env.VERSION }}
           OUT: reports/dast
         run: scripts/test-dast.sh
+      # accepted risks of the images leave the SARIF of code scanning (docs/DEVSECOPS.md); the report keeps them
+      - name: accepted risks out of the SARIF of the images
+        if: always()
+        run: |
+          mkdir -p upload
+          for img in nginxions nginxions-openappsec; do
+            f="reports/images/trivy-$img.sarif"
+            [ -f "$f" ] && node scripts/sarif-accepted.mjs "trivy-$img" "$f" "upload/trivy-$img.sarif"
+          done
+          true
       - uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
-        if: always() && hashFiles('reports/images/trivy-nginxions.sarif') != ''
+        if: always() && hashFiles('upload/trivy-nginxions.sarif') != ''
         with:
-          sarif_file: reports/images/trivy-nginxions.sarif
+          sarif_file: upload/trivy-nginxions.sarif
           category: trivy-nginxions
       - uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
-        if: always() && hashFiles('reports/images/trivy-nginxions-openappsec.sarif') != ''
+        if: always() && hashFiles('upload/trivy-nginxions-openappsec.sarif') != ''
         with:
-          sarif_file: reports/images/trivy-nginxions-openappsec.sarif
+          sarif_file: upload/trivy-nginxions-openappsec.sarif
           category: trivy-nginxions-openappsec
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()

@@ -1,445 +1,466 @@
 {
-  "$comment": "Accepted risks: findings that do not fail the run (scripts/security-report.mjs). Each entry names the tool, the id of the finding (a CVE, a rule), optionally a part of its location, why it is accepted and until when (YYYY-MM-DD): after that date it fails the run again and must be looked at once more.",
-  "risks": [
-    {
-      "tool": "codeql-js",
-      "id": "js/regex-injection",
-      "where": "nginxions/backend/nginxions/pki/mtls.js",
-      "reason": "a regular expression for the certificate fields of mTLS rules is a feature the administrator writes (Hosts → mTLS); it is validated (one expression, at most 200 characters, no quotes or line breaks) and only the administrator can save it",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "codeql-js",
-      "id": "js/insufficient-password-hash",
-      "where": "nginxions/backend/nginxions/crowdsec/lapi.js",
-      "reason": "not a stored password hash: the id of the CrowdSec machine is derived from its random 256-bit password so that a new password is a new machine; the password itself is never stored hashed",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "trivy-nginxions",
-      "id": "private-key",
-      "where": "/app/schema/paths/nginx/certificates/certID/upload/post.json",
-      "reason": "the example of the API schema of NPMplus (upload of a custom certificate): a published sample key, not a key of NginxionS",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "codeql-js",
-      "id": "js/type-confusion-through-parameter-tampering",
-      "where": "nginxions/backend/nginxions/crowdsec/index.js",
-      "reason": "the value is checked with Buffer.isBuffer before its length is read (an upload or an OCSP request is a Buffer or is refused); CodeQL does not take Buffer.isBuffer for a type check",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "codeql-js",
-      "id": "js/type-confusion-through-parameter-tampering",
-      "where": "nginxions/backend/nginxions/geoip/index.js",
-      "reason": "the value is checked with Buffer.isBuffer before its length is read (an upload or an OCSP request is a Buffer or is refused); CodeQL does not take Buffer.isBuffer for a type check",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "codeql-js",
-      "id": "js/type-confusion-through-parameter-tampering",
-      "where": "nginxions/backend/nginxions/geoip/mmdb.js",
-      "reason": "the value is checked with Buffer.isBuffer before its length is read (an upload or an OCSP request is a Buffer or is refused); CodeQL does not take Buffer.isBuffer for a type check",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "codeql-js",
-      "id": "js/type-confusion-through-parameter-tampering",
-      "where": "nginxions/backend/nginxions/pki/index.js",
-      "reason": "the value is checked with Buffer.isBuffer before its length is read (an upload or an OCSP request is a Buffer or is refused); CodeQL does not take Buffer.isBuffer for a type check",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "codeql-js",
-      "id": "js/insecure-temporary-file",
-      "where": "nginxions/backend/nginxions/files.js",
-      "reason": "the temporary path comes from files.test.js (mkdtempSync, a private directory of the test); the product opens only its own files under /data",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "codeql-js",
-      "id": "js/remote-property-injection",
-      "where": "nginxions/backend/nginxions/geoip/mmdb.js",
-      "reason": "maps of an uploaded GeoIP database are objects without a prototype (Object.create(null)) and a key __proto__ is skipped: a key cannot reach a prototype",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "trivy-nginxions",
-      "id": "CVE-2025-47273",
-      "where": "setuptools 70.3.0",
-      "reason": "not installed: Trivy reads it from an SBOM file shipped inside the image (AnalyzedBy sbom); the setuptools of the image is 84.2.1 (/usr/local/lib/python3.14/site-packages)",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "testssl-ui",
-      "id": "cert_chain_of_trust",
-      "reason": "the certificate of the interface (port 81) is the self-signed one NPMplus makes at the first start; testssl judges its trust, not the TLS setup. The interface is meant to be opened through a proxy host with a certificate of its own (panel by domain). Protocols and ciphers of :81 pass",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "testssl-ui",
-      "id": "overall_grade",
-      "reason": "the certificate of the interface (port 81) is the self-signed one NPMplus makes at the first start; testssl judges its trust, not the TLS setup. The interface is meant to be opened through a proxy host with a certificate of its own (panel by domain). Protocols and ciphers of :81 pass",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "testssl-ui",
-      "id": "cert_subjectAltName",
-      "reason": "the certificate of the interface (port 81) is the self-signed one NPMplus makes at the first start; testssl judges its trust, not the TLS setup. The interface is meant to be opened through a proxy host with a certificate of its own (panel by domain). Protocols and ciphers of :81 pass",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "testssl-ui",
-      "id": "cert_trust",
-      "reason": "the certificate of the interface (port 81) is the self-signed one NPMplus makes at the first start; testssl judges its trust, not the TLS setup. The interface is meant to be opened through a proxy host with a certificate of its own (panel by domain). Protocols and ciphers of :81 pass",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "testssl-ui",
-      "id": "cert_extlifeSpan",
-      "reason": "the certificate of the interface (port 81) is the self-signed one NPMplus makes at the first start; testssl judges its trust, not the TLS setup. The interface is meant to be opened through a proxy host with a certificate of its own (panel by domain). Protocols and ciphers of :81 pass",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "testssl-ui",
-      "id": "cert_revocation",
-      "reason": "the certificate of the interface (port 81) is the self-signed one NPMplus makes at the first start; testssl judges its trust, not the TLS setup. The interface is meant to be opened through a proxy host with a certificate of its own (panel by domain). Protocols and ciphers of :81 pass",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "gixy",
-      "id": "ssl_ecdh_curve",
-      "reason": "nginx of NginxionS is built with AWS-LC, which knows X25519MLKEM768: the post-quantum group does not stop nginx (it starts in every test)",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "gixy",
-      "id": "weak_ssl_tls",
-      "reason": "gixy cannot resolve the cipher selectors of the configuration; testssl.sh checks the ciphers nginx really offers (dast.local:443) and finds none weak",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "codeql-js",
-      "id": "js/path-injection",
-      "where": "nginxions/backend/internal/nginx.js",
-      "reason": "the path of a host's configuration is built from a host type every caller passes as a constant (proxy_host, redirection_host, dead_host, stream, default) and the integer id of its database row; nothing of a request reaches it",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "codeql-js",
-      "id": "js/missing-rate-limiting",
-      "where": "nginxions/backend/routes/users.js",
-      "reason": "POST /api/users/:id/login (log in as another user) needs the JWT of an administrator with the permission to manage users; there is no secret to guess, the login itself (/api/tokens) is the endpoint that matters",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "codeql-js",
-      "id": "js/missing-rate-limiting",
-      "where": "nginxions/backend/routes/nginx/certificates.js",
-      "reason": "the download of a certificate needs the JWT of a user allowed to view certificates; no secret is guessed there",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "codeql-js",
-      "id": "js/clear-text-storage-of-sensitive-data",
-      "where": "nginxions/backend/routes/oidc.js",
-      "reason": "the cookie holds the session token itself, as every login does: signed, httpOnly, Secure, SameSite=Strict, __Host- prefix",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "codeql-js",
-      "id": "js/user-controlled-bypass",
-      "where": "nginxions/backend/models/token.js",
-      "reason": "the condition only rejects an empty token; every other token goes through jwt.verify with the public key",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "codeql-js",
-      "id": "js/user-controlled-bypass",
-      "where": "nginxions/backend/internal/2fa.js",
-      "reason": "the length of the code chooses how it is checked: 6 digits by TOTP, 8 characters against the bcrypt hashes of the backup codes; any other length is refused, both checks throw on a mismatch",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "codeql-js",
-      "id": "js/sensitive-get-query",
-      "where": "nginxions/backend/nginxions/routes.js",
-      "reason": "cert_id is the integer id of a certificate row in the URL path, not a certificate or a key: CodeQL takes any name with \"cert\" for secret data",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "codeql-js",
-      "id": "js/sensitive-get-query",
-      "where": "nginxions/backend/routes/nginx/certificates.js",
-      "reason": "certificate_id and expand are the id of a row and the names of related objects, not secrets: CodeQL takes any name with \"cert\" for secret data",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "codeql-js",
-      "id": "js/http-to-file-access",
-      "where": "nginxions/backend/internal/user.js",
-      "reason": "the Gravatar download: NginxionS fixes DISABLE_GRAVATAR=true (docs/ENV-INVENTORY.md), so the branch does not run; the file name is a sha256 and the extension one of png, jpeg, gif",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "codeql-js",
-      "id": "js/http-to-file-access",
-      "where": "nginxions/backend/nginxions/block-page.js",
-      "reason": "the block page is what the administrator configures (WAF -> Block page), rendered with escaping into its own fixed file",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "codeql-js",
-      "id": "js/http-to-file-access",
-      "where": "nginxions/backend/nginxions/acme-csr",
-      "reason": "a CSR the administrator uploads is stored for its certificate (a directory 0700 per certificate id) or checked by openssl in a private temporary directory",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "codeql-js",
-      "id": "js/http-to-file-access",
-      "where": "nginxions/backend/nginxions/acme.js",
-      "reason": "the log of a failed ACME request is written, with the secrets redacted, to its fixed file for \"Full log\"",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "codeql-js",
-      "id": "js/http-to-file-access",
-      "where": "nginxions/backend/nginxions/crowdsec/",
-      "reason": "a hub snapshot the administrator uploads, or hub files downloaded on the administrator's request: paths are checked by safeRel (normalized, no .., not absolute), archives may hold plain files only",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "codeql-js",
-      "id": "js/http-to-file-access",
-      "where": "nginxions/backend/nginxions/geoip/index.js",
-      "reason": "the GeoIP database the administrator uploads is checked by the reader before it replaces the file (a fixed path, written as .tmp and renamed)",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "codeql-js",
-      "id": "js/http-to-file-access",
-      "where": "nginxions/backend/nginxions/pki/openssl.js",
-      "reason": "inputs of openssl written as 0600 files of a private temporary directory, removed afterwards",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "codeql-js",
-      "id": "js/file-access-to-http",
-      "where": "nginxions/backend/nginxions/crowdsec/lapi.js",
-      "reason": "the credentials NginxionS reads from its secrets volume are sent to the local CrowdSec LAPI they belong to (internal network)",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "codeql-js",
-      "id": "js/file-access-to-http",
-      "where": "nginxions/backend/nginxions/control/client.js",
-      "reason": "the token of nginxions-control, read from the secrets volume, is sent to nginxions-control on 127.0.0.1 only",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "semgrep",
-      "id": "dockerfile.security.missing-user-entrypoint.missing-user-entrypoint",
-      "where": "deploy/openappsec/Dockerfile",
-      "reason": "the open-appsec agent runs its services as root (as upstream): its installers write /etc/cp, it shares IPC and /dev/shm with the nginx attachment, nginxions-control reaches the Docker socket; the container has no-new-privileges and only internal networks",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "kics",
-      "id": "d6355c88-1e8d-49e9-b2f2-f8a1ca12c75b",
-      "where": "deploy/compose.yaml",
-      "reason": "the Docker socket is for nginxions-control alone (System -> Services): a whitelist of operations on containers labelled nginxions.managed, a token, an audit log, 127.0.0.1 only; the container nginxions, which takes traffic from the internet, has no socket (CLAUDE.md, Security)",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "kics",
-      "id": "1c1325ff-831d-43a1-973e-839ae57dfcc0",
-      "where": "deploy/compose.yaml",
-      "reason": "the sensitive host path is the Docker socket of nginxions-control, see the finding Docker Socket Mounted In Container",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "kics",
-      "id": "fd54f200-402c-4333-a5a4-36ef6709af2f",
-      "where": "deploy/openappsec/Dockerfile",
-      "reason": "see the Semgrep finding missing-user-entrypoint: the agent runs as root as upstream does",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "kics",
-      "id": "fd54f200-402c-4333-a5a4-36ef6709af2f",
-      "where": "nginxions/Dockerfile",
-      "reason": "NPMplus starts as root and drops to PUID/PGID itself; NginxionS keeps PUID 0 for now (docs/ENV-INVENTORY.md) but runs the container with cap_drop ALL, two capabilities and no-new-privileges. A non-root PUID needs the start script to work without CHOWN/SETUID: open work, see docs/DEVSECOPS.md",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "kics",
-      "id": "fd54f200-402c-4333-a5a4-36ef6709af2f",
-      "where": "deploy/dev/Dockerfile",
-      "reason": "the development image (compose.dev.yaml), never published",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "kics",
-      "id": "9513a694-aa0d-41d8-be61-3271e056f36b",
-      "where": "deploy/openappsec/Dockerfile",
-      "reason": "ADD of a git repository at a full commit hash (sources.env): what KICS wants (curl in a RUN) would check less",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "kics",
-      "id": "4b410d24-1cbe-4430-a632-62c9a931cf1c",
-      "where": "deploy/openappsec/Dockerfile",
-      "reason": "ADD of a git repository at a full commit hash (sources.env), see Add Instead of Copy",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "kics",
-      "id": "ce76b7d0-9e77-464d-b86f-c5c48e03e22d",
-      "where": "deploy/compose.yaml",
-      "reason": "nginxions (nginx and the backend, the code that faces the internet) has cap_drop ALL; the others run images whose needs are not measured yet (postgres changes owners at init, the agent runs as root), all with no-new-privileges and the agent and CrowdSec on internal networks only",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "kics",
-      "id": "ce76b7d0-9e77-464d-b86f-c5c48e03e22d",
-      "where": "deploy/compose.dev.yaml",
-      "reason": "development stack, not for production",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "kics",
-      "id": "ce76b7d0-9e77-464d-b86f-c5c48e03e22d",
-      "where": "deploy/test/",
-      "reason": "test stacks of CI (closed network, DAST, training)",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "kics",
-      "id": "610e266e-6c12-4bca-9925-1ed0cd29742b",
-      "where": "deploy/compose.dev.yaml",
-      "reason": "development stack, not for production",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "kics",
-      "id": "610e266e-6c12-4bca-9925-1ed0cd29742b",
-      "where": "deploy/test/",
-      "reason": "test stacks of CI (closed network, DAST, training)",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "kics",
-      "id": "698ed579-b239-4f8f-a388-baa4bcb13ef8",
-      "where": "deploy/compose.yaml",
-      "reason": "nginxions has the HEALTHCHECK of its image, nginxions-init is a one-time job; the agent keeps its processes up itself (nginxions-openappsec.sh) and System -> Services shows their state",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "kics",
-      "id": "698ed579-b239-4f8f-a388-baa4bcb13ef8",
-      "where": "deploy/compose.dev.yaml",
-      "reason": "development stack, not for production",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "kics",
-      "id": "698ed579-b239-4f8f-a388-baa4bcb13ef8",
-      "where": "deploy/test/",
-      "reason": "test stacks of CI (closed network, DAST, training)",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "kics",
-      "id": "451d79dc-0588-476a-ad03-3c7f0320abb3",
-      "where": "deploy/compose.yaml",
-      "reason": "a reverse proxy publishes 80 and 443 for every client; the interface of the administrator (81) can be bound to an address with NGINXIONS_ADMIN_PORT",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "kics",
-      "id": "e36d8880-3f78-4546-b9a1-12f0745ca0d5",
-      "reason": "the global npm tools of the build stages come with the pinned Alpine image; the dependencies of NginxionS are installed with pnpm --frozen-lockfile",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "kics",
-      "id": "d3499f6d-1651-41bb-a9a7-de925fea487b",
-      "reason": "Alpine keeps only the current version of a package in its repositories: a pinned apk version breaks the build at the next security update. The base images are pinned by digest and Renovate raises them; the images are scanned (Trivy, Grype) before they are published",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "kics",
-      "id": "02d9c71f-3ee8-4986-9c27-1a20d0d19bfc",
-      "where": "nginxions/Dockerfile",
-      "reason": "the Python packages of certbot in the image of NPMplus; the image is scanned (Trivy, Grype) before it is published",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "kics",
-      "id": "b03a748a-542d-44f4-bb86-9199ab4fd2d5",
-      "reason": "no HEALTHCHECK in the agent image (its processes are kept up by nginxions-openappsec.sh) and in the development image",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "kics",
-      "id": "f4a6bcd3-e231-4acf-993c-aa027be50d2e",
-      "where": "nginxions/Dockerfile",
-      "reason": "style of the Dockerfile of NPMplus (cd inside one RUN), no security effect",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "kics",
-      "id": "9b6b0f38-92a2-41f9-b881-3a1083d99f1b",
-      "where": "nginxions/Dockerfile",
-      "reason": "information of KICS on a RUN of the Dockerfile of NPMplus, no security effect",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "kics",
-      "id": "8c978947-0ff6-485c-b0c2-0bfca6026466",
-      "reason": "volumes the services share by design (logs of nginx read by CrowdSec and the backend, the socket directory of the agent); each service mounts only its own subpath of the secrets volume",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "kics",
-      "id": "b16e8501-ef3c-44e1-a543-a093238099c9",
-      "where": "nginxions/Dockerfile",
-      "reason": "build stages that run on the build platform and produce files for every target platform (frontend, lego)",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "zizmor",
-      "id": "zizmor/self-repository",
-      "where": ".github/workflows/ci.yml",
-      "reason": "the reusable workflow security.yml of this repository called by its path, which pins it to the same commit",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "zizmor",
-      "id": "zizmor/adhoc-packages",
-      "where": ".github/workflows/security.yml",
-      "reason": "the coverage provider of vitest, installed in this job only, at the version of VITEST_COVERAGE_VERSION, so the lockfile of the frontend stays as shipped",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "scorecard",
-      "id": "FuzzingID",
-      "reason": "fuzzing through OSS-Fuzz or ClusterFuzzLite needs registering the project with an outside service; NginxionS registers nowhere",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "scorecard",
-      "id": "CIIBestPracticesID",
-      "reason": "the OpenSSF badge needs registering the project at bestpractices.dev; NginxionS registers nowhere",
-      "until": "2027-05-01"
-    },
-    {
-      "tool": "scorecard",
-      "id": "PinnedDependenciesID",
-      "reason": "what is not pinned by hash: packages of Alpine (only the current version exists, see KICS apk) and pip/npm in build stages; actions and base images are pinned by commit and digest",
-      "until": "2027-05-01"
-    }
-  ]
+	"$comment": "Accepted risks: findings that do not fail the run (scripts/security-report.mjs). Each entry names the tool, the id of the finding (a CVE, a rule), optionally a part of its location, why it is accepted and until when (YYYY-MM-DD): after that date it fails the run again and must be looked at once more.",
+	"risks": [
+		{
+			"tool": "codeql-js",
+			"id": "js/regex-injection",
+			"where": "nginxions/backend/nginxions/pki/mtls.js",
+			"reason": "a regular expression for the certificate fields of mTLS rules is a feature the administrator writes (Hosts → mTLS); it is validated (one expression, at most 200 characters, no quotes or line breaks) and only the administrator can save it",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "codeql-js",
+			"id": "js/insufficient-password-hash",
+			"where": "nginxions/backend/nginxions/crowdsec/lapi.js",
+			"reason": "not a stored password hash: the id of the CrowdSec machine is derived from its random 256-bit password so that a new password is a new machine; the password itself is never stored hashed",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "trivy-nginxions",
+			"id": "private-key",
+			"where": "/app/schema/paths/nginx/certificates/certID/upload/post.json",
+			"reason": "the example of the API schema of NPMplus (upload of a custom certificate): a published sample key, not a key of NginxionS",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "codeql-js",
+			"id": "js/type-confusion-through-parameter-tampering",
+			"where": "nginxions/backend/nginxions/crowdsec/index.js",
+			"reason": "the value is checked with Buffer.isBuffer before its length is read (an upload or an OCSP request is a Buffer or is refused); CodeQL does not take Buffer.isBuffer for a type check",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "codeql-js",
+			"id": "js/type-confusion-through-parameter-tampering",
+			"where": "nginxions/backend/nginxions/geoip/index.js",
+			"reason": "the value is checked with Buffer.isBuffer before its length is read (an upload or an OCSP request is a Buffer or is refused); CodeQL does not take Buffer.isBuffer for a type check",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "codeql-js",
+			"id": "js/type-confusion-through-parameter-tampering",
+			"where": "nginxions/backend/nginxions/geoip/mmdb.js",
+			"reason": "the value is checked with Buffer.isBuffer before its length is read (an upload or an OCSP request is a Buffer or is refused); CodeQL does not take Buffer.isBuffer for a type check",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "codeql-js",
+			"id": "js/type-confusion-through-parameter-tampering",
+			"where": "nginxions/backend/nginxions/pki/index.js",
+			"reason": "the value is checked with Buffer.isBuffer before its length is read (an upload or an OCSP request is a Buffer or is refused); CodeQL does not take Buffer.isBuffer for a type check",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "codeql-js",
+			"id": "js/insecure-temporary-file",
+			"where": "nginxions/backend/nginxions/files.js",
+			"reason": "the temporary path comes from files.test.js (mkdtempSync, a private directory of the test); the product opens only its own files under /data",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "codeql-js",
+			"id": "js/remote-property-injection",
+			"where": "nginxions/backend/nginxions/geoip/mmdb.js",
+			"reason": "maps of an uploaded GeoIP database are objects without a prototype (Object.create(null)) and a key __proto__ is skipped: a key cannot reach a prototype",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "trivy-nginxions",
+			"id": "CVE-2025-47273",
+			"where": "setuptools",
+			"reason": "not installed: pip ships an SBOM of its vendored code (pip/_vendor/bom.cdx.json) that names setuptools 70.3.0 as the source of its pkg_resources; the setuptools of the image is 84.2.1, and the flaw is in a part pkg_resources does not have (PackageIndex)",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "testssl-ui",
+			"id": "cert_chain_of_trust",
+			"reason": "the certificate of the interface (port 81) is the self-signed one NPMplus makes at the first start; testssl judges its trust, not the TLS setup. The interface is meant to be opened through a proxy host with a certificate of its own (panel by domain). Protocols and ciphers of :81 pass",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "testssl-ui",
+			"id": "overall_grade",
+			"reason": "the certificate of the interface (port 81) is the self-signed one NPMplus makes at the first start; testssl judges its trust, not the TLS setup. The interface is meant to be opened through a proxy host with a certificate of its own (panel by domain). Protocols and ciphers of :81 pass",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "testssl-ui",
+			"id": "cert_subjectAltName",
+			"reason": "the certificate of the interface (port 81) is the self-signed one NPMplus makes at the first start; testssl judges its trust, not the TLS setup. The interface is meant to be opened through a proxy host with a certificate of its own (panel by domain). Protocols and ciphers of :81 pass",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "testssl-ui",
+			"id": "cert_trust",
+			"reason": "the certificate of the interface (port 81) is the self-signed one NPMplus makes at the first start; testssl judges its trust, not the TLS setup. The interface is meant to be opened through a proxy host with a certificate of its own (panel by domain). Protocols and ciphers of :81 pass",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "testssl-ui",
+			"id": "cert_extlifeSpan",
+			"reason": "the certificate of the interface (port 81) is the self-signed one NPMplus makes at the first start; testssl judges its trust, not the TLS setup. The interface is meant to be opened through a proxy host with a certificate of its own (panel by domain). Protocols and ciphers of :81 pass",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "testssl-ui",
+			"id": "cert_revocation",
+			"reason": "the certificate of the interface (port 81) is the self-signed one NPMplus makes at the first start; testssl judges its trust, not the TLS setup. The interface is meant to be opened through a proxy host with a certificate of its own (panel by domain). Protocols and ciphers of :81 pass",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "gixy",
+			"id": "ssl_ecdh_curve",
+			"reason": "nginx of NginxionS is built with AWS-LC, which knows X25519MLKEM768: the post-quantum group does not stop nginx (it starts in every test)",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "gixy",
+			"id": "weak_ssl_tls",
+			"reason": "gixy cannot resolve the cipher selectors of the configuration; testssl.sh checks the ciphers nginx really offers (dast.local:443) and finds none weak",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "codeql-js",
+			"id": "js/path-injection",
+			"where": "nginxions/backend/internal/nginx.js",
+			"reason": "the path of a host's configuration is built from a host type every caller passes as a constant (proxy_host, redirection_host, dead_host, stream, default) and the integer id of its database row; nothing of a request reaches it",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "codeql-js",
+			"id": "js/missing-rate-limiting",
+			"where": "nginxions/backend/routes/users.js",
+			"reason": "POST /api/users/:id/login (log in as another user) needs the JWT of an administrator with the permission to manage users; there is no secret to guess, the login itself (/api/tokens) is the endpoint that matters",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "codeql-js",
+			"id": "js/missing-rate-limiting",
+			"where": "nginxions/backend/routes/nginx/certificates.js",
+			"reason": "the download of a certificate needs the JWT of a user allowed to view certificates; no secret is guessed there",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "codeql-js",
+			"id": "js/clear-text-storage-of-sensitive-data",
+			"where": "nginxions/backend/routes/oidc.js",
+			"reason": "the cookie holds the session token itself, as every login does: signed, httpOnly, Secure, SameSite=Strict, __Host- prefix",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "codeql-js",
+			"id": "js/user-controlled-bypass",
+			"where": "nginxions/backend/models/token.js",
+			"reason": "the condition only rejects an empty token; every other token goes through jwt.verify with the public key",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "codeql-js",
+			"id": "js/user-controlled-bypass",
+			"where": "nginxions/backend/internal/2fa.js",
+			"reason": "the length of the code chooses how it is checked: 6 digits by TOTP, 8 characters against the bcrypt hashes of the backup codes; any other length is refused, both checks throw on a mismatch",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "codeql-js",
+			"id": "js/sensitive-get-query",
+			"where": "nginxions/backend/nginxions/routes.js",
+			"reason": "cert_id is the integer id of a certificate row in the URL path, not a certificate or a key: CodeQL takes any name with \"cert\" for secret data",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "codeql-js",
+			"id": "js/sensitive-get-query",
+			"where": "nginxions/backend/routes/nginx/certificates.js",
+			"reason": "certificate_id and expand are the id of a row and the names of related objects, not secrets: CodeQL takes any name with \"cert\" for secret data",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "codeql-js",
+			"id": "js/http-to-file-access",
+			"where": "nginxions/backend/internal/user.js",
+			"reason": "the Gravatar download: NginxionS fixes DISABLE_GRAVATAR=true (docs/ENV-INVENTORY.md), so the branch does not run; the file name is a sha256 and the extension one of png, jpeg, gif",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "codeql-js",
+			"id": "js/http-to-file-access",
+			"where": "nginxions/backend/nginxions/block-page.js",
+			"reason": "the block page is what the administrator configures (WAF -> Block page), rendered with escaping into its own fixed file",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "codeql-js",
+			"id": "js/http-to-file-access",
+			"where": "nginxions/backend/nginxions/acme-csr",
+			"reason": "a CSR the administrator uploads is stored for its certificate (a directory 0700 per certificate id) or checked by openssl in a private temporary directory",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "codeql-js",
+			"id": "js/http-to-file-access",
+			"where": "nginxions/backend/nginxions/acme.js",
+			"reason": "the log of a failed ACME request is written, with the secrets redacted, to its fixed file for \"Full log\"",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "codeql-js",
+			"id": "js/http-to-file-access",
+			"where": "nginxions/backend/nginxions/crowdsec/",
+			"reason": "a hub snapshot the administrator uploads, or hub files downloaded on the administrator's request: paths are checked by safeRel (normalized, no .., not absolute), archives may hold plain files only",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "codeql-js",
+			"id": "js/http-to-file-access",
+			"where": "nginxions/backend/nginxions/geoip/index.js",
+			"reason": "the GeoIP database the administrator uploads is checked by the reader before it replaces the file (a fixed path, written as .tmp and renamed)",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "codeql-js",
+			"id": "js/http-to-file-access",
+			"where": "nginxions/backend/nginxions/pki/openssl.js",
+			"reason": "inputs of openssl written as 0600 files of a private temporary directory, removed afterwards",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "codeql-js",
+			"id": "js/file-access-to-http",
+			"where": "nginxions/backend/nginxions/crowdsec/lapi.js",
+			"reason": "the credentials NginxionS reads from its secrets volume are sent to the local CrowdSec LAPI they belong to (internal network)",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "codeql-js",
+			"id": "js/file-access-to-http",
+			"where": "nginxions/backend/nginxions/control/client.js",
+			"reason": "the token of nginxions-control, read from the secrets volume, is sent to nginxions-control on 127.0.0.1 only",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "semgrep",
+			"id": "dockerfile.security.missing-user-entrypoint.missing-user-entrypoint",
+			"where": "deploy/openappsec/Dockerfile",
+			"reason": "the open-appsec agent runs its services as root (as upstream): its installers write /etc/cp, it shares IPC and /dev/shm with the nginx attachment, nginxions-control reaches the Docker socket; the container has no-new-privileges and only internal networks",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "kics",
+			"id": "d6355c88-1e8d-49e9-b2f2-f8a1ca12c75b",
+			"where": "deploy/compose.yaml",
+			"reason": "the Docker socket is for nginxions-control alone (System -> Services): a whitelist of operations on containers labelled nginxions.managed, a token, an audit log, 127.0.0.1 only; the container nginxions, which takes traffic from the internet, has no socket (CLAUDE.md, Security)",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "kics",
+			"id": "1c1325ff-831d-43a1-973e-839ae57dfcc0",
+			"where": "deploy/compose.yaml",
+			"reason": "the sensitive host path is the Docker socket of nginxions-control, see the finding Docker Socket Mounted In Container",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "kics",
+			"id": "fd54f200-402c-4333-a5a4-36ef6709af2f",
+			"where": "deploy/openappsec/Dockerfile",
+			"reason": "see the Semgrep finding missing-user-entrypoint: the agent runs as root as upstream does",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "kics",
+			"id": "fd54f200-402c-4333-a5a4-36ef6709af2f",
+			"where": "nginxions/Dockerfile",
+			"reason": "NPMplus starts as root and drops to PUID/PGID itself; NginxionS keeps PUID 0 for now (docs/ENV-INVENTORY.md) but runs the container with cap_drop ALL, two capabilities and no-new-privileges. A non-root PUID needs the start script to work without CHOWN/SETUID: open work, see docs/DEVSECOPS.md",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "kics",
+			"id": "fd54f200-402c-4333-a5a4-36ef6709af2f",
+			"where": "deploy/dev/Dockerfile",
+			"reason": "the development image (compose.dev.yaml), never published",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "kics",
+			"id": "9513a694-aa0d-41d8-be61-3271e056f36b",
+			"where": "deploy/openappsec/Dockerfile",
+			"reason": "ADD of a git repository at a full commit hash (sources.env): what KICS wants (curl in a RUN) would check less",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "kics",
+			"id": "4b410d24-1cbe-4430-a632-62c9a931cf1c",
+			"where": "deploy/openappsec/Dockerfile",
+			"reason": "ADD of a git repository at a full commit hash (sources.env), see Add Instead of Copy",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "kics",
+			"id": "ce76b7d0-9e77-464d-b86f-c5c48e03e22d",
+			"where": "deploy/compose.yaml",
+			"reason": "nginxions (nginx and the backend, the code that faces the internet) has cap_drop ALL; the others run images whose needs are not measured yet (postgres changes owners at init, the agent runs as root), all with no-new-privileges and the agent and CrowdSec on internal networks only",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "kics",
+			"id": "ce76b7d0-9e77-464d-b86f-c5c48e03e22d",
+			"where": "deploy/compose.dev.yaml",
+			"reason": "development stack, not for production",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "kics",
+			"id": "ce76b7d0-9e77-464d-b86f-c5c48e03e22d",
+			"where": "deploy/test/",
+			"reason": "test stacks of CI (closed network, DAST, training)",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "kics",
+			"id": "610e266e-6c12-4bca-9925-1ed0cd29742b",
+			"where": "deploy/compose.dev.yaml",
+			"reason": "development stack, not for production",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "kics",
+			"id": "610e266e-6c12-4bca-9925-1ed0cd29742b",
+			"where": "deploy/test/",
+			"reason": "test stacks of CI (closed network, DAST, training)",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "kics",
+			"id": "698ed579-b239-4f8f-a388-baa4bcb13ef8",
+			"where": "deploy/compose.yaml",
+			"reason": "nginxions has the HEALTHCHECK of its image, nginxions-init is a one-time job; the agent keeps its processes up itself (nginxions-openappsec.sh) and System -> Services shows their state",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "kics",
+			"id": "698ed579-b239-4f8f-a388-baa4bcb13ef8",
+			"where": "deploy/compose.dev.yaml",
+			"reason": "development stack, not for production",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "kics",
+			"id": "698ed579-b239-4f8f-a388-baa4bcb13ef8",
+			"where": "deploy/test/",
+			"reason": "test stacks of CI (closed network, DAST, training)",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "kics",
+			"id": "451d79dc-0588-476a-ad03-3c7f0320abb3",
+			"where": "deploy/compose.yaml",
+			"reason": "a reverse proxy publishes 80 and 443 for every client; the interface of the administrator (81) can be bound to an address with NGINXIONS_ADMIN_PORT",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "kics",
+			"id": "e36d8880-3f78-4546-b9a1-12f0745ca0d5",
+			"reason": "the global npm tools of the build stages come with the pinned Alpine image; the dependencies of NginxionS are installed with pnpm --frozen-lockfile",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "kics",
+			"id": "d3499f6d-1651-41bb-a9a7-de925fea487b",
+			"reason": "Alpine keeps only the current version of a package in its repositories: a pinned apk version breaks the build at the next security update. The base images are pinned by digest and Renovate raises them; the images are scanned (Trivy, Grype) before they are published",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "kics",
+			"id": "02d9c71f-3ee8-4986-9c27-1a20d0d19bfc",
+			"where": "nginxions/Dockerfile",
+			"reason": "the Python packages of certbot in the image of NPMplus; the image is scanned (Trivy, Grype) before it is published",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "kics",
+			"id": "b03a748a-542d-44f4-bb86-9199ab4fd2d5",
+			"reason": "no HEALTHCHECK in the agent image (its processes are kept up by nginxions-openappsec.sh) and in the development image",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "kics",
+			"id": "f4a6bcd3-e231-4acf-993c-aa027be50d2e",
+			"where": "nginxions/Dockerfile",
+			"reason": "style of the Dockerfile of NPMplus (cd inside one RUN), no security effect",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "kics",
+			"id": "9b6b0f38-92a2-41f9-b881-3a1083d99f1b",
+			"where": "nginxions/Dockerfile",
+			"reason": "information of KICS on a RUN of the Dockerfile of NPMplus, no security effect",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "kics",
+			"id": "8c978947-0ff6-485c-b0c2-0bfca6026466",
+			"reason": "volumes the services share by design (logs of nginx read by CrowdSec and the backend, the socket directory of the agent); each service mounts only its own subpath of the secrets volume",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "kics",
+			"id": "b16e8501-ef3c-44e1-a543-a093238099c9",
+			"where": "nginxions/Dockerfile",
+			"reason": "build stages that run on the build platform and produce files for every target platform (frontend, lego)",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "zizmor",
+			"id": "zizmor/self-repository",
+			"where": ".github/workflows/ci.yml",
+			"reason": "the reusable workflow security.yml of this repository called by its path, which pins it to the same commit",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "zizmor",
+			"id": "zizmor/adhoc-packages",
+			"where": ".github/workflows/security.yml",
+			"reason": "the coverage provider of vitest, installed in this job only, at the version of VITEST_COVERAGE_VERSION, so the lockfile of the frontend stays as shipped",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "scorecard",
+			"id": "FuzzingID",
+			"reason": "fuzzing through OSS-Fuzz or ClusterFuzzLite needs registering the project with an outside service; NginxionS registers nowhere",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "scorecard",
+			"id": "CIIBestPracticesID",
+			"reason": "the OpenSSF badge needs registering the project at bestpractices.dev; NginxionS registers nowhere",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "scorecard",
+			"id": "PinnedDependenciesID",
+			"reason": "what is not pinned by hash: packages of Alpine (only the current version exists, see KICS apk) and pip/npm in build stages; actions and base images are pinned by commit and digest",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "trivy-nginxions",
+			"id": "CVE-2026-59890",
+			"where": "setuptools",
+			"reason": "not installed: pip ships an SBOM of its vendored code (pip/_vendor/bom.cdx.json) that names setuptools 70.3.0 as the source of its pkg_resources; the setuptools of the image is 84.2.1, and the flaw is in a part pkg_resources does not have (sdist and MANIFEST.in)",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "trivy-nginxions",
+			"id": "GHSA-xmj3-9gf7-h52w",
+			"where": "setuptools",
+			"reason": "not installed: pip ships an SBOM of its vendored code (pip/_vendor/bom.cdx.json) that names setuptools 70.3.0 as the source of its pkg_resources; the setuptools of the image is 84.2.1, and the flaw is in a part pkg_resources does not have (install of legacy wheels on Windows)",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "trivy-nginxions",
+			"id": "sendgrid-api-token",
+			"where": "/app/frontend/assets/index-",
+			"reason": "not a token: the list of country codes of the flag icons, joined with dots (…SE.SG.SH.SI.SJ…), matches the SendGrid pattern of Trivy (SG. and 66 characters with dots)",
+			"until": "2027-05-01"
+		}
+	]
 }
