@@ -42,6 +42,14 @@ const router = express.Router({
 	mergeParams: true,
 });
 
+/**
+ * The bytes of a raw request body (express.raw) as a new Buffer over the same memory, or null when the body is
+ * not bytes. Handlers get this, never req.body itself: a parser could leave a string or an object there.
+ * @param {import("express").Request} req
+ */
+const rawBytes = (req) =>
+	Buffer.isBuffer(req.body) ? Buffer.from(req.body.buffer, req.body.byteOffset, req.body.length) : null;
+
 const SERVICE_NAME = /^[a-z0-9][a-z0-9_.-]{0,63}$/;
 
 /**
@@ -792,7 +800,7 @@ router
 	.post(
 		express.raw({ type: () => true, limit: "200mb" }),
 		handle(async (req, res) => {
-			const result = await internalGeoip.upload(res.locals.access, Buffer.isBuffer(req.body) ? req.body : null);
+			const result = await internalGeoip.upload(res.locals.access, rawBytes(req));
 			// nginx tells the countries of the hosts with the same database
 			await writeGeoConf();
 			return result;
@@ -2133,9 +2141,7 @@ const ocspAnswer = async (res, caId, der) => {
 };
 router.post("/pki/public/ocsp/:ca", express.raw({ type: () => true, limit: "16kb" }), async (req, res, next) => {
 	try {
-		// a copy of the bytes: what the parser left in req.body is never used as is (a string or an array of a
-		// tampered request cannot reach the responder)
-		await ocspAnswer(res, req.params.ca, Buffer.isBuffer(req.body) ? Buffer.copyBytesFrom(req.body) : null);
+		await ocspAnswer(res, req.params.ca, rawBytes(req));
 	} catch (err) {
 		next(err);
 	}
@@ -2539,9 +2545,7 @@ router
 	.all(jwtdecode())
 	.post(
 		express.raw({ type: () => true, limit: "200mb" }),
-		handle((req, res) =>
-			internalCrowdsec.hubUpload(res.locals.access, Buffer.isBuffer(req.body) ? req.body : null),
-		),
+		handle((req, res) => internalCrowdsec.hubUpload(res.locals.access, rawBytes(req))),
 	);
 
 const blocklistProperties = {

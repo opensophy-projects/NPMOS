@@ -29,6 +29,9 @@ services:
     image: ${NPMOS_REGISTRY}/npmos:${NPMOS_VERSION}
     restart: "no"
     network_mode: none
+    # no process gains privileges it did not start with (setuid binaries, file capabilities)
+    security_opt:
+      - no-new-privileges:true
     entrypoint: ["/bin/sh", "/npmos-init.sh"]
     volumes:
       - ./init/npmos-init.sh:/npmos-init.sh:ro
@@ -49,6 +52,9 @@ services:
     <<: *managed
     image: ${NPMOS_REGISTRY}/npmos-openappsec:${NPMOS_VERSION}
     container_name: npmos-openappsec
+    # no process gains privileges it did not start with (setuid binaries, file capabilities)
+    security_opt:
+      - no-new-privileges:true
     depends_on:
       npmos-init:
         condition: service_completed_successfully
@@ -184,6 +190,9 @@ services:
     <<: *managed
     image: docker.io/library/postgres:${POSTGRES_VERSION}
     container_name: npmos-postgres
+    # no process gains privileges it did not start with (setuid binaries, file capabilities)
+    security_opt:
+      - no-new-privileges:true
     depends_on:
       npmos-init:
         condition: service_completed_successfully
@@ -212,6 +221,9 @@ services:
     # official image; config and data volumes are seeded by npmos-init from the offline hub snapshot
     image: docker.io/crowdsecurity/crowdsec:${CROWDSEC_VERSION}
     container_name: npmos-crowdsec
+    # no process gains privileges it did not start with (setuid binaries, file capabilities)
+    security_opt:
+      - no-new-privileges:true
     depends_on:
       npmos-init:
         condition: service_completed_successfully
@@ -222,6 +234,13 @@ services:
       # Hub items come from the seeded snapshot; a failed hub update at start is tolerated by the image.
       DISABLE_ONLINE_API: "true"
       NO_HUB_UPGRADE: "true"
+    # the image has none: healthy once its Local API answers (System -> Services shows the state)
+    healthcheck:
+      test: ["CMD", "cscli", "lapi", "status"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
     volumes:
       - crowdsec-conf:/etc/crowdsec
       - crowdsec-data:/var/lib/crowdsec/data

@@ -1,3 +1,5 @@
+import { rm } from "node:fs/promises"; // NPMOS: removes the zip of a download
+import path from "node:path"; // NPMOS
 import express from "express";
 import dnsPlugins from "../../certbot/dns-plugins.json" with { type: "json" };
 import internalCertificate from "../../internal/certificate.js";
@@ -329,7 +331,10 @@ router
 			const result = await internalCertificate.download(res.locals.access, {
 				id: Number.parseInt(req.params.certificate_id, 10),
 			});
-			res.status(200).download(result.fileName);
+			// NPMOS: the zip (with the private key) and its directory are removed once sent
+			res.status(200).download(result.fileName, () => {
+				rm(path.dirname(result.fileName), { recursive: true, force: true }).catch(() => {});
+			});
 		} catch (err) {
 			debug(logger, `${req.method.toUpperCase()} ${req.originalUrl}: ${err}`);
 			next(err);

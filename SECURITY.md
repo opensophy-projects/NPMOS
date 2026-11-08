@@ -4,7 +4,8 @@
 
 Не публикуйте уязвимость в issue. Сообщите закрыто:
 
-1. **GitHub → вкладка Security → Report a vulnerability** (private vulnerability reporting) — предпочтительно;
+1. **GitHub → вкладка Security → Report a vulnerability** (private vulnerability reporting) — предпочтительно:
+   https://github.com/opensophy-projects/NPMOS/security/advisories/new
 2. или лично сопровождающим (контакт — в профиле организации на GitHub).
 
 Опишите версию (тег образа или коммит), как воспроизвести и что получает атакующий. Мы подтвердим получение,

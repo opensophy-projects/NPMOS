@@ -544,7 +544,8 @@ for (const check of CHECKS) {
 				}
 				f.ours = OURS.test(f.path ?? "");
 				f.blocking = check.blocks(f);
-				const risk = f.blocking && acceptance(check, f);
+				// non-blocking findings too: the reason shows in the report and they are left out of code scanning
+				const risk = acceptance(check, f);
 				if (risk) {
 					if (risk.until && risk.until < today) f.expired = risk;
 					else {

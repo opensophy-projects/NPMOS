@@ -1,6 +1,7 @@
 import { createPrivateKey, X509Certificate } from "node:crypto";
-import { mkdir, open, readFile, realpath, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, open, readFile, realpath, rm, stat, writeFile } from "node:fs/promises";
 import net from "node:net";
+import os from "node:os"; // NPMOS: a private directory for the zip of a download
 import path from "node:path";
 import { domainToASCII } from "node:url";
 import { ZipArchive } from "archiver";
@@ -326,7 +327,9 @@ const internalCertificate = {
 			}
 
 			const downloadName = `npm-${data.id}-${Date.now()}.zip`;
-			const opName = `/tmp/${downloadName}`;
+			// NPMOS: the zip holds the private key: in a directory of its own (0700), not under a predictable name
+			// in the shared /tmp; the route removes it once it is sent
+			const opName = path.join(await mkdtemp(path.join(os.tmpdir(), "npmos-cert-")), downloadName);
 
 			await internalCertificate.zipFiles(certFiles, opName);
 			debug(logger, "zip completed : ", opName);
@@ -343,7 +346,8 @@ const internalCertificate = {
 	 * @returns {Promise}
 	 */
 	zipFiles: async (source, out) => {
-		const file = await open(out, "w");
+		// NPMOS: a new file only (no link followed), readable by the backend alone
+		const file = await open(out, "wx", 0o600);
 		const stream = file.createWriteStream();
 		const archive = new ZipArchive({ zlib: { level: 9 } });
 

@@ -222,6 +222,7 @@ flowchart LR
 - `scan-images.sh` — скан образов: уязвимости и секреты (Trivy), SBOM (Syft), второе мнение (Grype), CIS (Dockle)
 - `test-dast.sh` — DAST: поднимает стек и атакует его (OWASP ZAP, Nuclei, testssl.sh), проверяет nginx (gixy)
 - `security-report.mjs` — сводный отчёт безопасности, политика блокировки, читаемые страницы SBOM
+- `sarif-accepted.mjs` — убирает из SARIF принятые риски и подавленные в коде находки перед загрузкой в Code scanning
 - `train-model.sh` — цикл обучения модели WAF на настоящем агенте: штатная модель, обучение, установка новой как
   в GUI, сравнение и решение о выпуске (`docs/MODEL.md`)
 
