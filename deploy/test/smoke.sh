@@ -210,8 +210,10 @@ if $CURL "$ADMIN/api/nginxions/waf" | grep -q '"reachable": *true'; then
 
   # Agent settings from the GUI: saving restarts the agent, its entrypoint applies them.
   # $1: JSON body, $2: what is checked
+  started() { $CURL "$ADMIN/api/nginxions/services/$1" 2>/dev/null | grep -o '"startedAt": *"[^"]*"'; }
   agent_settings() {
     step "WAF -> Agent: $2"
+    nginxions_before=$(started nginxions)
     $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/nginxions/waf/agent" -d "$1" \
       | grep -q '"restarting": *true' || fail "saving agent settings did not restart the agent"
     # the agent restarts, then nginxions: the API is away for a while (connections are reset)
@@ -219,6 +221,14 @@ if $CURL "$ADMIN/api/nginxions/waf" | grep -q '"reachable": *true'; then
       agent=$($CURL "$ADMIN/api/nginxions/waf/agent" 2>/dev/null || true)
       echo "$agent" | grep -q '"restartRequired": *false' && break
       [ "$i" = 60 ] && fail "the agent did not apply its settings: $agent"
+      sleep 2
+    done
+    # nginxions-control restarts nginxions once the new agent is up, which can be after the agent already
+    # answers: wait for it, or the next request of the test meets nginx without its backend (502)
+    for i in $(seq 1 60); do
+      now=$(started nginxions || true)
+      [ -n "$now" ] && [ "$now" != "$nginxions_before" ] && break
+      [ "$i" = 60 ] && fail "nginxions was not restarted after the agent: $now"
       sleep 2
     done
     for i in $(seq 1 60); do
