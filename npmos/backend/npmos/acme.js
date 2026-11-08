@@ -18,7 +18,8 @@ const ZEROSSL_EAB_URL = "https://api.zerossl.com/acme/eab-credentials-email";
 const HTTP_TIMEOUT_MS = 20000;
 // the full log of the last failed request, for "Full log" in the interface
 const FAILURE_LOG = "/data/npmos/acme/last-failure.log";
-const CERTBOT_LOG = "/tmp/certbot-log/letsencrypt.log";
+// logs-dir of certbot (rootfs/etc/certbot.ini)
+const CERTBOT_LOG = "/data/npmos/acme/certbot-log/letsencrypt.log";
 const CERTBOT_LOG_FRESH_MS = 5 * 60 * 1000;
 
 const pending = new Map();

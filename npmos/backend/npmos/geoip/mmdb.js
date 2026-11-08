@@ -51,15 +51,16 @@ class Decoder {
 				return [v <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(v) : v, offset + size];
 			}
 			case 7: {
-				// keys come from the file: no prototype to reach through "__proto__"
-				const map = Object.create(null);
+				// keys come from the file: collected as entries, not written as properties, so a key such as
+				// "__proto__" is an own property of the record and never its prototype
+				const entries = [];
 				for (let i = 0; i < size; i++) {
 					const [key, afterKey] = this.decode(offset);
 					const [value, afterValue] = this.decode(afterKey);
-					if (key !== "__proto__") map[key] = value;
+					entries.push([key, value]);
 					offset = afterValue;
 				}
-				return [map, offset];
+				return [Object.setPrototypeOf(Object.fromEntries(entries), null), offset];
 			}
 			case 8: {
 				let v = 0;

@@ -2133,7 +2133,9 @@ const ocspAnswer = async (res, caId, der) => {
 };
 router.post("/pki/public/ocsp/:ca", express.raw({ type: () => true, limit: "16kb" }), async (req, res, next) => {
 	try {
-		await ocspAnswer(res, req.params.ca, Buffer.isBuffer(req.body) ? req.body : null);
+		// a copy of the bytes: what the parser left in req.body is never used as is (a string or an array of a
+		// tampered request cannot reach the responder)
+		await ocspAnswer(res, req.params.ca, Buffer.isBuffer(req.body) ? Buffer.copyBytesFrom(req.body) : null);
 	} catch (err) {
 		next(err);
 	}

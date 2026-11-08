@@ -124,7 +124,9 @@ mkdir -p /tmp/npmhome \
          /tmp/certbot-log \
          /tmp/certbot-work \
          /tmp/certbot-credentials
+# NPMOS: /data/npmos/acme/certbot-log: logs-dir of certbot (etc/certbot.ini)
 mkdir -vp /data/npmplus/gravatar \
+          /data/npmos/acme/certbot-log \
           /data/tls/certbot/renewal \
           /data/tls/certbot/acme-challenge/.well-known/acme-challenge \
           /data/tls/custom \
