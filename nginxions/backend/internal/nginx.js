@@ -5,14 +5,14 @@ import _ from "lodash";
 import errs from "../lib/error.js";
 import utils from "../lib/utils.js";
 import { debug, nginx as logger } from "../logger.js";
-// NginxionS: the WAF policy has rules per proxy host, regenerate it whenever a host config changes
-import { scheduleRegenerate as scheduleWafPolicy } from "../nginxions/waf/policy.js";
-// NginxionS: mTLS of hosts and streams from PKI and mTLS (CAs, CRLs, rules, locations)
-import { prepareHost as prepareMtls } from "../nginxions/pki/mtls.js";
 // NginxionS: hosts left out by the CrowdSec bouncer of NginxionS (CrowdSec → hosts)
 import { prepareHost as prepareCrowdsec } from "../nginxions/crowdsec/bouncer.js";
 // NginxionS: countries let in or kept out of a host (Hosts → a host → Countries)
 import { prepareHost as prepareGeo } from "../nginxions/geo/index.js";
+// NginxionS: mTLS of hosts and streams from PKI and mTLS (CAs, CRLs, rules, locations)
+import { prepareHost as prepareMtls } from "../nginxions/pki/mtls.js";
+// NginxionS: the WAF policy has rules per proxy host, regenerate it whenever a host config changes
+import { scheduleRegenerate as scheduleWafPolicy } from "../nginxions/waf/policy.js";
 import internalProxyHostAccessList from "./proxy-host-access-list.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -313,7 +313,11 @@ const internalNginx = {
 		}
 
 		if (host.domain_names) {
-			host.server_names = host.domain_names.map((domain_name) => domainToASCII(domain_name) || domain_name);
+			// NginxionS: a name with spaces or characters of nginx syntax would add names or directives to
+			// server_name (the API refuses them, schema/common.json; rows of a migration or of older versions may have them)
+			host.server_names = host.domain_names
+				.map((domain_name) => domainToASCII(domain_name) || domain_name)
+				.filter((name) => /^[^\s;{}'"`$\\#]+$/.test(name));
 		}
 		if (host.npmplus_access_list_type === "custom") {
 			// note that there is access_lists -> an array in the correct order

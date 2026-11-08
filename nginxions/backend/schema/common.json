@@ -84,7 +84,10 @@
 			"uniqueItems": true,
 			"items": {
 				"type": "string",
-				"minLength": 1
+				"minLength": 1,
+				"maxLength": 253,
+				"pattern": "^[^\\s;{}'\"`$\\\\#]+$",
+				"description": "NginxionS: a name of nginx server_name: no spaces or characters of nginx syntax (; { } quotes $ \\ #)"
 			},
 			"example": [
 				"example.com",

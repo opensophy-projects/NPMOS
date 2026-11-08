@@ -47,8 +47,11 @@ const router = express.Router({
  * not bytes. Handlers get this, never req.body itself: a parser could leave a string or an object there.
  * @param {import("express").Request} req
  */
-const rawBytes = (req) =>
-	Buffer.isBuffer(req.body) ? Buffer.from(req.body.buffer, req.body.byteOffset, req.body.length) : null;
+const rawBytes = (req) => {
+	const body = req.body;
+	if (typeof body === "string" || Array.isArray(body) || !Buffer.isBuffer(body)) return null;
+	return Buffer.from(body.buffer, body.byteOffset, body.byteLength);
+};
 
 const SERVICE_NAME = /^[a-z0-9][a-z0-9_.-]{0,63}$/;
 

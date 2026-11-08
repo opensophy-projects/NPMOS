@@ -57,7 +57,11 @@
 		},
 		"forward_host": {
 			"type": "string",
-			"example": "127.0.0.1"
+			"example": "127.0.0.1",
+			"minLength": 1,
+			"maxLength": 255,
+			"pattern": "^[^\\s;{}'\"`$\\\\#/]+$",
+			"description": "NginxionS: a host name or address, it goes into proxy_pass of nginx"
 		},
 		"forward_port": {
 			"type": [

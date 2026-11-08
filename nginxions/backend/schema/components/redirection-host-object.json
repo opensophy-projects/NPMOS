@@ -57,10 +57,12 @@
 			"example": "http"
 		},
 		"forward_domain_name": {
-			"description": "Domain Name",
+			"description": "NginxionS: Domain Name (it goes into return of nginx: no spaces or characters of nginx syntax)",
 			"type": "string",
 			"minLength": 1,
-			"example": "jc21.com"
+			"example": "jc21.com",
+			"pattern": "^[^\\s;{}'\"`$\\\\#]+$",
+			"maxLength": 255
 		},
 		"preserve_path": {
 			"description": "Should the path be preserved",
