@@ -1,0 +1,59 @@
+.label {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.375rem;
+}
+/* the bordered button of the help of Access lists, small enough for a column header. Doubled class: the
+   .btn of Tabler is loaded after this module and would set its padding and 2.5rem height */
+.button.button {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	width: 1.125rem;
+	min-width: 0;
+	height: 1.125rem;
+	min-height: 0;
+	padding: 0;
+	border: 1px solid var(--border-strong);
+	border-radius: 50%;
+	background: var(--background);
+	color: var(--foreground-muted);
+	box-shadow: none;
+	line-height: 1;
+	vertical-align: middle;
+	cursor: help;
+}
+.button.button:hover,
+.button.button:focus-visible {
+	color: var(--foreground);
+}
+.button.button svg {
+	width: 0.6875rem;
+	height: 0.6875rem;
+	margin: 0;
+	stroke-width: 2.5;
+}
+.button.button[aria-expanded="true"] {
+	border-color: var(--border-strong);
+	background: var(--background-muted);
+}
+.tip {
+	position: fixed;
+	z-index: 1090;
+	width: min(18rem, calc(100vw - 2rem));
+	padding: 0.5rem 0.625rem;
+	border: 1px solid var(--border-strong);
+	border-radius: var(--radius-md);
+	background: var(--background);
+	box-shadow: var(--shadow-card), var(--shadow-2xl);
+	color: var(--foreground);
+	font-size: 0.8125rem;
+	font-weight: 400;
+	line-height: 1.45;
+	text-align: left;
+	text-transform: none;
+	letter-spacing: normal;
+	white-space: normal;
+	pointer-events: auto;
+}

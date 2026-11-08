@@ -1,55 +1,55 @@
-# NPMOS — development overlay on top of compose.yaml.
+# NginxionS — development overlay on top of compose.yaml.
 #
 #   docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml up -d --build
 #   docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml watch   # backend live sync
-#   cd npmos/frontend && pnpm install && pnpm vite                             # UI with hot reload
+#   cd nginxions/frontend && pnpm install && pnpm vite                             # UI with hot reload
 #
-# Adds: npmos built from local sources (fast dev image), a test upstream and,
+# Adds: nginxions built from local sources (fast dev image), a test upstream and,
 # with --profile attack, a generator of malicious requests for WAF testing.
 
 services:
-  npmos-init:
-    image: npmos:dev
+  nginxions-init:
+    image: nginxions:dev
 
-  npmos:
-    image: npmos:dev
+  nginxions:
+    image: nginxions:dev
     build:
-      context: ../npmos
+      context: ../nginxions
       dockerfile: ../deploy/dev/Dockerfile
       args:
         CROWDSEC_VERSION: ${CROWDSEC_VERSION}
-        # optional, for building behind restricted networks (see npmos/crowdsec-seed/seed.sh)
+        # optional, for building behind restricted networks (see nginxions/crowdsec-seed/seed.sh)
         HUB_URL_TEMPLATE: ${HUB_URL_TEMPLATE:-}
     environment:
       TZ: ${TZ:-UTC}
     develop:
       watch:
-        - path: ../npmos/backend
+        - path: ../nginxions/backend
           target: /app
           action: sync+restart
           ignore:
             - node_modules/
-        - path: ../npmos/rootfs
+        - path: ../nginxions/rootfs
           action: rebuild
 
   # Proxy host target for manual and automated tests: http://test-upstream:80
   test-upstream:
     image: docker.io/traefik/whoami:${WHOAMI_VERSION}
-    container_name: npmos-test-upstream
+    container_name: nginxions-test-upstream
     restart: unless-stopped
     networks:
       - internal
 
   attacker:
     image: docker.io/curlimages/curl:${CURL_VERSION}
-    container_name: npmos-attacker
+    container_name: nginxions-attacker
     profiles:
       - attack
     depends_on:
-      - npmos
+      - nginxions
     entrypoint: ["/bin/sh", "/attack.sh"]
     environment:
-      TARGET: http://npmos
+      TARGET: http://nginxions
       HOST: ${ATTACK_HOST:-test.local}
     volumes:
       - ./dev/attack.sh:/attack.sh:ro

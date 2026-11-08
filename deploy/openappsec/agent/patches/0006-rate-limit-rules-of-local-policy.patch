@@ -16,7 +16,7 @@ index 7dd5602..180358e 100755
 +        ar.setNextName(nullptr);
 +        return;
 +    }
-+    // NPMOS: the local policy (local_policy_mgmt_gen) writes neither "action" nor "match" of a rule, and the whole
++    // NginxionS: the local policy (local_policy_mgmt_gen) writes neither "action" nor "match" of a rule, and the whole
 +    // rule was dropped: no rate limit of a local policy ever applied. Both are optional now, with the defaults of
 +    // the rule (rate_limit_config.h): the action of the practice, any request.
 +    try {

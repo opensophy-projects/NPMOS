@@ -1,13 +1,13 @@
 #!/bin/sh
 # Sets up a fresh stack for DAST (scripts/test-dast.sh) the way an administrator would through the interface: the
-# first admin, a root CA and a server certificate of the PKI of NPMOS, a proxy host dast.local with TLS, HTTP/2,
+# first admin, a root CA and a server certificate of the PKI of NginxionS, a proxy host dast.local with TLS, HTTP/2,
 # HSTS and the exploit filter in front of test-upstream. Leaves the session cookie in /state/cookie for the
 # scanners of the API.
 set -eu
 
-ADMIN="https://npmos:81"
-EMAIL="admin@npmos.test"
-PASSWORD="npmos-dast-$(od -An -N12 -tx1 /dev/urandom | tr -d ' \n')"
+ADMIN="https://nginxions:81"
+EMAIL="admin@nginxions.test"
+PASSWORD="nginxions-dast-$(od -An -N12 -tx1 /dev/urandom | tr -d ' \n')"
 JAR=/state/cookies
 CURL="curl -sS --fail-with-body --max-time 30 -k -b $JAR -c $JAR"
 
@@ -39,14 +39,14 @@ api_json "$ADMIN/api/users" -d "{\"name\": \"Admin\", \"nickname\": \"admin\", \
   \"auth\": {\"type\": \"password\", \"secret\": \"$PASSWORD\"}}" > /dev/null
 api_json "$ADMIN/api/tokens" -d "{\"identity\": \"$EMAIL\", \"secret\": \"$PASSWORD\"}" > /dev/null
 
-step "a root CA, a trust domain and a server certificate for dast.local (PKI of NPMOS)"
-root_id=$(api_ok "$ADMIN/api/npmos/pki/cas" \
-  -d '{"kind": "root", "name": "DAST Root", "subject": {"common_name": "DAST Root", "organization": "NPMOS"}}' | json_id)
+step "a root CA, a trust domain and a server certificate for dast.local (PKI of NginxionS)"
+root_id=$(api_ok "$ADMIN/api/nginxions/pki/cas" \
+  -d '{"kind": "root", "name": "DAST Root", "subject": {"common_name": "DAST Root", "organization": "NginxionS"}}' | json_id)
 [ -n "$root_id" ] || fail "root CA was not created"
-ca_id=$(api_ok "$ADMIN/api/npmos/pki/cas" -d "{\"kind\": \"intermediate\", \"name\": \"DAST Servers\",
-  \"parent_id\": $root_id, \"subject\": {\"common_name\": \"DAST Servers\", \"organization\": \"NPMOS\"}}" | json_id)
+ca_id=$(api_ok "$ADMIN/api/nginxions/pki/cas" -d "{\"kind\": \"intermediate\", \"name\": \"DAST Servers\",
+  \"parent_id\": $root_id, \"subject\": {\"common_name\": \"DAST Servers\", \"organization\": \"NginxionS\"}}" | json_id)
 [ -n "$ca_id" ] || fail "trust domain was not created"
-server=$(api_ok "$ADMIN/api/npmos/pki/certs" -d "{\"ca_id\": $ca_id, \"profile\": \"server\",
+server=$(api_ok "$ADMIN/api/nginxions/pki/certs" -d "{\"ca_id\": $ca_id, \"profile\": \"server\",
   \"subject\": {\"common_name\": \"dast.local\"}, \"sans\": {\"dns\": [\"dast.local\"]}, \"install\": true}")
 cert_id=$(echo "$server" | tr -d ' \n' | grep -o '"certificate_id":[0-9]*' | grep -o '[0-9]*$')
 [ -n "$cert_id" ] || fail "server certificate was not installed: $server"
@@ -58,7 +58,7 @@ api_ok "$ADMIN/api/nginx/proxy-hosts" -d "{\"domain_names\": [\"dast.local\"], \
 
 step "the site answers through the proxy"
 for i in $(seq 1 30); do
-  body=$(curl -sS -k --max-time 10 --connect-to dast.local:443:npmos:443 https://dast.local/ 2> /dev/null || true)
+  body=$(curl -sS -k --max-time 10 --connect-to dast.local:443:nginxions:443 https://dast.local/ 2> /dev/null || true)
   echo "$body" | grep -q '^Hostname:' && break
   [ "$i" = 30 ] && fail "dast.local did not answer: $body"
   sleep 2

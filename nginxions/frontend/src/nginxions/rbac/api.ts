@@ -1,0 +1,63 @@
+// RBAC API (/api/nginxions/rbac/*, nginxions/backend/nginxions/rbac): roles, their permissions, who has them.
+import * as api from "src/api/backend/base";
+
+export type Scope = "all" | "own" | "hosts";
+export type RoleHostType = "proxy_host" | "redirection_host" | "dead_host" | "stream";
+/** host_type is a value (a table), host_id a number: the client leaves them as they are */
+export interface RoleHost {
+	hostType: RoleHostType;
+	hostId: number;
+}
+export type BuiltinRole = "administrator" | "operator" | "security_analyst" | "viewer";
+
+interface RbacModel {
+	resources: { id: string; actions: string[] }[];
+	scopes: Scope[];
+	builtin: { key: BuiltinRole; name: string; scope: Scope; permissions: string[] }[];
+}
+
+interface RbacMe {
+	admin: boolean;
+	scope: Scope;
+	/** "resource:action" */
+	permissions: string[];
+	roles: RoleRef[];
+}
+
+export interface Role {
+	id: number;
+	name: string;
+	description: string;
+	builtin: BuiltinRole | null;
+	scope: Scope;
+	oidcGroups: string[];
+	permissions: string[];
+	/** scope "hosts": the hosts of the role */
+	hosts: RoleHost[];
+	users: { id: number; name: string; email: string }[];
+	createdOn: string;
+	modifiedOn: string;
+}
+
+export type RoleInput = Pick<Role, "name" | "description" | "scope" | "oidcGroups" | "permissions" | "hosts">;
+
+export interface OidcMapping {
+	claim: string;
+	requestScope: boolean;
+}
+
+export const getRbacModel = (): Promise<RbacModel> => api.get({ url: "/nginxions/rbac/model" });
+export const getRbacMe = (): Promise<RbacMe> => api.get({ url: "/nginxions/rbac/me" });
+export const getRoles = (): Promise<Role[]> => api.get({ url: "/nginxions/rbac/roles" });
+export const createRole = (data: RoleInput): Promise<Role> => api.post({ url: "/nginxions/rbac/roles", data });
+export const updateRole = (id: number, data: RoleInput): Promise<Role> =>
+	api.put({ url: `/nginxions/rbac/roles/${id}`, data });
+export const deleteRole = (id: number) => api.del({ url: `/nginxions/rbac/roles/${id}` });
+type RoleRef = { id: number; name: string; builtin: BuiltinRole | null };
+/** {user id: roles}; the Administrator role for admins */
+export const getRoleAssignments = (): Promise<Record<string, RoleRef[]>> => api.get({ url: "/nginxions/rbac/users" });
+export const setUserRoles = (userId: number, roles: number[]): Promise<number[]> =>
+	api.put({ url: `/nginxions/rbac/users/${userId}`, data: { roles } });
+export const getOidcMapping = (): Promise<OidcMapping> => api.get({ url: "/nginxions/rbac/oidc" });
+export const setOidcMapping = (data: OidcMapping): Promise<OidcMapping> =>
+	api.put({ url: "/nginxions/rbac/oidc", data });

@@ -5,7 +5,7 @@
 services:
   test-upstream:
     image: docker.io/traefik/whoami:${WHOAMI_VERSION}
-    container_name: npmos-dast-upstream
+    container_name: nginxions-dast-upstream
     networks:
       - internal
 

@@ -23,7 +23,7 @@ body:
   - type: checkboxes
     id: principles
     attributes:
-      label: Принципы NPMOS
+      label: Принципы NginxionS
       options:
         - label: Работает без интернета (обращение наружу — только опция администратора)
           required: true

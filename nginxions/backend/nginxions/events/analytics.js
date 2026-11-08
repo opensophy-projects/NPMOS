@@ -1,0 +1,354 @@
+// WAF → Analytics (docs/ROADMAP.md, phase 4): what the cloud dashboard of open-appsec showed, from
+// the stored events and their hourly aggregates. RBAC: analytics:view.
+import db from "../../db.js";
+import { isPostgres } from "../../lib/config.js";
+import { IMPORTANT_SEVERITIES } from "./normalize.js";
+import { EVENT_TABLE } from "./store.js";
+
+const MINUTE = 60 * 1000;
+const HOUR = 60 * MINUTE;
+const DAY = 24 * HOUR;
+const TOP = 10;
+
+/** period → length and size of a timeline bucket */
+export const PERIODS = {
+	"1h": { length: HOUR, bucket: 5 * MINUTE },
+	"24h": { length: DAY, bucket: HOUR },
+	"7d": { length: 7 * DAY, bucket: 6 * HOUR },
+	"30d": { length: 30 * DAY, bucket: DAY },
+};
+
+/** sources of attacks: open-appsec (security), CrowdSec alerts (crowdsec), requests refused by mTLS (mtls) */
+export const ATTACK_KINDS = ["security", "crowdsec", "mtls"];
+/** a refusal: open-appsec Prevent, a ban or captcha of CrowdSec, a request refused by mTLS */
+const BLOCKING = ["prevent", "ban", "captcha", "denied"];
+const BLOCKING_SQL = `lower(action) IN (${BLOCKING.map((a) => `'${a}'`).join(", ")})`;
+const isPrevent = (action) => BLOCKING.includes(String(action).toLowerCase());
+const isDetect = (action) => ["detect", "alert", "simulated"].includes(String(action).toLowerCase());
+
+/**
+ * Empty buckets from `from` to `to`, aligned to the bucket size (UTC).
+ * prevent/detect/other: open-appsec; crowdsec: alerts of CrowdSec; mtls: requests refused by mTLS
+ * @returns {{t: string, prevent: number, detect: number, other: number, crowdsec: number, mtls: number}[]}
+ */
+export const emptyTimeline = (from, to, bucket) => {
+	const start = Math.floor(from.getTime() / bucket) * bucket;
+	const buckets = [];
+	for (let t = start; t <= to.getTime(); t += bucket) {
+		buckets.push({ t: new Date(t).toISOString(), prevent: 0, detect: 0, other: 0, crowdsec: 0, mtls: 0 });
+	}
+	return buckets;
+};
+
+/** adds counted rows ({time, kind, action, events}) to the buckets */
+export const fillTimeline = (buckets, rows, bucket) => {
+	if (!buckets.length) return buckets;
+	const start = Date.parse(buckets[0].t);
+	for (const row of rows) {
+		const i = Math.floor((new Date(row.time).getTime() - start) / bucket);
+		if (i < 0 || i >= buckets.length) continue;
+		const key =
+			row.kind === "crowdsec" || row.kind === "mtls"
+				? row.kind
+				: isPrevent(row.action)
+					? "prevent"
+					: isDetect(row.action)
+						? "detect"
+						: "other";
+		buckets[i][key] += Number(row.events);
+	}
+	return buckets;
+};
+
+const count = (rows, key, label) =>
+	rows.map((r) => ({ [label]: r[key], events: Number(r.events) })).filter((r) => r[label] !== "");
+
+const internalAnalytics = {
+	/**
+	 * @param {Access} access
+	 * @param {{period?: string, host?: string}} query
+	 */
+	get: async (access, query = {}, now = new Date()) => {
+		await access.can("analytics:view");
+		const period = Object.hasOwn(PERIODS, query.period) ? query.period : "24h";
+		const { length, bucket } = PERIODS[period];
+		const to = now;
+		// the start is aligned to a bucket: the timeline and the counts cover the same events
+		const from = new Date(Math.floor((to.getTime() - length) / bucket) * bucket);
+		const host = String(query.host ?? "")
+			.trim()
+			.toLowerCase();
+		const knex = db();
+
+		const events = () => {
+			const b = knex(EVENT_TABLE).whereIn("kind", ATTACK_KINDS).where("time", ">=", from).where("time", "<=", to);
+			if (host) b.where("host", host);
+			return b;
+		};
+		// open-appsec: critical and high only; a CrowdSec alert or an mTLS refusal always counts
+		const important = (b) =>
+			b.where((q) =>
+				q
+					.whereRaw(
+						`lower(severity) in (${IMPORTANT_SEVERITIES.map(() => "?").join(",")})`,
+						IMPORTANT_SEVERITIES,
+					)
+					.orWhereIn("kind", ["crowdsec", "mtls"]),
+			);
+
+		const crowdsecQuery = () => {
+			const b = knex(EVENT_TABLE).where("kind", "crowdsec").where("time", ">=", from).where("time", "<=", to);
+			if (host) b.where("host", host);
+			return b
+				.count({ alerts: "*" })
+				.select(knex.raw("SUM(CASE WHEN action IN ('ban', 'captcha') THEN 1 ELSE 0 END) AS bans"))
+				.first();
+		};
+		const crowdsec = await crowdsecQuery();
+
+		// counts by action, severity, type and host: from the events (exact for any period they cover)
+		const [byAction, bySeverity, byType, byHost, sources, uris, topSources, countries, lastBlocked] =
+			await Promise.all([
+				events().select("action").count({ events: "*" }).groupBy("action"),
+				events().select("severity").count({ events: "*" }).groupBy("severity"),
+				events()
+					.select("incident_type")
+					.count({ events: "*" })
+					.groupBy("incident_type")
+					.orderBy("events", "desc")
+					.limit(TOP + 1),
+				events()
+					.select("host")
+					.count({ events: "*" })
+					.select(knex.raw(`SUM(CASE WHEN ${BLOCKING_SQL} THEN 1 ELSE 0 END) AS prevented`))
+					.groupBy("host")
+					.orderBy("events", "desc")
+					.limit(TOP + 1),
+				events().countDistinct({ n: "source_ip" }).first(),
+				events()
+					.select("host", "uri")
+					.count({ events: "*" })
+					.groupBy("host", "uri")
+					.orderBy("events", "desc")
+					.limit(TOP),
+				important(events())
+					.select("source_ip")
+					.max({ country: "source_country" })
+					.count({ events: "*" })
+					.whereNot("source_ip", "")
+					.groupBy("source_ip")
+					.orderBy("events", "desc")
+					.limit(TOP),
+				events()
+					.select("source_country")
+					.count({ events: "*" })
+					.whereNot("source_country", "")
+					.groupBy("source_country")
+					.orderBy("events", "desc")
+					.limit(TOP),
+				events()
+					.select(
+						"id",
+						"time",
+						"severity",
+						"action",
+						"incident_type",
+						"source_ip",
+						"host",
+						"method",
+						"uri",
+						"score",
+					)
+					.whereRaw(BLOCKING_SQL)
+					.orderBy([
+						{ column: "time", order: "desc" },
+						{ column: "id", order: "desc" },
+					])
+					.limit(TOP),
+			]);
+
+		// timeline: buckets of 5 min from the events, longer ones from the hourly aggregates
+		let timelineRows;
+		if (bucket < HOUR) {
+			if (isPostgres()) {
+				const b = events()
+					.select(
+						knex.raw("date_bin(?::interval, time, ?::timestamptz) AS time", [
+							`${bucket / 1000} seconds`,
+							from,
+						]),
+					)
+					.select("kind", "action")
+					.count({ events: "*" })
+					.groupByRaw("1, 2, 3");
+				timelineRows = await b;
+			} else {
+				timelineRows = (await events().select("time", "kind", "action").limit(500000)).map((r) => ({
+					...r,
+					events: 1,
+				}));
+			}
+		} else {
+			const b = knex("nginxions_event_hourly")
+				.select({ time: "hour" }, "kind", "action")
+				.sum({ events: "events" })
+				.whereIn("kind", ATTACK_KINDS)
+				.where("hour", ">=", from)
+				.where("hour", "<=", to)
+				.groupBy("hour", "kind", "action");
+			if (host) b.where("host", host);
+			timelineRows = await b;
+		}
+		const timeline = fillTimeline(emptyTimeline(from, to, bucket), timelineRows, bucket);
+
+		// requests seen by the agent ("WAAP telemetry", per asset and hour)
+		const traffic = await knex("nginxions_traffic_hourly")
+			.sum({ requests: "requests", blocked: "blocked" })
+			.where("hour", ">=", new Date(Math.floor(from.getTime() / HOUR) * HOUR))
+			.where("hour", "<=", to)
+			.modify((b) => host && b.where("asset", host))
+			.first();
+
+		// all requests of the hosts, from the access log of nginx (hourly)
+		const requestRows = () =>
+			knex("nginxions_request_hourly")
+				.where("hour", ">=", new Date(Math.floor(from.getTime() / HOUR) * HOUR))
+				.where("hour", "<=", to)
+				.modify((b) => host && b.where("host", host));
+		const [requestTotals, requestHosts, requestHours] = await Promise.all([
+			requestRows()
+				.sum({
+					requests: "requests",
+					s2xx: "s2xx",
+					s3xx: "s3xx",
+					s4xx: "s4xx",
+					s5xx: "s5xx",
+					blocked: "blocked",
+					bytes: "bytes",
+				})
+				.first(),
+			requestRows()
+				.select("host")
+				.sum({ requests: "requests", s4xx: "s4xx", s5xx: "s5xx", blocked: "blocked" })
+				.groupBy("host")
+				.orderBy("requests", "desc")
+				.limit(TOP),
+			requestRows().select({ time: "hour" }).sum({ requests: "requests", blocked: "blocked" }).groupBy("hour"),
+		]);
+		const num = (v) => Number(v ?? 0);
+		// requests per bucket: hours spread over buckets longer than an hour; a shorter bucket gets its hour
+		const requestTimeline = emptyTimeline(from, to, bucket).map((b) => ({ t: b.t, requests: 0, blocked: 0 }));
+		const firstBucket = requestTimeline.length ? Date.parse(requestTimeline[0].t) : 0;
+		for (const row of requestHours) {
+			const t = new Date(row.time).getTime();
+			const i = Math.floor((Math.max(t, firstBucket) - firstBucket) / bucket);
+			if (i < 0 || i >= requestTimeline.length) continue;
+			if (bucket >= HOUR) {
+				requestTimeline[i].requests += num(row.requests);
+				requestTimeline[i].blocked += num(row.blocked);
+			} else {
+				// 5-minute buckets of the last hour: the hourly count is shared out evenly
+				const parts = requestTimeline.filter((b) => Math.floor(Date.parse(b.t) / HOUR) * HOUR === t);
+				for (const b of parts) {
+					b.requests += num(row.requests) / parts.length;
+					b.blocked += num(row.blocked) / parts.length;
+				}
+			}
+		}
+
+		const total = byAction.reduce((n, r) => n + Number(r.events), 0);
+		const prevented = byAction.filter((r) => isPrevent(r.action)).reduce((n, r) => n + Number(r.events), 0);
+		return {
+			period,
+			from: from.toISOString(),
+			to: to.toISOString(),
+			bucket: bucket / 1000,
+			host: host || null,
+			kpi: {
+				requests:
+					traffic?.requests === null || traffic?.requests === undefined ? null : Number(traffic.requests),
+				attacks: total,
+				prevented,
+				detected: byAction.filter((r) => isDetect(r.action)).reduce((n, r) => n + Number(r.events), 0),
+				sources: Number(sources?.n ?? 0),
+				// readiness of learning per host: phase 8 (smartsync-tuning)
+				readiness: null,
+				// alerts of CrowdSec in the period, those with a ban or captcha (phase 7)
+				crowdsec_alerts: Number(crowdsec?.alerts ?? 0),
+				crowdsec_bans: Number(crowdsec?.bans ?? 0),
+			},
+			timeline,
+			// all requests of the hosts (access log of nginx): counts, classes of answers, per host and in time
+			traffic: {
+				requests: num(requestTotals?.requests),
+				ok: num(requestTotals?.s2xx) + num(requestTotals?.s3xx),
+				s2xx: num(requestTotals?.s2xx),
+				s3xx: num(requestTotals?.s3xx),
+				s4xx: num(requestTotals?.s4xx),
+				s5xx: num(requestTotals?.s5xx),
+				blocked: num(requestTotals?.blocked),
+				bytes: num(requestTotals?.bytes),
+				hosts: requestHosts.map((r) => ({
+					host: r.host,
+					requests: num(r.requests),
+					errors: num(r.s4xx) + num(r.s5xx),
+					blocked: num(r.blocked),
+				})),
+				timeline: requestTimeline.map((b) => ({
+					t: b.t,
+					requests: Math.round(b.requests),
+					blocked: Math.round(b.blocked),
+				})),
+			},
+			actions: count(byAction, "action", "action"),
+			severities: count(bySeverity, "severity", "severity"),
+			types: count(byType, "incident_type", "type").slice(0, TOP),
+			hosts: byHost
+				.filter((r) => r.host !== "")
+				.slice(0, TOP)
+				.map((r) => ({ host: r.host, events: Number(r.events), prevented: Number(r.prevented) })),
+			uris: uris.map((r) => ({ host: r.host, uri: r.uri, events: Number(r.events) })),
+			sources: topSources.map((r) => ({ ip: r.source_ip, country: r.country || "", events: Number(r.events) })),
+			countries: count(countries, "source_country", "country"),
+			lastBlocked: lastBlocked.map((r) => ({
+				...r,
+				id: String(r.id),
+				time: new Date(r.time).toISOString(),
+				score: r.score === null ? null : Number(r.score),
+			})),
+		};
+	},
+
+	/**
+	 * Attacks per host and hour of the last 24 h (hosts table: a small chart in the row).
+	 * @returns {Promise<{host: string, events: number, prevented: number, hours: number[]}[]>}
+	 */
+	hosts: async (access, now = new Date()) => {
+		await access.can("analytics:view");
+		const end = Math.floor(now.getTime() / HOUR) * HOUR;
+		const from = new Date(end - 23 * HOUR);
+		const rows = await db()("nginxions_event_hourly")
+			.select("host", { time: "hour" }, "action")
+			.sum({ events: "events" })
+			.where("kind", "security")
+			.whereNot("host", "")
+			.where("hour", ">=", from)
+			.groupBy("host", "hour", "action");
+		const byHost = new Map();
+		for (const row of rows) {
+			let entry = byHost.get(row.host);
+			if (!entry) {
+				entry = { host: row.host, events: 0, prevented: 0, hours: new Array(24).fill(0) };
+				byHost.set(row.host, entry);
+			}
+			const i = Math.floor((new Date(row.time).getTime() - from.getTime()) / HOUR);
+			const n = Number(row.events);
+			if (i >= 0 && i < 24) entry.hours[i] += n;
+			entry.events += n;
+			if (isPrevent(row.action)) entry.prevented += n;
+		}
+		return [...byHost.values()];
+	},
+};
+
+export default internalAnalytics;

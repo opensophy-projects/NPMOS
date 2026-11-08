@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-// Base languages of NPMOS are English and Russian: every key of en.json must be in ru.json, and
+// Base languages of NginxionS are English and Russian: every key of en.json must be in ru.json, and
 // the interface must not contain hardcoded English text (JSX text, placeholder/title/aria-label).
 // Other languages are left to the community and are not checked here.
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
-const root = new URL("../npmos/frontend/src/", import.meta.url).pathname;
+const root = new URL("../nginxions/frontend/src/", import.meta.url).pathname;
 const en = JSON.parse(readFileSync(join(root, "locale/src/en.json"), "utf8"));
 const ru = JSON.parse(readFileSync(join(root, "locale/src/ru.json"), "utf8"));
 const errors = [];
@@ -15,7 +15,7 @@ for (const key of Object.keys(en)) {
 }
 
 // text that is not words for people: protocols, header values, product names, file names
-const allowed = /^(npmos|X-Frame-Options|local_policy\.yaml|Ctrl K|https?:\/\/|example\.com)$/;
+const allowed = /^(NginxionS|X-Frame-Options|local_policy\.yaml|Ctrl K|https?:\/\/|example\.com)$/;
 const patterns = [
 	// >Some text< between tags
 	/(?<!=)>\s*([A-Za-z][A-Za-z'’ ,.!?…-]*[a-z][A-Za-z'’ ,.!?…-]*)\s*</g,
@@ -24,7 +24,7 @@ const patterns = [
 	// || "Text" fallbacks
 	/\|\|\s*"([A-Z][a-z]+ [^"]+)"/g,
 ];
-// upstream header, menu and footer: replaced by the NPMOS shell (src/npmos/ui), not rendered
+// upstream header, menu and footer: replaced by the NginxionS shell (src/nginxions/ui), not rendered
 const skip = /^components\/(SiteHeader|SiteMenu|SiteFooter|ThemeSwitcher)\.tsx$/;
 const walk = (dir) =>
 	readdirSync(dir).flatMap((name) => {

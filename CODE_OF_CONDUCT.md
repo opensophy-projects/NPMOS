@@ -1,7 +1,7 @@
-# Правила участия в NPMOS
+# Правила участия в NginxionS
 
 Этот документ — для всех, кто пишет в issues, предлагает изменения или помогает с проектом. В нём четыре части:
-как общаться, как оформлять баги, фичи и вопросы, как устроен NPMOS и что где лежит в репозитории.
+как общаться, как оформлять баги, фичи и вопросы, как устроен NginxionS и что где лежит в репозитории.
 
 ## 1. Как общаться
 
@@ -65,7 +65,7 @@
 `bug`, `feature`, `question`, `security`, `docs`, `conduct`; область: `acme`, `waf`, `crowdsec`, `pki`, `hosts`,
 `ui`, `deploy`. Сопровождающие ставят их при разборе.
 
-## 3. Архитектура NPMOS
+## 3. Архитектура NginxionS
 
 Два правила проекта: **всё управляется через GUI** и **ничего не зависит от облака** (интернет — только опция,
 которую включает администратор: ACME, обновления hub CrowdSec и т. п.). Правила разработки — в
@@ -74,7 +74,7 @@
 ### Контейнеры
 
 Стек описан в `deploy/compose.yaml`. Контейнер `openappsec` владеет сетью и IPC: порты опубликованы на нём, а
-`npmos` подключается к его сети (`network_mode: service:openappsec`), поэтому сервисы обоих общаются через
+`nginxions` подключается к его сети (`network_mode: service:openappsec`), поэтому сервисы обоих общаются через
 `127.0.0.1`.
 
 ```mermaid
@@ -85,19 +85,19 @@ flowchart TB
         agent["Агент open-appsec (ML-WAF)<br/>127.0.0.1:7777<br/>политика /ext/appsec/local_policy.yaml"]
         storage["Shared storage<br/>127.0.0.1:7811<br/>обучение, decisions.data"]
         tuning["Tuning<br/>127.0.0.1:7813<br/>статистика, подсказки"]
-        control["npmos-control<br/>127.0.0.1:7080<br/>Docker API по белому списку"]
+        control["nginxions-control<br/>127.0.0.1:7080<br/>Docker API по белому списку"]
 
-        subgraph np["контейнер npmos"]
+        subgraph np["контейнер nginxions"]
             nginx["nginx (NPMplus)<br/>+ attachment open-appsec"]
             bouncer["Баунсер CrowdSec (Lua)"]
-            backend["Backend Node.js<br/>панель :81, API /api, /api/npmos/*"]
+            backend["Backend Node.js<br/>панель :81, API /api, /api/nginxions/*"]
             certs["certbot и lego (ACME), PKI и OCSP"]
         end
     end
 
     crowdsec["crowdsec — официальный образ<br/>LAPI :8080, AppSec :7422"]
-    postgres[("postgres — официальный образ<br/>базы npmos и appsec")]
-    init["npmos-init — разовый при старте<br/>секреты, тома, снимок hub CrowdSec"]
+    postgres[("postgres — официальный образ<br/>базы nginxions и appsec")]
+    init["nginxions-init — разовый при старте<br/>секреты, тома, снимок hub CrowdSec"]
     docker[["/var/run/docker.sock"]]
 
     internet --> nginx
@@ -115,24 +115,24 @@ flowchart TB
 
 - **Сети.** `edge` — порты наружу; выход в интернет только для того, что включил администратор (ACME). `internal` —
   без выхода наружу: там `crowdsec` и `postgres`.
-- **Секреты.** Их создаёт `npmos-init` в томе `secrets`; каждый сервис монтирует только свой подкаталог.
-- **Доступ к Docker** есть только у `npmos-control`: список, логи и перезапуск контейнеров стека, с токеном и
-  аудитом. Контейнер `npmos`, который принимает трафик из интернета, сокета не получает.
+- **Секреты.** Их создаёт `nginxions-init` в томе `secrets`; каждый сервис монтирует только свой подкаталог.
+- **Доступ к Docker** есть только у `nginxions-control`: список, логи и перезапуск контейнеров стека, с токеном и
+  аудитом. Контейнер `nginxions`, который принимает трафик из интернета, сокета не получает.
 
 ### Путь запроса
 
 ```mermaid
 flowchart LR
-    client(["Клиент"]) --> mtls{"mTLS хоста?<br/>PKI NPMOS, CRL/OCSP"}
+    client(["Клиент"]) --> mtls{"mTLS хоста?<br/>PKI NginxionS, CRL/OCSP"}
     mtls -- "нет сертификата" --> mtlsPage["Страница «нужен<br/>клиентский сертификат»"]
     mtls -- "ок или не нужен" --> geo{"Страны хоста<br/>GeoIP"}
     geo -- "страна не пускается" --> refused["403 или 444"]
     geo -- "ок" --> cs{"Баунсер CrowdSec<br/>бан по IP"}
-    cs -- "бан или капча" --> block["Страница блокировки NPMOS"]
+    cs -- "бан или капча" --> block["Страница блокировки NginxionS"]
     cs -- "ок" --> waf{"Агент open-appsec<br/>через attachment"}
     waf -- "атака, режим блокировки" --> block
     waf -- "ок" --> upstream["Сервис за хостом<br/>(upstream)"]
-    upstream -. "ошибка nginx" .-> errorPage["Страница ошибок NPMOS"]
+    upstream -. "ошибка nginx" .-> errorPage["Страница ошибок NginxionS"]
 ```
 
 Логи nginx и агента читают два потребителя: CrowdSec (сценарии и баны) и backend (Аналитика и События).
@@ -147,14 +147,14 @@ flowchart LR
 
 ## 4. Дерево файлов
 
-Что лежит в репозитории и зачем. Код NPMOS расписан по файлам, код NPMplus (upstream, `git subtree`) — по
-каталогам: в его файлах наши правки помечены комментарием `NPMOS:`. Тесты (`*.test.js`, `*.test.ts`) лежат рядом
+Что лежит в репозитории и зачем. Код NginxionS расписан по файлам, код NPMplus (upstream, `git subtree`) — по
+каталогам: в его файлах наши правки помечены комментарием `NginxionS:`. Тесты (`*.test.js`, `*.test.ts`) лежат рядом
 с тем, что проверяют, и в дереве не перечислены. Добавили, переименовали или удалили файл — поправьте дерево: CI (`scripts/check-tree.mjs`) проверяет, что каждый
-файл кода NPMOS в нём упомянут.
+файл кода NginxionS в нём упомянут.
 
 ### Корень
 
-- `README.md` — что такое NPMOS, установка, ссылки на документацию
+- `README.md` — что такое NginxionS, установка, ссылки на документацию
 - `CODE_OF_CONDUCT.md` — этот файл: правила общения, issue, архитектура, дерево файлов
 - `CONTRIBUTING.md` — как вносить изменения: ветки, коммиты, проверки
 - `CLAUDE.md` — правила разработки (для людей и ИИ-агентов): структура, проверки, правки upstream
@@ -173,7 +173,7 @@ flowchart LR
   - `actionlint.yaml` — настройки actionlint (метки раннеров)
   - **`security/`** — настройки сканеров
     - `tools.env` — образы и версии всех сканеров, закреплённые по digest
-    - `semgrep.yml` — правила Semgrep для NPMOS: таймауты запросов, shell, сырой HTML, SQL из шаблонов
+    - `semgrep.yml` — правила Semgrep для NginxionS: таймауты запросов, shell, сырой HTML, SQL из шаблонов
     - `gitleaks.toml` — Gitleaks: стандартные правила и места с примерами вместо секретов
     - `codeql.yml` — CodeQL: что не код продукта
     - `hadolint.yaml` — hadolint: отключённые правила с причинами
@@ -183,17 +183,17 @@ flowchart LR
 
 ### `deploy/` — запуск стека
 
-- `compose.yaml` — прод-стек: `npmos`, `openappsec`, `crowdsec`, `postgres` и разовый `npmos-init`
+- `compose.yaml` — прод-стек: `nginxions`, `openappsec`, `crowdsec`, `postgres` и разовый `nginxions-init`
 - `compose.dev.yaml` — надстройка для разработки: dev-образ, синхронизация backend, генератор атак
 - `.env` — закреплённые версии образов и реестр
 - **`init/`**
-  - `npmos-init.sh` — разовый старт: секреты, каталоги томов, офлайн-снимок hub CrowdSec
+  - `nginxions-init.sh` — разовый старт: секреты, каталоги томов, офлайн-снимок hub CrowdSec
   - `postgres-init.sh` — базы и пользователи postgres при первом запуске
-- **`openappsec/`** — образ `npmos-openappsec`
-  - `Dockerfile` — агент open-appsec (C++), shared storage и tuning (Go) из исходников, `npmos-control`
-  - `npmos-openappsec.sh` — запуск процессов контейнера: агент, shared storage, tuning, `npmos-control`
+- **`openappsec/`** — образ `nginxions-openappsec`
+  - `Dockerfile` — агент open-appsec (C++), shared storage и tuning (Go) из исходников, `nginxions-control`
+  - `nginxions-openappsec.sh` — запуск процессов контейнера: агент, shared storage, tuning, `nginxions-control`
   - `sources.env` — коммиты исходников open-appsec, из которых собирается образ
-  - `agent/npmos-entry.sh` — настройки агента из GUI (WAF → Агент) при каждом его старте
+  - `agent/nginxions-entry.sh` — настройки агента из GUI (WAF → Агент) при каждом его старте
   - `agent/merge-headers.py` — добавляет заголовки из `waap-headers.json` в сигнатуры агента при сборке
   - `agent/waap.data` — модель агента в образе: продвинутая модель Check Point («Advanced model, V2.0», лицензия внутри файла)
   - `agent/waap-headers.json` — заголовки браузеров (`Sec-Fetch-*`, `Priority`…) со строгими шаблонами значений, чтобы агент не принимал их за атаку
@@ -218,10 +218,12 @@ flowchart LR
 - `check-i18n.mjs` — проверка CI: у каждой строки `en` есть `ru`, в разметке нет текста мимо переводов
 - `crowdsec-hub-snapshot.sh` — снимок hub CrowdSec для серверов без интернета
 - `gen-world-map.mjs` — генерация `worldMap.json` (контуры стран для карты Аналитики)
-- `check-tree.mjs` — проверка CI: каждый файл кода NPMOS упомянут в этом дереве
+- `check-tree.mjs` — проверка CI: каждый файл кода NginxionS упомянут в этом дереве
 - `scan-images.sh` — скан образов: уязвимости и секреты (Trivy), SBOM (Syft), второе мнение (Grype), CIS (Dockle)
 - `test-dast.sh` — DAST: поднимает стек и атакует его (OWASP ZAP, Nuclei, testssl.sh), проверяет nginx (gixy)
 - `security-report.mjs` — сводный отчёт безопасности, политика блокировки, читаемые страницы SBOM
+- `sarif-accepted.mjs` — убирает из SARIF принятые риски и подавленные в коде находки перед загрузкой в Code scanning
+- `upgrade-from-npmos.sh` — перенос томов стека времён названия NPMOS (`npmos_*`) в NginxionS: копия томов, имена секретов, роль и база Postgres
 - `train-model.sh` — цикл обучения модели WAF на настоящем агенте: штатная модель, обучение, установка новой как
   в GUI, сравнение и решение о выпуске (`docs/MODEL.md`)
 
@@ -240,45 +242,46 @@ flowchart LR
 
 - `MIGRATION.md` — перенос с Nginx Proxy Manager, NPMplus и open-appsec-npm
 - `TROUBLESHOOTING.md` — решение проблем
-- `UNINSTALL.md` — полное удаление NPMOS
+- `UNINSTALL.md` — полное удаление NginxionS
 - `ENV-INVENTORY.md` — какие env-настройки остались и когда уходят в GUI
 - `TESTING-DEVELOP.md` — как развернуть develop-версию и что проверить руками
 - `CHECKLIST.md` — полная проверка всех функций
 - `DEVSECOPS.md` — проверки безопасности в CI: сканеры, политика блокировки, отчёт, SBOM, принятые риски
-- `MODEL.md` — модель WAF NPMOS: как устроена модель open-appsec, данные, обучение, проверка, выпуск
+- `MODEL.md` — модель WAF NginxionS: как устроена модель open-appsec, данные, обучение, проверка, выпуск
 - `ROADMAP.md` — план разработки по фазам
 - `LEARNING-RESEARCH.md` — исследование обучения агента open-appsec (перед фазой 8)
 - `tutor.md` — черновик статьи об open-appsec
 - `adr/` — архитектурные решения: сеть (0001), RBAC (0007), политика WAF (0008), PKI и mTLS (0009), CrowdSec (0010), обучение (0011)
 
-### `npmos/` — образ npmos (NPMplus + NPMOS)
+### `nginxions/` — образ nginxions (NPMplus + NginxionS)
 
-- `Dockerfile` — образ npmos: nginx, attachment open-appsec и модули из исходников, lego, офлайн-сид CrowdSec
+- `Dockerfile` — образ nginxions: nginx, attachment open-appsec и модули из исходников, lego, офлайн-сид CrowdSec
 - `README.md` — что лежит в каталоге
 - `crowdsec-seed/` — сборка офлайн-снимка hub CrowdSec, который кладётся в образ
 - `patches/` — патчи nginx и его модулей
 - **`rootfs/`** — файлы, которые копируются в образ как есть
   - `usr/local/bin/` — `start.sh` (настройка и запуск при старте контейнера), `launch.sh`, `entrypoint.sh`, `healthcheck.sh` и другие скрипты NPMplus
-  - `usr/local/nginx/conf/nginx.conf` — главный конфиг nginx, в том числе формат лога запросов `npmos_requests`
-  - `usr/local/nginx/conf/conf.d/npmos-block-page.conf` — страница блокировки NPMOS для отказов 403
-  - `usr/local/nginx/conf/conf.d/npmos-crowdsec-hub.conf` — локальная раздача снимка hub CrowdSec
-  - `usr/local/nginx/conf/conf.d/npmos-geo.conf` — страны по GeoIP (переписывается backend при загрузке базы)
-  - `usr/local/nginx/conf/conf.d/npmos-mtls-log.conf` — лог отказов mTLS
-  - `usr/local/nginx/conf/conf.d/npmos-ocsp.conf` — проверка клиентских сертификатов через OCSP NPMOS
-  - `usr/local/nginx/html/npmos-error.html` — страница ошибок nginx в дизайне NPMOS
-  - `usr/local/nginx/html/npmos-mtls-denied.html` — страница «нужен клиентский сертификат»
-  - `usr/local/lua/npmos/npmos_block_page.lua` — подстановка настроек в страницу блокировки
-  - `usr/local/lua/npmos/npmos_error_page.lua` — подстановка кода и текста в страницу ошибок
-  - `etc/npmos/crowdsec-ban.html`, `crowdsec-captcha.html` — страницы бана и капчи баунсера CrowdSec
+  - `usr/local/nginx/conf/nginx.conf` — главный конфиг nginx, в том числе формат лога запросов `nginxions_requests`
+  - `usr/local/nginx/conf/conf.d/nginxions-block-page.conf` — страница блокировки NginxionS для отказов 403
+  - `usr/local/nginx/conf/conf.d/nginxions-crowdsec-hub.conf` — локальная раздача снимка hub CrowdSec
+  - `usr/local/nginx/conf/conf.d/nginxions-geo.conf` — страны по GeoIP (переписывается backend при загрузке базы)
+  - `usr/local/nginx/conf/conf.d/nginxions-mtls-log.conf` — лог отказов mTLS
+  - `usr/local/nginx/conf/conf.d/nginxions-ocsp.conf` — проверка клиентских сертификатов через OCSP NginxionS
+  - `usr/local/nginx/html/nginxions-error.html` — страница ошибок nginx в дизайне NginxionS
+  - `usr/local/nginx/html/nginxions-mtls-denied.html` — страница «нужен клиентский сертификат»
+  - `usr/local/lua/nginxions/nginxions_block_page.lua` — подстановка настроек в страницу блокировки
+  - `usr/local/lua/nginxions/nginxions_error_page.lua` — подстановка кода и текста в страницу ошибок
+  - `etc/nginxions/crowdsec-ban.html`, `crowdsec-captcha.html` — страницы бана и капчи баунсера CrowdSec
 - **`backend/`** — API на Node.js
-  - `index.js` — запуск: миграции, затем `bootstrap` модулей NPMOS (ACME, WAF, PKI, CrowdSec, GeoIP…), фоновые задачи
-  - `internal/`, `routes/`, `lib/`, `models/`, `templates/` — код NPMplus: логика хостов, маршруты API, шаблоны конфигов nginx; наши крючки помечены `NPMOS:`
-  - **`npmos/`** — модули NPMOS
-    - `routes.js` — все маршруты `/api/npmos/*`
-    - `settings.js` — настройки NPMOS в таблице `npmos_setting`
+  - `index.js` — запуск: миграции, затем `bootstrap` модулей NginxionS (ACME, WAF, PKI, CrowdSec, GeoIP…), фоновые задачи
+  - `internal/`, `routes/`, `lib/`, `models/`, `templates/` — код NPMplus: логика хостов, маршруты API, шаблоны конфигов nginx; наши крючки помечены `NginxionS:`
+  - **`nginxions/`** — модули NginxionS
+    - `routes.js` — все маршруты `/api/nginxions/*`
+    - `settings.js` — настройки NginxionS в таблице `nginxions_setting`
+    - `rename.js` — перевод базы времён названия NPMOS (таблицы `npmos_*`, имена миграций и встроенных объектов) на имена NginxionS при запуске
     - `secrets.js` — шифрование секретов в базе (пароли SMTP, ключи webhook, токены ботов)
     - `redact.js` — маскировка секретов в тексте, который уходит наружу (диагностический архив)
-    - `services.js` — Обзор → Сервисы: контейнеры стека через `npmos-control`
+    - `services.js` — Обзор → Сервисы: контейнеры стека через `nginxions-control`
     - `hosts.js` — таблица Хостов: кто и когда менял хост, состояние upstream
     - `certificates.js` — Сертификаты → реестр всех сертификатов системы с серверными страницами
     - `cert-terms.js` — сроки TLS-сертификатов хостов и когда пора обновлять
@@ -291,7 +294,7 @@ flowchart LR
     - `stream-ports.js` — один входящий порт (диапазон) на протокол у потоков
     - **`acme/`** — `servers.js` (ACME-серверы: пресеты и свои, EAB), `lego.js` (второй ACME-клиент), `certs.js` (сертификаты NPMplus с сервером из настроек)
     - **`audit/`** — `index.js`: журнал аудита со страницами и фильтрами
-    - **`control/`** — `server.js` (сервис `npmos-control`: доступ к Docker по белому списку), `client.js` (клиент backend), `watchdog.js` (чинит контейнеры, делящие сеть с другим)
+    - **`control/`** — `server.js` (сервис `nginxions-control`: доступ к Docker по белому списку), `client.js` (клиент backend), `watchdog.js` (чинит контейнеры, делящие сеть с другим)
     - **`crowdsec/`**
       - `index.js` — CrowdSec в GUI: обзор, решения, алерты, машины, баунсеры, метрики
       - `lapi.js` — клиент локального API CrowdSec (LAPI)
@@ -325,8 +328,8 @@ flowchart LR
       - `index.js` — порядок переноса и отчёт
       - `source.js` — что лежит в резервной копии и где
       - `tar.js` — чтение tar-архива
-      - `schema.js` — приведение старой базы к схеме NPMOS
-      - `copy.js` — копирование строк в базу NPMOS
+      - `schema.js` — приведение старой базы к схеме NginxionS
+      - `copy.js` — копирование строк в базу NginxionS
       - `files.js` — копирование файлов в `/data`
     - **`notifications/`** — `index.js` (каналы, правила, движок проверки), `rules.js` (что проверяется и текст сообщений), `channels.js` (отправка: email, webhook с HMAC, Telegram)
     - **`pki/`** — свой PKI и mTLS
@@ -347,13 +350,13 @@ flowchart LR
       - `hosts-code.js` — политика хоста как код (YAML)
       - `custom.js`, `expert.js` — свои YAML-фрагменты поверх политики (режим эксперта)
       - **`objects/`** — `model.js` (объекты политики в терминах v1beta2), `store.js` (хранение и сборка политики), `api.js` (объекты, политика по умолчанию, предпросмотр), `format.js` (запись в v1beta1 или v1beta2), `schema-v1beta2.json` (схема политики), `examples/` (примеры политик open-appsec для тестов)
-    - **`migrations/`** — миграции таблиц `npmos_*` (по одной на изменение схемы, имя начинается с даты)
+    - **`migrations/`** — миграции таблиц `nginxions_*` (по одной на изменение схемы, имя начинается с даты)
 - **`frontend/`** — интерфейс на React + Vite
-  - `src/App.tsx`, `src/Router.tsx`, `src/pages/`, `src/modals/`, `src/components/`, `src/hooks/` — код NPMplus; наши правки помечены `NPMOS:`
+  - `src/App.tsx`, `src/Router.tsx`, `src/pages/`, `src/modals/`, `src/components/`, `src/hooks/` — код NPMplus; наши правки помечены `NginxionS:`
   - `src/locale/src/en.json`, `ru.json` — все строки интерфейса (другие языки — от NPMplus)
-  - **`src/npmos/`** — интерфейс NPMOS
-    - `api.ts` — клиент `/api/npmos/*`
-    - `apiErrors.ts` — понятная ошибка, если вместо API ответил не backend NPMOS
+  - **`src/nginxions/`** — интерфейс NginxionS
+    - `api.ts` — клиент `/api/nginxions/*`
+    - `apiErrors.ts` — понятная ошибка, если вместо API ответил не backend NginxionS
     - `hooks.ts` — общие хуки данных (react-query)
     - **`ui/`** — оболочка и общие компоненты
       - `Shell.tsx`, `Sidebar.tsx`, `menu.ts`, `SectionTabs.tsx` — каркас: боковое меню, разделы, вкладки

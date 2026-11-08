@@ -4,7 +4,7 @@
          should_buffer(_buffer),
          is_to_fog(_fog)
      {
-+        npmosHostPort();
++        nginxionsHostPort();
          if (immediate_tracing && Singleton::exists<I_Environment>()) {
              insertHeaders(Singleton::Consume<I_Environment>::by<MessageMetadata>()->getCurrentHeadersMap());
          }
@@ -12,7 +12,7 @@
          should_send_access_token(true),
          should_suspend(_should_suspend)
      {
-+        npmosHostPort();
++        nginxionsHostPort();
          if (immediate_tracing && Singleton::exists<I_Environment>()) {
              insertHeaders(Singleton::Consume<I_Environment>::by<MessageMetadata>()->getCurrentHeadersMap());
          }
@@ -20,10 +20,10 @@
          );
      }
  
-+    // NPMOS: a host given as "name:port" (TUNING_HOST, SHARED_STORAGE_HOST) names its port. The agent asks the
-+    // tuning and shared storage services on port 80, which nginx takes in the network NPMOS shares with them.
++    // NginxionS: a host given as "name:port" (TUNING_HOST, SHARED_STORAGE_HOST) names its port. The agent asks the
++    // tuning and shared storage services on port 80, which nginx takes in the network NginxionS shares with them.
 +    void
-+    npmosHostPort()
++    nginxionsHostPort()
 +    {
 +        auto colon = host_name.rfind(':');
 +        if (colon == std::string::npos || colon == 0 || colon + 1 >= host_name.size()) return;

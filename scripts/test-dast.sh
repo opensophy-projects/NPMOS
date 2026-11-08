@@ -7,7 +7,7 @@
 #   testssl.sh  TLS of the interface (port 81) and of the proxy host (443): protocols, ciphers, HSTS, known attacks
 #   gixy        the nginx configuration the stack runs (nginx -T): SSRF, header injection, alias traversal...
 #
-#   NPMOS_REGISTRY=docker.io/opensophy NPMOS_VERSION=<tag> scripts/test-dast.sh
+#   NGINXIONS_REGISTRY=docker.io/opensophy NGINXIONS_VERSION=<tag> scripts/test-dast.sh
 #
 # Reports in $OUT (reports/dast). Exits non-zero only when the stack or a scanner fails: what fails the run is decided
 # by scripts/security-report.mjs.
@@ -23,7 +23,7 @@ out="$(cd "$OUT" && pwd)"
 # ZAP and testssl.sh run as users of their own
 chmod 777 "$out"
 
-export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-npmos-dast}"
+export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-nginxions-dast}"
 compose=(docker compose -f deploy/compose.yaml -f deploy/test/compose.dast.yaml)
 net="${COMPOSE_PROJECT_NAME}_edge"
 
@@ -38,13 +38,13 @@ cleanup() {
 }
 trap cleanup EXIT
 
-"${compose[@]}" up -d --no-build npmos openappsec crowdsec test-upstream
+"${compose[@]}" up -d --no-build nginxions openappsec crowdsec test-upstream
 
-echo "==> waiting for npmos to become healthy"
+echo "==> waiting for nginxions to become healthy"
 for i in $(seq 1 90); do
-  state=$(docker inspect -f '{{.State.Health.Status}}' "$("${compose[@]}" ps -q npmos)" 2> /dev/null || true)
+  state=$(docker inspect -f '{{.State.Health.Status}}' "$("${compose[@]}" ps -q nginxions)" 2> /dev/null || true)
   [ "$state" = healthy ] && break
-  [ "$i" = 90 ] && { echo "npmos is not healthy: $state"; exit 1; }
+  [ "$i" = 90 ] && { echo "nginxions is not healthy: $state"; exit 1; }
   sleep 2
 done
 
@@ -56,7 +56,7 @@ ip=$(docker inspect -f "{{(index .NetworkSettings.Networks \"$net\").IPAddress}}
 run=(docker run --rm --network "$net" --add-host "dast.local:$ip" -v "$out:/out")
 
 echo "==> nginx configuration (gixy)"
-"${compose[@]}" exec -T npmos nginx -T > "$out/nginx-T.conf" 2> /dev/null
+"${compose[@]}" exec -T nginxions nginx -T > "$out/nginx-T.conf" 2> /dev/null
 # exit 1: issues found (the report decides)
 pipx run --spec "gixy-ng==$GIXY_VERSION" gixy -f json -o "$out/gixy.json" "$out/nginx-T.conf" || [ -s "$out/gixy.json" ]
 
@@ -77,15 +77,15 @@ zap() {
   [ "$rc" -le 2 ]
 }
 scan zap-api zap -e ZAP_AUTH_HEADER=Cookie -e "ZAP_AUTH_HEADER_VALUE=__Host-Http-token=$cookie" \
-  -e ZAP_AUTH_HEADER_SITE=npmos "$ZAP_IMAGE" zap-api-scan.py -t https://npmos:81/api/schema -f openapi \
+  -e ZAP_AUTH_HEADER_SITE=nginxions "$ZAP_IMAGE" zap-api-scan.py -t https://nginxions:81/api/schema -f openapi \
   -J zap-api.json -r zap-api.html -I -z "-config scanner.maxScanDurationInMins=20 -config scanner.threadPerHost=4"
-scan zap-ui zap "$ZAP_IMAGE" zap-baseline.py -t https://npmos:81/ -J zap-ui.json -r zap-ui.html -I -m 3
+scan zap-ui zap "$ZAP_IMAGE" zap-baseline.py -t https://nginxions:81/ -J zap-ui.json -r zap-ui.html -I -m 3
 scan zap-host zap "$ZAP_IMAGE" zap-baseline.py -t https://dast.local/ -J zap-host.json -r zap-host.html -I -m 3
 
-# what NPMOS serves itself: the interface and the default host (80, 443). Not dast.local: its site (whoami) echoes
+# what NginxionS serves itself: the interface and the default host (80, 443). Not dast.local: its site (whoami) echoes
 # every request back, which templates take for the product they look for.
 scan nuclei "${run[@]}" "$NUCLEI_IMAGE" -silent -no-color -severity low,medium,high,critical \
-  -rate-limit 60 -timeout 10 -u https://npmos:81 -u http://npmos -u https://npmos -jsonl -o /out/nuclei.jsonl
+  -rate-limit 60 -timeout 10 -u https://nginxions:81 -u http://nginxions -u https://nginxions -jsonl -o /out/nuclei.jsonl
 
 # testssl.sh: its exit code counts findings; a report is what tells a finished scan
 testssl() {
@@ -94,7 +94,7 @@ testssl() {
   "${run[@]}" "$TESTSSL_IMAGE" --quiet --warnings off --color 0 --severity LOW --jsonfile "/out/$name.json" "$@" || true
   [ -s "$out/$name.json" ]
 }
-scan testssl-ui testssl testssl-ui npmos:81
+scan testssl-ui testssl testssl-ui nginxions:81
 scan testssl-host testssl testssl-host --ip one dast.local:443
 
 failed=0

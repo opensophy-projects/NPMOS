@@ -2,7 +2,7 @@
 """Sends the requests of samples.jsonl (model/datasets.py) through the stack and writes the verdict of each.
 
 Every request carries:
-  X-Npmos-Sample   its id: the feature dump of the agent (agent patch 0005) names the request by it;
+  X-Nginxions-Sample   its id: the feature dump of the agent (agent patch 0005) names the request by it;
   X-Forwarded-For  an address of its own: the training stack identifies sources by this header, so every request
                    comes from a new source. The agent weighs a score by the reputation of its source; from one
                    address the attacks of the set would lower it and the legitimate requests after them would be
@@ -23,7 +23,7 @@ import time
 import urllib.parse
 
 # set by the client itself; the other headers of a sample go as they are (the agent scans them too)
-SKIP = {"host", "content-length", "connection", "transfer-encoding", "x-forwarded-for", "x-npmos-sample"}
+SKIP = {"host", "content-length", "connection", "transfer-encoding", "x-forwarded-for", "x-nginxions-sample"}
 # like requests: characters a URL may carry as they are, everything else is percent-encoded
 SAFE = "!#$%&'()*+,/:;=?@[]~"
 
@@ -65,7 +65,7 @@ class Client:
     def send(self, sample, host, n):
         body = sample.get("data") or ""
         body = body.encode("utf-8", "surrogatepass") if body else None
-        headers = [("X-Npmos-Sample", sample["id"]), ("Host", host), ("X-Forwarded-For", source_ip(n))]
+        headers = [("X-Nginxions-Sample", sample["id"]), ("Host", host), ("X-Forwarded-For", source_ip(n))]
         headers += [(k, latin1(v)) for k, v in sample["headers"].items() if k.lower() not in SKIP]
         for attempt in range(3):
             try:

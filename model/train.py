@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Trains the open-appsec model of NPMOS: a sparse logistic regression over the keywords and keyword pairs the
+"""Trains the open-appsec model of NginxionS: a sparse logistic regression over the keywords and keyword pairs the
 agent itself found in each value (feature dump, agent patch 0005), in the agent's own format (waap.data, linear
 model: model/waapmodel.py). docs/MODEL.md describes the whole cycle.
 
@@ -295,7 +295,7 @@ def main(argv=None):
         entry["new_score"] = round(10.0 / (1.0 + math.exp(-c)), 8) or 1e-8
 
     doc = copy.deepcopy(base_doc)
-    doc["model_version"] = f"NPMOS {args.name}"
+    doc["model_version"] = f"NginxionS {args.name}"
     doc["waap_scores"] = model.to_scores()
     waap = out / "waap.data"
     save_waap_data(doc, waap)

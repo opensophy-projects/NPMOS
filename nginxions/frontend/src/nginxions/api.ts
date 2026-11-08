@@ -1,0 +1,638 @@
+// NginxionS API client (/api/nginxions/*), see nginxions/backend/nginxions/routes.js
+import type { AuditLog } from "src/api/backend";
+import * as api from "src/api/backend/base";
+import type { HostObjects } from "./policy/api";
+import { isNotJson, notJsonError } from "./apiErrors";
+
+export interface Service {
+	id: string;
+	service: string;
+	name: string;
+	image: string;
+	version: string | null;
+	state: "created" | "running" | "paused" | "restarting" | "removing" | "exited" | "dead";
+	status: string;
+	created: number;
+	restartable: boolean;
+	/** addresses in its networks */
+	addresses?: { network: string; ip: string }[];
+	/** ports it listens on; published: the port on the host */
+	ports?: { port: number; type: string; published: number | null }[];
+}
+
+/** a container outside the stack in a network of nginxions (System -> Services: publish it as a proxy host) */
+export interface App {
+	name: string;
+	image: string;
+	status: string;
+	addresses: { network: string; ip: string }[];
+	ports: { port: number; type: string; published: number | null }[];
+}
+
+export const getApps = () => api.get({ url: "/nginxions/apps" }) as Promise<App[]>;
+
+export interface ServiceLogLine {
+	stream: "stdout" | "stderr";
+	line: string;
+}
+
+interface RestartResult {
+	service: string;
+	restarted: boolean;
+	restarting?: boolean;
+}
+
+export const getServices = (): Promise<Service[]> => api.get({ url: "/nginxions/services" });
+
+export const getServiceLogs = (service: string, tail = 200): Promise<ServiceLogLine[]> =>
+	api.get({ url: `/nginxions/services/${encodeURIComponent(service)}/logs`, params: { tail } });
+
+export const restartService = (service: string): Promise<RestartResult> =>
+	api.post({ url: `/nginxions/services/${encodeURIComponent(service)}/restart` });
+
+export const regenerateNginx = (): Promise<{ regenerated: boolean }> =>
+	api.post({ url: "/nginxions/nginx/regenerate" });
+
+export const downloadDiagnostics = () =>
+	api.download(
+		{ url: "/nginxions/diagnostics" },
+		`nginxions-diagnostics-${new Date().toISOString().slice(0, 19)}.zip`,
+	);
+
+export interface AgentStatus {
+	reachable: boolean;
+	error?: string;
+	policyVersion?: string | null;
+	lastPolicyUpdate?: string | null;
+	lastUpdate?: string | null;
+	lastUpdateStatus?: string | null;
+	mode?: "local";
+}
+
+export interface WafPolicyState {
+	file: string;
+	generatedAt: string | null;
+	hosts: number;
+	applied: { ok: boolean; at: string; error: string | null } | null;
+}
+
+export interface WafStatus {
+	enabled: boolean;
+	active: boolean;
+	restartRequired: boolean;
+	restarting?: boolean;
+	agent?: AgentStatus;
+	policy?: WafPolicyState;
+}
+
+export type WafMode = "detect-learn" | "prevent-learn";
+export type WafConfidence = "medium" | "high" | "critical";
+
+export interface WafSettings {
+	enabled: boolean;
+	mode: WafMode;
+	minimumConfidence: WafConfidence;
+	/** template of the policy objects of the host (list of hosts only) */
+	template?: string | null;
+}
+
+export interface WafLocationSettings extends WafSettings {
+	path: string;
+	/** no own settings: the location is protected like its host */
+	inherit: boolean;
+	/** own objects of the policy; null: those of the host */
+	objects?: HostObjects;
+}
+
+export interface WafHost extends WafSettings {
+	locations: WafLocationSettings[];
+	/** objects of the policy (WAF → Policy): a template or own references; null: the default policy */
+	objects?: HostObjects;
+}
+
+export const WAF_DEFAULTS: WafSettings = { enabled: false, mode: "detect-learn", minimumConfidence: "high" };
+
+export const getWafStatus = (): Promise<WafStatus> => api.get({ url: "/nginxions/waf" });
+
+export const setWafEnabled = (enabled: boolean, apply = true): Promise<WafStatus> =>
+	api.put({ url: "/nginxions/waf", data: { enabled, apply } });
+
+/** WAF settings of all visible proxy hosts, by proxy host id (hosts without settings are missing) */
+export const getWafHosts = (): Promise<Record<string, WafSettings>> => api.get({ url: "/nginxions/waf/hosts" });
+
+export const getWafHost = (id: number): Promise<WafHost> => api.get({ url: `/nginxions/waf/hosts/${id}` });
+
+export const setWafHost = (
+	id: number,
+	data: WafSettings & { locations?: WafLocationSettings[]; objects?: HostObjects },
+): Promise<WafHost> => api.put({ url: `/nginxions/waf/hosts/${id}`, data });
+
+export const getWafPolicy = (): Promise<WafPolicyState & { content: string | null }> =>
+	api.get({ url: "/nginxions/waf/policy" });
+
+export const applyWafPolicy = (): Promise<WafPolicyState & { changed: boolean }> =>
+	api.post({ url: "/nginxions/waf/policy/apply" });
+
+/** a stored security event of the open-appsec agent (WAF → Events) */
+export interface SecurityEvent {
+	id: string;
+	time: string;
+	/** security: an attack the WAF decided on; system: a notice of the agent */
+	kind: "security" | "crowdsec" | "mtls" | "system" | "request";
+	/** Events → All: a request of the request log (kind "request") */
+	request?: RequestLogRow;
+	name: string;
+	severity: string;
+	priority: string;
+	confidence: string;
+	/** Prevent / Detect / Accept ... */
+	action: string;
+	incidentType: string;
+	sourceIp: string;
+	sourcePort: number | null;
+	proxyIp: string;
+	sourceCountry: string;
+	host: string;
+	asset: string;
+	method: string;
+	uri: string;
+	query: string;
+	responseCode: number | null;
+	location: string;
+	parameter: string;
+	sample: string;
+	indicators: string;
+	score: number | null;
+	rule: string;
+	practice: string;
+	override: string;
+	/** agent component that wrote it */
+	service: string;
+}
+
+export interface SecurityEventFull extends SecurityEvent {
+	raw: Record<string, any>;
+}
+
+/** query parameters of /nginxions/events (see pages/WafEvents/filters.ts) */
+export type EventQuery = Record<string, string | number | boolean | undefined>;
+
+export interface EventsPage {
+	events: SecurityEvent[];
+	/** cursor of the next (older) page */
+	next: string | null;
+	total: number;
+	/** more than `total` events match */
+	totalCapped: boolean;
+	from: string;
+	to: string;
+	/** the agent's log directory is readable */
+	available: boolean;
+	ingestError: string | null;
+}
+
+/** the term of a TLS certificate of the hosts and when it needs attention (backend: nginxions/cert-terms.js) */
+export interface CertTerm {
+	notBefore: string | null;
+	notAfter: string | null;
+	lifetimeDays: number | null;
+	/** NginxionS renews it (ACME with renewal on) */
+	autoRenew: boolean;
+	/** from when it is renewed */
+	renewFrom: string | null;
+	/** from when it is "expiring": a renewal is late, or it must be replaced soon */
+	attentionFrom: string | null;
+}
+
+export const getCertTerms = () =>
+	api.get({ url: "/nginxions/certificates/terms" }) as Promise<Record<string, CertTerm>>;
+
+export const getEvents = (params: EventQuery) => api.get({ url: "/nginxions/events", params }) as Promise<EventsPage>;
+
+export const getEvent = (id: string, time: string) =>
+	api.get({ url: `/nginxions/events/${id}`, params: { time } }) as Promise<SecurityEventFull>;
+
+export const downloadEvents = (params: EventQuery, format: "csv" | "json") =>
+	api.download(
+		{ url: "/nginxions/events/export", params: { ...params, format } },
+		`nginxions-events-${new Date().toISOString().slice(0, 19).replaceAll(":", "-")}.${format}`,
+	);
+
+/** a page of the audit log (/nginxions/audit), with the values the filters offer */
+export interface AuditPage {
+	items: AuditLog[];
+	total: number;
+	limit: number;
+	offset: number;
+	facets: { actions: string[]; objects: string[]; users: { id: number; name: string }[] };
+}
+
+export const getAudit = (params: EventQuery) => api.get({ url: "/nginxions/audit", params }) as Promise<AuditPage>;
+
+export const downloadAudit = (params: EventQuery, format: "csv" | "json") =>
+	api.download(
+		{ url: "/nginxions/audit/export", params: { ...params, format } },
+		`nginxions-audit-${new Date().toISOString().slice(0, 19).replaceAll(":", "-")}.${format}`,
+	);
+
+export type CertSource = "tls" | "ca" | "pki" | "file";
+export type CertStatus = "valid" | "expiring" | "expired" | "revoked";
+
+/** a row of the registry of certificates (/nginxions/certificates) */
+export interface RegistryCert {
+	key: string;
+	source: CertSource;
+	/** id of the record; the path of a file */
+	id: number | string;
+	name: string;
+	subjects: string[];
+	/** provider of a TLS certificate, kind of a CA (root, intermediate, external), profile of an issued one */
+	kind: string;
+	dnsProvider?: string | null;
+	/** the ACME server of Settings → ACME an ACME certificate is issued by */
+	acmeServer?: string | null;
+	issuer: string;
+	serial?: string;
+	notAfter: string | null;
+	createdOn: string | null;
+	status: CertStatus;
+	usedBy: { type: string; id: number; name: string }[];
+	/** a CA uploaded in NPMplus: its certificate there */
+	tlsId?: number | null;
+	/** a TLS certificate issued by the PKI */
+	pkiId?: number | null;
+	path?: string;
+}
+
+export interface RegistryPage {
+	items: RegistryCert[];
+	total: number;
+	limit: number;
+	offset: number;
+	counts: { source: Partial<Record<CertSource, number>>; status: Partial<Record<CertStatus, number>> };
+	kinds: string[];
+	expiringDays: number;
+	can: { tls: boolean; pki: boolean };
+}
+
+export const getCertificateRegistry = (params: EventQuery) =>
+	api.get({ url: "/nginxions/certificates", params }) as Promise<RegistryPage>;
+
+export type AnalyticsPeriod = "1h" | "24h" | "7d" | "30d";
+
+export interface Analytics {
+	period: AnalyticsPeriod;
+	from: string;
+	to: string;
+	/** size of a timeline bucket, seconds */
+	bucket: number;
+	host: string | null;
+	kpi: {
+		/** requests seen by the agent, null without its telemetry */
+		requests: number | null;
+		attacks: number;
+		prevented: number;
+		detected: number;
+		sources: number;
+		crowdsecAlerts: number;
+		crowdsecBans: number;
+		readiness: null;
+	};
+	timeline: { t: string; prevent: number; detect: number; other: number }[];
+	/** all requests of the hosts, from the access log of nginx */
+	traffic: {
+		requests: number;
+		ok: number;
+		s2xx: number;
+		s3xx: number;
+		s4xx: number;
+		s5xx: number;
+		blocked: number;
+		bytes: number;
+		hosts: { host: string; requests: number; errors: number; blocked: number }[];
+		timeline: { t: string; requests: number; blocked: number }[];
+	};
+	actions: { action: string; events: number }[];
+	severities: { severity: string; events: number }[];
+	types: { type: string; events: number }[];
+	hosts: { host: string; events: number; prevented: number }[];
+	uris: { host: string; uri: string; events: number }[];
+	sources: { ip: string; country: string; events: number }[];
+	countries: { country: string; events: number }[];
+	lastBlocked: Pick<
+		SecurityEvent,
+		"id" | "time" | "severity" | "action" | "incidentType" | "sourceIp" | "host" | "method" | "uri" | "score"
+	>[];
+}
+
+export const getAnalytics = (period: AnalyticsPeriod, host?: string) =>
+	api.get({ url: "/nginxions/analytics", params: { period, host } }) as Promise<Analytics>;
+
+/** attacks on a host per hour of the last 24 h (hosts table) */
+export interface HostAttacks {
+	host: string;
+	events: number;
+	prevented: number;
+	hours: number[];
+}
+
+export const getHostAttacks = () => api.get({ url: "/nginxions/analytics/hosts" }) as Promise<HostAttacks[]>;
+
+// Analytics of the traffic of the hosts (tabs like the Cloudflare dashboard), from the request log of nginx
+export type TrafficTab = "requests" | "visitors" | "performance" | "security" | "cache" | "origin";
+
+interface TrafficKpi {
+	value: number | null;
+	/** against the previous period of the same length, null when unknown */
+	change: number | null;
+	series: (number | null)[] | null;
+}
+
+export interface TopRow {
+	value: string;
+	requests: number;
+	bytes: number;
+	country?: string;
+	/** hosts: one of the hosts of NginxionS */
+	known?: boolean;
+	mitigated?: number;
+	pageviews?: number | null;
+	p95?: number | null;
+}
+
+export interface EventRow {
+	value: string;
+	events: number;
+	country?: string;
+}
+
+export interface Bucket {
+	t: string;
+	[key: string]: string | number | null;
+}
+
+/** filters of Analytics and of the request log (see nginxions/events/traffic.js) */
+export interface TrafficFilters {
+	host?: string;
+	country?: string;
+	ip?: string;
+	path?: string;
+	status?: string;
+	method?: string;
+	browser?: string;
+	os?: string;
+	device?: string;
+	/** human, bot, scanner */
+	client?: string;
+	protocol?: string;
+	tls?: string;
+	cache?: string;
+	contentType?: string;
+	origin?: string;
+	unknown?: string;
+	mitigated?: string;
+	referer?: string;
+	port?: string;
+	/** status of the server behind the host: 502, 5xx */
+	originStatus?: string;
+	/** response time, ms */
+	minMs?: string;
+	maxMs?: string;
+	/** response size, bytes */
+	minBytes?: string;
+	maxBytes?: string;
+	/** a part of the host, path, IP, user agent or referer (the request log) */
+	q?: string;
+}
+
+export interface Traffic {
+	tab: TrafficTab;
+	period: AnalyticsPeriod;
+	from: string;
+	to: string;
+	bucket: number;
+	requestDays: number;
+	/** details (top lists, percentiles) start here when the period is longer than the request log is kept */
+	detailFrom: string | null;
+	unsupported?: boolean;
+	kpi: Record<string, TrafficKpi | null>;
+	timeline: Bucket[];
+	countries?: TopRow[];
+	top: Record<string, TopRow[] | EventRow[] | OriginEndpoint[]>;
+	productTimeline?: Bucket[];
+	protocolTimeline?: Bucket[];
+	percentiles?: Bucket[];
+	breakdown?: { connectMs: number | null; upstreamMs: number | null };
+	attackCountries?: EventRow[];
+	actions?: { kind: string; action: string; events: number }[];
+}
+
+export interface OriginEndpoint {
+	host: string;
+	path: string;
+	requests: number;
+	p95: number | null;
+	rate4xx: number | null;
+	rate5xx: number | null;
+	failed: number;
+}
+
+export const getTraffic = (tab: TrafficTab, period: AnalyticsPeriod, filters: TrafficFilters) =>
+	api.get({ url: "/nginxions/analytics/traffic", params: { tab, period, ...filters } }) as Promise<Traffic>;
+
+export interface RequestLogRow {
+	id: string;
+	time: string;
+	host: string;
+	known: boolean;
+	port: number | null;
+	ip: string;
+	country: string;
+	method: string;
+	path: string;
+	status: number;
+	bytes: number;
+	requestBytes: number;
+	durationMs: number;
+	upstreamMs: number | null;
+	upstreamStatus: number | null;
+	upstreamAddr: string;
+	cache: string;
+	protocol: string;
+	tls: string;
+	contentType: string;
+	refererHost: string;
+	userAgent: string;
+	browser: string;
+	os: string;
+	device: string;
+	/** who made it: a person, a bot that says so, a scanner */
+	client: "human" | "bot" | "scanner";
+	mitigated: boolean;
+}
+
+export const downloadRequests = (params: TrafficFilters & { from?: string; to?: string }, format: "csv" | "json") =>
+	api.download(
+		{ url: "/nginxions/analytics/requests/export", params: { ...params, format } },
+		`nginxions-requests-${new Date().toISOString().slice(0, 19).replaceAll(":", "-")}.${format}`,
+	);
+
+export const getRequestLog = (
+	params: TrafficFilters & { from?: string; to?: string; limit?: number; before?: string },
+) =>
+	api.get({ url: "/nginxions/analytics/requests", params: { ...params } }) as Promise<{
+		rows: RequestLogRow[];
+		next: string | null;
+		unsupported?: boolean;
+		total?: number;
+		totalCapped?: boolean;
+	}>;
+
+export interface EventsSettings {
+	retention: { days: number; aggregateDays: number; requestDays: number };
+	storage: { events: number; requests: number; oldest: string | null; bytes: number | null };
+	ingest: { running: boolean; available: boolean; lastRun: string | null; lastError: string | null };
+}
+
+export const getEventsSettings = () => api.get({ url: "/nginxions/events/settings" }) as Promise<EventsSettings>;
+
+export const setEventsSettings = (retention: EventsSettings["retention"]) =>
+	api.put({ url: "/nginxions/events/settings", data: retention }) as Promise<EventsSettings>;
+
+interface WafAgentModel {
+	present: boolean;
+	size?: number;
+	modifiedOn?: string;
+}
+
+export interface WafAgentSettings {
+	failOpen: { enabled: boolean; timeoutMs: number };
+}
+
+export interface WafAgentState extends WafAgentSettings {
+	/** null: the agent has not started with NginxionS settings yet */
+	restartRequired: boolean | null;
+	model: WafAgentModel;
+	restarting?: boolean;
+}
+
+export const getWafAgent = (): Promise<WafAgentState> => api.get({ url: "/nginxions/waf/agent" });
+
+export const setWafAgent = (data: WafAgentSettings, apply = true): Promise<WafAgentState> =>
+	api.put({ url: "/nginxions/waf/agent", data: { ...data, apply } });
+
+/** back to the basic model of the image; the agent restarts */
+export const removeWafModel = (): Promise<WafAgentModel & { restarting: boolean }> =>
+	api.del({ url: "/nginxions/waf/agent/model" });
+
+/** the file goes as the request body (up to 1 GB), not through the JSON client */
+export const uploadWafModel = async (file: File): Promise<WafAgentModel & { restarting: boolean }> => {
+	const response = await fetch("/api/nginxions/waf/agent/model", {
+		method: "PUT",
+		headers: { "Content-Type": "application/octet-stream" },
+		body: file,
+	});
+	if (isNotJson(response)) throw notJsonError(response);
+	const payload = await response.json().catch(() => ({ error: { message: response.statusText } }));
+	if (!response.ok) {
+		throw new Error(payload.error?.message || response.statusText);
+	}
+	return payload;
+};
+
+interface WafCustomVersion {
+	id: number;
+	comment: string;
+	createdOn: string;
+	user: string | null;
+	size: number;
+}
+
+export interface WafCustomPolicy {
+	id: number | null;
+	content: string;
+	versions: WafCustomVersion[];
+	policy: WafPolicyState;
+}
+
+export interface WafCustomCheck {
+	valid: boolean;
+	error?: string;
+	changed?: boolean;
+	diff?: { op: " " | "+" | "-"; line: string }[];
+}
+
+export const getWafCustomPolicy = (): Promise<WafCustomPolicy> => api.get({ url: "/nginxions/waf/policy/custom" });
+
+export const checkWafCustomPolicy = (content: string): Promise<WafCustomCheck> =>
+	api.post({ url: "/nginxions/waf/policy/custom/check", data: { content } });
+
+export const saveWafCustomPolicy = (content: string, comment: string): Promise<WafCustomPolicy> =>
+	api.put({ url: "/nginxions/waf/policy/custom", data: { content, comment } });
+
+export const rollbackWafCustomPolicy = (id: number): Promise<WafCustomPolicy> =>
+	api.post({ url: `/nginxions/waf/policy/custom/${id}/rollback` });
+
+// ---- hosts table: changes from the audit log, upstream checks (nginxions/backend/nginxions/hosts.js) ----
+
+/** object type of a host in the audit log */
+export type HostObjectType = "proxy-host" | "redirection-host" | "dead-host" | "stream";
+
+export interface HostChange {
+	id: number;
+	/** created, updated, enabled, disabled, deleted; updated-waf: WAF settings of a proxy host */
+	action: string;
+	createdOn: string;
+	user: { id: number; name: string | null; avatar: string } | null;
+	/** settings changed by an update (API field names; "meta.x" for meta fields) */
+	fields: string[];
+	waf?: { enabled: boolean; mode: WafMode | null };
+}
+
+export interface HostLastChange extends HostChange {
+	type: HostObjectType;
+	objectId: number;
+}
+
+export interface UpstreamCheck {
+	type: HostObjectType;
+	objectId: number;
+	host: string;
+	port: number;
+	ok: boolean;
+	ms?: number;
+	/** ECONNREFUSED, ENOTFOUND, timeout… */
+	error?: string;
+}
+
+export const getHostChanges = (): Promise<HostLastChange[]> => api.get({ url: "/nginxions/hosts/changes" });
+
+export const getHostHistory = (type: HostObjectType, id: number): Promise<HostChange[]> =>
+	api.get({ url: `/nginxions/hosts/changes/${type}/${id}` });
+
+export const getUpstreamChecks = (): Promise<UpstreamCheck[]> => api.get({ url: "/nginxions/hosts/upstreams" });
+
+/** Agents → Block page: what a refused visitor sees */
+export interface BlockPageSettings {
+	enabled: boolean;
+	title: string;
+	text: string;
+	contact: string;
+	details: boolean;
+	accent: string;
+	/** language of the labels of the details */
+	language?: "en" | "ru";
+}
+
+export const getBlockPage = () =>
+	api.get({ url: "/nginxions/block-page" }) as Promise<{ settings: BlockPageSettings; preview: string }>;
+export const setBlockPage = (data: BlockPageSettings) =>
+	api.put({ url: "/nginxions/block-page", data }) as Promise<{ settings: BlockPageSettings; preview: string }>;
+export const previewBlockPage = (data: BlockPageSettings) =>
+	api.post({ url: "/nginxions/block-page/preview", data }) as Promise<{ preview: string }>;
+export const getBlockPageCode = () => api.get({ url: "/nginxions/block-page/code" }) as Promise<{ content: string }>;
+export const putBlockPageCode = (content: string, dryRun: boolean) =>
+	api.put({ url: "/nginxions/block-page/code", data: { content, dryRun } }) as Promise<{
+		valid: boolean;
+		error?: string;
+	}>;

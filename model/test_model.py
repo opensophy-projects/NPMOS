@@ -164,7 +164,7 @@ class TrainingCycleTest(unittest.TestCase):
                             str(d / "stock.jsonl"), "--base", str(d / "waap.data"), "--name", "test",
                             "--out", str(d / "out")])
             doc = json.loads((d / "out" / "waap.data").read_text("utf-8"))
-            self.assertEqual(doc["model_version"], "NPMOS test")
+            self.assertEqual(doc["model_version"], "NginxionS test")
             self.assertEqual(doc["waap_signatures"], {"x": 1})
             card = json.loads((d / "out" / "model-card.json").read_text("utf-8"))
             self.assertAlmostEqual(card["threshold"]["max_score"], 5.0)

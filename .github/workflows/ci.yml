@@ -1,7 +1,7 @@
-# NPMOS CI. Upstream workflows under npmos/.github are not run (GitHub reads only the root .github).
+# NginxionS CI. Upstream workflows under nginxions/.github are not run (GitHub reads only the root .github).
 #
-# Images built by NPMOS: npmos (multi-arch) and npmos-openappsec (the agent, its shared storage and tuning
-# services, npmos-control; amd64, arm64 is experimental: upstream open-appsec ships amd64 only).
+# Images built by NginxionS: nginxions (multi-arch) and nginxions-openappsec (the agent, its shared storage and tuning
+# services, nginxions-control; amd64, arm64 is experimental: upstream open-appsec ships amd64 only).
 # Publishing to Docker Hub (vars.DOCKERHUB_NAMESPACE, secrets.DOCKERHUB_USERNAME/DOCKERHUB_TOKEN):
 #   push to work  -> :develop and :<sha>
 #   tag vX.Y.Z    -> :X.Y.Z and :latest
@@ -50,15 +50,15 @@ jobs:
         with:
           version: latest
       - name: backend
-        working-directory: npmos/backend
+        working-directory: nginxions/backend
         run: |
           pnpm install --frozen-lockfile
           # import ordering (biome assist) is not enforced: upstream code does not follow it
           pnpm biome ci . --assist-enabled=false
-          # unit tests of NPMOS modules (upstream has none)
-          node --test 'npmos/**/*.test.js'
+          # unit tests of NginxionS modules (upstream has none)
+          node --test 'nginxions/**/*.test.js'
       - name: frontend
-        working-directory: npmos/frontend
+        working-directory: nginxions/frontend
         run: |
           pnpm install --frozen-lockfile
           pnpm biome ci . --assist-enabled=false
@@ -68,26 +68,26 @@ jobs:
           pnpm tsc --noEmit
           pnpm vitest run
       - name: file tree
-        # every file of the code of NPMOS has a line in CODE_OF_CONDUCT.md
+        # every file of the code of NginxionS has a line in CODE_OF_CONDUCT.md
         run: node scripts/check-tree.mjs
       - name: WAF model tooling (model/, docs/MODEL.md)
         # the training cycle itself (numpy, scipy) is tested in training.yml; here the formats and the data
         run: python3 -m unittest discover -s model
       - name: shell scripts
-        run: shellcheck -x -S warning scripts/*.sh deploy/*/*.sh deploy/openappsec/*/*.sh npmos/crowdsec-seed/*.sh
+        run: shellcheck -x -S warning scripts/*.sh deploy/*/*.sh deploy/openappsec/*/*.sh nginxions/crowdsec-seed/*.sh
       - name: compose files
         run: |
           docker compose -f deploy/compose.yaml config -q
           docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml config -q
           docker compose -f deploy/compose.yaml -f deploy/test/compose.airgap.yaml config -q
-          NPMOS_FEATURES_DIR=/tmp/features docker compose -f deploy/compose.yaml -f deploy/test/compose.training.yaml config -q
+          NGINXIONS_FEATURES_DIR=/tmp/features docker compose -f deploy/compose.yaml -f deploy/test/compose.training.yaml config -q
           if grep -nE 'image: .*:latest|:-latest' deploy/*.yaml deploy/test/*.yaml; then
             echo "::error::unpinned image version"; exit 1
           fi
       - name: version consistency
         run: |
           env_cs=$(sed -n 's/^CROWDSEC_VERSION=//p' deploy/.env)
-          for f in npmos/Dockerfile deploy/dev/Dockerfile; do
+          for f in nginxions/Dockerfile deploy/dev/Dockerfile; do
             df_cs=$(sed -n 's/^ARG CROWDSEC_VERSION=//p' "$f")
             [ "$env_cs" = "$df_cs" ] || { echo "::error file=$f::CROWDSEC_VERSION $df_cs != deploy/.env $env_cs"; exit 1; }
           done
@@ -142,66 +142,66 @@ jobs:
             grep -E "^[A-Z_]+=" deploy/openappsec/sources.env
             echo "CROWDSEC_VERSION=$(sed -n 's/^CROWDSEC_VERSION=//p' deploy/.env)"
           } >> "$GITHUB_ENV"
-          for f in npmos/frontend/package.json npmos/backend/package.json; do
+          for f in nginxions/frontend/package.json nginxions/backend/package.json; do
             jq --arg v "$v" '.version = $v' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
           done
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
         with:
           driver-opts: env.BUILDKIT_STEP_LOG_MAX_SIZE=-1
-      - name: build npmos
+      - name: build nginxions
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
-          context: npmos
+          context: nginxions
           load: true
-          tags: docker.io/${{ env.NAMESPACE }}/npmos:${{ env.VERSION }}
-          cache-from: type=gha,scope=npmos-amd64
-          cache-to: type=gha,mode=max,scope=npmos-amd64
+          tags: docker.io/${{ env.NAMESPACE }}/nginxions:${{ env.VERSION }}
+          cache-from: type=gha,scope=nginxions-amd64
+          cache-to: type=gha,mode=max,scope=nginxions-amd64
           build-args: |
             CROWDSEC_VERSION=${{ env.CROWDSEC_VERSION }}
             FLAGS=-march=x86-64-v2 -mtune=generic -fcf-protection=full
-      - name: build npmos-openappsec
+      - name: build nginxions-openappsec
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: deploy/openappsec
-          build-contexts: control=npmos/backend/npmos/control
+          build-contexts: control=nginxions/backend/nginxions/control
           load: true
-          tags: docker.io/${{ env.NAMESPACE }}/npmos-openappsec:${{ env.VERSION }}
+          tags: docker.io/${{ env.NAMESPACE }}/nginxions-openappsec:${{ env.VERSION }}
           cache-from: type=gha,scope=openappsec-amd64
           cache-to: type=gha,mode=max,scope=openappsec-amd64
           # smartsync (central learning) is not built: it needs a Fog token the agent lacks in local-only
-          # mode. NPMOS learns locally; see docs/adr/0011-learning.md.
+          # mode. NginxionS learns locally; see docs/adr/0011-learning.md.
           build-args: |
             OPENAPPSEC_REF=${{ env.OPENAPPSEC_REF }}
             SHARED_FILES_REF=${{ env.SHARED_FILES_REF }}
             TUNING_REF=${{ env.TUNING_REF }}
       - name: closed-network test (full stack)
         env:
-          NPMOS_REGISTRY: docker.io/${{ env.NAMESPACE }}
-          NPMOS_VERSION: ${{ env.VERSION }}
+          NGINXIONS_REGISTRY: docker.io/${{ env.NAMESPACE }}
+          NGINXIONS_VERSION: ${{ env.VERSION }}
         run: scripts/test-airgap.sh
       - name: image scan (Trivy, Syft SBOM, Grype, Dockle)
         env:
-          NPMOS_REGISTRY: docker.io/${{ env.NAMESPACE }}
-          NPMOS_VERSION: ${{ env.VERSION }}
+          NGINXIONS_REGISTRY: docker.io/${{ env.NAMESPACE }}
+          NGINXIONS_VERSION: ${{ env.VERSION }}
           OUT: reports/images
         run: scripts/scan-images.sh
       - name: DAST (OWASP ZAP, Nuclei, testssl.sh, gixy)
         timeout-minutes: 50
         env:
-          NPMOS_REGISTRY: docker.io/${{ env.NAMESPACE }}
-          NPMOS_VERSION: ${{ env.VERSION }}
+          NGINXIONS_REGISTRY: docker.io/${{ env.NAMESPACE }}
+          NGINXIONS_VERSION: ${{ env.VERSION }}
           OUT: reports/dast
         run: scripts/test-dast.sh
       - uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
-        if: always() && hashFiles('reports/images/trivy-npmos.sarif') != ''
+        if: always() && hashFiles('reports/images/trivy-nginxions.sarif') != ''
         with:
-          sarif_file: reports/images/trivy-npmos.sarif
-          category: trivy-npmos
+          sarif_file: reports/images/trivy-nginxions.sarif
+          category: trivy-nginxions
       - uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
-        if: always() && hashFiles('reports/images/trivy-npmos-openappsec.sarif') != ''
+        if: always() && hashFiles('reports/images/trivy-nginxions-openappsec.sarif') != ''
         with:
-          sarif_file: reports/images/trivy-npmos-openappsec.sarif
-          category: trivy-npmos-openappsec
+          sarif_file: reports/images/trivy-nginxions-openappsec.sarif
+          category: trivy-nginxions-openappsec
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
@@ -223,10 +223,10 @@ jobs:
             refs/tags/v*) tags="${GITHUB_REF#refs/tags/v} latest" ;;
             *) tags="develop" ;;
           esac
-          for img in npmos npmos-openappsec; do
+          for img in nginxions nginxions-openappsec; do
             src="docker.io/$NAMESPACE/$img:$VERSION"
-            # npmos gets a multi-arch manifest in the manifest job; push its amd64 build under an arch tag
-            if [ "$img" = npmos ]; then
+            # nginxions gets a multi-arch manifest in the manifest job; push its amd64 build under an arch tag
+            if [ "$img" = nginxions ]; then
               for t in $tags; do docker tag "$src" "docker.io/$NAMESPACE/$img:$t-amd64"; docker push "docker.io/$NAMESPACE/$img:$t-amd64"; done
             else
               docker push "$src"
@@ -234,8 +234,8 @@ jobs:
             fi
           done
 
-  npmos-arm64:
-    name: npmos image (arm64)
+  nginxions-arm64:
+    name: nginxions image (arm64)
     needs: checks
     if: >-
       github.event_name == 'push' && (github.ref == 'refs/heads/work' || startsWith(github.ref, 'refs/tags/v')) ||
@@ -257,7 +257,7 @@ jobs:
             echo "CROWDSEC_VERSION=$(sed -n 's/^CROWDSEC_VERSION=//p' deploy/.env)"
             echo "TAGS=$tags"
           } >> "$GITHUB_ENV"
-          for f in npmos/frontend/package.json npmos/backend/package.json; do
+          for f in nginxions/frontend/package.json nginxions/backend/package.json; do
             jq --arg v "$v" '.version = $v' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
           done
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
@@ -272,11 +272,11 @@ jobs:
       - name: build (and push arch tags)
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
-          context: npmos
+          context: nginxions
           push: ${{ env.PUBLISH == 'true' }}
-          tags: docker.io/${{ env.NAMESPACE }}/npmos:${{ env.VERSION }}-arm64
-          cache-from: type=gha,scope=npmos-arm64
-          cache-to: type=gha,mode=max,scope=npmos-arm64
+          tags: docker.io/${{ env.NAMESPACE }}/nginxions:${{ env.VERSION }}-arm64
+          cache-from: type=gha,scope=nginxions-arm64
+          cache-to: type=gha,mode=max,scope=nginxions-arm64
           build-args: |
             CROWDSEC_VERSION=${{ env.CROWDSEC_VERSION }}
             FLAGS=-mbranch-protection=standard
@@ -284,12 +284,12 @@ jobs:
         if: env.PUBLISH == 'true'
         run: |
           for t in $TAGS; do
-            docker buildx imagetools create -t "docker.io/$NAMESPACE/npmos:$t-arm64" "docker.io/$NAMESPACE/npmos:$VERSION-arm64"
+            docker buildx imagetools create -t "docker.io/$NAMESPACE/nginxions:$t-arm64" "docker.io/$NAMESPACE/nginxions:$VERSION-arm64"
           done
 
-  npmos-manifest:
-    name: npmos multi-arch manifest
-    needs: [images, npmos-arm64]
+  nginxions-manifest:
+    name: nginxions multi-arch manifest
+    needs: [images, nginxions-arm64]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/work' || startsWith(github.ref, 'refs/tags/v'))
     runs-on: ubuntu-latest
     steps:
@@ -308,12 +308,12 @@ jobs:
             *) tags="develop" ;;
           esac
           for t in $tags; do
-            docker buildx imagetools create -t "docker.io/$NAMESPACE/npmos:$t" \
-              "docker.io/$NAMESPACE/npmos:$t-amd64" "docker.io/$NAMESPACE/npmos:$t-arm64"
+            docker buildx imagetools create -t "docker.io/$NAMESPACE/nginxions:$t" \
+              "docker.io/$NAMESPACE/nginxions:$t-amd64" "docker.io/$NAMESPACE/nginxions:$t-arm64"
           done
 
   appsec-arm64:
-    name: npmos-openappsec image (arm64, experimental)
+    name: nginxions-openappsec image (arm64, experimental)
     needs: checks
     if: github.event_name == 'workflow_dispatch' && !startsWith(github.ref, 'refs/heads/security/')
     continue-on-error: true
@@ -324,11 +324,11 @@ jobs:
           persist-credentials: false
       - run: grep -E "^[A-Z_]+=" deploy/openappsec/sources.env >> "$GITHUB_ENV"
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
-      - name: build npmos-openappsec (arm64)
+      - name: build nginxions-openappsec (arm64)
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: deploy/openappsec
-          build-contexts: control=npmos/backend/npmos/control
+          build-contexts: control=nginxions/backend/nginxions/control
           build-args: |
             OPENAPPSEC_REF=${{ env.OPENAPPSEC_REF }}
             SHARED_FILES_REF=${{ env.SHARED_FILES_REF }}

@@ -1,0 +1,51 @@
+    </main>
+    <!-- NginxionS: search and sort of the file list (see fancyindex-header.html), in the language of the browser -->
+    <script>
+      var ru = /^ru\b/i.test(navigator.language || "");
+      if (ru) {
+        // the column names and the parent link are written by nginx in English
+        var words = { "File Name": "Имя", "File Size": "Размер", Date: "Дата", "Parent directory/": "На уровень выше/" };
+        document.querySelectorAll("th a, td a").forEach((a) => {
+          var text = a.textContent.trim();
+          if (words[text]) a.textContent = words[text];
+        });
+      }
+      var input = document.createElement("input");
+      input.id = "search";
+      input.type = "search";
+      input.autocomplete = "off";
+      input.placeholder = ru ? "Поиск по файлам…" : "Search files…";
+      document.querySelector("h1").after(input);
+      var items = [].slice.call(document.querySelectorAll("#list tbody tr"));
+      function filterItems(item, filter) {
+        return !item.querySelector("td").textContent.trim().toLowerCase().includes(filter);
+      }
+      input.addEventListener("input", function () {
+        items.forEach((item) => {
+          item.hidden = false;
+        });
+        items
+          .filter((item) => filterItems(item, this.value.trim().toLowerCase()))
+          .forEach((item) => {
+            item.hidden = true;
+          });
+      });
+
+      var tableDiv = document.createElement("div");
+      tableDiv.id = "tableDiv";
+      tableDiv.appendChild(document.querySelector("table"));
+      document.getElementById("search").after(tableDiv);
+
+      var headers = document.querySelectorAll("th");
+      headers.forEach((header) => {
+        var links = header.querySelectorAll("a");
+        if (links.length < 2) return;
+        var ascendingLink = document.createElement("a");
+        ascendingLink.innerHTML = "&nbsp;↑&nbsp;";
+        ascendingLink.href = links[0].href;
+        links[0].removeAttribute("href");
+        links[1].after(ascendingLink);
+      });
+    </script>
+  </body>
+</html>

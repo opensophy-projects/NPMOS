@@ -18,8 +18,8 @@ description = "reference sources removed from the repository (open-appsec, open-
 paths = ['''^(openappsec-main|open-appsec-npm-master|smartsync-tuning-main|newpayloads-newpayloads|NPMplus)/''']
 
 [[allowlists]]
-description = "a test of NPMOS: a masked private key that checks the redaction of diagnostic archives"
-paths = ['''^npmos/backend/npmos/redact\.test\.js$''']
+description = "a test of NginxionS: a masked private key that checks the redaction of diagnostic archives"
+paths = ['''^nginxions/backend/nginxions/redact\.test\.js$''']
 
 [[allowlists]]
 description = "squashed imports of upstream NPMplus (git subtree): the example values of its old compose.yaml"

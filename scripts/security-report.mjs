@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Security report of NPMOS: reads the results of every scanner of the pipeline (.github/workflows/security.yml,
+// Security report of NginxionS: reads the results of every scanner of the pipeline (.github/workflows/security.yml,
 // scripts/scan-images.sh, scripts/test-dast.sh), applies the policy below and writes
 //   <out>/security-report.md     the summary (also the summary of the run on GitHub)
 //   <out>/security-report.html   the same as a page, with every finding
@@ -12,7 +12,7 @@
 //     [--scope images,dast]           only these groups (the gate of the images before they are pushed)
 //
 // Policy (what blocks):
-//   SAST (Semgrep, CodeQL)       high and critical in the code of NPMOS (OURS); upstream NPMplus is reported only
+//   SAST (Semgrep, CodeQL)       high and critical in the code of NginxionS (OURS); upstream NPMplus is reported only
 //   secrets (Gitleaks)           every finding (examples are allowlisted in .github/security/gitleaks.toml)
 //   dependencies (OSV-Scanner)   high and critical with a fixed version
 //   images (Trivy)               high and critical with a fixed version; secrets high and critical; Dockle FATAL
@@ -25,7 +25,7 @@ import { basename, dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const OURS = /^(npmos\/backend\/npmos\/|npmos\/frontend\/src\/npmos\/|deploy\/|scripts\/|\.github\/)/;
+const OURS = /^(nginxions\/backend\/nginxions\/|nginxions\/frontend\/src\/nginxions\/|deploy\/|scripts\/|\.github\/)/;
 const SEVERITIES = ["critical", "high", "medium", "low", "info"];
 const SEVERITY_RU = { critical: "критическая", high: "высокая", medium: "средняя", low: "низкая", info: "инфо" };
 const DETAILS_LIMIT = 60;
@@ -285,7 +285,7 @@ const gixy = (doc) =>
 
 // ---------------------------------------------------------------- the checks
 
-const IMAGES = ["npmos", "npmos-openappsec"];
+const IMAGES = ["nginxions", "nginxions-openappsec"];
 const imageOf = (file, prefix) => basename(file).replace(prefix, "").replace(/\.json$/, "");
 
 /** id, group, category, tool, what it checks, the files of its results, the parser, the policy of blocking */
@@ -295,7 +295,7 @@ const CHECKS = [
 		group: "source",
 		category: "SAST",
 		tool: "Semgrep",
-		what: "уязвимости в коде JS/TS, Dockerfile и workflow (правила сообщества + правила NPMOS)",
+		what: "уязвимости в коде JS/TS, Dockerfile и workflow (правила сообщества + правила NginxionS)",
 		match: /^semgrep\.sarif$/,
 		parse: sarif,
 		blocks: (f) => f.ours && f.level === "error",
@@ -462,7 +462,7 @@ const CHECKS = [
 	...[
 		["zap-api", "интерфейс: API (:81, OpenAPI, с сессией)", "активная атака на API по схеме OpenAPI"],
 		["zap-ui", "интерфейс: страницы (:81)", "заголовки, cookies, утечки на страницах интерфейса"],
-		["zap-host", "прокси-хост dast.local", "заголовки, cookies, утечки сайта за NPMOS"],
+		["zap-host", "прокси-хост dast.local", "заголовки, cookies, утечки сайта за NginxionS"],
 	].map(([name, target, what]) => ({
 		id: name,
 		group: "dast",
@@ -544,7 +544,8 @@ for (const check of CHECKS) {
 				}
 				f.ours = OURS.test(f.path ?? "");
 				f.blocking = check.blocks(f);
-				const risk = f.blocking && acceptance(check, f);
+				// non-blocking findings too: the reason shows in the report and they are left out of code scanning
+				const risk = acceptance(check, f);
 				if (risk) {
 					if (risk.until && risk.until < today) f.expired = risk;
 					else {
@@ -666,7 +667,7 @@ const link = (f) => (f.url ? `[${md(f.rule)}](${f.url})` : md(f.rule));
 
 const markdown = () => {
 	const out = [];
-	out.push("# Отчёт безопасности NPMOS", "");
+	out.push("# Отчёт безопасности NginxionS", "");
 	out.push(
 		passed
 			? "**Итог: ✅ проверки пройдены** — блокирующих находок нет."
@@ -770,7 +771,7 @@ const findingRows = (findings, withTool) =>
 
 const html = () => {
 	const b = [];
-	b.push("<h1>Отчёт безопасности NPMOS</h1>");
+	b.push("<h1>Отчёт безопасности NginxionS</h1>");
 	b.push(
 		`<div class="meta">${[commit && `коммит <code>${esc(commit)}</code>`, env.GITHUB_REF_NAME && `ветка <code>${esc(env.GITHUB_REF_NAME)}</code>`, `${new Date().toISOString().slice(0, 16).replace("T", " ")} UTC`, runUrl && `<a href="${esc(runUrl)}">прогон</a>`]
 			.filter(Boolean)
@@ -818,7 +819,7 @@ const html = () => {
 				`<details${c.blockingCount ? " open" : ""}><summary>${ICON[c.status]} ${esc(c.tool)} — ${c.findings.length}</summary><div class="table"><table><tr><th>Серьёзность</th><th>Правило</th><th>Что</th><th>Где</th><th>Исправление</th></tr>${findingRows(c.findings, false)}</table></div></details>`,
 			);
 	}
-	return page("Отчёт безопасности NPMOS", b.join(""));
+	return page("Отчёт безопасности NginxionS", b.join(""));
 };
 
 const sbomPage = (s) => {

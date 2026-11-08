@@ -4,7 +4,7 @@
  {
  public:
      void init() override;
-+    // NPMOS: no Fog registration in local-only mode (NPMOS_LOCAL_ONLY=true)
++    // NginxionS: no Fog registration in local-only mode (NGINXIONS_LOCAL_ONLY=true)
 +    Maybe<void> authenticateAgent() override;
      Maybe<void> getUpdate(CheckUpdateRequest &request) override;
      Maybe<std::string> downloadAttributeFile(
@@ -15,16 +15,16 @@
      }
  }
  
-+// NPMOS: local-only hybrid mode. Hybrid mode applies the declarative local policy, but the
++// NginxionS: local-only hybrid mode. Hybrid mode applies the declarative local policy, but the
 +// orchestration loop starts only after the agent has registered at the Fog. Without internet that
-+// never happens and no policy is ever applied. NPMOS manages the agent locally and sets
-+// NPMOS_LOCAL_ONLY=true: the agent then never contacts the Fog and starts orchestration at once.
++// never happens and no policy is ever applied. NginxionS manages the agent locally and sets
++// NGINXIONS_LOCAL_ONLY=true: the agent then never contacts the Fog and starts orchestration at once.
 +Maybe<void>
 +HybridCommunication::authenticateAgent()
 +{
-+    const char *local_only = getenv("NPMOS_LOCAL_ONLY");
++    const char *local_only = getenv("NGINXIONS_LOCAL_ONLY");
 +    if (local_only != nullptr && string(local_only) == "true") {
-+        dbgInfo(D_ORCHESTRATOR) << "NPMOS local-only mode: skipping registration at the Fog";
++        dbgInfo(D_ORCHESTRATOR) << "NginxionS local-only mode: skipping registration at the Fog";
 +        return Maybe<void>();
 +    }
 +    return FogAuthenticator::authenticateAgent();

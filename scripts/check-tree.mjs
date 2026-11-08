@@ -1,12 +1,12 @@
 #!/usr/bin/env node
-// CI: every file of the code of NPMOS is named in the file tree of CODE_OF_CONDUCT.md (section 4), so that the tree
+// CI: every file of the code of NginxionS is named in the file tree of CODE_OF_CONDUCT.md (section 4), so that the tree
 // says what each file is for and does not fall behind. Tests, styles of a component, index.tsx of a page (named by its
 // folder), migrations and patches are named by their folder only.
 // Usage: node scripts/check-tree.mjs   (from the root of the repository)
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 
-const ROOTS = ["npmos/backend/npmos", "npmos/frontend/src/npmos", "deploy", "scripts"];
+const ROOTS = ["nginxions/backend/nginxions", "nginxions/frontend/src/nginxions", "deploy", "scripts"];
 const SKIP_DIRS = new Set(["node_modules", "migrations", "patches", "examples"]);
 const skipFile = (name) =>
 	name.includes(".test.") || name.endsWith(".module.css") || name === "index.tsx" || name.endsWith(".patch");

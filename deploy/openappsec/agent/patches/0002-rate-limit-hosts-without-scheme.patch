@@ -5,7 +5,7 @@
      {
          size_t protocol_pos = address.find("://");
 -        if (protocol_pos == string::npos) return genError("Invalid URI format: " + address);
-+        // NPMOS: hosts of the local policy have no scheme ("example.com/path", any port), the
++        // NginxionS: hosts of the local policy have no scheme ("example.com/path", any port), the
 +        // application URL is then the host and its path
 +        size_t host_pos = protocol_pos == string::npos ? 0 : protocol_pos + 3;
  

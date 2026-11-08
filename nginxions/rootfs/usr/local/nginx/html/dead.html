@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<!-- NginxionS: the page of a 404 host in the look of the pages of NginxionS (block page, mTLS), in the language of the
+     browser (was "Dead Host" of NPMplus). -->
+<html>
+  <head>
+    <title>Not found</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <style>
+      :root { color-scheme: light dark; --accent: #e11d48; }
+      body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 16px; box-sizing: border-box;
+        font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: #f6f6f7; color: #18181b; }
+      main { max-width: 34rem; width: 100%; padding: 2rem; box-sizing: border-box; border-radius: 16px; background: #fff;
+        box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.06); border-top: 4px solid var(--accent); }
+      .code { color: var(--accent); font-weight: 600; letter-spacing: .04em; font-size: .8125rem; }
+      h1 { margin: .25rem 0 1rem; font-size: 1.5rem; font-weight: 600; }
+      p { margin: 0 0 .75rem; line-height: 1.55; color: #3f3f46; }
+      p:last-child { margin-bottom: 0; }
+      section + section { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid #e4e4e7; }
+      section + section .code { display: none; }
+      @media (prefers-color-scheme: dark) {
+        body { background: #0f0f11; color: #f4f4f5; }
+        main { background: #18181b; box-shadow: none; }
+        p { color: #d4d4d8; }
+        section + section { border-color: #27272a; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section lang="en">
+        <div class="code">Error 404</div>
+        <h1>This site is not here</h1>
+        <p>The address is served by this server, but there is no site behind it: it was switched off or moved.</p>
+        <p>Check the address. If you came here by a link, tell the owner of the site.</p>
+      </section>
+      <section lang="ru">
+        <div class="code">Ошибка 404</div>
+        <h1>Сайта здесь нет</h1>
+        <p>Адрес обслуживает этот сервер, но сайта за ним нет: его отключили или перенесли.</p>
+        <p>Проверьте адрес. Если вы пришли по ссылке, сообщите владельцу сайта.</p>
+      </section>
+    </main>
+    <script>
+      // the language of the browser first
+      if (/^ru\b/i.test(navigator.language || "")) {
+        const ru = document.querySelector('section[lang="ru"]');
+        ru.parentNode.insertBefore(ru, ru.parentNode.firstChild);
+      }
+    </script>
+  </body>
+</html>
