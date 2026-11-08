@@ -1,7 +1,7 @@
 // A "?" (the icon of help, as on the Access lists page) next to a column, a chart or a number: what it shows, on hover, focus or a tap (phones have no hover).
 // The text is the message `<id>.info`: a Label, or a panel or a KPI titled with a T element, gets its
 // explanation by adding that message, nothing else changes. Drawn in a portal: tables and scroll areas do not clip it.
-import { IconHelp } from "@tabler/icons-react";
+import { IconQuestionMark } from "@tabler/icons-react";
 import cn from "classnames";
 import { isValidElement, type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -72,7 +72,7 @@ export function InfoTip({ id, values }: { id: string; values?: Record<string, st
 					setPinned(!pinned);
 				}}
 			>
-				<IconHelp size={14} />
+				<IconQuestionMark size={11} />
 			</button>
 			{shown &&
 				createPortal(

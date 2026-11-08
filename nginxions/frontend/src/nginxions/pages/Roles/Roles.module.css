@@ -22,10 +22,15 @@
 	font-size: 0.875rem;
 }
 .tableCard {
-	overflow: hidden;
+	margin: 0;
 }
+/* the table scrolls inside the rounded inner panel of the card: its header and last row follow the corners */
 .scroller {
 	overflow-x: auto;
+	border-radius: calc(var(--radius-lg) - 1px);
+}
+.scroller :global(.table) {
+	margin: 0;
 }
 .name {
 	padding: 0;
