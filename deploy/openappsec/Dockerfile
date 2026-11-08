@@ -70,7 +70,7 @@ RUN apk add --no-cache patch
 ENV GOMODCACHE=/vendor CGO_ENABLED=0 GOOS=linux GOTOOLCHAIN=local
 COPY go-service/patches/ /patches/
 # libraries raised over the ones of the sources: those have known vulnerabilities (Trivy, docs/DEVSECOPS.md)
-ARG GO_UPGRADES="golang.org/x/crypto@v0.58.0 golang.org/x/net@v0.62.0 golang.org/x/text@v0.43.0 golang.org/x/oauth2@v0.37.0 github.com/sirupsen/logrus@v1.10.2"
+ARG GO_UPGRADES="golang.org/x/crypto@v0.58.1-0.20261009181718-2f1f834330b2 golang.org/x/net@v0.62.0 golang.org/x/text@v0.43.0 golang.org/x/oauth2@v0.37.0 github.com/sirupsen/logrus@v1.10.2"
 
 FROM go-build AS shared-storage
 ARG SHARED_FILES_REF

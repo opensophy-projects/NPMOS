@@ -19,7 +19,7 @@ paths = ['''^(openappsec-main|open-appsec-npm-master|smartsync-tuning-main|newpa
 
 [[allowlists]]
 description = "a test of NginxionS: a masked private key that checks the redaction of diagnostic archives"
-paths = ['''^nginxions/backend/nginxions/redact\.test\.js$''']
+paths = ['''^nginxions/backend/nginxions/redact\.test\.js$''', '''^npmos/backend/npmos/redact\.test\.js$''']
 
 [[allowlists]]
 description = "squashed imports of upstream NPMplus (git subtree): the example values of its old compose.yaml"
