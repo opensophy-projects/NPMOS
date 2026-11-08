@@ -1,7 +1,7 @@
 #!/bin/sh
 # Sends a mix of benign and malicious requests to a proxy host, for WAF testing.
-# TARGET is the NPMOS http endpoint, HOST the proxy host domain.
-TARGET="${TARGET:-http://npmos}"
+# TARGET is the NginxionS http endpoint, HOST the proxy host domain.
+TARGET="${TARGET:-http://nginxions}"
 HOST="${HOST:-test.local}"
 INTERVAL="${INTERVAL:-2}"
 

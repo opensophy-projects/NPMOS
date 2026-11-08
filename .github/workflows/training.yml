@@ -1,4 +1,4 @@
-# Training of the WAF model of NPMOS (docs/MODEL.md): a push to a branch training/<anything>, a push whose commit
+# Training of the WAF model of NginxionS (docs/MODEL.md): a push to a branch training/<anything>, a push whose commit
 # message holds [train], or the Run workflow button.
 # Builds the images of the branch, sends the labelled set through the real agent with the stock model, trains a new
 # model, installs it like an administrator, sends the held-out part through it and decides whether it may be released
@@ -73,24 +73,24 @@ jobs:
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
         with:
           driver-opts: env.BUILDKIT_STEP_LOG_MAX_SIZE=-1
-      - name: build npmos
+      - name: build nginxions
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
-          context: npmos
+          context: nginxions
           load: true
-          tags: local/npmos:${{ env.VERSION }}
+          tags: local/nginxions:${{ env.VERSION }}
           # the cache of the CI build; this workflow only reads it
-          cache-from: type=gha,scope=npmos-amd64
+          cache-from: type=gha,scope=nginxions-amd64
           build-args: |
             CROWDSEC_VERSION=${{ env.CROWDSEC_VERSION }}
             FLAGS=-march=x86-64-v2 -mtune=generic -fcf-protection=full
-      - name: build npmos-openappsec
+      - name: build nginxions-openappsec
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: deploy/openappsec
-          build-contexts: control=npmos/backend/npmos/control
+          build-contexts: control=nginxions/backend/nginxions/control
           load: true
-          tags: local/npmos-openappsec:${{ env.VERSION }}
+          tags: local/nginxions-openappsec:${{ env.VERSION }}
           cache-from: |
             type=gha,scope=openappsec-train
             type=gha,scope=openappsec-amd64
@@ -101,8 +101,8 @@ jobs:
             TUNING_REF=${{ env.TUNING_REF }}
       - name: train and evaluate
         env:
-          NPMOS_REGISTRY: local
-          NPMOS_VERSION: ${{ env.VERSION }}
+          NGINXIONS_REGISTRY: local
+          NGINXIONS_VERSION: ${{ env.VERSION }}
           PYTHON: .venv/bin/python
           SAMPLES: data/samples.jsonl
           MODEL_NAME: ${{ github.ref_name }}-${{ github.run_number }}

@@ -1,4 +1,4 @@
-# Как предлагать изменения в NPMOS
+# Как предлагать изменения в NginxionS
 
 Правила общения, оформление багов и фич и архитектура — в [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md). Подробные
 правила кода и команды — в [CLAUDE.md](CLAUDE.md).
@@ -16,9 +16,9 @@
   правка файлов — задача не закончена (что пока осталось в env — `docs/ENV-INVENTORY.md`).
 - **Local-first.** Без интернета всё работает; обращение наружу — только опция администратора, с таймаутом;
   недоступный внешний сервис не блокирует запуск.
-- **Код NPMOS** — в `npmos/backend/npmos/` и `npmos/frontend/src/npmos/`. В файлах upstream (NPMplus) — точечные
-  изменения с комментарием `NPMOS: <причина>`: по этим меткам разрешаются конфликты при обновлении NPMplus.
-- **Строки интерфейса** — только в `npmos/frontend/src/locale/src/en.json` и `ru.json`, текст прямо в разметке
+- **Код NginxionS** — в `nginxions/backend/nginxions/` и `nginxions/frontend/src/nginxions/`. В файлах upstream (NPMplus) — точечные
+  изменения с комментарием `NginxionS: <причина>`: по этим меткам разрешаются конфликты при обновлении NPMplus.
+- **Строки интерфейса** — только в `nginxions/frontend/src/locale/src/en.json` и `ru.json`, текст прямо в разметке
   запрещён (`scripts/check-i18n.mjs`).
 - **Стиль** — biome (табы, ширина 120), ESM, `async/await`. Перед коммитом `pnpm biome format --write`.
 - **Секреты** не попадают в compose, env-файлы, логи и ответы API.
@@ -26,9 +26,9 @@
 ## Проверки перед pull request
 
 ```bash
-cd npmos/backend && pnpm install --frozen-lockfile && pnpm biome ci . --assist-enabled=false \
-  && node --test 'npmos/**/*.test.js'
-cd npmos/frontend && pnpm install --frozen-lockfile && pnpm biome ci . --assist-enabled=false \
+cd nginxions/backend && pnpm install --frozen-lockfile && pnpm biome ci . --assist-enabled=false \
+  && node --test 'nginxions/**/*.test.js'
+cd nginxions/frontend && pnpm install --frozen-lockfile && pnpm biome ci . --assist-enabled=false \
   && node check-locales.cjs && node ../../scripts/check-i18n.mjs && pnpm tsc --noEmit && pnpm vitest run
 shellcheck -S warning scripts/*.sh deploy/*/*.sh
 docker compose -f deploy/compose.yaml config -q

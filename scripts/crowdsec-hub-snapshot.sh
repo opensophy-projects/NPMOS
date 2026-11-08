@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Makes a CrowdSec hub snapshot for nodes without internet: run it on a machine with internet and
-# Docker, then upload the archive in NPMOS (CrowdSec → Hub → Upload snapshot).
+# Docker, then upload the archive in NginxionS (CrowdSec → Hub → Upload snapshot).
 #
 #   scripts/crowdsec-hub-snapshot.sh                         # crowdsec-hub-snapshot.tar.gz
 #   scripts/crowdsec-hub-snapshot.sh hub.tar.gz "collections crowdsecurity/nextcloud; parsers a/b"
@@ -8,7 +8,7 @@
 # The archive holds .index.json (the whole hub with content, as `cscli hub update --with-content`
 # makes it) and data/ (data files of the items given, installed in a throwaway container: GeoIP
 # databases, word lists). Items not given install from the snapshot too, but those that need data
-# files then need a snapshot with them. Default items: the base set of the NPMOS image.
+# files then need a snapshot with them. Default items: the base set of the NginxionS image.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."

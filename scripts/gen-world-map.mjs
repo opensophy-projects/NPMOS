@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Builds npmos/frontend/src/npmos/ui/worldMap.json (country outlines of the Analytics map) from Natural Earth
+// Builds nginxions/frontend/src/nginxions/ui/worldMap.json (country outlines of the Analytics map) from Natural Earth
 // 1:110m Admin 0 countries (public domain): https://www.naturalearthdata.com/ — file
 // ne_110m_admin_0_countries.geojson of github.com/nvkelso/natural-earth-vector. The map is part of the bundle:
 // no tiles and no requests to the internet. Equal Earth projection, Antarctica left out.
@@ -69,7 +69,7 @@ countries.sort((a, b) => a.n.localeCompare(b.n));
 const height = Math.ceil(maxY + 2);
 const out = { width: WIDTH, height, top: Math.floor(minY - 2), countries };
 writeFileSync(
-	new URL("../npmos/frontend/src/npmos/ui/worldMap.json", import.meta.url),
+	new URL("../nginxions/frontend/src/nginxions/ui/worldMap.json", import.meta.url),
 	`${JSON.stringify(out)}\n`,
 );
 console.log(`${countries.length} countries, viewBox 0 ${out.top} ${WIDTH} ${height - out.top}`);

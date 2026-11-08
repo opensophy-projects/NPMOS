@@ -1,0 +1,889 @@
+// Hosts: proxy, redirection, stream and 404 hosts in one table, as DNS records in Cloudflare
+// (docs/ROADMAP.md, phase 2). Data and the create/edit dialogs are those of NPMplus.
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import cn from "classnames";
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Alert from "react-bootstrap/Alert";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { LoadingPage } from "src/components";
+import {
+	useAccessLists,
+	useCertificates,
+	useDeadHosts,
+	useProxyHosts,
+	useRedirectionHosts,
+	useStreams,
+	useUser,
+} from "src/hooks";
+import { intl, T } from "src/locale";
+import {
+	showDeadHostModal,
+	showDeleteConfirmModal,
+	showProxyHostModal,
+	showRedirectionHostModal,
+	showStreamModal,
+} from "src/modals";
+import {
+	ACCESS_LISTS,
+	CERTIFICATES,
+	DEAD_HOSTS,
+	hasPermission,
+	MANAGE,
+	PROXY_HOSTS,
+	REDIRECTION_HOSTS,
+	type Section,
+	STREAMS,
+	VIEW,
+} from "src/modules/Permissions";
+import { showError, showSuccess } from "src/notifications";
+import { setWafHost, WAF_DEFAULTS } from "../../api";
+import {
+	useCertTerms,
+	useHostAttacks,
+	useHostChanges,
+	useUpstreamChecks,
+	useWafHosts,
+	useWafStatus,
+} from "../../hooks";
+import { showConfirmModal } from "../../modals/ConfirmModal";
+import { InfoTip } from "../../ui/InfoTip";
+import { showHostHistoryModal } from "../../modals/HostHistoryModal";
+import { setHostBouncer, useCrowdsecHosts } from "../../crowdsec/api";
+import {
+	enableMtlsHost,
+	fromApiRule,
+	getPki,
+	hostKey,
+	type MtlsHostType,
+	setMtlsHost,
+	useMtlsHosts,
+	usePki,
+} from "../../pki/api";
+import { showAccessModal } from "../../pki/AccessModal";
+import { showHostCertsModal } from "../../pki/HostCertsModal";
+import { showMtlsModal } from "../../pki/MtlsModal";
+import { getLearningHosts } from "../../learning/api";
+import { useCan } from "../../rbac/hooks";
+import { createHost, deleteHost, OBJECT, QUERY_KEY, toggleHost, updateHost } from "./api";
+import {
+	AccessCell,
+	ActionsCell,
+	AttacksCell,
+	type CellContext,
+	ChangedCell,
+	MtlsCell,
+	NameCell,
+	StatusCell,
+	TargetCell,
+	TlsCell,
+	WafCell,
+	CrowdsecCell,
+} from "./Cells";
+import styles from "./Hosts.module.css";
+import { Recommendations } from "./Recommendations";
+import {
+	emptyFilters,
+	exportCsv,
+	exportData,
+	type Filters,
+	filtersFromParams,
+	filtersToParams,
+	HOST_TYPES,
+	type HostRow,
+	type HostType,
+	type MtlsState,
+	matches,
+	OBJECT_TYPE,
+	parseImport,
+	recommendations,
+	type Sort,
+	type SortKey,
+	sortRows,
+	toRows,
+	type WafState,
+} from "./rows";
+import {
+	ActiveFilters,
+	AddMenu,
+	BulkBar,
+	COLUMNS,
+	type Column,
+	columnLabel,
+	DEFAULT_VIEW,
+	type FilterOptions,
+	FiltersViewPopover,
+	Search,
+	TransferMenu,
+	type View,
+} from "./Toolbar";
+import { PanelHostWarning, servesPanel } from "../../hosts/panel";
+
+const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id }, values);
+
+const SECTION: Record<HostType, Section> = {
+	proxy: PROXY_HOSTS,
+	redirect: REDIRECTION_HOSTS,
+	stream: STREAMS,
+	dead: DEAD_HOSTS,
+};
+
+const EDIT: Record<HostType, (id: number | "new", isClone?: boolean) => void> = {
+	proxy: showProxyHostModal,
+	redirect: showRedirectionHostModal,
+	stream: showStreamModal,
+	dead: showDeadHostModal,
+};
+
+const SORT_COLUMN: Partial<Record<Column | "name", SortKey>> = {
+	name: "name",
+	type: "type",
+	target: "target",
+	tls: "tls",
+	waf: "waf",
+	mtls: "mtls",
+	status: "status",
+	changed: "changed",
+};
+
+/** meta as stored: without the nginx state the API adds */
+const settingsMeta = (row: HostRow) => {
+	const { nginxOnline: _, nginxErr: __, ...meta } = row.raw.meta ?? {};
+	return meta;
+};
+
+const download = (name: string, content: string, type: string) => {
+	const url = URL.createObjectURL(new Blob([content], { type }));
+	const a = document.createElement("a");
+	a.href = url;
+	a.download = name;
+	a.click();
+	URL.revokeObjectURL(url);
+};
+
+/** host types of the CrowdSec API */
+const CROWDSEC_TYPE: Record<HostType, string> = {
+	proxy: "proxy_host",
+	redirect: "redirection_host",
+	dead: "dead_host",
+	stream: "stream",
+};
+const CROWDSEC_TYPE_BACK: Record<string, HostType> = Object.fromEntries(
+	Object.entries(CROWDSEC_TYPE).map(([k, v]) => [v, k as HostType]),
+);
+
+const VIEW_VERSION = 4;
+/** columns added after a version of the stored view: hidden in views saved before them */
+const NEW_COLUMNS: Record<number, Column[]> = { 2: ["changed"], 3: ["attacks"], 4: ["crowdsec"] };
+const viewKey = (userId?: number) => `nginxions.hosts.view.${userId ?? 0}`;
+const loadView = (userId?: number): View => {
+	try {
+		const stored = JSON.parse(window.localStorage.getItem(viewKey(userId)) || "null");
+		if (stored && Array.isArray(stored.hidden)) {
+			// views saved before a column existed keep it hidden, like the default
+			const version = Number(stored.v) || 1;
+			const added = Object.entries(NEW_COLUMNS).flatMap(([v, columns]) => (Number(v) > version ? columns : []));
+			const hidden = [...new Set([...stored.hidden, ...added])];
+			return { hidden, compact: !!stored.compact };
+		}
+	} catch {
+		// private mode, broken value: defaults
+	}
+	return DEFAULT_VIEW;
+};
+
+function HostsPage() {
+	const queryClient = useQueryClient();
+	const navigate = useNavigate();
+	const [params, setParams] = useSearchParams();
+	const { data: me } = useUser("me");
+	const perms = me?.permissions;
+	const roles = me?.roles;
+	const can = (type: HostType, perm: typeof VIEW | typeof MANAGE) => hasPermission(SECTION[type], perm, perms, roles);
+	const viewTypes = HOST_TYPES.filter((type) => can(type, VIEW));
+	const manageTypes = HOST_TYPES.filter((type) => can(type, MANAGE));
+
+	const proxy = useProxyHosts(["owner", "access_lists", "certificate"], { enabled: can("proxy", VIEW) });
+	const redirect = useRedirectionHosts(["owner", "certificate"], { enabled: can("redirect", VIEW) });
+	const stream = useStreams(["owner", "certificate"], { enabled: can("stream", VIEW) });
+	const dead = useDeadHosts(["owner", "certificate"], { enabled: can("dead", VIEW) });
+	const waf = useWafHosts({ enabled: can("proxy", VIEW) });
+	// when each certificate needs attention, by its term (without the permission: 14 days left)
+	const terms = useCertTerms({ enabled: hasPermission(CERTIFICATES, VIEW, perms, roles) });
+	const rbac = useCan();
+	const mtlsHosts = useMtlsHosts({ enabled: can("proxy", VIEW) || can("stream", VIEW) });
+	const pki = usePki({ enabled: rbac("pki") });
+	const wafStatus = useWafStatus({ enabled: rbac("waf_policy") });
+	// readiness of learning: hosts the model says may block
+	const learning = useQuery({
+		queryKey: ["nginxions-learning-hosts"],
+		queryFn: getLearningHosts,
+		enabled: rbac("waf_learning"),
+		staleTime: 60000,
+	});
+	const certificates = useCertificates([], { enabled: hasPermission(CERTIFICATES, VIEW, perms, roles) });
+	const accessLists = useAccessLists([], { enabled: hasPermission(ACCESS_LISTS, VIEW, perms, roles) });
+	const changes = useHostChanges();
+	const upstreams = useUpstreamChecks({ enabled: can("proxy", VIEW) || can("stream", VIEW) });
+	const attacks = useHostAttacks({ enabled: rbac("analytics") });
+	const crowdsec = useCrowdsecHosts({ enabled: rbac("crowdsec") });
+	const attacksByHost = useMemo(
+		() => (attacks.data ? new Map(attacks.data.map((a) => [a.host, a])) : undefined),
+		[attacks.data],
+	);
+
+	const filters = useMemo(() => filtersFromParams(params), [params]);
+	const sortKey = (params.get("sort") as SortKey) || "name";
+	const sortDesc = params.get("desc") === "1";
+	const sort: Sort = useMemo(() => ({ key: sortKey, desc: sortDesc }), [sortKey, sortDesc]);
+	const [selected, setSelected] = useState<Set<string>>(new Set());
+	const [view, setViewState] = useState<View>(() => loadView(me?.id));
+	const searchRef = useRef<HTMLInputElement>(null);
+	const importRef = useRef<HTMLInputElement>(null);
+
+	useEffect(() => setViewState(loadView(me?.id)), [me?.id]);
+	const setView = (next: View) => {
+		setViewState(next);
+		try {
+			window.localStorage.setItem(viewKey(me?.id), JSON.stringify({ ...next, v: VIEW_VERSION }));
+		} catch {
+			// the view just is not remembered
+		}
+	};
+
+	// "/" focuses the search unless the user is typing somewhere
+	useEffect(() => {
+		const onKey = (e: KeyboardEvent) => {
+			const target = e.target as HTMLElement;
+			if (e.key !== "/" || target.closest("input, textarea, select, [contenteditable]")) return;
+			e.preventDefault();
+			searchRef.current?.focus();
+		};
+		document.addEventListener("keydown", onKey);
+		return () => document.removeEventListener("keydown", onKey);
+	}, []);
+
+	const setFilters = useCallback(
+		(next: Filters) => setParams((prev) => filtersToParams(next, prev), { replace: true }),
+		[setParams],
+	);
+	const setSort = (key: SortKey) =>
+		setParams(
+			(prev) => {
+				const next = new URLSearchParams(prev);
+				const desc = sort.key === key ? !sort.desc : false;
+				next.set("sort", key);
+				if (desc) next.set("desc", "1");
+				else next.delete("desc");
+				return next;
+			},
+			{ replace: true },
+		);
+
+	const allRows = useMemo(
+		() =>
+			toRows({
+				proxy: proxy.data,
+				redirect: redirect.data,
+				stream: stream.data,
+				dead: dead.data,
+				waf: waf.data,
+				mtls: mtlsHosts.data,
+				upstreams: upstreams.data,
+				changes: changes.data,
+				terms: terms.data,
+			}),
+		[
+			proxy.data,
+			redirect.data,
+			stream.data,
+			dead.data,
+			waf.data,
+			mtlsHosts.data,
+			upstreams.data,
+			changes.data,
+			terms.data,
+		],
+	);
+	const rows = useMemo(
+		() =>
+			sortRows(
+				allRows.filter((row) => matches(row, filters)),
+				sort,
+			),
+		[allRows, filters, sort],
+	);
+	const recs = useMemo(() => recommendations(allRows, wafStatus.data?.enabled), [allRows, wafStatus.data?.enabled]);
+	const groups = useMemo(
+		() => Array.from(new Set(allRows.map((r) => r.group).filter(Boolean))).sort((a, b) => a.localeCompare(b)),
+		[allRows],
+	);
+
+	// selection only keeps rows that are still shown
+	useEffect(() => {
+		setSelected((prev) => {
+			const shown = new Set(rows.map((r) => r.key));
+			const next = new Set([...prev].filter((key) => shown.has(key)));
+			return next.size === prev.size ? prev : next;
+		});
+	}, [rows]);
+
+	const filterOptions: FilterOptions = { accessLists: accessLists.data ?? [], groups, types: viewTypes };
+
+	const queries = [proxy, redirect, stream, dead].filter((_, i) => can(HOST_TYPES[i], VIEW));
+	if (!me || queries.some((q) => q.isLoading)) return <LoadingPage />;
+	const failed = queries.find((q) => q.isError);
+	if (!viewTypes.length) return <Alert variant="danger">{t("nginxions.hosts.no-access")}</Alert>;
+
+	const refresh = (types: HostType[]) => {
+		for (const type of new Set(types)) {
+			queryClient.invalidateQueries({ queryKey: [QUERY_KEY[type]] });
+		}
+		queryClient.invalidateQueries({ queryKey: ["nginxions-waf-hosts"] });
+		queryClient.invalidateQueries({ queryKey: ["nginxions-mtls-hosts"] });
+		queryClient.invalidateQueries({ queryKey: ["nginxions-pki"] });
+		queryClient.invalidateQueries({ queryKey: ["nginxions-host-changes"] });
+		queryClient.invalidateQueries({ queryKey: ["nginxions-crowdsec-hosts"] });
+	};
+
+	/** runs changes of one or more hosts, reports the result, refreshes the lists */
+	const run = async (targets: HostRow[], change: (row: HostRow) => Promise<unknown>, success?: string) => {
+		const errors: string[] = [];
+		for (const row of targets) {
+			try {
+				await change(row);
+			} catch (err: any) {
+				errors.push(`${row.names[0]}: ${err?.message || err}`);
+			}
+		}
+		refresh(targets.map((r) => r.type));
+		if (errors.length) showError(errors.join("\n"));
+		else if (success) {
+			// say which host changed: "app.example.com — WAF mode saved"
+			showSuccess(
+				targets.length === 1
+					? `${targets[0].names[0]} — ${success}`
+					: t("nginxions.hosts.done.many", { count: targets.length, action: success }),
+			);
+		}
+	};
+	/** turns hosts on or off; turning off the host the panel is open through asks first */
+	const toggleMany = (targets: HostRow[], enabled: boolean) => {
+		const go = () =>
+			run(
+				targets,
+				(r) => toggleHost(r.type, r.id, enabled),
+				t(enabled ? "nginxions.hosts.done.enabled" : "nginxions.hosts.done.disabled"),
+			);
+		const panel = enabled ? [] : targets.filter((r) => servesPanel(r.names));
+		if (!panel.length) return go();
+		showConfirmModal({
+			tTitle: "nginxions.hosts.panel.title",
+			tConfirm: "nginxions.hosts.panel.disable-anyway",
+			danger: true,
+			onConfirm: go,
+			children: (
+				<>
+					<PanelHostWarning action="disable" />
+					<div className="fw-bold text-break">{panel.flatMap((r) => r.names).join(", ")}</div>
+				</>
+			),
+		});
+	};
+
+	const changeWaf = (row: HostRow, state: WafState) => {
+		const current = waf.data?.[row.id] ?? WAF_DEFAULTS;
+		return setWafHost(row.id, {
+			enabled: state !== "off",
+			mode: state === "off" ? current.mode : state === "prevent" ? "prevent-learn" : "detect-learn",
+			minimumConfidence: current.minimumConfidence,
+		});
+	};
+	const changeAccess = (row: HostRow, listId: number | null) =>
+		updateHost(row.type, row.id, {
+			npmplusAccessListType: listId === null ? "public" : "custom",
+			npmplusAccessListIds: listId === null ? [] : [listId],
+		});
+	const changeCertificate = (row: HostRow, certificateId: number | "new") =>
+		updateHost(row.type, row.id, {
+			certificateId,
+			...(certificateId === "new" ? { sslForced: true, meta: settingsMeta(row) } : {}),
+		});
+
+	// mTLS of PKI and mTLS (proxy hosts and streams)
+	const mtlsType = (row: HostRow): MtlsHostType => (row.type === "proxy" ? "proxy_host" : "stream");
+	const changePkiMtls = async (row: HostRow, caIds: number[] | null, mode: MtlsState) => {
+		const current = mtlsHosts.data?.[row.type === "proxy" ? "proxyHost" : "stream"]?.[row.id];
+		const base = {
+			enabled: false,
+			caIds: [] as number[],
+			mode: "on" as const,
+			depth: 2,
+			sendCaNames: true,
+			requiredPaths: [] as string[],
+			headers: row.type === "proxy",
+			...current,
+			revocation: current?.revocation ?? ("crl" as const),
+			deniedPage: current?.deniedPage ?? ("certificate" as const),
+			rules: (current?.rules ?? []).map((r) => fromApiRule(r as any)),
+		};
+		if (caIds === null) {
+			if (current?.enabled) await setMtlsHost(mtlsType(row), row.id, { ...base, enabled: false });
+			// the mTLS CA of NPMplus would take over: off as well
+			if (row.mtlsCaId) {
+				await updateHost(row.type, row.id, {
+					meta: { ...settingsMeta(row), npmplusMtlsCertificateId: 0, npmplusMtlsVerifyClientOptional: false },
+				});
+			}
+			return;
+		}
+		const saved = await setMtlsHost(mtlsType(row), row.id, {
+			...base,
+			enabled: true,
+			caIds,
+			mode: mode === "optional" ? "optional" : "on",
+		});
+		if (saved.nginx && !saved.nginx.nginxOnline) throw new Error(saved.nginx.nginxErr ?? "nginx");
+	};
+	const hostRef = (row: HostRow) => ({ hostType: mtlsType(row), hostId: row.id, name: row.names.join(", ") });
+
+	const ctx: CellContext = {
+		canManage: (row) => can(row.type, MANAGE),
+		canWaf: (row) => can(row.type, MANAGE) || rbac("waf_policy", "manage"),
+		certificates: certificates.data ?? [],
+		accessLists: accessLists.data ?? [],
+		edit: (row) => EDIT[row.type](row.id),
+		remove: (row) =>
+			showDeleteConfirmModal({
+				title: <T id="object.delete" tData={{ object: OBJECT[row.type] }} />,
+				onConfirm: () => deleteHost(row.type, row.id),
+				invalidations: [[QUERY_KEY[row.type]]],
+				children: (
+					<>
+						{servesPanel(row.names) && <PanelHostWarning action="delete" />}
+						<T id="object.delete.content" tData={{ object: OBJECT[row.type] }} />
+						<div className="mt-2 fw-bold text-break">{row.names.join(", ")}</div>
+					</>
+				),
+			}),
+		toggle: (row, enabled) => toggleMany([row], enabled),
+		setWaf: (row, state) => run([row], (r) => changeWaf(r, state), t("nginxions.hosts.done.waf")),
+		wafTemplate: (row) => waf.data?.[row.id]?.template ?? null,
+		wafReady: (row) =>
+			row.type === "proxy" && !!learning.data?.hosts.some((h) => h.id === row.id && h.readyToPrevent),
+		setWafTemplate: (row, template) =>
+			run(
+				[row],
+				(r) =>
+					setWafHost(r.id, {
+						enabled: true,
+						// "monitor" only detects, the others block
+						mode: template === "monitor" ? "detect-learn" : "prevent-learn",
+						minimumConfidence: (waf.data?.[r.id] ?? WAF_DEFAULTS).minimumConfidence,
+						objects: { template },
+					}),
+				t("nginxions.hosts.done.waf"),
+			),
+		setMtls: (row, caId, mode: MtlsState) =>
+			run(
+				[row],
+				(r) =>
+					updateHost(r.type, r.id, {
+						meta: {
+							...settingsMeta(r),
+							npmplusMtlsCertificateId: mode === "off" ? 0 : caId,
+							npmplusMtlsVerifyClientOptional: mode === "optional",
+						},
+					}),
+				t("nginxions.hosts.done.mtls"),
+			),
+		setAccess: (row, listId) => run([row], (r) => changeAccess(r, listId), t("nginxions.hosts.done.access")),
+		setCertificate: (row, certificateId) => {
+			if (certificateId === "new") showSuccess(t("nginxions.hosts.tls.requesting"));
+			return run([row], (r) => changeCertificate(r, certificateId), t("nginxions.hosts.done.certificate"));
+		},
+		openCertificates: () => navigate("/certificates"),
+		pki: pki.data
+			? {
+					cas: pki.data.cas,
+					canManage: (row) => can(row.type, MANAGE) || rbac("pki", "manage"),
+					canIssue: rbac("pki", "issue"),
+					set: (row, caIds, mode) =>
+						run([row], (r) => changePkiMtls(r, caIds, mode), t("nginxions.hosts.done.mtls")),
+					enable: (row) =>
+						run([row], (r) => enableMtlsHost(mtlsType(r), r.id), t("nginxions.hosts.done.mtls")),
+					configure: (row) =>
+						showMtlsModal({ type: mtlsType(row), hostId: row.id, onDone: () => refresh([row.type]) }),
+					issue: async (row) => {
+						try {
+							// fresh: the trust domain of a host switched on a moment ago
+							const data = await getPki();
+							const ref = hostRef(row);
+							showAccessModal({
+								data,
+								host:
+									data.protected.find(
+										(h) => h.hostType === ref.hostType && h.hostId === ref.hostId,
+									) ?? ref,
+								onDone: () => refresh([row.type]),
+							});
+						} catch (err: any) {
+							showError(err.message);
+						}
+					},
+					accessCerts: (row) =>
+						(pki.data?.certificates ?? []).filter((c) =>
+							c.access.some((a) => a.hostType === mtlsType(row) && a.hostId === row.id),
+						),
+					certs: (row) =>
+						showHostCertsModal({
+							host: hostRef(row),
+							openHost: (h) => navigate(`/mtls?host=${hostKey(h)}`),
+						}),
+					details: (row) => navigate(`/mtls?host=${mtlsType(row)}-${row.id}`),
+				}
+			: undefined,
+		duplicate: (row) => EDIT[row.type](row.id, true),
+		history: (row) => showHostHistoryModal(OBJECT_TYPE[row.type], row.id, row.names.join(", ")),
+		attacks: attacksByHost,
+		crowdsec: crowdsec.data
+			? {
+					enabled: crowdsec.data.bouncerEnabled,
+					off: new Set(
+						crowdsec.data.hosts
+							.filter((h) => !h.bouncer)
+							.map((h) => `${CROWDSEC_TYPE_BACK[h.hostType] ?? h.hostType}-${h.hostId}`),
+					),
+					bans: crowdsec.data.bans,
+					canManage: rbac("crowdsec", "manage"),
+					set: (row, bouncer) =>
+						run(
+							[row],
+							(r) => setHostBouncer(CROWDSEC_TYPE[r.type], r.id, bouncer),
+							t(bouncer ? "nginxions.hosts.done.crowdsec.on" : "nginxions.hosts.done.crowdsec.off"),
+						),
+					open: (row) =>
+						navigate(`/crowdsec?${new URLSearchParams({ tab: "alerts", q: row.names[0] ?? "" })}`),
+					settings: () => navigate("/crowdsec?tab=settings"),
+				}
+			: undefined,
+		events: (row) =>
+			navigate(`/waf/events?${new URLSearchParams({ host: row.names.map((n) => n.toLowerCase()).join(",") })}`),
+	};
+
+	const selectedRows = rows.filter((r) => selected.has(r.key) && can(r.type, MANAGE));
+	const manageableShown = rows.filter((r) => can(r.type, MANAGE));
+	const allSelected = manageableShown.length > 0 && manageableShown.every((r) => selected.has(r.key));
+	const toggleSelect = (key: string) =>
+		setSelected((prev) => {
+			const next = new Set(prev);
+			if (next.has(key)) next.delete(key);
+			else next.add(key);
+			return next;
+		});
+
+	const bulkDelete = () =>
+		showConfirmModal({
+			tTitle: "nginxions.hosts.bulk.delete-title",
+			tConfirm: "action.delete",
+			danger: true,
+			children: (
+				<>
+					<p>
+						<T id="nginxions.hosts.bulk.delete-text" data={{ count: selectedRows.length }} />
+					</p>
+					<ul className="mb-0">
+						{selectedRows.map((r) => (
+							<li key={r.key} className="text-break">
+								{r.names.join(", ")}
+							</li>
+						))}
+					</ul>
+				</>
+			),
+			onConfirm: async () => {
+				await run(selectedRows, (r) => deleteHost(r.type, r.id), t("nginxions.hosts.done.deleted"));
+				setSelected(new Set());
+			},
+		});
+
+	const onExport = (format: "json" | "csv") => {
+		const target = selected.size ? rows.filter((r) => selected.has(r.key)) : rows;
+		const stamp = new Date().toISOString().slice(0, 10);
+		if (format === "json") {
+			download(`nginxions-hosts-${stamp}.json`, JSON.stringify(exportData(target), null, 2), "application/json");
+		} else {
+			download(`nginxions-hosts-${stamp}.csv`, exportCsv(target), "text/csv");
+		}
+	};
+
+	const onImportFile = async (file: File) => {
+		let parsed: ReturnType<typeof parseImport>;
+		try {
+			parsed = parseImport(await file.text(), {
+				certificateIds: (certificates.data ?? []).map((c) => c.id),
+				accessListIds: (accessLists.data ?? []).map((l) => l.id as number),
+			});
+		} catch {
+			showError(t("nginxions.hosts.import.invalid"));
+			return;
+		}
+		const items = parsed.items.filter((item) => manageTypes.includes(item.type));
+		if (!items.length) {
+			showError(t("nginxions.hosts.import.empty"));
+			return;
+		}
+		showConfirmModal({
+			tTitle: "nginxions.hosts.import",
+			tConfirm: "nginxions.hosts.import.confirm",
+			children: (
+				<>
+					<p>
+						<T id="nginxions.hosts.import.text" data={{ count: items.length }} />
+					</p>
+					{parsed.dropped > 0 && (
+						<p className="text-warning mb-0">
+							<T id="nginxions.hosts.import.dropped" data={{ count: parsed.dropped }} />
+						</p>
+					)}
+				</>
+			),
+			onConfirm: async () => {
+				const errors: string[] = [];
+				for (const item of items) {
+					try {
+						await createHost(item.type, item.data);
+					} catch (err: any) {
+						errors.push(
+							`${(item.data.domainNames ?? [item.data.incomingPort]).join(", ")}: ${err?.message || err}`,
+						);
+					}
+				}
+				refresh(items.map((i) => i.type));
+				if (errors.length) showError(errors.join("\n"));
+				else showSuccess(t("nginxions.hosts.import.done", { count: items.length }));
+			},
+		});
+	};
+
+	const visible = (column: Column) => !view.hidden.includes(column);
+	const shownColumns = COLUMNS.filter(visible);
+	const header = (column: Column | "name", label: ReactNode) => {
+		const key = SORT_COLUMN[column];
+		const on = key && sort.key === key;
+		return (
+			<th key={column} aria-sort={on ? (sort.desc ? "descending" : "ascending") : undefined}>
+				<span className={styles.headCell}>
+					{key ? (
+						<button
+							type="button"
+							className={cn(styles.sort, on && styles.sortOn)}
+							onClick={() => setSort(key)}
+						>
+							{label}
+							<span className={styles.sortArrow}>{on ? (sort.desc ? "↓" : "↑") : "↕"}</span>
+						</button>
+					) : (
+						label
+					)}
+					<InfoTip id={`nginxions.hosts.info.${column}`} />
+				</span>
+			</th>
+		);
+	};
+
+	const cell = (row: HostRow, column: Column) => {
+		switch (column) {
+			case "type":
+				return (
+					<span className={styles.type}>
+						<T id={`nginxions.hosts.type.${row.type}`} />
+					</span>
+				);
+			case "target":
+				return <TargetCell row={row} />;
+			case "tls":
+				return <TlsCell row={row} ctx={ctx} />;
+			case "waf":
+				return <WafCell row={row} ctx={ctx} />;
+			case "mtls":
+				return <MtlsCell row={row} ctx={ctx} />;
+			case "access":
+				return <AccessCell row={row} ctx={ctx} />;
+			case "status":
+				return <StatusCell row={row} ctx={ctx} />;
+			case "changed":
+				return <ChangedCell row={row} ctx={ctx} />;
+			case "attacks":
+				return <AttacksCell row={row} ctx={ctx} />;
+			case "crowdsec":
+				return <CrowdsecCell row={row} ctx={ctx} />;
+		}
+	};
+
+	return (
+		<div className={styles.page}>
+			<div className={styles.head}>
+				<div>
+					<h1 className={styles.title}>
+						<T id="nginxions.hosts.title" />
+					</h1>
+					<p className={styles.subtitle}>
+						<T id="nginxions.hosts.subtitle" />
+					</p>
+				</div>
+			</div>
+
+			{failed && (
+				<Alert variant="danger">{failed.error?.message || <T id="nginxions.common.unknown-error" />}</Alert>
+			)}
+
+			<Recommendations items={recs} onShow={(rules) => setFilters({ q: "", rules })} />
+
+			<div className={styles.toolbar}>
+				<Search ref={searchRef} value={filters.q} onChange={(q) => setFilters({ ...filters, q })} />
+				<FiltersViewPopover
+					filters={filters}
+					options={filterOptions}
+					onChange={(rules) => setFilters({ ...filters, rules })}
+					view={view}
+					onViewChange={setView}
+				/>
+				<TransferMenu
+					onExport={onExport}
+					onImport={() => importRef.current?.click()}
+					canImport={manageTypes.length > 0}
+					selected={selected.size}
+				/>
+				<input
+					ref={importRef}
+					type="file"
+					accept="application/json,.json"
+					hidden
+					onChange={(e) => {
+						const file = e.target.files?.[0];
+						e.target.value = "";
+						if (file) onImportFile(file);
+					}}
+				/>
+				<AddMenu types={manageTypes} onAdd={(type) => EDIT[type]("new")} />
+			</div>
+
+			<ActiveFilters
+				filters={filters}
+				options={filterOptions}
+				onChange={(rules) => setFilters({ ...filters, rules })}
+			/>
+
+			<div className={cn("card", styles.tableCard)}>
+				{selectedRows.length > 0 ? (
+					<BulkBar
+						count={selectedRows.length}
+						hasProxy={selectedRows.some((r) => r.type === "proxy")}
+						certificates={certificates.data ?? []}
+						accessLists={accessLists.data ?? []}
+						onClear={() => setSelected(new Set())}
+						onToggle={(enabled) => toggleMany(selectedRows, enabled)}
+						onWaf={(state) =>
+							run(
+								selectedRows.filter((r) => r.type === "proxy"),
+								(r) => changeWaf(r, state),
+								t("nginxions.hosts.done.waf"),
+							)
+						}
+						onCertificate={(id) =>
+							run(selectedRows, (r) => changeCertificate(r, id), t("nginxions.hosts.done.certificate"))
+						}
+						onAccess={(id) =>
+							run(
+								selectedRows.filter((r) => r.type === "proxy"),
+								(r) => changeAccess(r, id),
+								t("nginxions.hosts.done.access"),
+							)
+						}
+						onDelete={bulkDelete}
+					/>
+				) : (
+					<div className={styles.summary}>
+						<T id="nginxions.hosts.summary" data={{ shown: rows.length, total: allRows.length }} />
+					</div>
+				)}
+				<div className={styles.scroller}>
+					<table
+						className={cn("table table-vcenter card-table", styles.table, view.compact && styles.compact)}
+					>
+						<thead>
+							<tr>
+								<th className={styles.check}>
+									<input
+										type="checkbox"
+										className="form-check-input m-0"
+										aria-label={t("nginxions.hosts.select-all")}
+										checked={allSelected}
+										disabled={!manageableShown.length}
+										onChange={() =>
+											setSelected(
+												allSelected ? new Set() : new Set(manageableShown.map((r) => r.key)),
+											)
+										}
+									/>
+								</th>
+								{header("name", <T id="column.name" />)}
+								{shownColumns.map((column) => header(column, columnLabel(column)))}
+								<th className={styles.actions} />
+							</tr>
+						</thead>
+						<tbody>
+							{rows.map((row) => (
+								<tr key={row.key} className={cn(selected.has(row.key) && styles.rowSelected)}>
+									<td className={styles.check}>
+										<input
+											type="checkbox"
+											className="form-check-input m-0"
+											aria-label={row.names[0]}
+											checked={selected.has(row.key)}
+											disabled={!can(row.type, MANAGE)}
+											onChange={() => toggleSelect(row.key)}
+										/>
+									</td>
+									<td>
+										<NameCell row={row} ctx={ctx} />
+									</td>
+									{shownColumns.map((column) => (
+										<td key={column}>{cell(row, column)}</td>
+									))}
+									<td className={styles.actions}>
+										<ActionsCell row={row} ctx={ctx} />
+									</td>
+								</tr>
+							))}
+							{!rows.length && (
+								<tr>
+									<td colSpan={shownColumns.length + 3} className={styles.empty}>
+										{allRows.length ? (
+											<>
+												<T id="nginxions.nav.nothing-found" />{" "}
+												<button
+													type="button"
+													className={styles.recLink}
+													onClick={() => setFilters(emptyFilters())}
+												>
+													<T id="nginxions.hosts.filters.reset" />
+												</button>
+											</>
+										) : (
+											<T id="nginxions.hosts.empty" />
+										)}
+									</td>
+								</tr>
+							)}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	);
+}
+
+export default function Hosts() {
+	return <HostsPage />;
+}

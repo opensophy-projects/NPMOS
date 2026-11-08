@@ -1,13 +1,13 @@
 # syntax=docker/dockerfile:1.28
-# NPMOS open-appsec: one image, one container (npmos-openappsec) with everything of the agent side, built from
+# NginxionS open-appsec: one image, one container (nginxions-openappsec) with everything of the agent side, built from
 # source at pinned commits (sources.env):
 #   - the agent (github.com/openappsec/openappsec) with the patches of agent/patches;
 #   - its shared storage (smartsync-shared-files) and tuning (smartsync-tuning) services, Go, go-service/patches;
-#   - npmos-control (npmos/backend/npmos/control, build context "control"): the Docker API for the GUI.
-# npmos-openappsec.sh starts and keeps them running. The container owns the network namespace npmos joins, so
+#   - nginxions-control (nginxions/backend/nginxions/control, build context "control"): the Docker API for the GUI.
+# nginxions-openappsec.sh starts and keeps them running. The container owns the network namespace nginxions joins, so
 # the services listen on 127.0.0.1 ports there (port 80 is nginx's): shared storage 7811, tuning 7813, control 7080.
 #
-#   docker build --build-context control=npmos/backend/npmos/control -t npmos-openappsec deploy/openappsec
+#   docker build --build-context control=nginxions/backend/nginxions/control -t nginxions-openappsec deploy/openappsec
 #
 # Alpine 3.22 for the agent: newer releases (3.23+) ship CMake 4, which rejects the cmake_minimum_required (2.8.4) of
 # the pinned open-appsec sources. Renovate does not bump it (renovate.json, checked in CI); raise it together with
@@ -30,7 +30,7 @@ RUN apk add --no-cache build-base cmake git python3 bash linux-headers \
 ARG OPENAPPSEC_REF
 ADD --keep-git-dir=true https://github.com/openappsec/openappsec.git#${OPENAPPSEC_REF} /src
 WORKDIR /src
-# NPMOS patches (see each file): local-only hybrid mode without Fog registration; rate limits for hosts of the
+# NginxionS patches (see each file): local-only hybrid mode without Fog registration; rate limits for hosts of the
 # local policy (no scheme); no Fog reconnection after a policy update in local-only mode; host:port of services;
 # the feature dump for training; rate limit rules of the local policy (it writes no "action" and "match")
 COPY agent/patches/ /patches/
@@ -92,19 +92,19 @@ RUN for p in /patches/smartsync-tuning/*.patch; do [ -e "$p" ] || continue; patc
 
 # ---------------------------------------------------------------- the image
 FROM ${AGENT_RUNTIME}
-# Node.js for npmos-control
+# Node.js for nginxions-control
 RUN apk add --no-cache nodejs
 COPY --from=shared-storage /out/ /opt/appsec-shared-storage/
 COPY --from=tuning /out/ /opt/appsec-tuning/
-COPY --from=control server.js watchdog.js /opt/npmos-control/
-RUN printf '{"type": "module"}\n' > /opt/npmos-control/package.json && mkdir -p /db
+COPY --from=control server.js watchdog.js /opt/nginxions-control/
+RUN printf '{"type": "module"}\n' > /opt/nginxions-control/package.json && mkdir -p /db
 # the settings of WAF -> Agent (fail-open), applied at every start of the agent; then the services
-COPY agent/npmos-entry.sh /npmos-entry.sh
-COPY npmos-openappsec.sh /npmos-openappsec.sh
-RUN chmod 755 /npmos-entry.sh /npmos-openappsec.sh
-LABEL org.opencontainers.image.source="https://github.com/opensophy-projects/npmos" \
-      org.opencontainers.image.description="open-appsec agent, its learning services and npmos-control for NPMOS"
+COPY agent/nginxions-entry.sh /nginxions-entry.sh
+COPY nginxions-openappsec.sh /nginxions-openappsec.sh
+RUN chmod 755 /nginxions-entry.sh /nginxions-openappsec.sh
+LABEL org.opencontainers.image.source="https://github.com/opensophy-projects/NPMOS" \
+      org.opencontainers.image.description="open-appsec agent, its learning services and nginxions-control for NginxionS"
 # root: the nano agent of open-appsec runs as root (its shared memory and IPC with the attachment of nginx), and
-# npmos-control reads the Docker socket; its own services listen on 127.0.0.1 only
+# nginxions-control reads the Docker socket; its own services listen on 127.0.0.1 only
 # nosemgrep: dockerfile.security.missing-user-entrypoint.missing-user-entrypoint
-ENTRYPOINT ["/npmos-openappsec.sh"]
+ENTRYPOINT ["/nginxions-openappsec.sh"]

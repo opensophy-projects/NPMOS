@@ -1,0 +1,48 @@
+#!/bin/bash
+# NginxionS: agent settings made in the GUI (WAF -> Agent), applied at every start of the agent.
+# NginxionS writes them to /ext/appsec/nginxions-agent.env (volume appsec-localconfig) and restarts the
+# agent. Only the keys below are read; the file is not sourced.
+SETTINGS=/ext/appsec/nginxions-agent.env
+CROWDSEC_KEY=/run/secrets/nginxions/crowdsec_bouncer_key
+
+CROWDSEC_ENABLED=false
+CROWDSEC_MODE=prevent
+NGINXIONS_FAIL_OPEN=true
+NGINXIONS_FAIL_OPEN_TIMEOUT_MS=50
+if [ -f "$SETTINGS" ]; then
+    while IFS='=' read -r key value; do
+        case "$key=$value" in
+            CROWDSEC_ENABLED=true | CROWDSEC_ENABLED=false) CROWDSEC_ENABLED=$value ;;
+            CROWDSEC_MODE=prevent | CROWDSEC_MODE=detect) CROWDSEC_MODE=$value ;;
+            NGINXIONS_FAIL_OPEN=true | NGINXIONS_FAIL_OPEN=false) NGINXIONS_FAIL_OPEN=$value ;;
+            NGINXIONS_FAIL_OPEN_TIMEOUT_MS=*)
+                [[ "$value" =~ ^[0-9]{1,5}$ ]] && NGINXIONS_FAIL_OPEN_TIMEOUT_MS=$value ;;
+        esac
+    done < "$SETTINGS"
+fi
+
+# IP reputation from the local CrowdSec LAPI (bouncer key registered by nginxions-init)
+if [ "$CROWDSEC_ENABLED" = true ] && [ -s "$CROWDSEC_KEY" ]; then
+    export CROWDSEC_ENABLED=true CROWDSEC_MODE CROWDSEC_AUTH_METHOD=apikey
+    export CROWDSEC_API_URL="${CROWDSEC_API_URL:-http://crowdsec:8080/v1/decisions/stream}"
+    CROWDSEC_AUTH_DATA=$(cat "$CROWDSEC_KEY")
+    export CROWDSEC_AUTH_DATA
+else
+    [ "$CROWDSEC_ENABLED" = true ] && echo "nginxions: no CrowdSec bouncer key at $CROWDSEC_KEY, CrowdSec stays off" >&2
+    unset CROWDSEC_ENABLED
+fi
+
+# Fail-open of the nginx attachment: profile settings in settings.json. The agent gets settings only
+# from the Check Point cloud, which NginxionS never uses, so the file is ours.
+# Not agent.config.log.useBulkMode=false: without bulk mode every log goes to all streams at once on
+# the request path, the HTTP transaction handler then neither logs nor blocks (checked in CI).
+mkdir -p /etc/cp/conf
+printf '{"agentSettings": [%s, %s]}\n' \
+    "{\"key\": \"agent.failOpenState.nginxModule\", \"value\": \"$NGINXIONS_FAIL_OPEN\"}" \
+    "{\"key\": \"agent.failOpenTimeout.nginxModule\", \"value\": \"$NGINXIONS_FAIL_OPEN_TIMEOUT_MS\"}" \
+    > /etc/cp/conf/settings.json
+
+# what this start applied, for "saved, restart the agent to apply" in the GUI
+[ -f "$SETTINGS" ] && cp "$SETTINGS" /ext/appsec/nginxions-agent.applied
+
+exec /cp-nano-agent "$@"

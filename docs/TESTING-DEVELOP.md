@@ -1,4 +1,4 @@
-# Как развернуть develop-версию NPMOS и что проверить руками
+# Как развернуть develop-версию NginxionS и что проверить руками
 
 Документ для команды: как поставить свежую сборку на свой сервер или ноутбук и что проверить самому сверх автотестов CI. Состояние на конец фазы 1.
 
@@ -6,19 +6,19 @@
 
 | Источник | Что там | Когда использовать |
 |---|---|---|
-| Docker Hub `opensophy/npmos*:develop` | Сборка из ветки `work` | Обычная проверка: ничего собирать не нужно |
-| Локальная сборка `local/npmos*:dev` | Любая ветка, в том числе непослитая | Если изменения ещё не в `work` |
+| Docker Hub `opensophy/nginxions*:develop` | Сборка из ветки `work` | Обычная проверка: ничего собирать не нужно |
+| Локальная сборка `local/nginxions*:dev` | Любая ветка, в том числе непослитая | Если изменения ещё не в `work` |
 | Dev-стек (`compose.dev.yaml`) | Upstream-образ NPMplus + наш backend и frontend из исходников | Разработка интерфейса и backend. Агент берётся из Hub, поэтому для проверки WAF не подходит |
 
-> **Важно.** Тег `develop` в Docker Hub обновляется только после слияния в `work`. Изменения фазы 1 пока лежат в `claude/practical-ptolemy-ulj2e4`. Чтобы проверить их из Docker Hub, сначала слейте ветку в `work` и дождитесь зелёного CI: задача «Images (amd64) + closed-network test» опубликует образы, затем соберётся манифест `npmos multi-arch manifest`. Без слияния подходит только вариант Б (локальная сборка).
+> **Важно.** Тег `develop` в Docker Hub обновляется только после слияния в `work`. Изменения фазы 1 пока лежат в `claude/practical-ptolemy-ulj2e4`. Чтобы проверить их из Docker Hub, сначала слейте ветку в `work` и дождитесь зелёного CI: задача «Images (amd64) + closed-network test» опубликует образы, затем соберётся манифест `nginxions multi-arch manifest`. Без слияния подходит только вариант Б (локальная сборка).
 
 ## 2. Что нужно на машине
 
 - Linux x86_64 (amd64). Образы open-appsec собираются только под amd64, arm64 экспериментальный.
 - Docker Engine 26+ и Docker Compose 2.23+ (`docker version`, `docker compose version`).
-- Свободные порты 80, 443 и 81. Другие порты задаются так: `NPMOS_HTTP_PORT=8080 NPMOS_HTTPS_PORT=8443 NPMOS_ADMIN_PORT=8181`.
+- Свободные порты 80, 443 и 81. Другие порты задаются так: `NGINXIONS_HTTP_PORT=8080 NGINXIONS_HTTPS_PORT=8443 NGINXIONS_ADMIN_PORT=8181`.
 - Около 10 ГБ на диске для образов и томов.
-- По умолчанию NPMOS слушает только IPv4. Нужен IPv6 — `NPMOS_DISABLE_IPV6=false` в `deploy/.env` (или перед каждой командой `docker compose`); на хосте IPv6 должен работать.
+- По умолчанию NginxionS слушает только IPv4. Нужен IPv6 — `NGINXIONS_DISABLE_IPV6=false` в `deploy/.env` (или перед каждой командой `docker compose`); на хосте IPv6 должен работать.
 - `docker compose pull` падает с `TLS handshake timeout` на `auth.docker.io`, хотя `curl https://auth.docker.io/token` отвечает: соединения Docker с Docker Hub обрываются по пути (так бывает у некоторых провайдеров, в том числе в России). Это не лимиты Docker Hub — при них приходит `429 Too Many Requests`. Решение — зеркало Docker Hub, все образы стека берутся с `docker.io`, так что зеркало покрывает их все:
 
   ```bash
@@ -34,44 +34,44 @@
 ## 3. Вариант А: образы из Docker Hub
 
 ```bash
-git clone https://github.com/opensophy-projects/npmos && cd npmos
+git clone https://github.com/opensophy-projects/NPMOS nginxions && cd nginxions
 git checkout work                       # ветка, из которой собран тег develop
 
 docker compose -f deploy/compose.yaml pull
 docker compose -f deploy/compose.yaml up -d
-docker compose -f deploy/compose.yaml ps   # npmos и postgres должны быть healthy
+docker compose -f deploy/compose.yaml ps   # nginxions и postgres должны быть healthy
 ```
 
-Версии всех образов закреплены в `deploy/.env` (`NPMOS_VERSION=develop`). Другой тег задаётся так: `NPMOS_VERSION=<тег> docker compose ...`.
+Версии всех образов закреплены в `deploy/.env` (`NGINXIONS_VERSION=develop`). Другой тег задаётся так: `NGINXIONS_VERSION=<тег> docker compose ...`.
 
 Проверить, что скачалась свежая сборка: время создания образа должно совпадать со временем последнего зелёного CI в `work`.
 
 ```bash
-docker image inspect opensophy/npmos:develop --format '{{.Created}}'
+docker image inspect opensophy/nginxions:develop --format '{{.Created}}'
 ```
 
 ## 4. Вариант Б: собрать образы самому
 
 ```bash
-git clone https://github.com/opensophy-projects/npmos && cd npmos
+git clone https://github.com/opensophy-projects/NPMOS nginxions && cd nginxions
 git checkout claude/practical-ptolemy-ulj2e4      # или любая другая ветка
 
 scripts/build-images.sh                            # все 5 образов, тег local/<имя>:dev
-NPMOS_REGISTRY=local NPMOS_VERSION=dev docker compose -f deploy/compose.yaml up -d
+NGINXIONS_REGISTRY=local NGINXIONS_VERSION=dev docker compose -f deploy/compose.yaml up -d
 ```
 
-Первая сборка `npmos` (nginx из исходников) и `npmos-openappsec` (агент на C++ и его Go-сервисы) занимает 30–60 минут на каждый образ. Повторные сборки идут из кэша Docker. Отдельный образ: `scripts/build-images.sh openappsec`.
+Первая сборка `nginxions` (nginx из исходников) и `nginxions-openappsec` (агент на C++ и его Go-сервисы) занимает 30–60 минут на каждый образ. Повторные сборки идут из кэша Docker. Отдельный образ: `scripts/build-images.sh openappsec`.
 
 Автотест закрытого контура тот же, что в CI, на собранных образах:
 
 ```bash
-NPMOS_REGISTRY=local NPMOS_VERSION=dev scripts/test-airgap.sh
+NGINXIONS_REGISTRY=local NGINXIONS_VERSION=dev scripts/test-airgap.sh
 ```
 
 ## 5. Первый вход
 
 1. Откройте `https://<адрес-сервера>:81`. Сертификат самоподписанный, браузер предупредит.
-2. Создайте первого администратора. Пароли сервисов, ключи CrowdSec и токен `npmos-control` уже сгенерировал `npmos-init`; `.env` и ручные пароли не нужны.
+2. Создайте первого администратора. Пароли сервисов, ключи CrowdSec и токен `nginxions-control` уже сгенерировал `nginxions-init`; `.env` и ручные пароли не нужны.
 3. Язык переключается флажком справа вверху.
 
 ## 6. Тестовый сайт за прокси
@@ -79,13 +79,13 @@ NPMOS_REGISTRY=local NPMOS_VERSION=dev scripts/test-airgap.sh
 В прод-стеке тестового сервиса нет. Самый простой способ: `whoami` во внутренней сети стека. Он отвечает заголовками запроса, поэтому заодно видно реальный IP клиента.
 
 ```bash
-docker run -d --name test-upstream --network npmos_internal traefik/whoami
+docker run -d --name test-upstream --network nginxions_internal traefik/whoami
 ```
 
 Можно взять сайт посложнее, как в `docs/tutor.md`:
 
 ```bash
-docker run -d --name juice-shop --network npmos_internal bkimminich/juice-shop   # порт 3000
+docker run -d --name juice-shop --network nginxions_internal bkimminich/juice-shop   # порт 3000
 ```
 
 В GUI: «Хосты → Proxy Hosts → Добавить», домен (например `test.local`), схема `http`, хост `test-upstream`, порт `80` (для juice-shop: `juice-shop`, `3000`).
@@ -104,8 +104,8 @@ docker compose -f deploy/compose.yaml pull     # для варианта Б: scr
 docker compose -f deploy/compose.yaml up -d
 ```
 
-- `npmos-init` запускается при каждом `up` и только дополняет недостающее: новые секреты (например, ключ bouncer `appsec` для агента) и каталоги. Существующие пароли и данные не трогает.
-- Миграции БД (`npmos_waf_*`, `npmos_waf_custom_policy`) применяются при старте `npmos`.
+- `nginxions-init` запускается при каждом `up` и только дополняет недостающее: новые секреты (например, ключ bouncer `appsec` для агента) и каталоги. Существующие пароли и данные не трогает.
+- Миграции БД (`nginxions_waf_*`, `nginxions_waf_custom_policy`) применяются при старте `nginxions`.
 - Новые тома (`appsec-model`) compose создаёт сам.
 
 Начать с нуля (удалятся **все** данные: хосты, сертификаты, пользователи, БД, обучение агента):
@@ -133,16 +133,16 @@ curl -s -o /dev/null -w '%{http_code}\n' -H "$H" "$T/?cmd=;cat%20/etc/passwd"   
 
 - Стек поднимается без интернета, ни один сервис не пытается выйти в облако (Check Point, CrowdSec Console/CAPI, Gravatar, проверка версий).
 - Прокси работает, upstream видит реальный IP клиента.
-- «Обзор → Сервисы»: список, логи, перезапуск postgres с переподключением, пересоздание nginx-конфигов, диагностический архив. `socket-proxy` и `npmos-control` перезапустить нельзя.
-- Включение WAF переключателем в GUI (перезапуск npmos с attachment).
+- «Обзор → Сервисы»: список, логи, перезапуск postgres с переподключением, пересоздание nginx-конфигов, диагностический архив. `socket-proxy` и `nginxions-control` перезапустить нельзя.
+- Включение WAF переключателем в GUI (перезапуск nginxions с attachment).
 - Агент применяет сгенерированную политику **без регистрации в облаке Check Point**.
 - Prevent-Learn: SQLi и XSS получают 403, нормальный запрос проходит. Detect-Learn: SQLi проходит.
 - «Аналитика → События»: блокировка видна как Prevent, обнаружение — как Detect.
 - «Агенты → Агент open-appsec»: сохранение настроек перезапускает агент, настройки применяются, атаки после этого блокируются. Агент забирает решения из локального CrowdSec.
 - «Политика (эксперт)»: исключение для IP клиента пропускает атаку, без исключения снова 403.
-- Сессия переживает перезапуск npmos.
+- Сессия переживает перезапуск nginxions.
 - «PKI и mTLS»: корень и домены доверия, серверный сертификат ставится в NPMplus и обслуживает хост, mTLS с правилом OU пускает только свой сертификат (не чужой OU и не чужой домен доверия того же корня), без сертификата — 403 со страницей-объяснением, заголовки X-Client-* доходят до апстрима (поддельные заменяются), одноразовая ссылка открывается один раз, CRL опубликован, отозванный сертификат перестаёт открывать хост меньше чем за минуту.
-- «CrowdSec»: машина NPMOS зарегистрирована, настройки из GUI применяются с перезапуском CrowdSec, сломанный профиль откатывается, ручной бан закрывает хост (но не интерфейс NPMOS), исключённый из баунсера хост пропускает забаненного, разбан открывает; AppSec блокирует `/.env`, алерт попадает в «События»; три блокировки open-appsec банят адрес; блок-лист из файла, выгрузка решений по токену и её подключение на «другом узле»; коллекция hub ставится и удаляется из офлайн-снимка; `cscli hub update` в контейнере CrowdSec берёт индекс у NPMOS.
+- «CrowdSec»: машина NginxionS зарегистрирована, настройки из GUI применяются с перезапуском CrowdSec, сломанный профиль откатывается, ручной бан закрывает хост (но не интерфейс NginxionS), исключённый из баунсера хост пропускает забаненного, разбан открывает; AppSec блокирует `/.env`, алерт попадает в «События»; три блокировки open-appsec банят адрес; блок-лист из файла, выгрузка решений по токену и её подключение на «другом узле»; коллекция hub ставится и удаляется из офлайн-снимка; `cscli hub update` в контейнере CrowdSec берёт индекс у NginxionS.
 
 ## 10. Что стоит проверить самому
 
@@ -153,7 +153,7 @@ curl -s -o /dev/null -w '%{http_code}\n' -H "$H" "$T/?cmd=;cat%20/etc/passwd"   
 ### Установка и обновление
 - [ ] Чистая установка по варианту А на реальном сервере. Чистая установка по варианту Б, если ветка ещё не слита.
 - [ ] Обновление поверх прошлой develop-установки (п. 7): данные, пользователи и хосты на месте, WAF-вкладка у старых хостов показывает «Выключен».
-- [ ] Хост с IPv6 (`NPMOS_DISABLE_IPV6=false`) и нестандартные порты.
+- [ ] Хост с IPv6 (`NGINXIONS_DISABLE_IPV6=false`) и нестандартные порты.
 - [ ] Перезагрузка сервера: стек поднимается сам, WAF остаётся включённым, политика применяется.
 - [ ] Полностью без интернета на своём сервере: отключите внешнюю сеть (или запретите исходящий трафик в firewall) и перезапустите стек. Должно работать всё, кроме выпуска Let's Encrypt.
 
@@ -192,9 +192,9 @@ curl -s -o /dev/null -w '%{http_code}\n' -H "$H" "$T/?cmd=;cat%20/etc/passwd"   
 - [ ] mTLS на стриме (TCP с TLS): только режим «Везде», без правил.
 
 ### «Агенты → CrowdSec» (фаза 7)
-- [ ] **Настоящие IP:** на сервере с внешними клиентами включите «Баунсер NPMOS» и посмотрите «Алерты» за сутки: какие сценарии срабатывают на ваш трафик, нет ли ложных банов (поисковые роботы, мониторинг). Внесите адреса мониторинга в белый список.
-- [ ] **Доступ администратора:** забаньте свой IP вручную — интерфейс NPMOS остаётся доступен, сайты за прокси — нет. Включите «Проверять и интерфейс NPMOS» только после того, как внесли свои адреса в белый список.
-- [ ] **Капча** (нужен интернет у браузера и ключи Turnstile/hCaptcha/reCAPTCHA): провайдер и ключи в «Баунсер NPMOS», профиль с решением «Капча». Забаненный капчей адрес видит капчу, после неё — сайт.
+- [ ] **Настоящие IP:** на сервере с внешними клиентами включите «Баунсер NginxionS» и посмотрите «Алерты» за сутки: какие сценарии срабатывают на ваш трафик, нет ли ложных банов (поисковые роботы, мониторинг). Внесите адреса мониторинга в белый список.
+- [ ] **Доступ администратора:** забаньте свой IP вручную — интерфейс NginxionS остаётся доступен, сайты за прокси — нет. Включите «Проверять и интерфейс NginxionS» только после того, как внесли свои адреса в белый список.
+- [ ] **Капча** (нужен интернет у браузера и ключи Turnstile/hCaptcha/reCAPTCHA): провайдер и ключи в «Баунсер NginxionS», профиль с решением «Капча». Забаненный капчей адрес видит капчу, после неё — сайт.
 - [ ] **Режим stream:** переключите баунсер в stream с частотой 10 с, забаньте адрес — бан действует через ≤10 с.
 - [ ] **Снимок hub:** на машине с интернетом `scripts/crowdsec-hub-snapshot.sh` (с нужными коллекциями во втором аргументе), загрузите архив на узел без интернета и установите коллекцию с файлами данных (например `crowdsecurity/nextcloud`). Без снимка установка такой коллекции сообщает, каких файлов не хватает.
 - [ ] **Два узла:** на узле A «Блок-листы → Решения для других узлов → Разрешить», на узле B блок-лист по URL узла A с токеном. Бан на A появляется на B после следующего обновления.
@@ -202,18 +202,18 @@ curl -s -o /dev/null -w '%{http_code}\n' -H "$H" "$T/?cmd=;cat%20/etc/passwd"   
 - [ ] Связка с WAF: 5 заблокированных open-appsec запросов за 10 минут с одного адреса → бан на 4 часа (профиль `ip`); «Забанить IP в CrowdSec» из карточки события.
 
 ### «Агенты → Агент open-appsec → Настройки агента»
-- [ ] **Fail-close** (CI не проверяет): выключите fail-open и сохраните, затем приостановите обработчик запросов агента: `docker exec npmos-openappsec pkill -STOP -f cp-nano-http-transaction-handler` (останавливать контейнер `npmos-openappsec` нельзя: в его сети работает и nginx). Запросы к защищённому хосту должны отклоняться, к незащищённому — проходить. Включите fail-open и повторите: запросы проходят без проверки. Не забудьте `docker exec npmos-openappsec pkill -CONT -f cp-nano-http-transaction-handler`.
+- [ ] **Fail-close** (CI не проверяет): выключите fail-open и сохраните, затем приостановите обработчик запросов агента: `docker exec nginxions-openappsec pkill -STOP -f cp-nano-http-transaction-handler` (останавливать контейнер `nginxions-openappsec` нельзя: в его сети работает и nginx). Запросы к защищённому хосту должны отклоняться, к незащищённому — проходить. Включите fail-open и повторите: запросы проходят без проверки. Не забудьте `docker exec nginxions-openappsec pkill -CONT -f cp-nano-http-transaction-handler`.
 - [ ] **Репутация IP из CrowdSec** (CI проверяет только, что агент забирает решения): включите в режиме Prevent, забаньте IP тестовой машины и проверьте, что запросы с неё блокируются агентом. Снимите бан.
   ```bash
-  docker exec npmos-crowdsec cscli decisions add --ip <IP> --duration 10m
-  docker exec npmos-crowdsec cscli decisions delete --ip <IP>
+  docker exec nginxions-crowdsec cscli decisions add --ip <IP> --duration 10m
+  docker exec nginxions-crowdsec cscli decisions delete --ip <IP>
   ```
   CLI здесь только для теста: GUI управления CrowdSec появится в фазе 7.
 - [ ] **Advanced-модель**: загрузите настоящий `open-appsec-advanced-model.tgz`, если он у вас есть. Агент перезапускается и работает, в логах агента («Обзор → Сервисы → appsec-agent → Логи») видна распаковка. С настоящим файлом не проверялось.
 - [ ] Пока саму модель больше не используют, удалить её из GUI нельзя (распакованная модель остаётся в томе агента). Если это нужно, скажите: добавлю.
 
 ### Переезд с open-appsec-npm
-- [ ] Если у вас есть установка open-appsec-npm: положите её `local_policy.yaml` в том `appsec-localconfig` до первого старта NPMOS (или перенесите базу хостов). Режимы хостов должны импортироваться (правила `npm-managed-*`), а исходный файл — сохраниться в `/data/npmos/waf/policy-backups` с пометкой `before-npmos`. Проверялось только в dev-стеке.
+- [ ] Если у вас есть установка open-appsec-npm: положите её `local_policy.yaml` в том `appsec-localconfig` до первого старта NginxionS (или перенесите базу хостов). Режимы хостов должны импортироваться (правила `npm-managed-*`), а исходный файл — сохраниться в `/data/nginxions/waf/policy-backups` с пометкой `before-nginxions`. Проверялось только в dev-стеке.
 
 ### Интерфейс
 - [ ] Русский и английский, светлая и тёмная тема на новых страницах: «Аналитика → События», «Агенты → Политика WAF», «Политика (эксперт)», «Агент», «Обзор → Сервисы».
@@ -224,7 +224,7 @@ curl -s -o /dev/null -w '%{http_code}\n' -H "$H" "$T/?cmd=;cat%20/etc/passwd"   
 
 - «Обзор → Сервисы → Диагностика» скачивает архив с состоянием и логами всех сервисов, без секретов. Приложите его к issue.
 - Логи отдельного сервиса: «Обзор → Сервисы → <сервис> → Логи» или `docker compose -f deploy/compose.yaml logs <сервис>`.
-- Текущая политика агента: «Агенты → Агент open-appsec → Показать YAML». Её резервные копии (20 последних): `/data/npmos/waf/policy-backups` в томе `npmos-data`.
+- Текущая политика агента: «Агенты → Агент open-appsec → Показать YAML». Её резервные копии (20 последних): `/data/nginxions/waf/policy-backups` в томе `nginxions-data`.
 
 ## 12. Известные ограничения на конец фазы 1
 

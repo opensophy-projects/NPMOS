@@ -66,16 +66,16 @@
   ],
   "packageRules": [
     {
-      "description": "npmos/ is the NPMplus subtree: its dependencies come with git subtree pull, not from Renovate",
+      "description": "nginxions/ is the NPMplus subtree: its dependencies come with git subtree pull, not from Renovate",
       "matchFileNames": [
-        "npmos/**"
+        "nginxions/**"
       ],
       "enabled": false
     },
     {
-      "description": "except CrowdSec of the offline hub seed in npmos/Dockerfile: it must move together with deploy/.env (checked in CI)",
+      "description": "except CrowdSec of the offline hub seed in nginxions/Dockerfile: it must move together with deploy/.env (checked in CI)",
       "matchFileNames": [
-        "npmos/Dockerfile"
+        "nginxions/Dockerfile"
       ],
       "matchDepNames": [
         "docker.io/crowdsecurity/crowdsec",
@@ -84,7 +84,7 @@
       "enabled": true
     },
     {
-      "description": "CrowdSec is pinned in deploy/.env, npmos/Dockerfile and deploy/dev/Dockerfile (CI checks they match): one PR for all three",
+      "description": "CrowdSec is pinned in deploy/.env, nginxions/Dockerfile and deploy/dev/Dockerfile (CI checks they match): one PR for all three",
       "matchDepNames": [
         "crowdsecurity/crowdsec",
         "docker.io/crowdsecurity/crowdsec"

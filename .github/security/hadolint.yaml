@@ -1,4 +1,4 @@
-# hadolint (.github/workflows/security.yml). An error in a Dockerfile of deploy/ fails the run; npmos/Dockerfile (of
+# hadolint (.github/workflows/security.yml). An error in a Dockerfile of deploy/ fails the run; nginxions/Dockerfile (of
 # upstream NPMplus) is reported.
 ignored:
   # versions of Alpine packages: the base image is pinned by digest, the packages follow its release

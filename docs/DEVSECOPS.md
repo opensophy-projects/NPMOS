@@ -7,7 +7,7 @@
 
 | Категория | Инструмент | Что ищет | Где запускается |
 |---|---|---|---|
-| SAST | **Semgrep** | уязвимости JS/TS, Dockerfile и workflow: правила сообщества и правила NPMOS (`.github/security/semgrep.yml`) | `security.yml` |
+| SAST | **Semgrep** | уязвимости JS/TS, Dockerfile и workflow: правила сообщества и правила NginxionS (`.github/security/semgrep.yml`) | `security.yml` |
 | SAST | **CodeQL** (JS/TS, Actions) | путь данных от запроса до опасного вызова: инъекции, SSRF, XSS, обход путей | `security.yml` |
 | Секреты | **Gitleaks** | ключи, пароли и токены в файлах и во **всей истории** git | `security.yml` |
 | SCA | **OSV-Scanner** | известные уязвимости npm-зависимостей backend и frontend; лицензии | `security.yml` |
@@ -15,7 +15,7 @@
 | IaC | **hadolint**, **Trivy config**, **KICS** | Dockerfile, compose и workflow: root, лишние права, небезопасные приёмы | `security.yml` |
 | CI/CD | **actionlint**, **zizmor**, **CodeQL Actions** | ошибки и уязвимости самих workflow: инъекции в `${{ }}`, права токена, кеш, непривязанные actions | `security.yml` |
 | Цепочка поставок | **OpenSSF Scorecard** | практики репозитория (только ветка `work`) | `security.yml` |
-| Образы | **Trivy** | уязвимости пакетов и секреты в слоях `npmos` и `npmos-openappsec` | `ci.yml` → `images` |
+| Образы | **Trivy** | уязвимости пакетов и секреты в слоях `nginxions` и `nginxions-openappsec` | `ci.yml` → `images` |
 | Образы | **Grype** | второе мнение по SBOM образа | `ci.yml` → `images` |
 | Образы | **Dockle** | CIS Docker Benchmark | `ci.yml` → `images` |
 | DAST | **OWASP ZAP** | активная атака на API интерфейса по OpenAPI-схеме с сессией администратора; заголовки и cookies страниц интерфейса и сайта за прокси-хостом | `ci.yml` → `images` |
@@ -27,7 +27,7 @@
 К ним добавляются проверки, которые были и раньше: biome, tsc, тесты, shellcheck, `compose config`, закрытый контур.
 
 DAST (`scripts/test-dast.sh`) поднимает прод-стек, настраивает его как администратор в GUI (`deploy/test/dast-setup.sh`:
-первый админ, корневой CA и серверный сертификат PKI NPMOS, прокси-хост `dast.local` с TLS, HTTP/2, HSTS и фильтром
+первый админ, корневой CA и серверный сертификат PKI NginxionS, прокси-хост `dast.local` с TLS, HTTP/2, HSTS и фильтром
 эксплойтов) и атакует его из контейнеров той же сети. У каждого сканера свой адрес, поэтому бан CrowdSec одного сканера
 не останавливает другие. Сканеры идут параллельно.
 
@@ -53,7 +53,7 @@ workflow. Проверить свою ветку полностью: назов�
 
 | Проверка | Блокирует |
 |---|---|
-| Semgrep, CodeQL | высокие и критические находки **в коде NPMOS** (`npmos/backend/npmos`, `npmos/frontend/src/npmos`, `deploy`, `scripts`, `.github`); в коде upstream NPMplus — только в отчёт |
+| Semgrep, CodeQL | высокие и критические находки **в коде NginxionS** (`nginxions/backend/nginxions`, `nginxions/frontend/src/nginxions`, `deploy`, `scripts`, `.github`); в коде upstream NPMplus — только в отчёт |
 | Gitleaks | любая находка (примеры upstream исключены в `.github/security/gitleaks.toml` с причинами) |
 | OSV-Scanner | высокие и критические, **если есть исправленная версия** |
 | Trivy (образы) | высокие и критические с исправленной версией; секреты в слоях — высокие и критические |
@@ -73,13 +73,13 @@ workflow. Проверить свою ветку полностью: назов�
 
 ## Отчёт
 
-- **Сводка прогона**: Actions → прогон → Summary, раздел «Отчёт безопасности NPMOS». Там итог, таблица всех
+- **Сводка прогона**: Actions → прогон → Summary, раздел «Отчёт безопасности NginxionS». Там итог, таблица всех
   проверок (сколько критических, высоких, средних и низких находок, что блокирует), блокирующие находки, принятые
   риски, SBOM, метрики качества и подробности по каждому инструменту.
 - **Артефакт `security-report`** (внизу страницы прогона):
   - `security-report.html` — тот же отчёт страницей со всеми находками;
   - `security-report.md` — он же в Markdown;
-  - `sbom/` — SBOM каждого состава: `source-backend`, `source-frontend`, `npmos`, `npmos-openappsec`;
+  - `sbom/` — SBOM каждого состава: `source-backend`, `source-frontend`, `nginxions`, `nginxions-openappsec`;
   - `raw/` — исходные результаты всех сканеров (SARIF, JSON; отчёты ZAP в HTML).
 - **Security → Code scanning**: находки Semgrep, CodeQL, Gitleaks, OSV-Scanner, KICS, zizmor, Scorecard и Trivy с
   историей, фильтрами и привязкой к строкам кода.
@@ -96,7 +96,7 @@ workflow. Проверить свою ветку полностью: назов�
 | `sbom/<состав>.csv` | для таблиц |
 
 Составы: `source-backend` и `source-frontend` — зависимости исходников (frontend попадает в образ собранным, поэтому
-его библиотеки видны только здесь); `npmos` и `npmos-openappsec` — всё, что есть в образе: пакеты Alpine, модули
+его библиотеки видны только здесь); `nginxions` и `nginxions-openappsec` — всё, что есть в образе: пакеты Alpine, модули
 Node.js, бинарники Go.
 
 SBOM зависимостей репозитория также строит сам GitHub: Insights → Dependency graph → Export SBOM.
@@ -110,7 +110,7 @@ SBOM зависимостей репозитория также строит с�
 {
 	"risks": [
 		{
-			"tool": "trivy-npmos",
+			"tool": "trivy-nginxions",
 			"id": "CVE-2026-12345",
 			"where": "libfoo",
 			"reason": "уязвимая функция не вызывается: модуль собран без X; исправление ждём в Alpine 3.25",
@@ -120,7 +120,7 @@ SBOM зависимостей репозитория также строит с�
 }
 ```
 
-`tool` — id проверки из `scripts/security-report.mjs` (`semgrep`, `codeql-js`, `gitleaks`, `osv`, `trivy-npmos`, `zap-api`…)
+`tool` — id проверки из `scripts/security-report.mjs` (`semgrep`, `codeql-js`, `gitleaks`, `osv`, `trivy-nginxions`, `zap-api`…)
 или `*`; `where` — часть места находки (необязательно). После даты `until` находка снова блокирует, и решение
 нужно принять заново. Принятые риски показываются в отчёте отдельным разделом.
 
@@ -132,7 +132,7 @@ GitHub закрывает такие оповещения при следующ�
 
 Открытые задачи, которые ложными срабатываниями не являются и решаются отдельной работой:
 
-- **контейнер `npmos` работает от root** (`PUID=0`, как в NPMplus по умолчанию), хотя без привилегий: `cap_drop: ALL`,
+- **контейнер `nginxions` работает от root** (`PUID=0`, как в NPMplus по умолчанию), хотя без привилегий: `cap_drop: ALL`,
   только `NET_BIND_SERVICE` и `SETGID`, `no-new-privileges`. Для запуска от другого пользователя стартовый скрипт
   NPMplus должен уметь обойтись без `CHOWN`/`SETUID`;
 - **возможности остальных контейнеров** (`openappsec`, `postgres`, `crowdsec`) не урезаны: нужный каждому набор ещё
@@ -147,8 +147,8 @@ GitHub закрывает такие оповещения при следующ�
 # отчёт по уже скачанным результатам (артефакты security-* прогона)
 node scripts/security-report.mjs --in reports --out security-report --expect source,images,dast
 # скан образов и DAST (нужны локальные образы, см. scripts/build-images.sh)
-NPMOS_REGISTRY=local NPMOS_VERSION=dev scripts/scan-images.sh
-NPMOS_REGISTRY=local NPMOS_VERSION=dev scripts/test-dast.sh
+NGINXIONS_REGISTRY=local NGINXIONS_VERSION=dev scripts/scan-images.sh
+NGINXIONS_REGISTRY=local NGINXIONS_VERSION=dev scripts/test-dast.sh
 ```
 
 ## Обновление сканеров

@@ -1,0 +1,194 @@
+import { useQuery } from "@tanstack/react-query";
+import {
+	type Analytics,
+	type AnalyticsPeriod,
+	type AuditPage,
+	type CertTerm,
+	type RegistryPage,
+	type EventQuery,
+	type EventsPage,
+	type EventsSettings,
+	getAnalytics,
+	getAudit,
+	getCertificateRegistry,
+	getCertTerms,
+	getEvent,
+	getEvents,
+	getEventsSettings,
+	getHostAttacks,
+	getHostChanges,
+	getHostHistory,
+	getServiceLogs,
+	getServices,
+	getUpstreamChecks,
+	getWafAgent,
+	getWafCustomPolicy,
+	getWafHost,
+	getWafHosts,
+	getWafPolicy,
+	getWafStatus,
+	type HostAttacks,
+	type HostChange,
+	type HostLastChange,
+	type HostObjectType,
+	type SecurityEventFull,
+	type Service,
+	type ServiceLogLine,
+	type UpstreamCheck,
+	type WafAgentState,
+	type WafCustomPolicy,
+	type WafHost,
+	type WafPolicyState,
+	type WafSettings,
+	type WafStatus,
+} from "./api";
+
+export const useServices = (options = {}) =>
+	useQuery<Service[], Error>({
+		queryKey: ["nginxions-services"],
+		queryFn: getServices,
+		refetchInterval: 5000,
+		...options,
+	});
+
+export const useServiceLogs = (service: string, tail: number, follow: boolean) =>
+	useQuery<ServiceLogLine[], Error>({
+		queryKey: ["nginxions-service-logs", service, tail],
+		queryFn: () => getServiceLogs(service, tail),
+		refetchInterval: follow ? 3000 : false,
+	});
+
+export const useWafStatus = (options = {}) =>
+	useQuery<WafStatus, Error>({
+		queryKey: ["nginxions-waf"],
+		queryFn: getWafStatus,
+		refetchInterval: 10000,
+		...options,
+	});
+
+export const useWafHosts = (options = {}) =>
+	useQuery<Record<string, WafSettings>, Error>({
+		queryKey: ["nginxions-waf-hosts"],
+		queryFn: getWafHosts,
+		staleTime: 15000,
+		...options,
+	});
+
+/** id "new" (or a clone of nothing): no request, the form starts from the defaults */
+export const useWafHost = (id: number | "new") =>
+	useQuery<WafHost, Error>({
+		queryKey: ["nginxions-waf-host", id],
+		queryFn: () => getWafHost(id as number),
+		enabled: id !== "new",
+	});
+
+export const useWafPolicy = () =>
+	useQuery<WafPolicyState & { content: string | null }, Error>({
+		queryKey: ["nginxions-waf-policy"],
+		queryFn: getWafPolicy,
+		refetchInterval: 10000,
+	});
+
+export const useAnalytics = (period: AnalyticsPeriod, host: string, options = {}) =>
+	useQuery<Analytics, Error>({
+		queryKey: ["nginxions-analytics", period, host],
+		queryFn: () => getAnalytics(period, host || undefined),
+		refetchInterval: 30000,
+		placeholderData: (previous) => previous,
+		...options,
+	});
+
+export const useHostAttacks = (options = {}) =>
+	useQuery<HostAttacks[], Error>({
+		queryKey: ["nginxions-host-attacks"],
+		queryFn: getHostAttacks,
+		refetchInterval: 60000,
+		...options,
+	});
+
+/** terms of the TLS certificates of the hosts: when each needs attention */
+export const useCertTerms = (options = {}) =>
+	useQuery<Record<string, CertTerm>, Error>({
+		queryKey: ["nginxions-cert-terms"],
+		queryFn: getCertTerms,
+		refetchInterval: 300000,
+		...options,
+	});
+
+/** a page of stored events; `follow`: refreshed every 5 s */
+export const useEvents = (query: EventQuery, follow: boolean, options = {}) =>
+	useQuery<EventsPage, Error>({
+		queryKey: ["nginxions-events", query],
+		queryFn: () => getEvents(query),
+		refetchInterval: follow ? 5000 : false,
+		placeholderData: (previous) => previous,
+		...options,
+	});
+
+export const useAudit = (query: EventQuery) =>
+	useQuery<AuditPage, Error>({
+		queryKey: ["nginxions-audit", query],
+		queryFn: () => getAudit(query),
+		placeholderData: (previous) => previous,
+	});
+
+// the key starts with "certificates": the modals of NPMplus refresh it when they change a certificate
+export const useCertificateRegistry = (query: EventQuery, options = {}) =>
+	useQuery<RegistryPage, Error>({
+		queryKey: ["certificates", "nginxions-registry", query],
+		queryFn: () => getCertificateRegistry(query),
+		placeholderData: (previous) => previous,
+		...options,
+	});
+
+export const useEvent = (id: string, time: string) =>
+	useQuery<SecurityEventFull, Error>({
+		queryKey: ["nginxions-event", id, time],
+		queryFn: () => getEvent(id, time),
+		staleTime: Number.POSITIVE_INFINITY,
+	});
+
+export const useEventsSettings = (options = {}) =>
+	useQuery<EventsSettings, Error>({
+		queryKey: ["nginxions-events-settings"],
+		queryFn: getEventsSettings,
+		...options,
+	});
+
+export const useWafAgent = () =>
+	useQuery<WafAgentState, Error>({
+		queryKey: ["nginxions-waf-agent"],
+		queryFn: getWafAgent,
+		refetchInterval: 10000,
+	});
+
+export const useWafCustomPolicy = () =>
+	useQuery<WafCustomPolicy, Error>({
+		queryKey: ["nginxions-waf-custom-policy"],
+		queryFn: getWafCustomPolicy,
+	});
+
+export const useHostChanges = (options = {}) =>
+	useQuery<HostLastChange[], Error>({
+		queryKey: ["nginxions-host-changes"],
+		queryFn: getHostChanges,
+		staleTime: 15000,
+		// the upstream dialogs save without telling this page
+		refetchInterval: 30000,
+		...options,
+	});
+
+export const useHostHistory = (type: HostObjectType, id: number) =>
+	useQuery<HostChange[], Error>({
+		queryKey: ["nginxions-host-history", type, id],
+		queryFn: () => getHostHistory(type, id),
+	});
+
+/** the backend caches each check for 30 s */
+export const useUpstreamChecks = (options = {}) =>
+	useQuery<UpstreamCheck[], Error>({
+		queryKey: ["nginxions-upstreams"],
+		queryFn: getUpstreamChecks,
+		refetchInterval: 60000,
+		...options,
+	});

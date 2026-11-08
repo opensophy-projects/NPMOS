@@ -1,97 +1,97 @@
-# NPMOS — default stack, fully local (no cloud services, no CAPI, no agent token).
+# NginxionS — default stack, fully local (no cloud services, no CAPI, no agent token).
 #
 #   docker compose -f deploy/compose.yaml up -d
 #   open https://<host>:81
 #
-# Everything that cannot be changed from the NPMOS GUI lives here and is wired up
+# Everything that cannot be changed from the NginxionS GUI lives here and is wired up
 # in advance (shared volumes, IPC, networks, secrets), so that enabling WAF or
 # CrowdSec later is a switch in the GUI, not an edit of this file.
 # Settings below are bootstrap parameters only; see docs/ENV-INVENTORY.md.
 #
-# Containers: npmos (nginx, the panel, the backend), openappsec (the WAF agent and its learning services,
-# npmos-control), crowdsec, postgres; npmos-init runs once at start. npmos and openappsec are built by the
-# NPMOS project (${NPMOS_REGISTRY}/npmos, /npmos-openappsec), CrowdSec and Postgres are the official images.
+# Containers: nginxions (nginx, the panel, the backend), openappsec (the WAF agent and its learning services,
+# nginxions-control), crowdsec, postgres; nginxions-init runs once at start. nginxions and openappsec are built by the
+# NginxionS project (${NGINXIONS_REGISTRY}/nginxions, /nginxions-openappsec), CrowdSec and Postgres are the official images.
 # Versions are pinned in deploy/.env (read automatically by compose).
 #
 # Requires Docker Engine >= 26 and Compose >= 2.23 (volume subpath mounts).
 
-name: npmos
+name: nginxions
 
 x-managed: &managed
   restart: unless-stopped
   labels:
-    npmos.managed: "true"
+    nginxions.managed: "true"
 
 services:
-  # One-shot bootstrap (deploy/init/npmos-init.sh): secrets, subpath directories,
+  # One-shot bootstrap (deploy/init/nginxions-init.sh): secrets, subpath directories,
   # CrowdSec volumes seeded from the offline hub snapshot. Never overwrites existing data.
-  npmos-init:
-    image: ${NPMOS_REGISTRY}/npmos:${NPMOS_VERSION}
+  nginxions-init:
+    image: ${NGINXIONS_REGISTRY}/nginxions:${NGINXIONS_VERSION}
     restart: "no"
     network_mode: none
     # no process gains privileges it did not start with (setuid binaries, file capabilities)
     security_opt:
       - no-new-privileges:true
-    entrypoint: ["/bin/sh", "/npmos-init.sh"]
+    entrypoint: ["/bin/sh", "/nginxions-init.sh"]
     volumes:
-      - ./init/npmos-init.sh:/npmos-init.sh:ro
+      - ./init/nginxions-init.sh:/nginxions-init.sh:ro
       - secrets:/secrets
       # only to pre-create directories other services mount by subpath
-      - npmos-data:/npmos-data
+      - nginxions-data:/nginxions-data
       - crowdsec-conf:/crowdsec-conf
       - crowdsec-data:/crowdsec-data
       - appsec-conf:/appsec-conf
       - appsec-localconfig:/appsec-localconfig
 
-  # open-appsec: the agent, its shared storage and tuning services and npmos-control (the Docker API of System ->
-  # Services) in one container (deploy/openappsec). It owns the network and IPC namespaces npmos joins: the
-  # published ports are here, nginx of npmos listens on them; the nginx attachment talks to the agent through the
+  # open-appsec: the agent, its shared storage and tuning services and nginxions-control (the Docker API of System ->
+  # Services) in one container (deploy/openappsec). It owns the network and IPC namespaces nginxions joins: the
+  # published ports are here, nginx of nginxions listens on them; the nginx attachment talks to the agent through the
   # shared IPC and /dev/shm/check-point. Its services listen on 127.0.0.1 there: control 7080, shared storage 7811,
   # tuning 7813, the agent 7777.
   openappsec:
     <<: *managed
-    image: ${NPMOS_REGISTRY}/npmos-openappsec:${NPMOS_VERSION}
-    container_name: npmos-openappsec
+    image: ${NGINXIONS_REGISTRY}/nginxions-openappsec:${NGINXIONS_VERSION}
+    container_name: nginxions-openappsec
     # no process gains privileges it did not start with (setuid binaries, file capabilities)
     security_opt:
       - no-new-privileges:true
     depends_on:
-      npmos-init:
+      nginxions-init:
         condition: service_completed_successfully
       postgres:
         condition: service_healthy
     ipc: shareable
     ports:
-      - "${NPMOS_HTTP_PORT:-80}:80/tcp"
-      - "${NPMOS_HTTPS_PORT:-443}:443/tcp"
-      - "${NPMOS_HTTPS_PORT:-443}:443/udp"
-      - "${NPMOS_ADMIN_PORT:-81}:81/tcp"
+      - "${NGINXIONS_HTTP_PORT:-80}:80/tcp"
+      - "${NGINXIONS_HTTPS_PORT:-443}:443/tcp"
+      - "${NGINXIONS_HTTPS_PORT:-443}:443/udp"
+      - "${NGINXIONS_ADMIN_PORT:-81}:81/tcp"
     # Hybrid mode (= --standalone in the open-appsec docs) applies the declarative local_policy.yaml
-    # written by NPMOS (offline mode only reads a compiled policy). Upstream hybrid mode registers at
+    # written by NginxionS (offline mode only reads a compiled policy). Upstream hybrid mode registers at
     # the Check Point Fog before it applies any policy, so without internet no policy is ever applied
-    # (checked with the official image). NPMOS_LOCAL_ONLY (our patch, deploy/openappsec/agent/patches)
+    # (checked with the official image). NGINXIONS_LOCAL_ONLY (our patch, deploy/openappsec/agent/patches)
     # skips the registration; the Fog address points to a closed local port so that nothing else in
     # the agent can reach the cloud either.
     command: ["--hybrid-mode", "--fog", "http://127.0.0.1:1"]
     environment:
       TZ: ${TZ:-UTC}
-      # No AGENT_TOKEN: managed locally by NPMOS (no my.openappsec.io)
-      NPMOS_LOCAL_ONLY: "true"
+      # No AGENT_TOKEN: managed locally by NginxionS (no my.openappsec.io)
+      NGINXIONS_LOCAL_ONLY: "true"
       # host:port in this namespace (our patch 0004: the agent asks them on port 80, which is nginx's)
       SHARED_STORAGE_HOST: 127.0.0.1:7811
       TUNING_HOST: 127.0.0.1:7813
       # No LEARNING_HOST: central learning (smartsync) needs a Fog access token the agent does not have
-      # in local-only mode. NPMOS learns locally; see docs/adr/0011-learning.md.
+      # in local-only mode. NginxionS learns locally; see docs/adr/0011-learning.md.
       # security events also go to the local tuning service (its Postgres DB feeds learning and
-      # tuning suggestions); NPMOS keeps its own copy from the log files (npmos/backend/npmos/events)
+      # tuning suggestions); NginxionS keeps its own copy from the log files (nginxions/backend/nginxions/events)
       LOCAL_TUNING_ENABLED: "true"
-      # NPMOS also asks the agent to apply each new policy at once (set-apply-policy); this is the fallback
+      # NginxionS also asks the agent to apply each new policy at once (set-apply-policy); this is the fallback
       autoPolicyLoad: "true"
       # the tuning service: its database
       QUERY_DB_HOST: postgres
       QUERY_DB_USER: appsec
       QUERY_DB_PASSWORD_FILE: /run/secrets/appsec/db_password
-      NPMOS_CONTROL_TOKEN_FILE: /run/secrets/control/control_token
+      NGINXIONS_CONTROL_TOKEN_FILE: /run/secrets/control/control_token
     volumes:
       - appsec-shm:/dev/shm/check-point
       - appsec-conf:/etc/cp/conf
@@ -101,12 +101,12 @@ services:
       - appsec-storage:/db
       # advanced ML model uploaded in WAF -> Agent, unpacked by the entrypoint at start
       - appsec-model:/advanced-model:ro
-      # npmos-control: only list, logs, restart and reload of this stack's npmos.managed containers
-      # (npmos/backend/npmos/control/server.js); npmos itself never gets the socket
+      # nginxions-control: only list, logs, restart and reload of this stack's nginxions.managed containers
+      # (nginxions/backend/nginxions/control/server.js); nginxions itself never gets the socket
       - /var/run/docker.sock:/var/run/docker.sock
       - type: volume
         source: secrets
-        target: /run/secrets/npmos
+        target: /run/secrets/nginxions
         read_only: true
         volume:
           subpath: appsec-agent
@@ -123,24 +123,24 @@ services:
         volume:
           subpath: control
     networks:
-      # "npmos": the name nginx and the panel had before, for the clients of the networks
+      # "nginxions": the name nginx and the panel had before, for the clients of the networks
       edge:
-        aliases: [npmos]
+        aliases: [nginxions]
       internal:
-        aliases: [npmos]
+        aliases: [nginxions]
 
-  npmos:
+  nginxions:
     <<: *managed
-    image: ${NPMOS_REGISTRY}/npmos:${NPMOS_VERSION}
-    container_name: npmos
+    image: ${NGINXIONS_REGISTRY}/nginxions:${NGINXIONS_VERSION}
+    container_name: nginxions
     depends_on:
-      npmos-init:
+      nginxions-init:
         condition: service_completed_successfully
       postgres:
         condition: service_healthy
       openappsec:
         condition: service_started
-    # the network (ports) and IPC of openappsec; npmos-control restarts npmos when openappsec was restarted
+    # the network (ports) and IPC of openappsec; nginxions-control restarts nginxions when openappsec was restarted
     network_mode: service:openappsec
     ipc: service:openappsec
     cap_drop:
@@ -153,28 +153,28 @@ services:
     environment:
       TZ: ${TZ:-UTC}
       DB_POSTGRES_HOST: postgres
-      DB_POSTGRES_NAME: npmos
-      DB_POSTGRES_USER: npmos
-      DB_POSTGRES_PASSWORD_FILE: /run/npmos-secrets/db_password
-      COOKIE_SECRET_FILE: /run/npmos-secrets/cookie_secret
+      DB_POSTGRES_NAME: nginxions
+      DB_POSTGRES_USER: nginxions
+      DB_POSTGRES_PASSWORD_FILE: /run/nginxions-secrets/db_password
+      COOKIE_SECRET_FILE: /run/nginxions-secrets/cookie_secret
       # access/stream logs to /data/nginx/logs — read by CrowdSec
       LOGROTATE: "true"
-      # open-appsec ML-WAF is part of NPMOS, so its nginx attachment is loaded by default: the agent is
+      # open-appsec ML-WAF is part of NginxionS, so its nginx attachment is loaded by default: the agent is
       # already running, WAF -> Agent shows it enabled, and turning on WAF for a host works at once (no
       # separate global switch + restart first). The attachment is fail-open and hosts are inactive until
       # protected, so idle cost is small. Turn it off in WAF -> Agent (that restart unloads the module).
-      NGINX_LOAD_OPENAPPSEC_ATTACHMENT_MODULE: ${NPMOS_WAF_ENABLED:-true}
+      NGINX_LOAD_OPENAPPSEC_ATTACHMENT_MODULE: ${NGINXIONS_WAF_ENABLED:-true}
       # IPv4 only by default: nginx does not listen on IPv6 and its resolver asks for IPv4 only, so
-      # NPMOS starts on hosts where IPv6 is off or broken. NPMOS_DISABLE_IPV6=false turns IPv6 on.
-      DISABLE_IPV6: ${NPMOS_DISABLE_IPV6:-true}
+      # NginxionS starts on hosts where IPv6 is off or broken. NGINXIONS_DISABLE_IPV6=false turns IPv6 on.
+      DISABLE_IPV6: ${NGINXIONS_DISABLE_IPV6:-true}
     volumes:
-      - npmos-data:/data
+      - nginxions-data:/data
       - type: volume
         source: secrets
-        target: /run/npmos-secrets
+        target: /run/nginxions-secrets
         read_only: true
         volume:
-          subpath: npmos
+          subpath: nginxions
       # open-appsec: attachment shared memory, declarative policy, agent logs
       - appsec-shm:/dev/shm/check-point
       - appsec-localconfig:/ext/appsec
@@ -182,23 +182,23 @@ services:
       - appsec-model:/ext/appsec-model
       # CrowdSec: configuration generated from the GUI (acquisition, profiles, allowlists, hub items)
       # and its database (machines, bouncers), at the paths of the crowdsec container so that hub
-      # symlinks resolve in both (npmos/backend/npmos/crowdsec)
+      # symlinks resolve in both (nginxions/backend/nginxions/crowdsec)
       - crowdsec-conf:/etc/crowdsec
       - crowdsec-data:/var/lib/crowdsec/data
 
   postgres:
     <<: *managed
     image: docker.io/library/postgres:${POSTGRES_VERSION}
-    container_name: npmos-postgres
+    container_name: nginxions-postgres
     # no process gains privileges it did not start with (setuid binaries, file capabilities)
     security_opt:
       - no-new-privileges:true
     depends_on:
-      npmos-init:
+      nginxions-init:
         condition: service_completed_successfully
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD_FILE: /run/npmos-secrets/postgres_password
+      POSTGRES_PASSWORD_FILE: /run/nginxions-secrets/postgres_password
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres"]
       interval: 5s
@@ -206,10 +206,10 @@ services:
       retries: 20
     volumes:
       - postgres-data:/var/lib/postgresql
-      - ./init/postgres-init.sh:/docker-entrypoint-initdb.d/npmos.sh:ro
+      - ./init/postgres-init.sh:/docker-entrypoint-initdb.d/nginxions.sh:ro
       - type: volume
         source: secrets
-        target: /run/npmos-secrets
+        target: /run/nginxions-secrets
         read_only: true
         volume:
           subpath: postgres
@@ -218,14 +218,14 @@ services:
 
   crowdsec:
     <<: *managed
-    # official image; config and data volumes are seeded by npmos-init from the offline hub snapshot
+    # official image; config and data volumes are seeded by nginxions-init from the offline hub snapshot
     image: docker.io/crowdsecurity/crowdsec:${CROWDSEC_VERSION}
-    container_name: npmos-crowdsec
+    container_name: nginxions-crowdsec
     # no process gains privileges it did not start with (setuid binaries, file capabilities)
     security_opt:
       - no-new-privileges:true
     depends_on:
-      npmos-init:
+      nginxions-init:
         condition: service_completed_successfully
     environment:
       TZ: ${TZ:-UTC}
@@ -252,8 +252,8 @@ services:
         volume:
           subpath: crowdsec
       - type: volume
-        source: npmos-data
-        target: /var/log/npmos
+        source: nginxions-data
+        target: /var/log/nginxions
         read_only: true
         volume:
           subpath: nginx/logs
@@ -270,7 +270,7 @@ networks:
 
 volumes:
   secrets: {}
-  npmos-data: {}
+  nginxions-data: {}
   postgres-data: {}
   appsec-shm:
     driver: local

@@ -1,0 +1,14 @@
+import { HasPermission } from "src/components";
+import { ADMIN, VIEW } from "src/modules/Permissions";
+import Layout from "./Layout";
+
+const Settings = () => {
+	// NginxionS: opened by roles with settings:view (phase 3)
+	return (
+		<HasPermission section={ADMIN} rbac="settings" permission={VIEW} pageLoading loadingNoLogo>
+			<Layout />
+		</HasPermission>
+	);
+};
+
+export default Settings;
