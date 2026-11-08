@@ -264,6 +264,9 @@ ENV NODE_OPTIONS=--use-openssl-ca
 ARG LRC_VER=6fec23e2149c88b33b39fec8a5ebdd67a3e0dd88 # v0.1.34rc3
 ARG LRL_VER=3ff6300e68b73ba20e909c7d16bd839aef2e5a4b # v0.15
 ARG LCSB_VER=3e82dd61508ed9683b5007f823c69b112c59ac6f # v1.0.14
+# NginxionS: lua-resty-string from git like the other Lua libraries: its rock has no source package on luarocks.org,
+# luarocks fetched the archive of GitHub (archive/v0.09.tar.gz), which fails again and again, and the build with it
+ARG LRS_VER=e363ac306db6135bdda9399511742fe36ebd4cbb # v0.09
 
 COPY --from=nginx /usr/local/nginx                                                                         /usr/local/nginx
 COPY --from=nginx /usr/local/bin/bssl                                                                      /usr/local/bin/bssl
@@ -292,7 +295,6 @@ RUN apk upgrade --no-cache -a && \
                        nodejs python3 && \
     \
     luarocks-5.1 install lua-resty-http && \
-    luarocks-5.1 install lua-resty-string && \
     luarocks-5.1 install lua-resty-openssl && \
     sed -i 's|^local legacy_nids = {}$|C.ERR_clear_error()\n&|' /usr/local/share/lua/5.1/resty/openssl/pkey.lua && \
     \
@@ -306,6 +308,10 @@ RUN apk upgrade --no-cache -a && \
     git-clone-commit.sh https://github.com/openresty/lua-resty-lrucache "$LRL_VER" /src/lua-resty-lrucache && \
     cd /src/lua-resty-lrucache && \
     make -j "$(nproc)" install LUA_LIB_DIR=/usr/local/share/lua/5.1 && \
+    \
+    git-clone-commit.sh https://github.com/openresty/lua-resty-string "$LRS_VER" /src/lua-resty-string && \
+    cd /src/lua-resty-string && \
+    make install LUA_LIB_DIR=/usr/local/share/lua/5.1 && \
     \
     git-clone-commit.sh https://github.com/crowdsecurity/lua-cs-bouncer "$LCSB_VER" /src/lua-cs-bouncer && \
     mv /src/lua-cs-bouncer/lib/* /usr/local/share/lua/5.1 && \
