@@ -6224,9 +6224,6 @@
 	"npmos.settings.events-retention": {
 		"defaultMessage": "Retention of security events"
 	},
-	"npmos.setup.hint": {
-		"defaultMessage": "The first account is the administrator: it gets full access."
-	},
 	"npmos.setup.submit": {
 		"defaultMessage": "Register"
 	},

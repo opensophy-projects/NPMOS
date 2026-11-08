@@ -84,12 +84,9 @@ export default function Setup() {
 		<AuthLayout>
 			<div className="card card-md">
 				<div className="card-body">
-					<h2 className="h2 text-center mb-2">
+					<h2 className="h2 text-center mb-4">
 						<T id="npmos.setup.title" />
 					</h2>
-					<p className="text-secondary text-center mb-4">
-						<T id="npmos.setup.hint" />
-					</p>
 					<Alert variant="danger" show={!!errorMsg} onClose={() => setErrorMsg(null)} dismissible>
 						{errorMsg}
 					</Alert>
