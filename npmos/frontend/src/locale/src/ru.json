@@ -7569,10 +7569,10 @@
 		"defaultMessage": "Расширенная ML-модель"
 	},
 	"npmos.waf.model.basic": {
-		"defaultMessage": "Базовая модель"
+		"defaultMessage": "Встроенная модель: продвинутая модель Check Point (V2.0)"
 	},
 	"npmos.waf.model.description": {
-		"defaultMessage": "В open-appsec встроена базовая модель. Расширенная (open-appsec-advanced-model.tgz: от open-appsec или обученная NPMOS, см. docs/MODEL.md) находит больше атак при меньшем числе ложных срабатываний. Распаковывается при старте агента; после загрузки агент перезапускается."
+		"defaultMessage": "В NPMOS встроена продвинутая модель Check Point (Advanced model, V2.0). Загруженная модель (open-appsec-advanced-model.tgz, например обученная NPMOS, см. docs/MODEL.md) заменяет её: распаковывается при старте агента; после загрузки агент перезапускается."
 	},
 	"npmos.waf.model.present": {
 		"defaultMessage": "Загружена: {size}, {date}"
@@ -7581,7 +7581,7 @@
 		"defaultMessage": "Удалить модель"
 	},
 	"npmos.waf.model.remove-warning": {
-		"defaultMessage": "Агент перезапустится и вернётся к базовой модели образа."
+		"defaultMessage": "Агент перезапустится и вернётся к встроенной модели образа (продвинутой модели Check Point)."
 	},
 	"npmos.waf.model.removed": {
 		"defaultMessage": "Модель удалена, агент перезапускается"

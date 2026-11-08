@@ -34,6 +34,10 @@ WORKDIR /src
 # local policy (no scheme); no Fog reconnection after a policy update in local-only mode; host:port of services
 COPY agent/patches/ /patches/
 RUN git apply --verbose /patches/*.patch
+# The model of the image: the advanced model of Check Point (agent/waap.data, "Advanced model, V2.0", its license
+# inside the file) in place of the basic model of the sources, as its README says for a build of the agent. A model
+# uploaded in WAF -> Agent replaces it at the start of the agent; removing that one brings this one back.
+COPY agent/waap.data components/security_apps/waap/resources/waap.data
 # Request headers every browser sends (Sec-Fetch-*, Priority, client hints) are not in the list of clean
 # headers of the agent's signatures: the model takes "Sec-Fetch-Dest: style" for XSS and refuses every
 # stylesheet Chrome loads. waap-headers.json adds them with strict patterns; another value is scanned as before.

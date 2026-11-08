@@ -7,7 +7,9 @@ Input (from scripts/train-model.sh):
   samples.jsonl    the requests with labels and train/test split (model/datasets.py)
   dump/*.jsonl     what the agent with the stock model found in each value of each request
   verdicts.jsonl   what the agent with the stock model decided (model/replay.py)
-  waap.data        the stock model of the image: signatures stay, the scores are replaced
+  waap.data        the model of the image (the advanced model of Check Point, deploy/openappsec/agent/waap.data):
+                   signatures stay, the scores are trained; a linear base model is where the training starts (its
+                   weights are the prior of L2, a feature the training part never shows keeps its weight)
 
 Labels of values: every value of a legitimate request is legitimate. Of an attack only the value that carries it
 is known to be malicious: the value the stock model scored highest is taken as the attack, the other values of
@@ -134,9 +136,12 @@ class Data:
         return sparse.csr_matrix((data, indices, indptr), shape=(len(indptr) - 1, len(self.index)))
 
 
-def fit(X, offset, nnz, y, w, l2):
-    """weighted logistic regression; params = [coef..., intercept, log_nnz_coef]; L2 on the coefficients"""
+def fit(X, offset, nnz, y, w, l2, prior=None):
+    """weighted logistic regression; params = [coef..., intercept, log_nnz_coef]; L2 on the coefficients.
+    prior: the params of the base model (a linear one); the fit starts from them and L2 pulls toward them instead of
+    toward 0, so what the training part does not show keeps the weights of the base model."""
     n = X.shape[1]
+    p0 = np.zeros(n + 2) if prior is None else np.asarray(prior, dtype=float)
 
     def loss(params):
         coef, b, c = params[:n], params[n], params[n + 1]
@@ -145,16 +150,16 @@ def fit(X, offset, nnz, y, w, l2):
         s = np.where(y > 0, 1.0, -1.0)
         m = -s * z
         lse = np.logaddexp(0, m)
-        value = np.dot(w, lse) + 0.5 * l2 * (np.dot(coef, coef) + c * c)
+        dc, dl = coef - p0[:n], c - p0[n + 1]
+        value = np.dot(w, lse) + 0.5 * l2 * (np.dot(dc, dc) + dl * dl)
         g = w * (-s) * (1.0 / (1.0 + np.exp(-m)))
         grad = np.empty_like(params)
-        grad[:n] = X.T @ g + l2 * coef
+        grad[:n] = X.T @ g + l2 * dc
         grad[n] = g.sum()
-        grad[n + 1] = np.dot(g, nnz) + l2 * c
+        grad[n + 1] = np.dot(g, nnz) + l2 * dl
         return value, grad
 
-    x0 = np.zeros(n + 2)
-    res = optimize.minimize(loss, x0, jac=True, method="L-BFGS-B", options={"maxiter": 2000})
+    res = optimize.minimize(loss, p0.copy(), jac=True, method="L-BFGS-B", options={"maxiter": 2000})
     if not res.success:
         print(f"optimizer: {res.message}", file=sys.stderr)
     return res.x[:n], res.x[n], res.x[n + 1]
@@ -192,7 +197,8 @@ def main(argv=None):
     ap.add_argument("--samples", required=True)
     ap.add_argument("--dump", required=True, help="directory of the feature dump of the stock model's run")
     ap.add_argument("--verdicts", required=True, help="verdicts of the stock model's run")
-    ap.add_argument("--base", required=True, help="waap.data of the image (stock model)")
+    ap.add_argument("--base", required=True, help="waap.data of the image (the model of the image: the advanced "
+                    "model of Check Point; a linear base model is the start of the training)")
     ap.add_argument("--l2", type=float, default=1.0, help="L2 regularization (default 1.0)")
     ap.add_argument("--name", default=datetime.date.today().isoformat(), help="model version suffix")
     ap.add_argument("--out", required=True, help="output directory")
@@ -248,7 +254,13 @@ def main(argv=None):
     print(f"training: {X.shape[0]} values, {X.shape[1]} features, {int(y.sum())} attacks "
           f"({unseen_attacks} attacks without keywords: no model can see them)", file=sys.stderr)
 
-    coef, intercept, log_nnz = fit(X, offset, nnz, y, weight, args.l2)
+    prior = None
+    if base.linear:
+        # start from the base model: its coefficient of each feature, its intercept and log_nnz_coef
+        prior = [base.coef(f, f not in data.seen_as_keyword) for f in sorted(data.index, key=data.index.get)]
+        prior += [base.stats.get("intercept", 0.0), base.stats.get("log_nnz_coef", 0.0)]
+        print(f"start: the base model ({base_doc.get('model_version')})", file=sys.stderr)
+    coef, intercept, log_nnz = fit(X, offset, nnz, y, weight, args.l2, prior)
     z = X @ coef + intercept + log_nnz * nnz + offset
     shift, train_ba = best_shift(request_max(groups, z), z_t)
     intercept += shift
@@ -272,6 +284,9 @@ def main(argv=None):
             c = DEFAULT_COMBI_COEF
         elif feature in learned:
             c = learned[feature]
+        elif base.linear and "coef" in entry:
+            # never seen in training: the base model's weight stays
+            c = entry["coef"]
         else:
             # never seen in training: what the agent gives a feature it does not know
             c = DEFAULT_KEYWORD_COEF if entry.get("type") == TYPE_KEYWORD else DEFAULT_COMBI_COEF

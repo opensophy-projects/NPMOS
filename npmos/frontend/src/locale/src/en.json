@@ -7569,10 +7569,10 @@
 		"defaultMessage": "Advanced ML model"
 	},
 	"npmos.waf.model.basic": {
-		"defaultMessage": "Basic model"
+		"defaultMessage": "Built-in model: Check Point advanced model (V2.0)"
 	},
 	"npmos.waf.model.description": {
-		"defaultMessage": "open-appsec ships with a basic model. An advanced model (open-appsec-advanced-model.tgz: from open-appsec, or a model trained by NPMOS, see docs/MODEL.md) detects more attacks with fewer false positives. It is unpacked when the agent starts; the upload restarts the agent."
+		"defaultMessage": "NPMOS ships with the advanced model of Check Point (Advanced model, V2.0). Another model (open-appsec-advanced-model.tgz, for example one trained by NPMOS, see docs/MODEL.md) replaces it: it is unpacked when the agent starts; the upload restarts the agent."
 	},
 	"npmos.waf.model.present": {
 		"defaultMessage": "Uploaded: {size}, {date}"
@@ -7581,7 +7581,7 @@
 		"defaultMessage": "Remove model"
 	},
 	"npmos.waf.model.remove-warning": {
-		"defaultMessage": "The agent restarts and goes back to the basic model of the image."
+		"defaultMessage": "The agent restarts and goes back to the built-in model of the image (Check Point advanced model)."
 	},
 	"npmos.waf.model.removed": {
 		"defaultMessage": "Model removed, the agent is restarting"

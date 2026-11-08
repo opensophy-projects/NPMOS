@@ -30,3 +30,11 @@ paths = ['''^compose\.yaml$''']
 description = "the first version of agent patch 0005 kept the git function context in a hunk header (isKeyCspReport(const std::string &key, ...)), which reads as an API key; later versions have no such context"
 commits = ["1d6a369223b4f7089df34e3db8bb5f25587c46dc"]
 paths = ['''^deploy/openappsec/agent/patches/0005-feature-dump-for-training\.patch$''']
+
+[[allowlists]]
+description = "the model of the agent (the advanced model of Check Point): attack keywords and regular expressions of the signatures, not secrets; model/waap.data is where it was first uploaded"
+paths = ['''^deploy/openappsec/agent/waap\.data$''', '''^model/waap\.data$''']
+
+[[allowlists]]
+description = "the reports of the scan itself (out/): the scan of the files runs after the scan of the history wrote its report there"
+paths = ['''^out/''']

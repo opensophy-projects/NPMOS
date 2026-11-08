@@ -63,8 +63,9 @@ scripts/test-airgap.sh
 | `npmos-openappsec` | `deploy/openappsec/Dockerfile`: агент (C++), shared storage и tuning (Go) из исходников, `npmos-control` (контекст сборки `control=npmos/backend/npmos/control`) | долго: C++ |
 | CrowdSec, Postgres | официальные образы, версии в `deploy/.env` | — |
 
-Модель WAF NPMOS обучается в CI на настоящем агенте (`training.yml`: ветки `training/**` или `[train]` в коммите) и
-выпускается, только если на отложенных сайтах и атаках она не хуже штатной; устройство, данные и выпуск —
+Модель агента в образе — продвинутая модель Check Point (`deploy/openappsec/agent/waap.data`, лицензия внутри
+файла). Модель WAF NPMOS обучается из неё в CI на настоящем агенте (`training.yml`: ветки `training/**` или `[train]` в коммите) и
+выпускается, только если на отложенных сайтах и атаках она не хуже модели образа; устройство, данные и выпуск —
 `docs/MODEL.md`.
 
 Коммиты исходников open-appsec — в `deploy/openappsec/sources.env` (полные хэши, проверяется в CI); при обновлении `OPENAPPSEC_REF` обновите примеры политик в `npmos/backend/npmos/waf/objects/examples/`. Локальная сборка всех образов: `scripts/build-images.sh` (тег `local/<имя>:dev`), затем `NPMOS_REGISTRY=local NPMOS_VERSION=dev scripts/test-airgap.sh`. Долгие сборки (npmos, openappsec) делаются в CI или разработчиком, не в сессии агента.

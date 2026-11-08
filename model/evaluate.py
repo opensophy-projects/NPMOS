@@ -141,18 +141,18 @@ def main(argv=None):
     if card:
         lines += [f'`{card["model_version"]}`, sha256 `{card["sha256"][:16]}…`; порог — макс. оценка '
                   f'{card["threshold"]["max_score"]:.3f} (объясняет {pct(card["threshold"]["explains_stock_verdicts"])} '
-                  f'решений штатной модели)', ""]
+                  f'решений модели образа)', ""]
     lines += ["| Проверка | Итог | |", "|---|---|---|"]
     lines += [f'| {c["check"]} | {"✅" if c["ok"] else "❌"} | {c["detail"]} |' for c in checks]
     lines += ["", "Отложенная часть (сайты и полезные нагрузки, которых модель не видела), решения настоящего агента:", "",
-              "| | Штатная модель | Новая модель |", "|---|---|---|"]
+              "| | Модель образа | Новая модель |", "|---|---|---|"]
     for key, name in (("tpr", "атаки заблокированы (TPR)"), ("tnr", "легитимные пропущены (TNR)"),
                       ("balanced_accuracy", "сбалансированная точность"), ("fp", "ложные блокировки"),
                       ("fn", "пропущенные атаки")):
         a, b = stock[key], new[key]
         lines.append(f"| {name} | {pct(a) if key in ('tpr', 'tnr', 'balanced_accuracy') else a} | "
                      f"{pct(b) if key in ('tpr', 'tnr', 'balanced_accuracy') else b} |")
-    lines += ["", "<details><summary>По категориям</summary>", "", "| Категория | Штатная | Новая |", "|---|---|---|"]
+    lines += ["", "<details><summary>По категориям</summary>", "", "| Категория | Модель образа | Новая |", "|---|---|---|"]
     for k, v in result["by_category"].items():
         rate = "tpr" if v["candidate"]["attacks"] else "tnr"
         lines.append(f'| {k} ({rate.upper()}) | {pct((v["stock"] or {}).get(rate))} | {pct(v["candidate"][rate])} |')

@@ -105,6 +105,18 @@ class TrainingCycleTest(unittest.TestCase):
     """The cycle on synthetic traffic: the stock agent's run, training, the new model's run, the gate."""
 
     def test_cycle(self):
+        self.cycle(linear=False)
+
+    def test_cycle_from_a_linear_base(self):
+        """the base model of the image is linear (the advanced model of Check Point): the training starts from it"""
+        doc = self.cycle(linear=True)
+        entries = Model.from_scores(doc["waap_scores"]).entries
+        # a feature the training part never shows keeps the base model's weight
+        self.assertEqual(entries["unseen"]["coef"], 1.25)
+        self.assertNotIn("license", doc.get("waap_scores", {}))
+        self.assertEqual(doc["license"], "terms")
+
+    def cycle(self, linear):
         import evaluate
         import train
 
@@ -117,6 +129,13 @@ class TrainingCycleTest(unittest.TestCase):
                 "keyword_data": [{"key": k, "value": kd(1, score=5.0)} for k in set(attack_kw + benign_kw)]
                 + [{"key": "union select", "value": kd(3, score=9.0)}],
                 "keyword_stats": {"false_positives": 10, "true_positives": 20}}}
+            if linear:
+                base = {"model_version": "Advanced model, V2.0", "license": "terms", "waap_signatures": {"x": 1},
+                        "waap_scores": {"version": 1, "scorePools": [{"key": "base_scores", "value": {
+                            "keyword_data": [{"key": k, "value": kd(1, 0.5)} for k in set(attack_kw + benign_kw)]
+                            + [{"key": "union select", "value": kd(3, 0.8)}, {"key": "unseen", "value": kd(1, 1.25)}],
+                            "keyword_stats": {"false_positives": 10, "true_positives": 20, "intercept": -2.0,
+                                              "log_nnz_coef": 0.0}}}]}}
             (d / "waap.data").write_text(json.dumps(base), "utf-8")
             samples, dump, verdicts = [], [], []
             for i in range(600):
@@ -180,6 +199,7 @@ class TrainingCycleTest(unittest.TestCase):
             with contextlib.redirect_stdout(io.StringIO()), self.assertRaises(SystemExit) as bad:
                 evaluate.main(args)
             self.assertEqual(bad.exception.code, 1)
+            return doc
 
 
 if __name__ == "__main__":
