@@ -6224,6 +6224,15 @@
 	"npmos.settings.events-retention": {
 		"defaultMessage": "Срок хранения событий безопасности"
 	},
+	"npmos.setup.hint": {
+		"defaultMessage": "Первая учётная запись — администратор: у неё полный доступ."
+	},
+	"npmos.setup.submit": {
+		"defaultMessage": "Зарегистрироваться"
+	},
+	"npmos.setup.title": {
+		"defaultMessage": "Регистрация"
+	},
 	"npmos.system.after-restart": {
 		"defaultMessage": "после перезапуска"
 	},

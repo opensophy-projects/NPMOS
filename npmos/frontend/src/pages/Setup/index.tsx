@@ -58,126 +58,63 @@ export default function Setup() {
 		setSubmitting(false);
 	};
 
+	// NPMOS: the registration of the first administrator in the look of the login page (labels above the fields,
+	// one card body); was a "Welcome!" header with floating labels.
+	const field = (name: keyof Payload, label: string, validate: any, input: Record<string, any>) => (
+		<div className="mb-3">
+			<Field name={name} validate={validate}>
+				{({ field, form }: any) => (
+					<label className="form-label">
+						<T id={label} />
+						<input
+							{...field}
+							{...input}
+							required
+							className={`form-control ${form.errors[name] && form.touched[name] ? " is-invalid" : ""}`}
+							placeholder={intl.formatMessage({ id: label })}
+						/>
+						<div className="invalid-feedback">{form.errors[name]}</div>
+					</label>
+				)}
+			</Field>
+		</div>
+	);
+
 	return (
 		<AuthLayout>
 			<div className="card card-md">
-				<Alert variant="danger" show={!!errorMsg} onClose={() => setErrorMsg(null)} dismissible>
-					{errorMsg}
-				</Alert>
-				<Formik
-					initialValues={
-						{
-							name: "",
-							email: "",
-							password: "",
-						} as any
-					}
-					onSubmit={onSubmit}
-				>
-					{({ isSubmitting }) => (
-						<Form>
-							<div className="card-body text-center py-4 p-sm-5">
-								<h1 className="mt-5">
-									<T id="setup.title" />
-								</h1>
-								<p className="text-secondary">
-									<T id="setup.preamble" />
-								</p>
-							</div>
-							<hr />
-							<div className="card-body">
-								<div className="mb-3">
-									<Field name="name" validate={validateString(1, 50)}>
-										{({ field, form }: any) => (
-											<div className="form-floating mb-3">
-												<input
-													id="name"
-													className={`form-control ${form.errors.name && form.touched.name ? "is-invalid" : ""}`}
-													placeholder={intl.formatMessage({ id: "user.full-name" })}
-													{...field}
-												/>
-												<label htmlFor="name">
-													<T id="user.full-name" />
-												</label>
-												{form.errors.name ? (
-													<div className="invalid-feedback">
-														{form.errors.name && form.touched.name
-															? form.errors.name
-															: null}
-													</div>
-												) : null}
-											</div>
-										)}
-									</Field>
+				<div className="card-body">
+					<h2 className="h2 text-center mb-2">
+						<T id="npmos.setup.title" />
+					</h2>
+					<p className="text-secondary text-center mb-4">
+						<T id="npmos.setup.hint" />
+					</p>
+					<Alert variant="danger" show={!!errorMsg} onClose={() => setErrorMsg(null)} dismissible>
+						{errorMsg}
+					</Alert>
+					<Formik initialValues={{ name: "", email: "", password: "" } as any} onSubmit={onSubmit}>
+						{({ isSubmitting }) => (
+							<Form>
+								{field("name", "user.full-name", validateString(1, 50), { autoComplete: "name" })}
+								{field("email", "email-address", validateEmail(), {
+									type: "email",
+									autoComplete: "username",
+								})}
+								{field("password", "password", validateString(8, 100), {
+									type: "password",
+									autoComplete: "new-password",
+									maxLength: 100,
+								})}
+								<div className="form-footer">
+									<Button type="submit" fullWidth actionType="primary" isLoading={isSubmitting}>
+										<T id="npmos.setup.submit" />
+									</Button>
 								</div>
-								<div className="mb-3">
-									<Field name="email" validate={validateEmail()}>
-										{({ field, form }: any) => (
-											<div className="form-floating mb-3">
-												<input
-													id="email"
-													type="email"
-													autoComplete="username"
-													className={`form-control ${form.errors.email && form.touched.email ? "is-invalid" : ""}`}
-													placeholder={intl.formatMessage({ id: "email-address" })}
-													{...field}
-												/>
-												<label htmlFor="email">
-													<T id="email-address" />
-												</label>
-												{form.errors.email ? (
-													<div className="invalid-feedback">
-														{form.errors.email && form.touched.email
-															? form.errors.email
-															: null}
-													</div>
-												) : null}
-											</div>
-										)}
-									</Field>
-								</div>
-								<div className="mb-3">
-									<Field name="password" validate={validateString(8, 100)}>
-										{({ field, form }: any) => (
-											<div className="form-floating mb-3">
-												<input
-													id="password"
-													type="password"
-													autoComplete="new-password"
-													className={`form-control ${form.errors.password && form.touched.password ? "is-invalid" : ""}`}
-													placeholder={intl.formatMessage({ id: "user.new-password" })}
-													{...field}
-												/>
-												<label htmlFor="password">
-													<T id="user.new-password" />
-												</label>
-												{form.errors.password ? (
-													<div className="invalid-feedback">
-														{form.errors.password && form.touched.password
-															? form.errors.password
-															: null}
-													</div>
-												) : null}
-											</div>
-										)}
-									</Field>
-								</div>
-							</div>
-							<div className="text-center my-3 mx-3">
-								<Button
-									type="submit"
-									actionType="primary"
-									data-bs-dismiss="modal"
-									isLoading={isSubmitting}
-									disabled={isSubmitting}
-									className="w-100"
-								>
-									<T id="save" />
-								</Button>
-							</div>
-						</Form>
-					)}
-				</Formik>
+							</Form>
+						)}
+					</Formik>
+				</div>
 			</div>
 		</AuthLayout>
 	);
