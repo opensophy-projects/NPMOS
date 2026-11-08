@@ -112,6 +112,28 @@ test("fragments in either syntax, v1beta2 only when needed", () => {
 	assert.deepEqual(v2.policies.specificRules[0].accessControlPractices, ["ac.1"]);
 	assert.equal(v2.accessControlPractices[1].rateLimit.rules[0].uri, "/login");
 	assert.deepEqual(asV2(example).policies.specificRules[0].accessControlPractices, []);
+
+	// the default rule names no practice that limits nothing: as the first rate limit of the agent (context All())
+	// it would turn off the rate limits of every host
+	const inactive = asV2({
+		policies: {
+			default: { accessControlPractices: ["none", "off"] },
+			specificRules: [
+				{ host: "a", accessControlPractices: ["none"] },
+				{ host: "b", accessControlPractices: ["rl"] },
+			],
+		},
+		accessControlPractices: [
+			{ name: "none", rateLimit: { overrideMode: "inactive", rules: [] } },
+			{ name: "off", rateLimit: { overrideMode: "inactive", rules: [{ uri: "/x", limit: 1, unit: "minute" }] } },
+			{ name: "rl", rateLimit: { overrideMode: "prevent", rules: [{ uri: "/x", limit: 1, unit: "minute" }] } },
+		],
+	});
+	assert.deepEqual(inactive.policies.default.accessControlPractices, []);
+	assert.deepEqual(
+		inactive.policies.specificRules.map((r) => r.accessControlPractices),
+		[["none"], ["rl"]],
+	);
 	assert.deepEqual(v2ExceptionLimits(example), ["default"]);
 	assert.deepEqual(danglingRefs(example), []);
 	const dangling = structuredClone(example);
