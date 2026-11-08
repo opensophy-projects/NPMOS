@@ -322,7 +322,7 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
 
   step "WAF -> Policy: a rate limit of the host switches local_policy.yaml to v1beta2 and limits requests"
   limit=$(post_json POST /objects '{"kind": "access_control", "name": "smoke-limit",
-    "spec": {"rateLimit": {"overrideMode": "prevent", "rules": [{"uri": "/smoke-limit", "limit": 3, "unit": "minute"}]}}}' \
+    "spec": {"rateLimit": {"overrideMode": "prevent", "rules": [{"uri": "/smoke-rate", "limit": 3, "unit": "minute"}]}}}' \
     | new_id)
   $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf/hosts/1" -d "{\"enabled\": true,
     \"mode\": \"prevent-learn\", \"minimum_confidence\": \"high\", \"objects\": {\"accessControlPractices\": [$limit]}}" > /dev/null
@@ -331,16 +331,21 @@ if $CURL "$ADMIN/api/npmos/waf" | grep -q '"reachable": *true'; then
     [ "$i" = 30 ] && fail "the policy is not v1beta2: $($CURL "$ADMIN/api/npmos/waf/policy" | head -c 400)"
     sleep 1
   done
+  # the path holds no word the model reads as an attack ("limit" is an SQL keyword): a 403 here is the rate limit's
   limited=""
   for i in $(seq 1 60); do
     for _ in 1 2 3 4 5 6; do
-      [ "$(status /smoke-limit)" = 403 ] && limited=1
+      [ "$(status /smoke-rate)" = 403 ] && limited=1
     done
     [ -n "$limited" ] && break
     [ "$i" = 60 ] && fail "requests over the rate limit are not blocked"
     sleep 2
   done
   [ "$(status /)" = 200 ] || fail "a path without a rate limit is blocked"
+  # a rate limit lets the path through again once its minute is over (no request in between: each one blocked
+  # renews the block); a refusal of the path itself would not
+  sleep 65
+  [ "$(status /smoke-rate)" = 200 ] || fail "the path stays blocked after the minute of the rate limit"
   wait_status "$SQLI" 403 "SQLi is not blocked with the v1beta2 policy"
   $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/npmos/waf/hosts/1" \
     -d '{"enabled": true, "mode": "prevent-learn", "minimum_confidence": "high", "objects": null}' > /dev/null

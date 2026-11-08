@@ -453,16 +453,21 @@ export const danglingRefs = (doc) => {
  * requires both keys, new_appsec_policy_crd_parser.cc; an empty list takes those of the default rule).
  * The agent keeps the rate limit of an access control practice once, for the last rule that uses it
  * (policy_maker_utils.cc, keyed by the name): every further rule gets a copy "<practice>.<n>".
+ * The default rule names no practice that limits nothing (no rules, or inactive): the agent takes the first
+ * rate limit whose context matches the asset (config.cc), and the one of the default rule, context All(), is
+ * written first, so an inactive one there turned off the rate limits of every host.
  */
 export const asV2 = (doc) => {
 	if (!isObject(doc.policies)) return { apiVersion: "v1beta2", ...doc };
 	const practices = new Map(list(doc.accessControlPractices).map((p) => [p.name, p]));
 	const limits = (name) => list(practices.get(name)?.rateLimit?.rules).length > 0;
+	const inert = (name) => !limits(name) || practices.get(name)?.rateLimit?.overrideMode === "inactive";
 	const defaults = doc.policies.default || {};
 	const used = new Map();
 	const copies = [];
 	const mandatory = (rule, isDefault) => {
 		let access = rule.accessControlPractices ?? [];
+		if (isDefault) access = access.filter((name) => !inert(name));
 		// inherited rate limits made explicit, so that the copies below apply to them too
 		if (!isDefault && !access.length && list(defaults.accessControlPractices).some(limits)) {
 			access = defaults.accessControlPractices;
