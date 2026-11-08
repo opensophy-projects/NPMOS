@@ -6,6 +6,12 @@ import { migrate as logger } from "../logger.js";
 const OLD = "npmos";
 const NEW = "nginxions";
 
+/** the statements of the text replace by the type of the column: constants, the type is never put into SQL */
+const REPLACE_TEXT = "update ?? set ?? = replace(??::text, ?, ?) where ??::text like ?";
+const REPLACE_JSON = "update ?? set ?? = replace(??::text, ?, ?)::json where ??::text like ?";
+const REPLACE_JSONB = "update ?? set ?? = replace(??::text, ?, ?)::jsonb where ??::text like ?";
+const replaceFor = (type) => (type === "jsonb" ? REPLACE_JSONB : type === "json" ? REPLACE_JSON : REPLACE_TEXT);
+
 /** @param {import("knex").Knex} knex */
 export const renameFromNpmos = async (knex) => {
 	if (!(await knex.schema.hasTable("migrations"))) return;
@@ -34,16 +40,7 @@ export const renameFromNpmos = async (knex) => {
 				)
 			).rows;
 			for (const { name, type } of columns) {
-				const cast = type === "json" || type === "jsonb" ? `::${type}` : "";
-				await trx.raw(`update ?? set ?? = replace(??::text, ?, ?)${cast} where ??::text like ?`, [
-					renamed,
-					name,
-					name,
-					OLD,
-					NEW,
-					name,
-					`%${OLD}%`,
-				]);
+				await trx.raw(replaceFor(type), [renamed, name, name, OLD, NEW, name, `%${OLD}%`]);
 			}
 		}
 		// our keys in the JSON of tables of NPMplus (meta.npmos_csr of certificates, npmos_geo of hosts…)
@@ -57,15 +54,7 @@ export const renameFromNpmos = async (knex) => {
 				).rows
 			: [];
 		for (const { t, c, type } of json) {
-			await trx.raw(`update ?? set ?? = replace(??::text, ?, ?)::${type} where ??::text like ?`, [
-				t,
-				c,
-				c,
-				`"${OLD}_`,
-				`"${NEW}_`,
-				c,
-				`%"${OLD}\\_%`,
-			]);
+			await trx.raw(replaceFor(type), [t, c, c, `"${OLD}_`, `"${NEW}_`, c, `%"${OLD}\\_%`]);
 		}
 	});
 };
