@@ -8,7 +8,7 @@ import { fromProjection } from "../rbac/model.js";
 import { TABLES } from "./schema.js";
 
 /** tables whose ids are kept: NPMOS must have no rows in them */
-export const KEEP_IDS = [
+const KEEP_IDS = [
 	"certificate",
 	"access_list",
 	"access_list_auth",
@@ -242,6 +242,7 @@ export const importInto = async (src, dst, { history = true } = {}) => {
 			await insertRows(trx, table, rows);
 			report.rows[table] = rows.length;
 			if (rows.length && "id" in rows[0]) {
+				// nosemgrep: npmos-knex-raw-interpolation -- the table is one of the tables of the migration list, not input
 				await trx.raw(
 					`SELECT setval(pg_get_serial_sequence('"${table}"', 'id'), (SELECT MAX(id) FROM "${table}"))`,
 				);

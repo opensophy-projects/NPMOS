@@ -9,7 +9,7 @@ import { databaseFile } from "../geoip/index.js";
 
 export const HOST_TYPES = ["proxy_host", "redirection_host", "dead_host"];
 export const MODES = ["allow", "deny"];
-export const ACTIONS = ["403", "444"];
+const ACTIONS = ["403", "444"];
 const CODE = /^[A-Z]{2}$/;
 const CONF = process.env.NPMOS_GEO_CONF || "/usr/local/nginx/conf/conf.d/npmos-geo.conf";
 

@@ -13,7 +13,7 @@ const sameDay = (a: Date, b: Date) =>
 	a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 
 /** the days of a month grid, Monday first, with the days of the months around it */
-export const monthGrid = (year: number, month: number) => {
+const monthGrid = (year: number, month: number) => {
 	const first = new Date(year, month, 1);
 	const shift = (first.getDay() + 6) % 7;
 	return Array.from({ length: 42 }, (_, i) => new Date(year, month, 1 - shift + i));

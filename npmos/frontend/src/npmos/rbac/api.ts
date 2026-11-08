@@ -10,13 +10,13 @@ export interface RoleHost {
 }
 export type BuiltinRole = "administrator" | "operator" | "security_analyst" | "viewer";
 
-export interface RbacModel {
+interface RbacModel {
 	resources: { id: string; actions: string[] }[];
 	scopes: Scope[];
 	builtin: { key: BuiltinRole; name: string; scope: Scope; permissions: string[] }[];
 }
 
-export interface RbacMe {
+interface RbacMe {
 	admin: boolean;
 	scope: Scope;
 	/** "resource:action" */
@@ -53,7 +53,7 @@ export const createRole = (data: RoleInput): Promise<Role> => api.post({ url: "/
 export const updateRole = (id: number, data: RoleInput): Promise<Role> =>
 	api.put({ url: `/npmos/rbac/roles/${id}`, data });
 export const deleteRole = (id: number) => api.del({ url: `/npmos/rbac/roles/${id}` });
-export type RoleRef = { id: number; name: string; builtin: BuiltinRole | null };
+type RoleRef = { id: number; name: string; builtin: BuiltinRole | null };
 /** {user id: roles}; the Administrator role for admins */
 export const getRoleAssignments = (): Promise<Record<string, RoleRef[]>> => api.get({ url: "/npmos/rbac/users" });
 export const setUserRoles = (userId: number, roles: number[]): Promise<number[]> =>

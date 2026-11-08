@@ -24,7 +24,7 @@ import { Admonition } from "../../ui/Admonition";
 import styles from "./Analytics.module.css";
 import { bucketLabel, bucketTitle, Country, Grid, Panel, Section, t, TopList } from "./common";
 
-export interface TabProps {
+interface TabProps {
 	data: Traffic;
 	period: AnalyticsPeriod;
 	filter: (key: keyof TrafficFilters, value: string) => void;
@@ -197,7 +197,7 @@ function UnknownHosts({ data }: { data: Traffic }) {
 	);
 }
 
-export function RequestsTab({ data, period, filter }: TabProps) {
+function RequestsTab({ data, period, filter }: TabProps) {
 	const tl = data.timeline;
 	const passed = tl.map((b) => ({ ...b, passed: Math.max(0, Number(b.requests ?? 0) - Number(b.mitigated ?? 0)) }));
 	const hasCache = tl.some((b) => b.cacheable !== undefined);
@@ -347,7 +347,7 @@ const CLIENT_SERIES = [
 const byClient = (prefix: "pv" | "visit") =>
 	CLIENT_SERIES.map(({ key, label, color }) => ({ key: `${prefix}${key}`, label: t(label), color }));
 
-export function VisitorsTab({ data, period, filter }: TabProps) {
+function VisitorsTab({ data, period, filter }: TabProps) {
 	const tl = data.timeline;
 	return (
 		<>
@@ -433,7 +433,7 @@ export function VisitorsTab({ data, period, filter }: TabProps) {
 	);
 }
 
-export function PerformanceTab({ data, period, filter }: TabProps) {
+function PerformanceTab({ data, period, filter }: TabProps) {
 	return (
 		<>
 			<Kpis>
@@ -515,7 +515,7 @@ const ACTION_LABEL: Record<string, string> = {
 	"mtls:denied": "npmos.traffic.product.mtls",
 };
 
-export function SecurityTab({ data, period, filter }: TabProps) {
+function SecurityTab({ data, period, filter }: TabProps) {
 	const navigate = useNavigate();
 	const [mapOf, setMapOf] = useState<"attacks" | "mitigated">("attacks");
 	// countries of the events: English names of GeoIP → ISO codes
@@ -710,7 +710,7 @@ export function SecurityTab({ data, period, filter }: TabProps) {
 	);
 }
 
-export function CacheTab({ data, period, filter }: TabProps) {
+function CacheTab({ data, period, filter }: TabProps) {
 	const tl = data.timeline.map((b) => ({
 		...b,
 		uncachedBytes: Math.max(0, Number(b.bytes ?? 0) - Number(b.cachedBytes ?? 0)),
@@ -890,7 +890,7 @@ function Endpoints({ rows: list, filter }: { rows: OriginEndpoint[]; filter: Tab
 	);
 }
 
-export function OriginTab({ data, period, filter }: TabProps) {
+function OriginTab({ data, period, filter }: TabProps) {
 	return (
 		<>
 			<Kpis>

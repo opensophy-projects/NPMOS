@@ -10,9 +10,10 @@ import { domainToASCII } from "node:url";
 import errs from "../../lib/error.js";
 import { certbot as logger } from "../../logger.js";
 import { eabOf } from "../acme.js";
+import { pemCertificates } from "../pem.js";
 
-export const LEGO = process.env.NPMOS_LEGO || "lego";
-export const LEGO_PATH = "/data/tls/lego";
+const LEGO = process.env.NPMOS_LEGO || "lego";
+const LEGO_PATH = "/data/tls/lego";
 const WEBROOT = "/data/tls/certbot/acme-challenge";
 const LIVE_DIR = "/data/tls/certbot/live";
 // lego waits for DNS propagation by itself; a request must still end
@@ -27,7 +28,7 @@ const liveDir = (id) => `${LIVE_DIR}/npm-${id}`;
  * lego with the environment of a DNS provider; rejects like execFile (err.stdout, err.stderr) and keeps the
  * whole output for the full log (err.npmosLog)
  */
-export const runLego = (args, env = {}) =>
+const runLego = (args, env = {}) =>
 	new Promise((resolve, reject) => {
 		const child = spawn(LEGO, args, {
 			stdio: ["ignore", "pipe", "pipe"],
@@ -63,7 +64,7 @@ export const runLego = (args, env = {}) =>
 	});
 
 /** the options of the account: server, email, EAB, TLS of the server */
-export const accountArgs = async (server) => {
+const accountArgs = async (server) => {
 	const { kid, hmacKey } = await eabOf(server);
 	return [
 		"--accept-tos",
@@ -107,7 +108,7 @@ export const challengeArgs = (meta = {}) => {
 	return { args, env: parseCredentials(meta.dns_provider_credentials) };
 };
 
-const pemBlocks = (pem) => pem.match(/-----BEGIN CERTIFICATE-----[\s\S]+?-----END CERTIFICATE-----/g) || [];
+const pemBlocks = (pem) => pemCertificates(pem);
 
 /** the files of lego → cert.pem, chain.pem, fullchain.pem, privkey.pem of /data/tls/certbot/live/npm-<id> */
 const install = async (id, keyFile) => {

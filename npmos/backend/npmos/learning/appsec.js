@@ -4,11 +4,11 @@
 import { randomUUID } from "node:crypto";
 
 // the shared storage and tuning services of the agent run in the openappsec container, whose network npmos shares
-export const STORAGE_URL = process.env.NPMOS_APPSEC_STORAGE_URL || "http://127.0.0.1:7811";
-export const TUNING_URL = process.env.NPMOS_APPSEC_TUNING_URL || "http://127.0.0.1:7813";
+const STORAGE_URL = process.env.NPMOS_APPSEC_STORAGE_URL || "http://127.0.0.1:7811";
+const TUNING_URL = process.env.NPMOS_APPSEC_TUNING_URL || "http://127.0.0.1:7813";
 const TIMEOUT_MS = 8000;
 
-export class AppsecError extends Error {
+class AppsecError extends Error {
 	constructor(message, status = 0) {
 		super(message);
 		this.status = status;

@@ -4,8 +4,8 @@
 // (top lists, percentiles) cover only the days still kept: `detailFrom` says from when. RBAC: analytics:view.
 // Postgres only (ADR-4): buckets with date_bin, percentiles with percentile_cont.
 import db from "../../db.js";
-import errs from "../../lib/error.js";
 import { isPostgres } from "../../lib/config.js";
+import errs from "../../lib/error.js";
 import { getSetting } from "../settings.js";
 import { ATTACK_KINDS, PERIODS } from "./analytics.js";
 import { EVENT_TABLE, oldestKeptDay, REQUEST_LOG_TABLE } from "./store.js";
@@ -15,7 +15,7 @@ const TOP = 10;
 const PAGE_MAX = 200;
 const KNOWN_TTL = 30 * 1000;
 
-export const TABS = ["requests", "visitors", "performance", "security", "cache", "origin"];
+const TABS = ["requests", "visitors", "performance", "security", "cache", "origin"];
 
 /** filters of the query → columns of npmos_request_log (exact match, comma-separated values) */
 const TEXT_FILTERS = {
@@ -117,7 +117,7 @@ export const needsLog = (f) =>
 let known = { at: 0, exact: new Set(), wildcards: [] };
 
 /** domain names of the hosts in NPMOS (proxy, redirection, 404 hosts): requests to other names are "unknown" */
-export const knownDomains = async () => {
+const knownDomains = async () => {
 	if (Date.now() - known.at < KNOWN_TTL) return known;
 	const knex = db();
 	const exact = new Set();
@@ -143,7 +143,7 @@ export const knownDomains = async () => {
 };
 
 /** is a Host header one of the hosts of NPMOS */
-export const isKnownHost = (host, k = known) =>
+const isKnownHost = (host, k = known) =>
 	k.exact.has(host) || k.wildcards.some((suffix) => host.endsWith(suffix) && host.length > suffix.length);
 
 const likeEscape = (v) => v.replace(/[\\%_]/g, (c) => `\\${c}`);
@@ -230,7 +230,7 @@ const logQuery = (c, from = c.from, to = c.to) =>
 	applyFilters(db()(REQUEST_LOG_TABLE).where("time", ">=", from).where("time", "<=", to), c.filters, c.known);
 
 /** buckets of the period, filled by rows {t, ...counters} */
-export const fillBuckets = (from, to, bucket, rows, keys) => {
+const fillBuckets = (from, to, bucket, rows, keys) => {
 	const start = Math.floor(from.getTime() / bucket) * bucket;
 	const buckets = [];
 	const index = new Map();
@@ -256,6 +256,7 @@ const logTimeline = async (c, columns) => {
 	const b = logQuery(c).select(
 		knex.raw("date_bin(?::interval, time, ?::timestamptz) AS t", [sec(c.bucket), c.from.toISOString()]),
 	);
+	// nosemgrep: npmos-knex-raw-interpolation -- SQL of the column maps of this module; the names are bindings
 	for (const [name, sql] of Object.entries(columns)) b.select(knex.raw(`${sql} AS ??`, [name]));
 	const rows = await b.groupByRaw("1");
 	return fillBuckets(c.from, c.to, c.bucket, rows, Object.keys(columns));
@@ -269,6 +270,7 @@ const hourlyTimeline = async (c, columns) => {
 		.where("hour", "<=", c.to)
 		.select(knex.raw("date_bin(?::interval, hour, ?::timestamptz) AS t", [sec(c.bucket), c.from.toISOString()]));
 	if (c.filters.text.host) b.whereIn("host", c.filters.text.host);
+	// nosemgrep: npmos-knex-raw-interpolation -- SQL of the column maps of this module; the names are bindings
 	for (const [name, sql] of Object.entries(columns)) b.select(knex.raw(`${sql} AS ??`, [name]));
 	const rows = await b.groupByRaw("1");
 	return fillBuckets(c.from, c.to, c.bucket, rows, Object.keys(columns));
@@ -284,6 +286,7 @@ const top = async (c, column, { where, orderBy = "requests", limit = TOP, extra 
 		.groupBy(column)
 		.orderBy(orderBy, "desc")
 		.limit(limit);
+	// nosemgrep: npmos-knex-raw-interpolation -- SQL of the column maps of this module; the names are bindings
 	for (const [name, sql] of Object.entries(extra)) b.select(knex.raw(`${sql} AS ??`, [name]));
 	if (where) where(b);
 	const rows = await b;
@@ -316,6 +319,7 @@ const FAILED =
 const logTotals = async (c, from, to, columns) => {
 	const knex = db();
 	const b = logQuery(c, from, to);
+	// nosemgrep: npmos-knex-raw-interpolation -- SQL of the column maps of this module; the names are bindings
 	for (const [name, sql] of Object.entries(columns)) b.select(knex.raw(`${sql} AS ??`, [name]));
 	const row = (await b.first()) ?? {};
 	return Object.fromEntries(Object.keys(columns).map((k) => [k, row[k] === null ? null : Number(row[k] ?? 0)]));
@@ -390,6 +394,7 @@ const percentileTimeline = async (c, column, where) => {
 	const b = logQuery(c).select(
 		knex.raw("date_bin(?::interval, time, ?::timestamptz) AS t", [sec(c.bucket), c.from.toISOString()]),
 	);
+	// nosemgrep: npmos-knex-raw-interpolation -- SQL of the column maps of this module; the names are bindings
 	for (const [name, sql] of Object.entries(percentileColumns(column))) b.select(knex.raw(`${sql} AS ??`, [name]));
 	b.whereNotNull(column);
 	if (where) where(b);
@@ -783,6 +788,7 @@ const tabs = {
 				.select("host", "path")
 				.count({ requests: "*" })
 				.select(
+					// nosemgrep: npmos-knex-raw-interpolation -- SQL fragments are constants of this module
 					knex.raw(`${percentileColumns("upstream_ms").p95} AS p95`),
 					knex.raw("SUM(CASE WHEN upstream_status BETWEEN 400 AND 499 THEN 1 ELSE 0 END) AS e4xx"),
 					knex.raw("SUM(CASE WHEN upstream_status >= 500 THEN 1 ELSE 0 END) AS e5xx"),

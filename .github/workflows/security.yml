@@ -1,0 +1,373 @@
+# Security checks of NPMOS (DevSecOps). No tool needs an account on another site: each runs inside the job, from an
+# image pinned in .github/security/tools.env, and the results stay in GitHub: Security → Code scanning (SARIF), the
+# artifacts of the run (security-*) and the summary of the run.
+#
+#   called by CI (ci.yml) on every push and pull request: SAST, secrets, SCA and SBOM of the sources, IaC, the
+#     workflows, code quality. ci.yml checks the images (vulnerabilities, SBOM, CIS), attacks the running stack
+#     (DAST) and writes the summary report (job "report").
+#   weekly through CI on the branch security/<date> (security-weekly.yml) and by hand (Actions → Security → Run
+#     workflow): the same, plus the images published on Docker Hub (new CVEs in what is already released).
+#
+# What fails the run is decided in one place, scripts/security-report.mjs (the policy at its top); accepted risks
+# are listed with their reason and an end date in .github/security/accepted-risks.json. See docs/DEVSECOPS.md.
+name: Security
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  NAMESPACE: ${{ vars.DOCKERHUB_NAMESPACE || 'opensophy' }}
+
+jobs:
+  semgrep:
+    name: SAST (Semgrep)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: scan
+        run: |
+          . .github/security/tools.env
+          mkdir -p out
+          # community rulesets (downloaded without an account) and the rules of NPMOS
+          docker run --rm -v "$PWD:/src" -w /src "$SEMGREP_IMAGE" semgrep scan --metrics=off --disable-version-check \
+            --config p/javascript --config p/typescript --config p/nodejs --config p/react --config p/expressjs \
+            --config p/jwt --config p/sql-injection --config p/command-injection --config p/xss \
+            --config p/insecure-transport --config p/secrets --config p/dockerfile --config p/github-actions \
+            --config .github/security/semgrep.yml \
+            --sarif-output=out/semgrep.sarif --json-output=out/semgrep.json --quiet
+      - uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        if: always() && hashFiles('out/semgrep.sarif') != ''
+        with:
+          sarif_file: out/semgrep.sarif
+          category: semgrep
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: security-semgrep
+          path: out/
+          if-no-files-found: ignore
+
+  codeql:
+    name: SAST (CodeQL, ${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript-typescript, actions]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+          queries: security-extended
+          config-file: .github/security/codeql.yml
+      - uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          category: /language:${{ matrix.language }}
+          output: out
+      - name: name the result
+        env:
+          LANGUAGE: ${{ matrix.language }}
+        run: for f in out/*.sarif; do mv "$f" "out/codeql-$LANGUAGE.sarif"; done
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: security-codeql-${{ matrix.language }}
+          path: out/
+          if-no-files-found: ignore
+
+  secrets:
+    name: Secrets (Gitleaks, whole history)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: scan
+        run: |
+          . .github/security/tools.env
+          mkdir -p out
+          # the files of the checkout and every commit of the history
+          docker run --rm -v "$PWD:/repo" -w /repo -e GIT_CONFIG_COUNT=1 -e GIT_CONFIG_KEY_0=safe.directory \
+            -e GIT_CONFIG_VALUE_0='*' "$GITLEAKS_IMAGE" git --config .github/security/gitleaks.toml --redact \
+            --report-format sarif --report-path out/gitleaks.sarif --exit-code 0 --log-level warn .
+          docker run --rm -v "$PWD:/repo" -w /repo "$GITLEAKS_IMAGE" dir --config .github/security/gitleaks.toml \
+            --redact --report-format sarif --report-path out/gitleaks-files.sarif --exit-code 0 --log-level warn .
+      - uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        if: always() && hashFiles('out/gitleaks.sarif') != ''
+        with:
+          sarif_file: out/gitleaks.sarif
+          category: gitleaks
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: security-secrets
+          path: out/
+          if-no-files-found: ignore
+
+  sca:
+    name: SCA and SBOM of the sources (OSV-Scanner, Syft)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: vulnerabilities and licenses of the dependencies
+        run: |
+          . .github/security/tools.env
+          mkdir -p out
+          locks=(-L npmos/backend/pnpm-lock.yaml -L npmos/frontend/pnpm-lock.yaml)
+          # exit 1: something was found (the report decides); above 1: the scan failed
+          rc=0
+          docker run --rm -v "$PWD:/src" -w /src "$OSV_SCANNER_IMAGE" scan source --format json \
+            --output-file out/osv.json --licenses="$(grep -Ev '^\s*(#|$)' .github/security/licenses.txt | paste -sd,)" \
+            "${locks[@]}" || rc=$?
+          [ "$rc" -le 1 ] || exit "$rc"
+          rc=0
+          docker run --rm -v "$PWD:/src" -w /src "$OSV_SCANNER_IMAGE" scan source --format sarif \
+            --output-file out/osv.sarif "${locks[@]}" || rc=$?
+          [ "$rc" -le 1 ] || exit "$rc"
+      - name: SBOM of the sources (CycloneDX and SPDX)
+        run: |
+          . .github/security/tools.env
+          # the frontend is bundled into the image: its libraries are listed only here
+          for part in backend frontend; do
+            docker run --rm -v "$PWD:/src" "$SYFT_IMAGE" scan "dir:/src/npmos/$part" --source-name "npmos-$part" \
+              --source-version "$GITHUB_SHA" -q \
+              -o "cyclonedx-json=/src/out/sbom-source-$part.cdx.json" -o "spdx-json=/src/out/sbom-source-$part.spdx.json"
+          done
+      - uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        if: always() && hashFiles('out/osv.sarif') != ''
+        with:
+          sarif_file: out/osv.sarif
+          category: osv-scanner
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: security-sca
+          path: out/
+          if-no-files-found: ignore
+
+  iac:
+    name: IaC (hadolint, Trivy config, KICS)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Dockerfiles, compose files, workflows
+        run: |
+          . .github/security/tools.env
+          mkdir -p out/kics
+          docker run --rm -v "$PWD:/src" -w /src "$HADOLINT_IMAGE" hadolint --config .github/security/hadolint.yaml \
+            --no-fail -f json npmos/Dockerfile deploy/openappsec/Dockerfile deploy/dev/Dockerfile > out/hadolint.json
+          docker run --rm -v "$PWD:/src" -w /src "$TRIVY_IMAGE" config --quiet --format json \
+            --output out/trivy-config.json --skip-dirs npmos/frontend/node_modules --skip-dirs npmos/backend/node_modules .
+          docker run --rm -v "$PWD:/src" "$KICS_IMAGE" scan --no-progress --disable-secrets --ignore-on-exit results \
+            -p /src/deploy,/src/npmos/Dockerfile,/src/.github/workflows -o /src/out/kics --report-formats json,sarif
+          # KICS repeats CWE entries in the taxonomies of its SARIF, which code scanning rejects
+          sudo chown -R "$(id -u)" out
+          jq '(.runs[].taxonomies[]?.taxa) |= unique' out/kics/results.sarif > out/kics/results.tmp
+          mv out/kics/results.tmp out/kics/results.sarif
+      - uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        if: always() && hashFiles('out/kics/results.sarif') != ''
+        with:
+          sarif_file: out/kics/results.sarif
+          category: kics
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: security-iac
+          path: out/
+          if-no-files-found: ignore
+
+  workflows:
+    name: Workflows (actionlint, zizmor)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: lint and audit
+        env:
+          # online audits of zizmor (actions with known vulnerabilities, commits that are not of their repository)
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          . .github/security/tools.env
+          mkdir -p out
+          rc=0
+          docker run --rm -v "$PWD:/repo" -w /repo "$ACTIONLINT_IMAGE" -format '{{json .}}' > out/actionlint.json || rc=$?
+          [ "$rc" -le 1 ] || exit "$rc"
+          docker run --rm -v "$PWD:/repo" -w /repo -e GH_TOKEN "$ZIZMOR_IMAGE" --format sarif --no-exit-codes \
+            .github/workflows > out/zizmor.sarif
+      - uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        if: always() && hashFiles('out/zizmor.sarif') != ''
+        with:
+          sarif_file: out/zizmor.sarif
+          category: zizmor
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: security-workflows
+          path: out/
+          if-no-files-found: ignore
+
+  quality:
+    name: Code quality (duplication, test coverage)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: lts/*
+          package-manager-cache: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+        with:
+          version: latest
+      - name: duplicated code (jscpd)
+        run: |
+          . .github/security/tools.env
+          mkdir -p out
+          npx --yes "jscpd@$JSCPD_VERSION" --silent --reporters json --output out/jscpd --min-tokens 70 --gitignore \
+            --ignore "**/node_modules/**,**/*.test.*,**/*.module.css" \
+            npmos/backend/npmos npmos/frontend/src/npmos scripts
+      - name: coverage of the backend (node --test)
+        working-directory: npmos/backend
+        run: |
+          pnpm install --frozen-lockfile
+          node --test --experimental-test-coverage --test-coverage-include='npmos/**' \
+            --test-coverage-exclude='**/*.test.js' --test-reporter=dot --test-reporter-destination=stdout \
+            --test-reporter=lcov --test-reporter-destination=../../out/lcov-backend.info 'npmos/**/*.test.js'
+      - name: coverage of the frontend (vitest)
+        working-directory: npmos/frontend
+        run: |
+          . ../../.github/security/tools.env
+          pnpm install --frozen-lockfile
+          # the coverage provider only in this job: the dependencies of the frontend stay those of upstream
+          pnpm add --save-dev "@vitest/coverage-v8@$VITEST_COVERAGE_VERSION" > /dev/null
+          pnpm vitest run --coverage.enabled --coverage.provider=v8 --coverage.reporter=json-summary \
+            --coverage.include='src/npmos/**' --coverage.reportsDirectory=../../out/coverage-frontend
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: security-quality
+          path: out/
+          if-no-files-found: ignore
+
+  scorecard:
+    name: Supply chain (OpenSSF Scorecard)
+    # its checks read the default branch (work); the result is not published anywhere
+    if: github.ref == 'refs/heads/work' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ossf/scorecard-action@2d1146689b8cda280b9bc96326124645441f03bc # v2.4.4
+        with:
+          results_file: out/scorecard.sarif
+          results_format: sarif
+          publish_results: false
+      - uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        if: always() && hashFiles('out/scorecard.sarif') != ''
+        with:
+          sarif_file: out/scorecard.sarif
+          category: scorecard
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: security-scorecard
+          path: out/
+          if-no-files-found: ignore
+
+  # ---------------------------------------------------------------- the weekly run and runs by hand
+  published:
+    name: Published images (Trivy, Grype)
+    if: github.workflow == 'Security' || startsWith(github.ref, 'refs/heads/security/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: scan the images of Docker Hub
+        run: |
+          . .github/security/tools.env
+          mkdir -p out
+          for img in npmos npmos-openappsec; do
+            for tag in develop latest; do
+              ref="docker.io/$NAMESPACE/$img:$tag"
+              docker pull -q "$ref" > /dev/null 2>&1 || { echo "::notice::$ref is not published"; continue; }
+              name="published-$img-$tag"
+              docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v "$PWD/out:/out" "$TRIVY_IMAGE" image \
+                --quiet --scanners vuln --format json --output "/out/trivy-$name.json" "$ref"
+              docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v "$PWD/out:/out" "$SYFT_IMAGE" scan \
+                "docker:$ref" -q -o "cyclonedx-json=/out/sbom-$name.cdx.json"
+              docker run --rm -v "$PWD/out:/out" "$GRYPE_IMAGE" "sbom:/out/sbom-$name.cdx.json" -q -o json \
+                --file "/out/grype-$name.json"
+            done
+          done
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: security-published
+          path: out/
+          if-no-files-found: ignore
+
+  report:
+    name: Security report
+    if: always() && github.workflow == 'Security'
+    needs: [semgrep, codeql, secrets, sca, iac, workflows, quality, scorecard, published]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: security-*
+          path: reports
+          merge-multiple: true
+      - name: summary
+        run: node scripts/security-report.mjs --in reports --out security-report --summary "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: security-report
+          path: security-report/

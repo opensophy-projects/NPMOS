@@ -94,7 +94,7 @@ const send = async (rule, channels, status, alert, now) => {
  * One round of the engine: checks every enabled rule, sends what appeared, repeats and what was
  * resolved. Exported for tests and "check now".
  */
-export const evaluate = async (now = new Date()) => {
+const evaluate = async (now = new Date()) => {
 	const knex = db();
 	const rules = await knex("npmos_notification_rule").where("enabled", true);
 	if (!rules.length) return;

@@ -12,7 +12,7 @@ import { HiddenUsername } from "../ui/HiddenUsername";
 
 const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id }, values);
 
-export type CaMode = "root" | "intermediate" | "import" | "external";
+type CaMode = "root" | "intermediate" | "import" | "external";
 
 interface Props extends InnerModalProps {
 	data: PkiOverview;

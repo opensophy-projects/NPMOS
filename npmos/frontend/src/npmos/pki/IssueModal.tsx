@@ -24,7 +24,7 @@ import { Delivery } from "./Delivery";
 
 const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id }, values);
 
-export interface IssuePreset {
+interface IssuePreset {
 	caId?: number;
 	profile?: Profile;
 	templateId?: string;

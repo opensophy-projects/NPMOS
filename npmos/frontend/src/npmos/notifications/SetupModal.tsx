@@ -34,7 +34,7 @@ const RULES: RuleType[] = [
 ];
 
 /** presets: the rules each one ticks */
-export const PRESETS: Record<string, RuleType[]> = {
+const PRESETS: Record<string, RuleType[]> = {
 	recommended: RULES,
 	failures: ["service_down", "agent_down", "policy_error", "host_problem"],
 	attacks: ["attack_spike", "agent_down", "learning_queue"],

@@ -1,0 +1,3 @@
+# the trainer of the WAF model (model/train.py); Renovate raises them
+numpy==2.4.6
+scipy==1.17.1

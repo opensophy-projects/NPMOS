@@ -32,7 +32,7 @@ const opensslCsr = async (csr) => {
 };
 
 /** names of the CSR: DNS and IP of subjectAltName (ACME and certbot take the names from there only) */
-export const namesOf = (text) => {
+const namesOf = (text) => {
 	const san = text.match(/X509v3 Subject Alternative Name:[^\n]*\n\s*([^\n]+)/);
 	if (!san) return [];
 	return san[1]

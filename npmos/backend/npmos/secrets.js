@@ -23,11 +23,13 @@ const getKey = () => {
 	return key;
 };
 
+const TAG_BYTES = 16;
+
 /** @param {string} text */
 export const encrypt = (text) => {
 	if (!text) return "";
 	const iv = randomBytes(12);
-	const cipher = createCipheriv("aes-256-gcm", getKey(), iv);
+	const cipher = createCipheriv("aes-256-gcm", getKey(), iv, { authTagLength: TAG_BYTES });
 	const data = Buffer.concat([cipher.update(String(text), "utf8"), cipher.final()]);
 	return PREFIX + Buffer.concat([iv, cipher.getAuthTag(), data]).toString("base64");
 };
@@ -37,12 +39,8 @@ export const decrypt = (value) => {
 	if (!value) return "";
 	if (!value.startsWith(PREFIX)) return value;
 	const raw = Buffer.from(value.slice(PREFIX.length), "base64");
-	const decipher = createDecipheriv("aes-256-gcm", getKey(), raw.subarray(0, 12));
-	decipher.setAuthTag(raw.subarray(12, 28));
-	return Buffer.concat([decipher.update(raw.subarray(28)), decipher.final()]).toString("utf8");
-};
-
-/** for tests: another key file */
-export const _resetKey = () => {
-	key = null;
+	// the tag length is fixed: a shortened tag would make a forged value easier to accept
+	const decipher = createDecipheriv("aes-256-gcm", getKey(), raw.subarray(0, 12), { authTagLength: TAG_BYTES });
+	decipher.setAuthTag(raw.subarray(12, 12 + TAG_BYTES));
+	return Buffer.concat([decipher.update(raw.subarray(12 + TAG_BYTES)), decipher.final()]).toString("utf8");
 };

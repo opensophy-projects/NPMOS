@@ -36,7 +36,7 @@ export interface ServiceLogLine {
 	line: string;
 }
 
-export interface RestartResult {
+interface RestartResult {
 	service: string;
 	restarted: boolean;
 	restarting?: boolean;
@@ -336,7 +336,7 @@ export const getHostAttacks = () => api.get({ url: "/npmos/analytics/hosts" }) a
 // Analytics of the traffic of the hosts (tabs like the Cloudflare dashboard), from the request log of nginx
 export type TrafficTab = "requests" | "visitors" | "performance" | "security" | "cache" | "origin";
 
-export interface TrafficKpi {
+interface TrafficKpi {
 	value: number | null;
 	/** against the previous period of the same length, null when unknown */
 	change: number | null;
@@ -494,7 +494,7 @@ export const getEventsSettings = () => api.get({ url: "/npmos/events/settings" }
 export const setEventsSettings = (retention: EventsSettings["retention"]) =>
 	api.put({ url: "/npmos/events/settings", data: retention }) as Promise<EventsSettings>;
 
-export interface WafAgentModel {
+interface WafAgentModel {
 	present: boolean;
 	size?: number;
 	modifiedOn?: string;
@@ -516,6 +516,10 @@ export const getWafAgent = (): Promise<WafAgentState> => api.get({ url: "/npmos/
 export const setWafAgent = (data: WafAgentSettings, apply = true): Promise<WafAgentState> =>
 	api.put({ url: "/npmos/waf/agent", data: { ...data, apply } });
 
+/** back to the basic model of the image; the agent restarts */
+export const removeWafModel = (): Promise<WafAgentModel & { restarting: boolean }> =>
+	api.del({ url: "/npmos/waf/agent/model" });
+
 /** the file goes as the request body (up to 1 GB), not through the JSON client */
 export const uploadWafModel = async (file: File): Promise<WafAgentModel & { restarting: boolean }> => {
 	const response = await fetch("/api/npmos/waf/agent/model", {
@@ -531,7 +535,7 @@ export const uploadWafModel = async (file: File): Promise<WafAgentModel & { rest
 	return payload;
 };
 
-export interface WafCustomVersion {
+interface WafCustomVersion {
 	id: number;
 	comment: string;
 	createdOn: string;

@@ -30,7 +30,7 @@ const TIME_ZONES: string[] = (() => {
 	}
 })();
 
-export const useSystemSettings = () =>
+const useSystemSettings = () =>
 	useQuery({ queryKey: ["npmos-system-settings"], queryFn: getSystemSettings, refetchInterval: 15000 });
 
 function Control({

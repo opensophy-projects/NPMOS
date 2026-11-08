@@ -1,7 +1,7 @@
 // Pure helpers of the PKI: validation of subjects and names, openssl configuration texts, serial
 // numbers, the index of revoked certificates for CRLs, parsing of certificates. No database, no
 // processes (unit tested in pki.test.js).
-import { generateKeyPairSync, randomBytes, X509Certificate } from "node:crypto";
+import { generateKeyPairSync, randomBytes, randomInt, X509Certificate } from "node:crypto";
 import net from "node:net";
 
 /** key types offered; Ed25519 is not, browsers barely support it for client certificates */
@@ -27,7 +27,7 @@ export const REVOKE_REASONS = [
 export const PROFILES = ["client", "server"];
 
 /** fields of a subject (API name → X.509 name) in the order they are written, most general first */
-export const SUBJECT_FIELDS = {
+const SUBJECT_FIELDS = {
 	country: "C",
 	state: "ST",
 	locality: "L",
@@ -270,7 +270,7 @@ export const parseCert = (pem) => {
 };
 
 /** "C=RU\nO=Org\nCN=name" (as Node prints it) → {country, organization, common_name} */
-export const parseSubject = (text) => {
+const parseSubject = (text) => {
 	const names = Object.fromEntries(Object.entries(SUBJECT_FIELDS).map(([field, name]) => [name, field]));
 	const result = {};
 	for (const line of String(text || "").split("\n")) {
@@ -282,7 +282,7 @@ export const parseSubject = (text) => {
 };
 
 /** "DNS:a, IP Address:1.2.3.4, email:x@y" → {dns, ip, email} */
-export const parseSans = (text) => {
+const parseSans = (text) => {
 	const sans = { dns: [], ip: [], email: [] };
 	for (const part of String(text || "").split(/,\s*/)) {
 		const at = part.indexOf(":");
@@ -298,7 +298,6 @@ export const parseSans = (text) => {
 /** a random password of a .p12 that is easy to type: 4 groups of 4 */
 export const randomPassword = () => {
 	const alphabet = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-	const bytes = randomBytes(16);
-	const chars = [...bytes].map((b) => alphabet[b % alphabet.length]);
+	const chars = Array.from({ length: 16 }, () => alphabet[randomInt(alphabet.length)]);
 	return [0, 4, 8, 12].map((i) => chars.slice(i, i + 4).join("")).join("-");
 };

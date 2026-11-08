@@ -21,7 +21,7 @@ export interface EnvSetting {
 	pending: boolean;
 }
 
-export interface SystemSettings {
+interface SystemSettings {
 	items: EnvSetting[];
 	restartRequired: boolean;
 	restarting?: boolean;

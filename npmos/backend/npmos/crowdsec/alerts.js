@@ -2,7 +2,6 @@
 // Events, Analytics and Notifications. Read from the LAPI every 30 s; the position (last alert id)
 // is a row of npmos_log_cursor, stored with the events in one transaction.
 import { global as logger } from "../../logger.js";
-import { emitEvents } from "../events/ingest.js";
 import { loadCursors, oldestKeptDay, store } from "../events/store.js";
 import { getSetting } from "../settings.js";
 import { alerts } from "./lapi.js";
@@ -78,7 +77,7 @@ export const toEvent = (alert, nodeId = "local") => {
 	};
 };
 
-const state = { running: false, timer: null, lastRun: null, lastError: null, stored: 0 };
+const state = { running: false, timer: null, lastError: null };
 
 /** one round: new alerts since the last one stored */
 export const pollOnce = async (now = new Date()) => {
@@ -100,15 +99,12 @@ export const pollOnce = async (now = new Date()) => {
 		telemetry: [],
 		cursors: [{ key: CURSOR, file: "lapi", offset: maxId, head: now.toISOString(), head_length: 0 }],
 	});
-	state.stored += events.length;
-	emitEvents(events);
 	return events;
 };
 
 const round = async () => {
 	try {
 		await pollOnce();
-		state.lastRun = new Date();
 		state.lastError = null;
 	} catch (err) {
 		if (state.lastError !== err.message) logger.warn(`NPMOS CrowdSec alerts: ${err.message}`);

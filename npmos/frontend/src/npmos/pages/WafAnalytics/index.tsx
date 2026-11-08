@@ -46,7 +46,7 @@ const FILTER_FIELDS: { key: keyof TrafficFilters; choices?: string[]; placeholde
 ];
 
 /** the value of a filter as shown in its chip */
-export const filterValue = (key: keyof TrafficFilters, value: string) =>
+const filterValue = (key: keyof TrafficFilters, value: string) =>
 	key === "country"
 		? value
 				.split(",")
@@ -70,7 +70,7 @@ export const filterValue = (key: keyof TrafficFilters, value: string) =>
 export const choiceLabel = (key: keyof TrafficFilters, value: string) =>
 	key === "device" || key === "client" ? t(`npmos.traffic.${key}.${value}`) : filterValue(key, value);
 
-export function AddFilter({ onAdd }: { onAdd: (key: keyof TrafficFilters, value: string) => void }) {
+function AddFilter({ onAdd }: { onAdd: (key: keyof TrafficFilters, value: string) => void }) {
 	const [key, setKey] = useState<keyof TrafficFilters>("host");
 	const [value, setValue] = useState("");
 	const field = FILTER_FIELDS.find((f) => f.key === key) ?? FILTER_FIELDS[0];

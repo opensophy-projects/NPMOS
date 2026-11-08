@@ -12,7 +12,7 @@ import { MigrationForm } from "./Migration";
 
 const GROUPS: EnvGroup[] = ["general", "network", "nginx", "tls", "acme", "logs", "external"];
 
-export interface SettingsSection {
+interface SettingsSection {
 	id: string;
 	label: string;
 	render: (canManage: boolean) => ReactNode;

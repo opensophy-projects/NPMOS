@@ -19,7 +19,7 @@ interface Props extends InnerModalProps {
 }
 
 /** addresses separated by lines, commas or spaces */
-export const splitValues = (text: string) => [...new Set(text.split(/[\s,;]+/).filter(Boolean))];
+const splitValues = (text: string) => [...new Set(text.split(/[\s,;]+/).filter(Boolean))];
 
 const BanModal = EasyModal.create(({ visible, remove, values = [], reason = "", extend = false, onDone }: Props) => {
 	const [text, setText] = useState(values.join("\n"));

@@ -133,30 +133,3 @@
 	border-radius: 0 4px 4px 0;
 	background: var(--series-1);
 }
-
-/* KPI tiles */
-.tiles {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-	gap: 1rem;
-}
-.tile {
-	padding: 1rem 1.125rem;
-}
-.tileValue {
-	font-size: 1.75rem;
-	font-weight: 500;
-	font-variant-numeric: tabular-nums;
-	letter-spacing: var(--tracking-tight);
-	line-height: 1.2;
-}
-.tileLabel {
-	margin-top: 0.25rem;
-	color: var(--foreground-muted);
-	font-size: 0.875rem;
-}
-.tileHint {
-	margin-top: 0.125rem;
-	color: var(--foreground-muted);
-	font-size: 0.75rem;
-}

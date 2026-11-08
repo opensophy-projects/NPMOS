@@ -51,14 +51,16 @@ class Decoder {
 				return [v <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(v) : v, offset + size];
 			}
 			case 7: {
-				const map = {};
+				// keys come from the file: collected as entries, not written as properties, so a key such as
+				// "__proto__" is an own property of the record and never its prototype
+				const entries = [];
 				for (let i = 0; i < size; i++) {
 					const [key, afterKey] = this.decode(offset);
 					const [value, afterValue] = this.decode(afterKey);
-					map[key] = value;
+					entries.push([key, value]);
 					offset = afterValue;
 				}
-				return [map, offset];
+				return [Object.setPrototypeOf(Object.fromEntries(entries), null), offset];
 			}
 			case 8: {
 				let v = 0;
@@ -123,6 +125,7 @@ const addressBytes = (ip) => {
 export class Reader {
 	/** @param {Buffer} buf  the whole .mmdb file */
 	constructor(buf) {
+		if (!Buffer.isBuffer(buf)) throw new MmdbError("not a MaxMind DB file");
 		const at = buf.lastIndexOf(METADATA_MARKER);
 		if (at < 0) throw new MmdbError("not a MaxMind DB file (no metadata)");
 		const meta = new Decoder(buf, at + METADATA_MARKER.length).decode(0)[0];

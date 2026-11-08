@@ -18,9 +18,9 @@ export interface Notice {
 
 const DAY = 24 * 60 * 60 * 1000;
 /** custom certificates and mTLS CAs are replaced by hand: warn two weeks ahead */
-export const CERT_WARN_DAYS = 14;
+const CERT_WARN_DAYS = 14;
 /** Let's Encrypt renews itself 30 days ahead: a week left means renewal fails */
-export const LE_WARN_DAYS = 7;
+const LE_WARN_DAYS = 7;
 
 const hostsLink = (rules: FilterRule[]) => `/hosts?${filtersToParams({ q: "", rules }).toString()}`;
 

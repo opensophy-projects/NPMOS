@@ -6,6 +6,14 @@
 #   push to work  -> :develop and :<sha>
 #   tag vX.Y.Z    -> :X.Y.Z and :latest
 #   other events  -> build and test only (registry login is still checked when secrets exist)
+#
+# Two depths (docs/DEVSECOPS.md):
+#   every push      fast checks: lint, types, tests, and security.yml (SAST, secrets, SCA, IaC, the workflows)
+#   full            also the images: build, closed-network test, image scan, DAST, the security gate before a push.
+#                   On work, tags v*, pull requests, by hand (Run workflow), on branches security/** (security-weekly.yml
+#                   makes one from work every week) and on any push whose commit message holds [full].
+# "report" writes the summary of the run and the artifact security-report (the report, readable SBOMs, raw results);
+# on a branch security/** it also opens an issue with the report.
 name: CI
 on:
   push:
@@ -31,9 +39,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: lts/*
+          # no dependency cache: a cache written by one branch must not reach the build of another
+          package-manager-cache: false
       - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
         with:
           version: latest
@@ -55,6 +67,12 @@ jobs:
           pnpm formatjs compile-folder src/locale/src src/locale/lang
           pnpm tsc --noEmit
           pnpm vitest run
+      - name: file tree
+        # every file of the code of NPMOS has a line in CODE_OF_CONDUCT.md
+        run: node scripts/check-tree.mjs
+      - name: WAF model tooling (model/, docs/MODEL.md)
+        # the training cycle itself (numpy, scipy) is tested in training.yml; here the formats and the data
+        run: python3 -m unittest discover -s model
       - name: shell scripts
         run: shellcheck -x -S warning scripts/*.sh deploy/*/*.sh deploy/openappsec/*/*.sh npmos/crowdsec-seed/*.sh
       - name: compose files
@@ -62,6 +80,7 @@ jobs:
           docker compose -f deploy/compose.yaml config -q
           docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml config -q
           docker compose -f deploy/compose.yaml -f deploy/test/compose.airgap.yaml config -q
+          NPMOS_FEATURES_DIR=/tmp/features docker compose -f deploy/compose.yaml -f deploy/test/compose.training.yaml config -q
           if grep -nE 'image: .*:latest|:-latest' deploy/*.yaml deploy/test/*.yaml; then
             echo "::error::unpinned image version"; exit 1
           fi
@@ -72,10 +91,10 @@ jobs:
             df_cs=$(sed -n 's/^ARG CROWDSEC_VERSION=//p' "$f")
             [ "$env_cs" = "$df_cs" ] || { echo "::error file=$f::CROWDSEC_VERSION $df_cs != deploy/.env $env_cs"; exit 1; }
           done
+          # the open-appsec sources are pinned to full commits
           . deploy/openappsec/sources.env
-          for pair in "openappsec $OPENAPPSEC_REF" "smartsync $SMARTSYNC_REF" "smartsync-shared-files $SHARED_FILES_REF" "smartsync-tuning $TUNING_REF"; do
-            set -- $pair
-            grep -q "^| $1 | .* | \`$2\` |" reference/VERSIONS.md || { echo "::error::$1 ref $2 differs from reference/VERSIONS.md"; exit 1; }
+          for ref in "$OPENAPPSEC_REF" "$SHARED_FILES_REF" "$TUNING_REF"; do
+            echo "$ref" | grep -qE '^[0-9a-f]{40}$' || { echo "::error file=deploy/openappsec/sources.env::not a full commit: $ref"; exit 1; }
           done
           # the agent is built on Alpine 3.22 (CMake 3): Alpine 3.23+ ships CMake 4, which rejects the open-appsec sources
           alpine=$(sed -n 's/^ARG ALPINE_VERSION=//p' deploy/openappsec/Dockerfile)
@@ -92,18 +111,37 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+  security:
+    name: Security
+    uses: ./.github/workflows/security.yml
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+
   images:
-    name: Images (amd64) + closed-network test
+    name: Images (amd64) + closed-network test + image scan + DAST
     needs: checks
+    # the full run (see the head of this file); other branches stop after the fast checks
+    if: >-
+      github.event_name != 'push' || github.ref == 'refs/heads/work' || startsWith(github.ref, 'refs/tags/v') ||
+      startsWith(github.ref, 'refs/heads/security/') || contains(github.event.head_commit.message, '[full]')
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: versions
         run: |
           v="$(git rev-parse --short HEAD)"
-          echo "VERSION=$v" >> "$GITHUB_ENV"
-          grep -E "^[A-Z_]+=" deploy/openappsec/sources.env >> "$GITHUB_ENV"
-          echo "CROWDSEC_VERSION=$(sed -n 's/^CROWDSEC_VERSION=//p' deploy/.env)" >> "$GITHUB_ENV"
+          {
+            echo "VERSION=$v"
+            grep -E "^[A-Z_]+=" deploy/openappsec/sources.env
+            echo "CROWDSEC_VERSION=$(sed -n 's/^CROWDSEC_VERSION=//p' deploy/.env)"
+          } >> "$GITHUB_ENV"
           for f in npmos/frontend/package.json npmos/backend/package.json; do
             jq --arg v "$v" '.version = $v' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
           done
@@ -141,6 +179,37 @@ jobs:
           NPMOS_REGISTRY: docker.io/${{ env.NAMESPACE }}
           NPMOS_VERSION: ${{ env.VERSION }}
         run: scripts/test-airgap.sh
+      - name: image scan (Trivy, Syft SBOM, Grype, Dockle)
+        env:
+          NPMOS_REGISTRY: docker.io/${{ env.NAMESPACE }}
+          NPMOS_VERSION: ${{ env.VERSION }}
+          OUT: reports/images
+        run: scripts/scan-images.sh
+      - name: DAST (OWASP ZAP, Nuclei, testssl.sh, gixy)
+        timeout-minutes: 50
+        env:
+          NPMOS_REGISTRY: docker.io/${{ env.NAMESPACE }}
+          NPMOS_VERSION: ${{ env.VERSION }}
+          OUT: reports/dast
+        run: scripts/test-dast.sh
+      - uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        if: always() && hashFiles('reports/images/trivy-npmos.sarif') != ''
+        with:
+          sarif_file: reports/images/trivy-npmos.sarif
+          category: trivy-npmos
+      - uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        if: always() && hashFiles('reports/images/trivy-npmos-openappsec.sarif') != ''
+        with:
+          sarif_file: reports/images/trivy-npmos-openappsec.sarif
+          category: trivy-npmos-openappsec
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: security-images
+          path: reports/
+          if-no-files-found: ignore
+      - name: security gate (nothing is pushed with a blocking finding)
+        run: node scripts/security-report.mjs --in reports --scope images,dast --expect images,dast
       - name: docker.io login
         if: env.PUBLISH == 'true'
         uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
@@ -168,19 +237,26 @@ jobs:
   npmos-arm64:
     name: npmos image (arm64)
     needs: checks
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/work' || startsWith(github.ref, 'refs/tags/v')) || github.event_name == 'workflow_dispatch'
+    if: >-
+      github.event_name == 'push' && (github.ref == 'refs/heads/work' || startsWith(github.ref, 'refs/tags/v')) ||
+      github.event_name == 'workflow_dispatch' && !startsWith(github.ref, 'refs/heads/security/')
     runs-on: ubuntu-26.04-arm
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: versions
         run: |
           v="$(git rev-parse --short HEAD)"
-          echo "VERSION=$v" >> "$GITHUB_ENV"
-          echo "CROWDSEC_VERSION=$(sed -n 's/^CROWDSEC_VERSION=//p' deploy/.env)" >> "$GITHUB_ENV"
           case "$GITHUB_REF" in
-            refs/tags/v*) echo "TAGS=${GITHUB_REF#refs/tags/v} latest" >> "$GITHUB_ENV" ;;
-            *) echo "TAGS=develop" >> "$GITHUB_ENV" ;;
+            refs/tags/v*) tags="${GITHUB_REF#refs/tags/v} latest" ;;
+            *) tags="develop" ;;
           esac
+          {
+            echo "VERSION=$v"
+            echo "CROWDSEC_VERSION=$(sed -n 's/^CROWDSEC_VERSION=//p' deploy/.env)"
+            echo "TAGS=$tags"
+          } >> "$GITHUB_ENV"
           for f in npmos/frontend/package.json npmos/backend/package.json; do
             jq --arg v "$v" '.version = $v' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
           done
@@ -239,11 +315,13 @@ jobs:
   appsec-arm64:
     name: npmos-openappsec image (arm64, experimental)
     needs: checks
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' && !startsWith(github.ref, 'refs/heads/security/')
     continue-on-error: true
     runs-on: ubuntu-26.04-arm
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - run: grep -E "^[A-Z_]+=" deploy/openappsec/sources.env >> "$GITHUB_ENV"
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - name: build npmos-openappsec (arm64)
@@ -257,3 +335,49 @@ jobs:
             TUNING_REF=${{ env.TUNING_REF }}
           cache-from: type=gha,scope=openappsec-arm64
           cache-to: type=gha,mode=max,scope=openappsec-arm64
+
+  report:
+    name: Security report
+    needs: [checks, security, images]
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # the issue of a weekly branch security/<date>
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: security-*
+          path: reports
+          merge-multiple: true
+      - name: summary
+        env:
+          # the images and DAST are expected only when the images were built
+          EXPECT: ${{ needs.images.result == 'skipped' && 'source' || 'source,images,dast' }}
+        run: node scripts/security-report.mjs --in reports --out security-report --summary "$GITHUB_STEP_SUMMARY" --expect "$EXPECT"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: security-report
+          path: security-report/
+      - name: issue with the report (weekly branch security/<date>)
+        if: always() && startsWith(github.ref, 'refs/heads/security/') && hashFiles('security-report/security-report.md') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          REF_NAME: ${{ github.ref_name }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if grep -q 'Итог: ✅' security-report/security-report.md; then mark="✅"; else mark="❌"; fi
+          {
+            echo "Еженедельная проверка ветки \`$REF_NAME\` (сделана из \`work\`). Прогон: $RUN_URL"
+            echo "Полный отчёт и SBOM — артефакт **security-report** прогона."
+            echo
+            head -c 60000 security-report/security-report.md
+          } > issue.md
+          gh label create security --repo "$REPO" --color B60205 --description "Security reports" --force > /dev/null
+          gh issue create --repo "$REPO" --label security --title "$mark Отчёт безопасности ${REF_NAME#security/}" --body-file issue.md

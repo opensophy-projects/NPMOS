@@ -2,14 +2,15 @@
 // another certificate was accepted and nginx then failed on every host using it ("key values mismatch").
 import { createPrivateKey, X509Certificate } from "node:crypto";
 import errs from "../lib/error.js";
+import { firstPemCertificate } from "./pem.js";
 
 /** throws when the key is not the one of the certificate (the first certificate of a chain) */
 export const assertKeyMatches = (certificatePem, keyPem) => {
-	const first = String(certificatePem).match(/-----BEGIN CERTIFICATE-----[\s\S]+?-----END CERTIFICATE-----/);
+	const first = firstPemCertificate(certificatePem);
 	if (!first) return;
 	let matches = false;
 	try {
-		matches = new X509Certificate(first[0]).checkPrivateKey(createPrivateKey(keyPem));
+		matches = new X509Certificate(first).checkPrivateKey(createPrivateKey(keyPem));
 	} catch {
 		matches = false;
 	}

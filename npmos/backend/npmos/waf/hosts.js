@@ -5,10 +5,10 @@
 import db from "../../db.js";
 import internalAuditLog from "../../internal/audit-log.js";
 import errs from "../../lib/error.js";
+import { scopeHosts } from "../rbac/scope.js";
 import { hostObjects } from "./objects/api.js";
 import { listObjects } from "./objects/store.js";
 import { CONFIDENCES, MODES, scheduleRegenerate } from "./policy.js";
-import { scopeHosts } from "../rbac/scope.js";
 
 const DEFAULTS = { enabled: false, mode: "detect-learn", minimum_confidence: "high" };
 

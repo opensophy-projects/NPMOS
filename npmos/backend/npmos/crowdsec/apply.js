@@ -8,6 +8,7 @@ import path from "node:path";
 import { global as logger } from "../../logger.js";
 import control from "../control/client.js";
 import {
+	fatalMessages,
 	renderAcquis,
 	renderAllowlist,
 	renderConfigLocal,
@@ -15,13 +16,12 @@ import {
 	renderScenario,
 	renderSimulation,
 	requiredItems,
-	fatalMessages,
 	unwantedItems,
 } from "./config.js";
 import { CONF_DIR, install, remove } from "./hub.js";
 import { health, registrationToken } from "./lapi.js";
 
-export const SERVICE = "crowdsec";
+const SERVICE = "crowdsec";
 const HEALTH_TIMEOUT_MS = Number(process.env.NPMOS_CROWDSEC_HEALTH_TIMEOUT_MS || 60000);
 // CrowdSec answers /health before its agent has loaded every parser; a broken file stops it later
 const SETTLE_MS = Number(process.env.NPMOS_CROWDSEC_SETTLE_MS || 4000);
@@ -30,7 +30,7 @@ const SETTLE_MS = Number(process.env.NPMOS_CROWDSEC_SETTLE_MS || 4000);
 const RELOADED = ["acquis", "profiles", "allowlist", "scenario", "simulation"];
 
 /** files NPMOS owns in the config volume */
-export const FILES = {
+const FILES = {
 	acquis: "acquis.d/npmos.yaml",
 	profiles: "profiles.yaml",
 	allowlist: "parsers/s02-enrich/npmos-allowlist.yaml",
@@ -87,7 +87,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
  */
 const restarts = async () => (await control.getService(SERVICE).catch(() => ({}))).restartCount ?? null;
 
-export const waitHealthy = async (timeout = HEALTH_TIMEOUT_MS, since = null) => {
+const waitHealthy = async (timeout = HEALTH_TIMEOUT_MS, since = null) => {
 	const until = Date.now() + timeout;
 	// since: the restart count before a reload (CrowdSec may exit on a broken file right away)
 	const base = since ?? (await restarts());

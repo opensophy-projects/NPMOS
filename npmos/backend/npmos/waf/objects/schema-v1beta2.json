@@ -1041,5 +1041,5 @@
 		}
 	},
 	"additionalProperties": false,
-	"$comment": "open-appsec local policy schema v1beta2, from reference/openappsec/config/linux/v1beta2/schema/schema_v1beta2.yaml (reference/VERSIONS.md). Regenerate when open-appsec is updated."
+	"$comment": "open-appsec local policy schema v1beta2, from config/linux/v1beta2/schema/schema_v1beta2.yaml of openappsec/openappsec (OPENAPPSEC_REF in deploy/openappsec/sources.env). Regenerate when open-appsec is updated."
 }

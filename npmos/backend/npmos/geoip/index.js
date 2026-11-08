@@ -1,10 +1,11 @@
 // Countries of source addresses, offline: a MaxMind DB file. The CrowdSec image brings
 // GeoLite2-City (volume crowdsec-data, mounted into npmos); an administrator can upload a newer or
 // another database (System → Settings → GeoIP), it is used instead.
-import { mkdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import errs from "../../lib/error.js";
 import { global as logger } from "../../logger.js";
+import { readWithStat } from "../files.js";
 import { MmdbError, Reader } from "./mmdb.js";
 
 const UPLOADED = process.env.NPMOS_GEOIP_FILE || "/data/npmos/geoip/geoip.mmdb";
@@ -34,11 +35,14 @@ const open = async () => {
 		[UPLOADED, "uploaded"],
 		[BUNDLED, "crowdsec"],
 	]) {
-		const st = await stat(file).catch(() => null);
-		if (!st?.size) continue;
-		if (current?.file === file && current.mtime === st.mtimeMs) return current;
+		const read = await readWithStat(file, {
+			accept: (s) => s.size > 0 && !(current?.file === file && current.mtime === s.mtimeMs),
+		}).catch(() => null);
+		if (!read?.stat.size) continue;
+		const st = read.stat;
+		if (read.data === null) return current;
 		try {
-			const reader = new Reader(await readFile(file));
+			const reader = new Reader(read.data);
 			logger.info(`NPMOS GeoIP: ${file} (${reader.metadata.database_type})`);
 			return { reader, file, source, mtime: st.mtimeMs, size: st.size };
 		} catch (err) {
@@ -151,7 +155,7 @@ const internalGeoip = {
 	 */
 	upload: async (access, body) => {
 		await access.can("settings:manage");
-		if (!body?.length) throw new errs.ValidationError("Empty file");
+		if (!Buffer.isBuffer(body) || !body.length) throw new errs.ValidationError("Empty file");
 		if (body.length > MAX_UPLOAD_BYTES) throw new errs.ValidationError("The database is larger than 200 MB");
 		let reader;
 		try {

@@ -9,7 +9,7 @@ import { intl, T } from "src/locale";
 import styles from "./InfoTip.module.css";
 
 /** the message that explains a label, if there is one */
-export const infoOf = (id: unknown): string | undefined =>
+const infoOf = (id: unknown): string | undefined =>
 	typeof id === "string" && intl.messages[`${id}.info`] ? `${id}.info` : undefined;
 
 /** the explanation of a title given as <T id="…" /> */

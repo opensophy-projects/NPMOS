@@ -1,0 +1,131 @@
+# Semgrep rules of NPMOS, next to the community rulesets (.github/workflows/security.yml). They keep the rules of
+# CLAUDE.md and the habits of the code of NPMOS: ERROR fails the run in the code of NPMOS, WARNING is reported.
+rules:
+  - id: npmos-fetch-without-timeout
+    message: >-
+      Local-first (CLAUDE.md): every request leaves with a timeout, an unreachable service must not hang NPMOS.
+      Pass signal: AbortSignal.timeout(...).
+    severity: ERROR
+    languages: [javascript, typescript]
+    paths:
+      include: [npmos/backend/npmos/, deploy/]
+      exclude: ["*.test.js"]
+    patterns:
+      - pattern-either:
+          - pattern: fetch($URL)
+          - pattern: fetch($URL, $OPTS)
+      - pattern-not: 'fetch($URL, {..., signal: $S, ...})'
+    metadata:
+      category: reliability
+      cwe: ["CWE-400: Uncontrolled Resource Consumption"]
+
+  - id: npmos-shell-command
+    message: >-
+      A command runs through a shell: arguments of a request could become commands. Use execFile or spawn with an
+      argument list and no shell.
+    severity: ERROR
+    languages: [javascript, typescript]
+    paths:
+      include: [npmos/backend/npmos/, deploy/, scripts/]
+    pattern-either:
+      - pattern: (import("node:child_process")).exec(...)
+      - pattern: (import("node:child_process")).execSync(...)
+      - pattern: |
+          import { exec } from "node:child_process";
+          ...
+          exec(...);
+      - pattern: |
+          import { execSync } from "node:child_process";
+          ...
+          execSync(...);
+      - pattern: '$CP.spawn($CMD, $ARGS, {..., shell: true, ...})'
+      - pattern: '$CP.execFile($CMD, $ARGS, {..., shell: true, ...})'
+      - pattern: 'spawn($CMD, $ARGS, {..., shell: true, ...})'
+      - pattern: 'execFile($CMD, $ARGS, {..., shell: true, ...})'
+    metadata:
+      category: security
+      cwe: ["CWE-78: OS Command Injection"]
+
+  - id: npmos-dangerous-html
+    message: >-
+      Raw HTML in the interface: text of a request (an event, a log line, a host name) would run as script. Render it as
+      text.
+    severity: ERROR
+    languages: [typescript, javascript]
+    paths:
+      include: [npmos/frontend/src/npmos/]
+    pattern-either:
+      - pattern: '<$EL dangerouslySetInnerHTML={...} />'
+      - pattern: '<$EL dangerouslySetInnerHTML={...}>...</$EL>'
+      - pattern: $X.innerHTML = $Y
+      - pattern: $X.outerHTML = $Y
+      - pattern: $X.insertAdjacentHTML(...)
+    metadata:
+      category: security
+      cwe: ["CWE-79: Cross-site Scripting"]
+
+  - id: npmos-knex-raw-interpolation
+    message: >-
+      SQL built from a template string. Values go in bindings (?, ??); interpolate only constants of the module
+      (UPPER_CASE) or SQL fragments built from them.
+    severity: WARNING
+    languages: [javascript]
+    paths:
+      include: [npmos/backend/npmos/]
+      exclude: ["*.test.js"]
+    patterns:
+      - pattern-either:
+          - pattern: $K.raw(`...${$X}...`, ...)
+          - pattern: $B.whereRaw(`...${$X}...`, ...)
+          - pattern: $B.orderByRaw(`...${$X}...`, ...)
+          - pattern: $B.havingRaw(`...${$X}...`, ...)
+          - pattern: $B.joinRaw(`...${$X}...`, ...)
+      - metavariable-regex:
+          metavariable: $X
+          # not a constant, nor a list of placeholders (list.map(() => "?").join(","))
+          regex: ^(?![A-Z][A-Z0-9_]*$)(?!.*\.map\(\(\) => "\?"\)\.join)
+    metadata:
+      category: security
+      cwe: ["CWE-89: SQL Injection"]
+
+  - id: npmos-tls-verification-off
+    message: >-
+      TLS without verification of the certificate. Allowed only as an option the administrator turns on, with a
+      warning in the interface.
+    severity: WARNING
+    languages: [javascript]
+    paths:
+      include: [npmos/backend/npmos/]
+      exclude: ["*.test.js"]
+    pattern-either:
+      - pattern: "{..., rejectUnauthorized: false, ...}"
+      - pattern: process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
+    metadata:
+      category: security
+      cwe: ["CWE-295: Improper Certificate Validation"]
+
+  - id: npmos-weak-random
+    message: Math.random is not a secret. Use crypto.randomBytes / randomUUID / randomInt for tokens, ids and passwords.
+    severity: WARNING
+    languages: [javascript]
+    paths:
+      include: [npmos/backend/npmos/]
+      exclude: ["*.test.js"]
+    pattern: Math.random()
+    metadata:
+      category: security
+      cwe: ["CWE-338: Weak PRNG"]
+
+  - id: npmos-weak-hash
+    message: MD5 and SHA-1 are not for passwords, signatures or tokens (a hash of a log position or a cache key is fine).
+    severity: WARNING
+    languages: [javascript]
+    paths:
+      include: [npmos/backend/npmos/]
+      exclude: ["*.test.js"]
+    pattern-either:
+      - pattern: createHash("md5")
+      - pattern: createHash("sha1")
+    metadata:
+      category: security
+      cwe: ["CWE-328: Weak Hash"]

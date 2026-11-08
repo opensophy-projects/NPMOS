@@ -1,3 +1,0 @@
-add_library(agent_details_reporter agent_details_reporter.cc agent_details_report.cc)
-
-add_subdirectory(agent_details_reporter_ut)

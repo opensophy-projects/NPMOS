@@ -21,7 +21,7 @@ const parse = (value) => (typeof value === "string" ? JSON.parse(value) : value)
  * Checks the references of a rule (default policy, host): every id is an object of the right kind.
  * @returns {object} the references, only the known fields
  */
-export const checkRefs = (refs, objects, what) => {
+const checkRefs = (refs, objects, what) => {
 	const byId = new Map(objects.map((o) => [o.id, o]));
 	const out = {};
 	for (const [field, { kind, many }] of Object.entries(RULE_FIELDS)) {
@@ -246,7 +246,11 @@ const candidateOf = async (change, objects) => {
 		return { objects: objects.filter((o) => o.id !== change.delete) };
 	}
 	if (change.policy) return { objects, policy: checkPolicy(change.policy, objects) };
-	if (change.host) return { objects, hostObjects: { [change.host.id]: hostObjects(change.host.objects, objects) } };
+	if (change.host) {
+		const id = Number(change.host.id);
+		if (!Number.isInteger(id) || id < 1) throw new errs.ValidationError("host: the id of a proxy host");
+		return { objects, hostObjects: { [id]: hostObjects(change.host.objects, objects) } };
+	}
 	return { objects };
 };
 
@@ -516,12 +520,14 @@ const internalWafObjects = {
 		if (section) {
 			const kind = Object.keys(KINDS).find((k) => KINDS[k] === section);
 			if (!kind) throw new errs.ValidationError(`unknown section ${section}`);
+			// the name of the section as the model has it, not as the request wrote it
+			const name = KINDS[kind];
 			const objects = (await listObjects()).filter((o) => o.kind === kind);
 			const builtin = objects.filter((o) => o.builtin).map((o) => o.name);
 			const own = objects.filter((o) => !o.builtin).map((o) => ({ name: o.name, ...o.spec }));
-			const doc = asV2({ policies: { default: { mode: "detect-learn" }, specificRules: [] }, [section]: own });
-			const head = `# NPMOS: ${section} of WAF -> Policy (v1beta2)${builtin.length ? `\n# built in, read only: ${builtin.join(", ")}` : ""}\n`;
-			return `${head}${YAML.stringify({ [section]: doc[section] ?? [] }, { lineWidth: 0, aliasDuplicateObjects: false })}`;
+			const doc = asV2({ policies: { default: { mode: "detect-learn" }, specificRules: [] }, [name]: own });
+			const head = `# NPMOS: ${name} of WAF -> Policy (v1beta2)${builtin.length ? `\n# built in, read only: ${builtin.join(", ")}` : ""}\n`;
+			return `${head}${YAML.stringify({ [name]: doc[name] ?? [] }, { lineWidth: 0, aliasDuplicateObjects: false })}`;
 		}
 		return `# NPMOS: objects and default policy of WAF -> Policy (${format})\n${YAML.stringify(await exportDoc(format), { lineWidth: 0, aliasDuplicateObjects: false })}`;
 	},

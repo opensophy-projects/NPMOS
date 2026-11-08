@@ -53,7 +53,7 @@ const VOLATILE_META = new Set(["nginx_online", "nginx_err"]);
  * Settings that differ between two snapshots of a host (upstream logs the whole row on
  * create, update, enable and disable), as "field" or "meta.field".
  */
-export const changedFields = (current, previous, partial = false) => {
+const changedFields = (current, previous, partial = false) => {
 	const a = parseJson(current);
 	const b = parseJson(previous);
 	// a partial snapshot (the create request) has no word on the fields it leaves out

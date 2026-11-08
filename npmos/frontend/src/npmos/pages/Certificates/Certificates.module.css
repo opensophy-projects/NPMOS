@@ -25,9 +25,6 @@
 	color: var(--foreground-muted);
 	font-size: 0.8125rem;
 }
-.expiring {
-	color: var(--tblr-yellow);
-}
 .expired {
 	color: var(--tblr-red);
 }

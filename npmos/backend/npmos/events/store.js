@@ -24,9 +24,10 @@ const nextDay = (day) => {
 };
 
 /** partition of a day (Postgres only), idempotent */
-export const ensurePartition = async (day, knex = db(), table = EVENT_TABLE) => {
+const ensurePartition = async (day, knex = db(), table = EVENT_TABLE) => {
 	const known = `${table}:${day}`;
 	if (!isPostgres() || knownPartitions.has(known)) return;
+	// nosemgrep: npmos-knex-raw-interpolation -- the day is a date this module computes (YYYY-MM-DD), not input
 	await knex.raw(
 		`CREATE TABLE IF NOT EXISTS ?? PARTITION OF ?? FOR VALUES FROM ('${day}T00:00:00Z') TO ('${nextDay(day)}T00:00:00Z')`,
 		[partitionName(day, table), table],

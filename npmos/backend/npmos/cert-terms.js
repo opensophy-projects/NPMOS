@@ -4,12 +4,13 @@
 // renews itself on time. A certificate NPMOS renews (ACME, renewal on) needs attention only once half of its
 // renewal window has passed without a renewal; one replaced by hand gets 14 days, or a third of a shorter term.
 import { X509Certificate } from "node:crypto";
-import { readFile, stat } from "node:fs/promises";
 import db from "../db.js";
+import { readWithStat } from "./files.js";
+import { firstPemCertificate } from "./pem.js";
 
 export const DAY = 86400000;
 /** a certificate replaced by hand: warn this many days ahead (a third of the term when that is shorter) */
-export const MANUAL_WARN_DAYS = 14;
+const MANUAL_WARN_DAYS = 14;
 /** certbot renews a third of the term ahead, at most 30 days */
 const CERTBOT_MAX_WINDOW_DAYS = 30;
 
@@ -43,12 +44,15 @@ const fileOf = (cert) =>
 const cache = new Map();
 const validity = async (file) => {
 	try {
-		const { mtimeMs } = await stat(file);
 		const hit = cache.get(file);
-		if (hit && hit.mtimeMs === mtimeMs) return hit.value;
-		const pem = await readFile(file, "utf8");
-		const first = pem.match(/-----BEGIN CERTIFICATE-----[\s\S]+?-----END CERTIFICATE-----/);
-		const x509 = first ? new X509Certificate(first[0]) : null;
+		const { stat: st, data: pem } = await readWithStat(file, {
+			encoding: "utf8",
+			accept: (s) => !(hit && hit.mtimeMs === s.mtimeMs),
+		});
+		const { mtimeMs } = st;
+		if (pem === null) return hit.value;
+		const first = firstPemCertificate(pem);
+		const x509 = first ? new X509Certificate(first) : null;
 		const value = x509 ? { notBefore: new Date(x509.validFrom), notAfter: new Date(x509.validTo) } : null;
 		cache.set(file, { mtimeMs, value });
 		return value;

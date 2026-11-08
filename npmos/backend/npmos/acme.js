@@ -2,13 +2,14 @@
 // use, at the server of the certificate. Upstream registers the account in launch.sh at every start, which contacts
 // the ACME server (and, for ZeroSSL, api.zerossl.com) even when no ACME certificate is ever requested, and blocks
 // startup when offline. NPMOS registers right before the first certbot request instead.
-import { mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { basename } from "node:path";
 import errs from "../lib/error.js";
 import utils from "../lib/utils.js";
 import { certbot as logger } from "../logger.js";
 import acmeServers from "./acme/servers.js";
+import { readWithStatSync } from "./files.js";
 import { knownSecrets, redact } from "./redact.js";
 
 const ACCOUNTS_DIR = "/data/tls/certbot/accounts";
@@ -17,7 +18,8 @@ const ZEROSSL_EAB_URL = "https://api.zerossl.com/acme/eab-credentials-email";
 const HTTP_TIMEOUT_MS = 20000;
 // the full log of the last failed request, for "Full log" in the interface
 const FAILURE_LOG = "/data/npmos/acme/last-failure.log";
-const CERTBOT_LOG = "/tmp/certbot-log/letsencrypt.log";
+// logs-dir of certbot (rootfs/etc/certbot.ini)
+const CERTBOT_LOG = "/data/npmos/acme/certbot-log/letsencrypt.log";
 const CERTBOT_LOG_FRESH_MS = 5 * 60 * 1000;
 
 const pending = new Map();
@@ -237,8 +239,11 @@ const saveFailureLog = (output, server, clientLog) => {
 			source = "lego";
 		} else {
 			try {
-				if (Date.now() - statSync(CERTBOT_LOG).mtimeMs < CERTBOT_LOG_FRESH_MS)
-					debug = readFileSync(CERTBOT_LOG, "utf8");
+				const fresh = readWithStatSync(CERTBOT_LOG, {
+					encoding: "utf8",
+					accept: (st) => Date.now() - st.mtimeMs < CERTBOT_LOG_FRESH_MS,
+				});
+				if (fresh.data !== null) debug = fresh.data;
 			} catch {}
 		}
 		const text = [
@@ -267,7 +272,8 @@ const saveFailureLog = (output, server, clientLog) => {
 /** the full log of the last failed ACME request, or null */
 const lastFailureLog = () => {
 	try {
-		return { log: readFileSync(FAILURE_LOG, "utf8"), time: statSync(FAILURE_LOG).mtime.toISOString() };
+		const { stat, data } = readWithStatSync(FAILURE_LOG, { encoding: "utf8" });
+		return { log: data, time: stat.mtime.toISOString() };
 	} catch {
 		return null;
 	}

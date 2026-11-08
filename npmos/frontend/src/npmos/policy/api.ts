@@ -25,7 +25,7 @@ export const KINDS: Kind[] = [
 	"source_identifiers",
 ];
 
-export type PolicyMode = "prevent-learn" | "detect-learn" | "prevent" | "detect" | "inactive";
+type PolicyMode = "prevent-learn" | "detect-learn" | "prevent" | "detect" | "inactive";
 export const POLICY_MODES: PolicyMode[] = ["prevent-learn", "detect-learn", "prevent", "detect", "inactive"];
 
 export interface PolicyObject {
@@ -65,7 +65,7 @@ export interface DefaultPolicy extends RuleRefs {
 	mode: PolicyMode;
 }
 
-export interface PolicyState {
+interface PolicyState {
 	file: string;
 	generatedAt: string | null;
 	hosts: number;
@@ -105,7 +105,7 @@ export type Change =
 	| { policy: DefaultPolicy }
 	| { host: { id: number; objects: HostObjects | null } };
 
-export interface ObjectInput {
+interface ObjectInput {
 	kind: Kind;
 	name: string;
 	description?: string;

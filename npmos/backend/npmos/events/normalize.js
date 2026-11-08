@@ -3,7 +3,7 @@
 // service notices and periodic telemetry. Pure functions, no database.
 
 /** periodic statistics: counters for the aggregates, never stored as events */
-export const TELEMETRY = ["waap telemetry", "waap attack type telemetry", "waap traffic telemetry", "ips stats"];
+const TELEMETRY = ["waap telemetry", "waap attack type telemetry", "waap traffic telemetry", "ips stats"];
 /** "Important events" of open-appsec-npm */
 export const IMPORTANT_SEVERITIES = ["critical", "high"];
 
@@ -31,7 +31,7 @@ const int = (value) => {
 };
 
 /** agent time is UTC without a zone: "2026-10-27T05:44:40.123" */
-export const parseTime = (time) => {
+const parseTime = (time) => {
 	if (!time || typeof time !== "string") return null;
 	const date = new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(time) ? time : `${time}Z`);
 	return Number.isNaN(date.getTime()) ? null : date;

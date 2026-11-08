@@ -1,1 +1,0 @@
-add_unit_test(http_configuration_ut http_configuration_ut.cc http_configuration)

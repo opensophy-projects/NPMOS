@@ -1,2 +1,0 @@
-add_subdirectory(nginx_attachment)
-add_subdirectory(attachment_registrator)

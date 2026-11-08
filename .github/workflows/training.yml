@@ -1,0 +1,126 @@
+# Training of the WAF model of NPMOS (docs/MODEL.md): a push to a branch training/<anything>, a push whose commit
+# message holds [train], or the Run workflow button.
+# Builds the images of the branch, sends the labelled set through the real agent with the stock model, trains a new
+# model, installs it like an administrator, sends the held-out part through it and decides whether it may be released
+# (scripts/train-model.sh). The model, its card and the report are in the artifact "waf-model"; the report is also in
+# the Summary of the run. Nothing is published: a model that passed is released by hand (docs/MODEL.md).
+name: Training
+
+on:
+  # every branch: the job below runs on training/** and on [train] only
+  push:
+  workflow_dispatch:
+    inputs:
+      legit_fraction:
+        description: Share of the legitimate requests of the WAF Comparison Project (1 = all, about 6 h)
+        default: "0.15"
+      l2:
+        description: L2 regularization of the logistic regression
+        default: "1.0"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: training-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  LEGIT_FRACTION: ${{ inputs.legit_fraction || '0.15' }}
+  L2: ${{ inputs.l2 || '1.0' }}
+  WCP_DATA: https://downloads.openappsec.io/waf-comparison-project
+
+jobs:
+  train:
+    name: Train and evaluate the WAF model
+    if: >-
+      github.event_name != 'push' || startsWith(github.ref, 'refs/heads/training/') ||
+      contains(github.event.head_commit.message, '[train]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: versions
+        run: |
+          {
+            echo "VERSION=train-$(git rev-parse --short HEAD)"
+            grep -E "^[A-Z_]+=" deploy/openappsec/sources.env
+            echo "CROWDSEC_VERSION=$(sed -n 's/^CROWDSEC_VERSION=//p' deploy/.env)"
+          } >> "$GITHUB_ENV"
+      - name: trainer (Python) and its tests
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install --quiet -r model/requirements.txt
+          .venv/bin/python -m unittest discover -s model
+      - name: data
+        env:
+          GH_REPO: ${{ github.repository }}
+        run: |
+          mkdir -p data
+          # the WAF Comparison Project sets (legitimate.zip: 1.2 GB)
+          for f in legitimate malicious; do
+            curl -sSfL --retry 5 --retry-all-errors -o "data/$f.zip" "$WCP_DATA/$f.zip"
+          done
+          # the false positives of mgm-web-attack-payloads from the reference sources (branch main)
+          git fetch --quiet --depth 1 "https://github.com/$GH_REPO.git" main
+          git archive FETCH_HEAD mgm-web-attack-payloads-main/nuclei/payloads | tar -x -C data
+          python3 model/datasets.py --legit data/legitimate.zip --legit-fraction "$LEGIT_FRACTION" \
+            --malicious data/malicious.zip --mgm data/mgm-web-attack-payloads-main/nuclei/payloads \
+            --out data/samples.jsonl
+          rm data/legitimate.zip
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+        with:
+          driver-opts: env.BUILDKIT_STEP_LOG_MAX_SIZE=-1
+      - name: build npmos
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: npmos
+          load: true
+          tags: local/npmos:${{ env.VERSION }}
+          # the cache of the CI build; this workflow only reads it
+          cache-from: type=gha,scope=npmos-amd64
+          build-args: |
+            CROWDSEC_VERSION=${{ env.CROWDSEC_VERSION }}
+            FLAGS=-march=x86-64-v2 -mtune=generic -fcf-protection=full
+      - name: build npmos-openappsec
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: deploy/openappsec
+          build-contexts: control=npmos/backend/npmos/control
+          load: true
+          tags: local/npmos-openappsec:${{ env.VERSION }}
+          cache-from: |
+            type=gha,scope=openappsec-train
+            type=gha,scope=openappsec-amd64
+          cache-to: type=gha,mode=max,scope=openappsec-train
+          build-args: |
+            OPENAPPSEC_REF=${{ env.OPENAPPSEC_REF }}
+            SHARED_FILES_REF=${{ env.SHARED_FILES_REF }}
+            TUNING_REF=${{ env.TUNING_REF }}
+      - name: train and evaluate
+        env:
+          NPMOS_REGISTRY: local
+          NPMOS_VERSION: ${{ env.VERSION }}
+          PYTHON: .venv/bin/python
+          SAMPLES: data/samples.jsonl
+          MODEL_NAME: ${{ github.ref_name }}-${{ github.run_number }}
+        run: scripts/train-model.sh
+      - name: report
+        if: always()
+        run: |
+          if [ -s model-work/report.md ]; then cat model-work/report.md >> "$GITHUB_STEP_SUMMARY"
+          else echo "## Модель WAF: обучение не дошло до сравнения (см. журнал шага train and evaluate)" >> "$GITHUB_STEP_SUMMARY"; fi
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: waf-model
+          if-no-files-found: ignore
+          retention-days: 30
+          path: |
+            model-work/out/
+            model-work/metrics.json
+            model-work/report.md
+            model-work/policy.json
+            model-work/verdicts-*.jsonl

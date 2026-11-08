@@ -4,7 +4,6 @@
 import { createHash } from "node:crypto";
 import { open, truncate } from "node:fs/promises";
 import { global as logger } from "../../logger.js";
-import { emitEvents } from "../events/ingest.js";
 import { loadCursors, oldestKeptDay, store } from "../events/store.js";
 import { getSetting } from "../settings.js";
 
@@ -16,9 +15,10 @@ const HEAD_BYTES = 64;
 /** the log is emptied when everything is read and it is larger (logrotate may be off) */
 const TRUNCATE_BYTES = 10 * 1024 * 1024;
 
-const state = { running: false, timer: null, lastError: null, stored: 0 };
+const state = { running: false, timer: null, lastError: null };
 
 const str = (v, max = 255) => String(v ?? "").slice(0, max);
+// nosemgrep: npmos-weak-hash -- recognizes a rotated log by its first bytes (a cursor stored in the database), not a secret
 const hash = (b) => createHash("sha1").update(b).digest("hex");
 
 /**
@@ -123,8 +123,6 @@ export const pollOnce = async ({ file = LOG_FILE, now = new Date() } = {}) => {
 	} finally {
 		await handle.close();
 	}
-	state.stored += events.length;
-	emitEvents(events);
 	return events;
 };
 
@@ -144,9 +142,4 @@ export const startDenials = () => {
 	if (state.running) return;
 	state.running = true;
 	state.timer = setTimeout(round, 1000);
-};
-
-export const stopDenials = () => {
-	state.running = false;
-	clearTimeout(state.timer);
 };

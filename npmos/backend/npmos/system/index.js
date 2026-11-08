@@ -34,9 +34,12 @@ const internalSystem = {
 		await access.can("settings:manage");
 		const saved = { ...(await getSetting("system.env")) };
 		const changed = {};
-		for (const { env, value } of values) {
-			const def = SYSTEM_ENV.find((d) => d.env === env);
-			if (def?.type === "secret" && value === SECRET_SET) continue;
+		for (const { env: asked, value } of values) {
+			const def = SYSTEM_ENV.find((d) => d.env === asked);
+			if (!def) throw new errs.ValidationError(`Unknown setting ${asked}`);
+			// the name of the list, not the one of the request: keys are only known settings
+			const env = def.env;
+			if (def.type === "secret" && value === SECRET_SET) continue;
 			const normalized = normalize(env, value);
 			if (normalized === undefined) throw new errs.ValidationError(`Invalid value for ${env}`);
 			// a value equal to the running one and to the default needs no line in runtime.env

@@ -11,19 +11,19 @@ import { RefsEditor } from "../policy/RefsEditor";
 import { useCan } from "../rbac/hooks";
 
 export const MODES: WafMode[] = ["detect-learn", "prevent-learn"];
-export const CONFIDENCES: WafConfidence[] = ["medium", "high", "critical"];
+const CONFIDENCES: WafConfidence[] = ["medium", "high", "critical"];
 
 /** location choice in the form: inherit the host, off, or an own mode */
 type LocationChoice = "inherit" | "off" | WafMode;
 
-export interface WafFormLocation {
+interface WafFormLocation {
 	choice: LocationChoice;
 	minimumConfidence: WafConfidence;
 	/** own objects of the policy; null: those of the host */
 	objects: HostObjects;
 }
 
-export interface WafFormValues {
+interface WafFormValues {
 	enabled: boolean;
 	mode: WafMode;
 	minimumConfidence: WafConfidence;

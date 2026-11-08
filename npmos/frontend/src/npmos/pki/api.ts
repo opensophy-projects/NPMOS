@@ -15,7 +15,7 @@ export const REVOKE_REASONS = [
 	"cessationOfOperation",
 	"certificateHold",
 ] as const;
-export const SUBJECT_FIELDS = [
+const SUBJECT_FIELDS = [
 	"commonName",
 	"organization",
 	"organizationalUnit",
@@ -27,13 +27,13 @@ export const SUBJECT_FIELDS = [
 export type SubjectField = (typeof SUBJECT_FIELDS)[number];
 export type Subject = Partial<Record<SubjectField, string>>;
 
-export interface Sans {
+interface Sans {
 	dns: string[];
 	ip: string[];
 	email: string[];
 }
 
-export type CaKind = "root" | "intermediate" | "external";
+type CaKind = "root" | "intermediate" | "external";
 
 export interface PkiCa {
 	id: number;
@@ -187,7 +187,7 @@ export interface IssueResult {
 	renewToken?: string | null;
 }
 
-export interface FileResult {
+interface FileResult {
 	filename: string;
 	contentType: string;
 	dataBase64: string;
@@ -267,7 +267,7 @@ export const createLink = (
 	data: { hours: number; password?: string; compatible?: boolean },
 ): Promise<{ link: OneTimeLink; password: string }> => api.post({ url: `/npmos/pki/certs/${id}/links`, data });
 
-export interface CertLink {
+interface CertLink {
 	id: number;
 	createdOn: string;
 	expiresOn: string;
@@ -323,7 +323,7 @@ export interface MtlsHost extends MtlsBinding {
 
 export type MtlsList = Record<"proxyHost" | "stream", Record<string, MtlsBinding>>;
 
-export const getMtlsHosts = (): Promise<MtlsList> => api.get({ url: "/npmos/mtls" });
+const getMtlsHosts = (): Promise<MtlsList> => api.get({ url: "/npmos/mtls" });
 
 export const useMtlsHosts = (options = {}) =>
 	useQuery<MtlsList, Error>({ queryKey: ["npmos-mtls-hosts"], queryFn: getMtlsHosts, staleTime: 15000, ...options });

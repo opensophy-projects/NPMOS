@@ -3,18 +3,20 @@
 // files on disk that no record describes (left by a migration, an old host, a manual copy). RBAC: TLS rows
 // with certificates:view, PKI rows with pki:view, files with either.
 import { X509Certificate } from "node:crypto";
-import { readdir, readFile, stat } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import db from "../db.js";
-import { termOf } from "./cert-terms.js";
 import errs from "../lib/error.js";
+import { termOf } from "./cert-terms.js";
+import { readWithStat } from "./files.js";
+import { firstPemCertificate } from "./pem.js";
 
 const DAY = 86400000;
 /** "expiring": less than this many days left */
-export const EXPIRING_DAYS = 30;
+const EXPIRING_DAYS = 30;
 const MAX_LIMIT = 200;
-export const SOURCES = ["tls", "ca", "pki", "file"];
-export const STATUSES = ["valid", "expiring", "expired", "revoked"];
+const SOURCES = ["tls", "ca", "pki", "file"];
+const STATUSES = ["valid", "expiring", "expired", "revoked"];
 const SORTS = ["expires", "-expires", "name", "-created"];
 const HOST_TABLES = ["proxy_host", "redirection_host", "dead_host", "stream"];
 /** directories with certificate files of nginx, certbot, NPMplus and the PKI */
@@ -94,10 +96,10 @@ const hostUsage = async () => {
 const caUsage = async () => (await (await import("./pki/mtls.js")).usage()).cas;
 
 const firstCert = (pem) => {
-	const m = /-----BEGIN CERTIFICATE-----[\s\S]+?-----END CERTIFICATE-----/.exec(pem);
-	if (!m) return null;
+	const first = firstPemCertificate(pem);
+	if (!first) return null;
 	try {
-		return new X509Certificate(m[0]);
+		return new X509Certificate(first);
 	} catch {
 		return null;
 	}
@@ -126,9 +128,11 @@ const scanFiles = async () => {
 			// certbot's live/ holds links to archive/: the archive files are listed once
 			if (!/\.(pem|crt|cer)$/i.test(entry.name) || /key|privkey/i.test(entry.name)) continue;
 			if (entry.isSymbolicLink() || !entry.isFile()) continue;
-			const info = await stat(full).catch(() => null);
-			if (!info || info.size > 1024 * 1024) continue;
-			const x509 = firstCert(await readFile(full, "utf8").catch(() => ""));
+			const read = await readWithStat(full, { encoding: "utf8", accept: (s) => s.size <= 1024 * 1024 }).catch(
+				() => null,
+			);
+			if (!read?.data) continue;
+			const x509 = firstCert(read.data);
 			if (x509) found.push({ path: full, x509, fingerprint: x509.fingerprint256 });
 			if (found.length >= SCAN_MAX_FILES) return;
 		}

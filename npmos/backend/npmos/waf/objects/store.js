@@ -1,8 +1,8 @@
 // Objects of the policy in the database and the policy built from them (v1beta2 terms): the default
 // policy, a rule per protected proxy host and location, every object.
 import db from "../../../db.js";
-import { learningExceptions } from "../../learning/policy.js";
 import { ruleHost } from "../../learning/model.js";
+import { learningExceptions } from "../../learning/policy.js";
 import { getSetting } from "../../settings.js";
 import { BUILTIN, builtinSpec, DEFAULT_POLICY, KINDS, RULE_FIELDS } from "./model.js";
 
@@ -40,7 +40,7 @@ export const listObjects = async () =>
 /**
  * References of a rule ({field: id | [id]}) → names; fields not given stay undefined (inherited).
  */
-export const resolveRule = (refs, byId) => {
+const resolveRule = (refs, byId) => {
 	const out = {};
 	for (const [field, { many }] of Object.entries(RULE_FIELDS)) {
 		const value = refs?.[field];

@@ -21,7 +21,6 @@ export type HubType = (typeof HUB_TYPES)[number];
 /** durations the GUI offers; the API takes any number of m, h or d */
 // 3650d is "forever": CrowdSec decisions always have a duration
 export const DURATIONS = ["15m", "1h", "4h", "12h", "24h", "7d", "30d", "3650d"] as const;
-export const FOREVER = "3650d";
 
 export interface CrowdsecProfile {
 	name: string;
@@ -92,12 +91,12 @@ export interface Bouncer {
 	authType: string;
 }
 
-export interface Counter {
+interface Counter {
 	key: string;
 	value: number;
 }
 
-export interface CrowdsecMetrics {
+interface CrowdsecMetrics {
 	version: string;
 	linesRead: Counter[];
 	linesParsed: number;
@@ -186,7 +185,7 @@ export interface Blocklist {
 	sync?: { count?: number; invalid?: number; error?: string } | null;
 }
 
-export interface CrowdsecHosts {
+interface CrowdsecHosts {
 	/** the bouncer of NPMOS (CrowdSec → Settings) */
 	bouncerEnabled: boolean;
 	perHost: boolean | null;
@@ -196,7 +195,7 @@ export interface CrowdsecHosts {
 	hosts: { hostType: string; hostId: number; bouncer: boolean }[];
 }
 
-export interface ApplyResult {
+interface ApplyResult {
 	applied?: boolean;
 	changed: string[];
 	installed: string[];
@@ -207,7 +206,7 @@ export interface ApplyResult {
 	bouncerChanged?: boolean;
 }
 
-export const getOverview = (): Promise<CrowdsecOverview> => api.get({ url: "/npmos/crowdsec" });
+const getOverview = (): Promise<CrowdsecOverview> => api.get({ url: "/npmos/crowdsec" });
 export const useCrowdsec = (options = {}) =>
 	useQuery<CrowdsecOverview, Error>({
 		queryKey: ["npmos-crowdsec"],
@@ -234,13 +233,8 @@ export const setSettings = (data: CrowdsecSettings): Promise<CrowdsecSettings & 
 
 export const applySettings = (): Promise<ApplyResult> => api.post({ url: "/npmos/crowdsec/apply" });
 
-export const getAlerts = (params: {
-	ip?: string;
-	scenario?: string;
-	since?: string;
-	limit?: number;
-	active?: boolean;
-}) => api.get({ url: "/npmos/crowdsec/alerts", params }) as Promise<CrowdsecAlert[]>;
+const getAlerts = (params: { ip?: string; scenario?: string; since?: string; limit?: number; active?: boolean }) =>
+	api.get({ url: "/npmos/crowdsec/alerts", params }) as Promise<CrowdsecAlert[]>;
 export const useAlerts = (params: Parameters<typeof getAlerts>[0], options = {}) =>
 	useQuery<CrowdsecAlert[], Error>({
 		queryKey: ["npmos-crowdsec-alerts", params],
@@ -249,7 +243,7 @@ export const useAlerts = (params: Parameters<typeof getAlerts>[0], options = {})
 		...options,
 	});
 
-export const getDecisions = (params: { q?: string; type?: string; origin?: string; offset?: number; limit?: number }) =>
+const getDecisions = (params: { q?: string; type?: string; origin?: string; offset?: number; limit?: number }) =>
 	api.get({ url: "/npmos/crowdsec/decisions", params }) as Promise<{ total: number; items: Decision[] }>;
 export const useDecisions = (params: Parameters<typeof getDecisions>[0], options = {}) =>
 	useQuery<{ total: number; items: Decision[] }, Error>({
@@ -264,7 +258,7 @@ export const ban = (data: { values: string[]; type?: string; duration?: string; 
 export const unban = (data: { ids?: number[]; values?: string[] }) =>
 	api.post({ url: "/npmos/crowdsec/decisions/delete", data }) as Promise<{ deleted: number }>;
 
-export const getRegistry = (): Promise<{
+const getRegistry = (): Promise<{
 	machines: Machine[];
 	bouncers: Bouncer[];
 	ownMachine: string;
@@ -275,7 +269,7 @@ export const deleteRegistered = (kind: "machines" | "bouncers", name: string) =>
 export const useRegistry = (options = {}) =>
 	useQuery({ queryKey: ["npmos-crowdsec-registry"], queryFn: getRegistry, staleTime: 10000, ...options });
 
-export const getHub = (params: { type?: string; q?: string; installed?: boolean }) =>
+const getHub = (params: { type?: string; q?: string; installed?: boolean }) =>
 	api.get({ url: "/npmos/crowdsec/hub", params }) as Promise<HubItem[]>;
 export const useHub = (params: Parameters<typeof getHub>[0], options = {}) =>
 	useQuery<HubItem[], Error>({
@@ -306,7 +300,7 @@ const rawRequest = async (method: string, url: string, body: Blob | string, cont
 export const uploadHubSnapshot = (file: File): Promise<{ items: number; data_files: number }> =>
 	rawRequest("POST", "/npmos/crowdsec/hub/snapshot", file, "application/octet-stream");
 
-export const getBlocklists = (): Promise<Blocklist[]> => api.get({ url: "/npmos/crowdsec/blocklists" });
+const getBlocklists = (): Promise<Blocklist[]> => api.get({ url: "/npmos/crowdsec/blocklists" });
 export const useBlocklists = (options = {}) =>
 	useQuery<Blocklist[], Error>({ queryKey: ["npmos-crowdsec-blocklists"], queryFn: getBlocklists, ...options });
 
@@ -351,7 +345,7 @@ export const setShare = (enabled: boolean): Promise<{ enabled: boolean; token: s
 /** address other NPMOS nodes download the decisions of this one from */
 export const shareUrl = () => `${window.location.origin}/api/npmos/crowdsec/public/decisions`;
 
-export const getCrowdsecHosts = (): Promise<CrowdsecHosts> => api.get({ url: "/npmos/crowdsec/hosts" });
+const getCrowdsecHosts = (): Promise<CrowdsecHosts> => api.get({ url: "/npmos/crowdsec/hosts" });
 export const useCrowdsecHosts = (options = {}) =>
 	useQuery<CrowdsecHosts, Error>({
 		queryKey: ["npmos-crowdsec-hosts"],

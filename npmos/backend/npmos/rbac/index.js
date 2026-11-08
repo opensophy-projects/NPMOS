@@ -1,7 +1,8 @@
 // RBAC of NPMOS: roles in the database (npmos_role, npmos_role_permission, npmos_user_role), the
 // adapter for upstream access.can() and the API of Administration → Roles. Rules: ./model.js.
-import internalAuditLog from "../../internal/audit-log.js";
+
 import db from "../../db.js";
+import internalAuditLog from "../../internal/audit-log.js";
 import errs from "../../lib/error.js";
 import { debug, access as logger } from "../../logger.js";
 import userModel from "../../models/user.js";

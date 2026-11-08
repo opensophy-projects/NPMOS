@@ -1,0 +1,10 @@
+# CodeQL (.github/workflows/security.yml): what is not code of the product
+name: NPMOS
+paths-ignore:
+  - "**/node_modules"
+  - "**/dist"
+  - "**/*.test.js"
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+  - npmos/frontend/src/locale
+  - deploy/test/fixtures

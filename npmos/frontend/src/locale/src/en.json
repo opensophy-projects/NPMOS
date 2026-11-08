@@ -902,35 +902,8 @@
 	"npmos.analytics": {
 		"defaultMessage": "Analytics"
 	},
-	"npmos.analytics.actions": {
-		"defaultMessage": "Security actions"
-	},
 	"npmos.analytics.all-hosts": {
 		"defaultMessage": "All hosts"
-	},
-	"npmos.analytics.attacks": {
-		"defaultMessage": "Attacks"
-	},
-	"npmos.analytics.countries": {
-		"defaultMessage": "Countries"
-	},
-	"npmos.analytics.crowdsec-alerts": {
-		"defaultMessage": "{count} CrowdSec alerts"
-	},
-	"npmos.analytics.crowdsec-bans": {
-		"defaultMessage": "CrowdSec bans"
-	},
-	"npmos.analytics.description": {
-		"defaultMessage": "Requests to the hosts and the attacks the agents saw in them, from the data NPMOS keeps. Click a row to open its events."
-	},
-	"npmos.analytics.detected": {
-		"defaultMessage": "Detected only"
-	},
-	"npmos.analytics.last-blocked": {
-		"defaultMessage": "Last blocked requests"
-	},
-	"npmos.analytics.levels": {
-		"defaultMessage": "Attack severity"
 	},
 	"npmos.analytics.live": {
 		"defaultMessage": "Live"
@@ -956,95 +929,14 @@
 	"npmos.analytics.live.window": {
 		"defaultMessage": "last 5 minutes, refreshed every 5 s"
 	},
-	"npmos.analytics.no-attacks": {
-		"defaultMessage": "No attacks in this period"
-	},
-	"npmos.analytics.none": {
-		"defaultMessage": "Nothing in this period"
-	},
-	"npmos.analytics.note": {
-		"defaultMessage": "Short periods are counted from the events, the timeline of longer ones from the hourly statistics; both are kept as set in Analytics → Events → Retention. Learning readiness per host comes with phase 8."
-	},
-	"npmos.analytics.prevented": {
-		"defaultMessage": "Blocked"
-	},
-	"npmos.analytics.prevented-n": {
-		"defaultMessage": "blocked {n}"
-	},
-	"npmos.analytics.requests": {
-		"defaultMessage": "Requests"
-	},
-	"npmos.analytics.requests.none": {
-		"defaultMessage": "The agent has not reported traffic statistics yet"
-	},
-	"npmos.analytics.section.attacks": {
-		"defaultMessage": "Attacks"
-	},
-	"npmos.analytics.section.traffic": {
-		"defaultMessage": "Traffic of the hosts"
-	},
-	"npmos.analytics.series.detect": {
-		"defaultMessage": "Detected (Detect)"
-	},
-	"npmos.analytics.series.other": {
-		"defaultMessage": "Other actions"
-	},
-	"npmos.analytics.series.prevent": {
-		"defaultMessage": "Blocked (Prevent)"
-	},
-	"npmos.analytics.sources": {
-		"defaultMessage": "Attack sources"
-	},
-	"npmos.analytics.timeline": {
-		"defaultMessage": "Attacks over time"
-	},
-	"npmos.analytics.top-hosts": {
-		"defaultMessage": "Most attacked hosts"
-	},
-	"npmos.analytics.top-sources": {
-		"defaultMessage": "Top attack sources (Critical, High)"
-	},
-	"npmos.analytics.top-types": {
-		"defaultMessage": "Attack types"
-	},
-	"npmos.analytics.top-uris": {
-		"defaultMessage": "Most attacked URIs"
-	},
-	"npmos.analytics.traffic.4xx": {
-		"defaultMessage": "Client errors (4xx)"
-	},
-	"npmos.analytics.traffic.5xx": {
-		"defaultMessage": "Server errors (5xx)"
-	},
 	"npmos.analytics.traffic.blocked": {
 		"defaultMessage": "Refused"
-	},
-	"npmos.analytics.traffic.host-sub": {
-		"defaultMessage": "errors {errors}, refused {blocked}"
-	},
-	"npmos.analytics.traffic.hosts": {
-		"defaultMessage": "Requests by host"
 	},
 	"npmos.analytics.traffic.none": {
 		"defaultMessage": "No requests in this period"
 	},
-	"npmos.analytics.traffic.ok": {
-		"defaultMessage": "Answered normally (2xx, 3xx)"
-	},
 	"npmos.analytics.traffic.passed": {
 		"defaultMessage": "Passed"
-	},
-	"npmos.analytics.traffic.requests": {
-		"defaultMessage": "Requests"
-	},
-	"npmos.analytics.traffic.sent": {
-		"defaultMessage": "{bytes} sent to clients"
-	},
-	"npmos.analytics.traffic.share": {
-		"defaultMessage": "{p} of all"
-	},
-	"npmos.analytics.traffic.timeline": {
-		"defaultMessage": "Requests over time"
 	},
 	"npmos.api.not-json": {
 		"defaultMessage": "{host} gave an unexpected answer (HTTP {status}) that did not come from NPMOS."
@@ -4154,14 +4046,8 @@
 	"npmos.nav.overview": {
 		"defaultMessage": "Overview"
 	},
-	"npmos.nav.security": {
-		"defaultMessage": "Security"
-	},
 	"npmos.nav.skip": {
 		"defaultMessage": "Skip to content"
-	},
-	"npmos.nav.system": {
-		"defaultMessage": "System"
 	},
 	"npmos.nav.theme-dark": {
 		"defaultMessage": "Dark theme"
@@ -4169,14 +4055,8 @@
 	"npmos.nav.theme-light": {
 		"defaultMessage": "Light theme"
 	},
-	"npmos.nav.tls": {
-		"defaultMessage": "TLS"
-	},
 	"npmos.nav.user-menu": {
 		"defaultMessage": "User menu"
-	},
-	"npmos.nav.waf-policy": {
-		"defaultMessage": "WAF policy"
 	},
 	"npmos.notice.alert": {
 		"defaultMessage": "Problem"
@@ -4583,9 +4463,6 @@
 	"npmos.overview.analytics.last": {
 		"defaultMessage": "Last event"
 	},
-	"npmos.overview.analytics.note": {
-		"defaultMessage": "Stored events of the agent for the last 24 hours. Charts are in Analytics."
-	},
 	"npmos.overview.analytics.prevented": {
 		"defaultMessage": "Of them blocked"
 	},
@@ -4673,9 +4550,6 @@
 	"npmos.overview.off": {
 		"defaultMessage": "Off"
 	},
-	"npmos.overview.on": {
-		"defaultMessage": "On"
-	},
 	"npmos.overview.open": {
 		"defaultMessage": "Open"
 	},
@@ -4715,17 +4589,11 @@
 	"npmos.overview.waf.agent-ok": {
 		"defaultMessage": "available"
 	},
-	"npmos.overview.waf.hosts": {
-		"defaultMessage": "Proxy hosts: {mode}"
-	},
 	"npmos.overview.waf.modes": {
 		"defaultMessage": "Hosts: block · detect · off"
 	},
 	"npmos.overview.waf.modes.value": {
 		"defaultMessage": "{prevent} · {detect} · {off}"
-	},
-	"npmos.overview.waf.state": {
-		"defaultMessage": "Protection"
 	},
 	"npmos.pki": {
 		"defaultMessage": "PKI and mTLS"
@@ -6584,9 +6452,6 @@
 	"npmos.system.saved": {
 		"defaultMessage": "Saved: applied at the next restart of NPMOS"
 	},
-	"npmos.system.secret.set": {
-		"defaultMessage": "set — enter a new one to replace it"
-	},
 	"npmos.traffic.answer.403": {
 		"defaultMessage": "Refused (403)"
 	},
@@ -7496,12 +7361,6 @@
 	"npmos.waf.apply": {
 		"defaultMessage": "Apply now"
 	},
-	"npmos.waf.badge.detect": {
-		"defaultMessage": "Detect"
-	},
-	"npmos.waf.badge.prevent": {
-		"defaultMessage": "Prevent"
-	},
 	"npmos.waf.description": {
 		"defaultMessage": "open-appsec machine-learning web application firewall"
 	},
@@ -7710,13 +7569,22 @@
 		"defaultMessage": "Advanced ML model"
 	},
 	"npmos.waf.model.basic": {
-		"defaultMessage": "Basic model"
+		"defaultMessage": "Built-in model: Check Point advanced model (V2.0)"
 	},
 	"npmos.waf.model.description": {
-		"defaultMessage": "open-appsec ships with a basic model. The advanced model (open-appsec-advanced-model.tgz, downloaded separately from open-appsec) detects more attacks with fewer false positives. It is unpacked when the agent starts; the upload restarts the agent."
+		"defaultMessage": "NPMOS ships with the advanced model of Check Point (Advanced model, V2.0). Another model (open-appsec-advanced-model.tgz, for example one trained by NPMOS, see docs/MODEL.md) replaces it: it is unpacked when the agent starts; the upload restarts the agent."
 	},
 	"npmos.waf.model.present": {
 		"defaultMessage": "Uploaded: {size}, {date}"
+	},
+	"npmos.waf.model.remove": {
+		"defaultMessage": "Remove model"
+	},
+	"npmos.waf.model.remove-warning": {
+		"defaultMessage": "The agent restarts and goes back to the built-in model of the image (Check Point advanced model)."
+	},
+	"npmos.waf.model.removed": {
+		"defaultMessage": "Model removed, the agent is restarting"
 	},
 	"npmos.waf.model.upload": {
 		"defaultMessage": "Upload model (.tgz)"

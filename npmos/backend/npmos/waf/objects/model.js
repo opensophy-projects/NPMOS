@@ -42,7 +42,7 @@ const isObject = (v) => v !== null && typeof v === "object" && !Array.isArray(v)
  * Fills what is missing from the defaults of the schema; nested objects of the schema are created
  * (every one of them has defaults), lists are not.
  */
-export const withDefaults = (node, value) => {
+const withDefaults = (node, value) => {
 	if (node?.type === "object" || node?.properties) {
 		const out = isObject(value) ? { ...value } : {};
 		for (const [key, child] of Object.entries(node.properties || {})) {
@@ -75,7 +75,7 @@ const fixups = {
  * @returns {{spec?: object, errors?: string[]}}
  */
 export const normalize = (kind, input) => {
-	if (!KINDS[kind]) return { errors: [`unknown kind ${kind}`] };
+	if (typeof kind !== "string" || !Object.hasOwn(KINDS, kind)) return { errors: [`unknown kind ${kind}`] };
 	const { name, appsecClassName, ...rest } = isObject(input) ? input : {};
 	let spec = withDefaults(itemSchema(kind), rest);
 	if (fixups[kind]) spec = fixups[kind](spec);

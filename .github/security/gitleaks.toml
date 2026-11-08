@@ -1,0 +1,40 @@
+# Gitleaks: secrets in the files and in the whole history of git. The default rules, and the places that hold
+# examples rather than secrets (each allowlist says why).
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "examples of upstream NPMplus: forms of the DNS plugins, the API schema, ech.sh, the 2FA strings of the locales"
+paths = [
+  '''(^|/)backend/certbot/dns-plugins\.json$''',
+  '''(^|/)global/certbot-dns-plugins\.json$''',
+  '''(^|/)backend/schema/paths/''',
+  '''(^|/)rootfs/usr/local/bin/ech\.sh$''',
+  '''(^|/)frontend/src/locale/(lang|src)/[a-z-]+\.json$''',
+]
+
+[[allowlists]]
+description = "reference sources removed from the repository (open-appsec, open-appsec-npm, smartsync, payload lists): only the history holds them"
+paths = ['''^(openappsec-main|open-appsec-npm-master|smartsync-tuning-main|newpayloads-newpayloads|NPMplus)/''']
+
+[[allowlists]]
+description = "a test of NPMOS: a masked private key that checks the redaction of diagnostic archives"
+paths = ['''^npmos/backend/npmos/redact\.test\.js$''']
+
+[[allowlists]]
+description = "squashed imports of upstream NPMplus (git subtree): the example values of its old compose.yaml"
+commits = ["2e646bac59947309643e9d8a879efdbedad58d3d", "acb35371302bac8d980095ee67a29197d96f3bcd"]
+paths = ['''^compose\.yaml$''']
+
+[[allowlists]]
+description = "the first version of agent patch 0005 kept the git function context in a hunk header (isKeyCspReport(const std::string &key, ...)), which reads as an API key; later versions have no such context"
+commits = ["1d6a369223b4f7089df34e3db8bb5f25587c46dc"]
+paths = ['''^deploy/openappsec/agent/patches/0005-feature-dump-for-training\.patch$''']
+
+[[allowlists]]
+description = "the model of the agent (the advanced model of Check Point): attack keywords and regular expressions of the signatures, not secrets; model/waap.data is where it was first uploaded"
+paths = ['''^deploy/openappsec/agent/waap\.data$''', '''^model/waap\.data$''']
+
+[[allowlists]]
+description = "the reports of the scan itself (out/): the scan of the files runs after the scan of the history wrote its report there"
+paths = ['''^out/''']
