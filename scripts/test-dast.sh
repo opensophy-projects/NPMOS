@@ -34,8 +34,10 @@ cleanup() {
     "${compose[@]}" logs --no-color --tail 60 || true
   fi
   [ "${KEEP:-}" = 1 ] || "${compose[@]}" down -v --remove-orphans > /dev/null 2>&1 || true
+  rm -rf "$templates"
   exit $status
 }
+templates=$(mktemp -d)
 trap cleanup EXIT
 
 "${compose[@]}" up -d --no-build nginxions openappsec crowdsec test-upstream
@@ -84,7 +86,13 @@ scan zap-host zap "$ZAP_IMAGE" zap-baseline.py -t https://dast.local/ -J zap-hos
 
 # what NginxionS serves itself: the interface and the default host (80, 443). Not dast.local: its site (whoami) echoes
 # every request back, which templates take for the product they look for.
-scan nuclei "${run[@]}" "$NUCLEI_IMAGE" -silent -no-color -severity low,medium,high,critical \
+# Its templates are a pinned commit fetched with git (tools.env), not downloaded by Nuclei at its start (-duc).
+echo "==> nuclei templates"
+git -C "$templates" init -q
+git -C "$templates" fetch -q --depth 1 https://github.com/projectdiscovery/nuclei-templates "$NUCLEI_TEMPLATES_REF"
+git -C "$templates" checkout -q FETCH_HEAD
+scan nuclei "${run[@]}" -v "$templates:/templates:ro" -v "$templates/.nuclei-ignore:/root/.config/nuclei/.nuclei-ignore:ro" \
+  "$NUCLEI_IMAGE" -ud /templates -duc -silent -no-color -severity low,medium,high,critical \
   -rate-limit 60 -timeout 10 -u https://nginxions:81 -u http://nginxions -u https://nginxions -jsonl -o /out/nuclei.jsonl
 
 # testssl.sh: its exit code counts findings; a report is what tells a finished scan
