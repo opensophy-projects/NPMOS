@@ -215,8 +215,12 @@ ARG NODE_ENV=production
 ARG NODE_OPTIONS=--use-openssl-ca
 WORKDIR /app
 COPY backend/package.json backend/pnpm-lock.yaml backend/pnpm-workspace.yaml /app/
+# NginxionS: better-sqlite3 has no prebuilt binary for every Node.js of Alpine (none for 24.22.1/musl): node-gyp,
+# a compiler and the headers of Node.js build it from its source then. Only in this stage, not in the image.
 RUN apk upgrade --no-cache -a && \
-    apk add --no-cache nodejs pnpm llvm file && \
+    apk add --no-cache nodejs pnpm llvm file nodejs-dev npm python3 make g++ && \
+    ln -s /usr/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js /usr/local/bin/node-gyp && \
+    export npm_config_nodedir=/usr && \
     pnpm install --frozen-lockfile --prod && \
     pnpm cache delete && \
     find /app/node_modules -name "*.map" -delete && \
