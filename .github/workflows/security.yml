@@ -48,7 +48,7 @@ jobs:
         with:
           sarif_file: out/semgrep.sarif
           category: semgrep
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: security-semgrep
@@ -84,7 +84,7 @@ jobs:
         env:
           LANGUAGE: ${{ matrix.language }}
         run: for f in out/*.sarif; do mv "$f" "out/codeql-$LANGUAGE.sarif"; done
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: security-codeql-${{ matrix.language }}
@@ -117,7 +117,7 @@ jobs:
         with:
           sarif_file: out/gitleaks.sarif
           category: gitleaks
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: security-secrets
@@ -163,7 +163,7 @@ jobs:
         with:
           sarif_file: out/osv.sarif
           category: osv-scanner
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: security-sca
@@ -199,7 +199,7 @@ jobs:
         with:
           sarif_file: out/kics/results.sarif
           category: kics
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: security-iac
@@ -233,7 +233,7 @@ jobs:
         with:
           sarif_file: out/zizmor.sarif
           category: zizmor
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: security-workflows
@@ -277,7 +277,7 @@ jobs:
           pnpm add --save-dev "@vitest/coverage-v8@$VITEST_COVERAGE_VERSION" > /dev/null
           pnpm vitest run --coverage.enabled --coverage.provider=v8 --coverage.reporter=json-summary \
             --coverage.include='src/npmos/**' --coverage.reportsDirectory=../../out/coverage-frontend
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: security-quality
@@ -307,7 +307,7 @@ jobs:
         with:
           sarif_file: out/scorecard.sarif
           category: scorecard
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: security-scorecard
@@ -343,7 +343,7 @@ jobs:
                 --file "/out/grype-$name.json"
             done
           done
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: security-published
@@ -366,7 +366,7 @@ jobs:
           merge-multiple: true
       - name: summary
         run: node scripts/security-report.mjs --in reports --out security-report --summary "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: security-report
