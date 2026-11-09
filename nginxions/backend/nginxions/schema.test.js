@@ -22,3 +22,9 @@ test("names that go into the config of nginx refuse its syntax", () => {
 	assert.ok(!forwardHost.test("app/path"));
 	assert.ok(forwardDomain.test("example.com/path"));
 });
+
+test("an id stays within the integer of Postgres (a bigger one made the query fail with 500)", () => {
+	const id = read("common.json").properties.id;
+	assert.equal(id.minimum, 1);
+	assert.equal(id.maximum, 2147483647);
+});

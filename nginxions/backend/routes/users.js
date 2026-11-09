@@ -7,6 +7,7 @@ import jwtdecode from "../lib/express/jwt-decode.js";
 import userIdFromMe from "../lib/express/user-id-from-me.js";
 import apiValidator from "../lib/validator/api.js";
 import validator from "../lib/validator/index.js";
+import { sensitiveLimiter } from "../nginxions/rate-limit.js"; // NginxionS: limit of the login as another user
 import { debug, express as logger } from "../logger.js";
 import { getValidationSchema } from "../schema/index.js";
 import { isSetup } from "../setup.js";
@@ -258,7 +259,7 @@ router
 	 *
 	 * Log in as a user
 	 */
-	.post(async (req, res, next) => {
+	.post(sensitiveLimiter, async (req, res, next) => {
 		try {
 			const result = await internalUser.loginAs(res.locals.access, {
 				id: Number.parseInt(req.params.user_id, 10),

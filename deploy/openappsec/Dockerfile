@@ -9,13 +9,12 @@
 #
 #   docker build --build-context control=nginxions/backend/nginxions/control -t nginxions-openappsec deploy/openappsec
 #
-# Alpine 3.22 for the agent: newer releases (3.23+) ship CMake 4, which rejects the cmake_minimum_required (2.8.4) of
-# the pinned open-appsec sources. Renovate does not bump it (renovate.json, checked in CI); raise it together with
-# OPENAPPSEC_REF, after a build of the agent on the new release.
-ARG ALPINE_VERSION=3.22
+# Base images pinned by digest (Renovate raises them). Alpine is the current release for the agent too: its CMake 4
+# rejects the cmake_minimum_required (2.8.4) of the open-appsec sources, -DCMAKE_POLICY_VERSION_MINIMUM=3.5 lets it
+# build them (built and checked on Alpine 3.24, GCC 15). The old Alpine 3.22 carried curl, zlib and sqlite with known
+# vulnerabilities into the image.
 # Go of the shared storage and tuning: their sources ask for 1.18, which has long been out of support (every CVE of
 # its standard library since 2023). They build unchanged on a current release.
-ARG GO_VERSION=1.27
 ARG OPENAPPSEC_REF=634f840534e07952b1a449079a0d1b2e885c6aec
 ARG SHARED_FILES_REF=
 ARG TUNING_REF=
@@ -23,7 +22,7 @@ ARG TUNING_REF=
 ARG AGENT_RUNTIME=agent
 
 # ---------------------------------------------------------------- agent
-FROM docker.io/library/alpine:${ALPINE_VERSION} AS agent-build
+FROM docker.io/library/alpine:3.24.1@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b AS agent-build
 RUN apk add --no-cache build-base cmake git python3 bash linux-headers \
         boost-dev openssl-dev pcre2-dev libxml2-dev gtest-dev curl-dev hiredis-dev redis \
         libmaxminddb-dev yq brotli-dev zlib-dev
@@ -45,7 +44,7 @@ COPY agent/waap.data components/security_apps/waap/resources/waap.data
 COPY agent/waap-headers.json /patches/waap-headers.json
 COPY agent/merge-headers.py /patches/merge-headers.py
 RUN python3 /patches/merge-headers.py
-RUN cmake -DCMAKE_INSTALL_PREFIX=build_out . && \
+RUN cmake -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_INSTALL_PREFIX=build_out . && \
     make -j"$(nproc)" install && \
     make package && \
     mkdir -p /out/nano-service-installers && \
@@ -54,9 +53,10 @@ RUN cmake -DCMAKE_INSTALL_PREFIX=build_out . && \
     ls -la /out /out/nano-service-installers
 
 # the runtime of the agent (as the upstream image: /entry.sh and /nano-service-installers/*.sh)
-FROM docker.io/library/alpine:${ALPINE_VERSION} AS agent
+FROM docker.io/library/alpine:3.24.1@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b AS agent
 ENV OPENAPPSEC_NANO_AGENT=TRUE
-RUN apk add --no-cache -u busybox zlib brotli brotli-dev bash libstdc++ boost icu-libs curl \
+RUN apk upgrade --no-cache -a && \
+    apk add --no-cache busybox zlib brotli brotli-dev bash libstdc++ boost icu-libs curl \
         libunwind gdb libxml2 pcre2 ca-certificates coreutils
 COPY --from=agent-build /out/self_managed_openappsec_manifest.json /tmp/self_managed_openappsec_manifest.json
 COPY --from=agent-build /out/nano-service-installers/ /nano-service-installers/
@@ -65,12 +65,13 @@ RUN chmod +x /entry.sh /nano-service-installers/* && ln -s entry.sh cp-nano-agen
 
 # ---------------------------------------------------------------- shared storage and tuning (Go)
 # the same binaries and configs as their upstream images; modules are vendored under dependencies/
-FROM docker.io/library/golang:${GO_VERSION}-alpine AS go-build
+FROM docker.io/library/golang:1.27-alpine@sha256:fa3d596898d9f126af7c01d14ee7597bab3f39cccf392ef36b69fe77cd681f18 AS go-build
 RUN apk add --no-cache patch
 ENV GOMODCACHE=/vendor CGO_ENABLED=0 GOOS=linux GOTOOLCHAIN=local
 COPY go-service/patches/ /patches/
-# libraries raised over the ones of the sources: those have known vulnerabilities (Trivy, docs/DEVSECOPS.md)
-ARG GO_UPGRADES="golang.org/x/crypto@v0.58.1-0.20261009181718-2f1f834330b2 golang.org/x/net@v0.62.0 golang.org/x/text@v0.43.0 golang.org/x/oauth2@v0.37.0 github.com/sirupsen/logrus@v1.10.2"
+# libraries raised over the ones of the sources: those have known vulnerabilities (Trivy, docs/DEVSECOPS.md); the
+# Kubernetes client of tuning (its CRD listener, unused by NginxionS) to the last patch of its 0.17 line
+ARG GO_UPGRADES="golang.org/x/crypto@v0.58.1-0.20261009181718-2f1f834330b2 golang.org/x/net@v0.62.0 golang.org/x/text@v0.43.0 golang.org/x/oauth2@v0.37.0 github.com/sirupsen/logrus@v1.10.2 k8s.io/apimachinery@v0.17.16 k8s.io/client-go@v0.17.16 k8s.io/api@v0.17.16"
 
 FROM go-build AS shared-storage
 ARG SHARED_FILES_REF
@@ -104,6 +105,10 @@ COPY nginxions-openappsec.sh /nginxions-openappsec.sh
 RUN chmod 755 /nginxions-entry.sh /nginxions-openappsec.sh
 LABEL org.opencontainers.image.source="https://github.com/opensophy-projects/NPMOS" \
       org.opencontainers.image.description="open-appsec agent, its learning services and nginxions-control for NginxionS"
+# healthy while nginxions-control answers, or, without the Docker socket (no control), while the agent listens;
+# nginxions-openappsec.sh keeps every service running
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+    CMD ["/bin/sh", "-c", "wget -q -T 4 -O /dev/null http://127.0.0.1:7080/healthz || nc -z -w 4 127.0.0.1 7777"]
 # root: the nano agent of open-appsec runs as root (its shared memory and IPC with the attachment of nginx), and
 # nginxions-control reads the Docker socket; its own services listen on 127.0.0.1 only
 # nosemgrep: dockerfile.security.missing-user-entrypoint.missing-user-entrypoint

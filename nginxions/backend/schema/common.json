@@ -8,6 +8,7 @@
 			"readOnly": true,
 			"type": "integer",
 			"minimum": 1,
+			"maximum": 2147483647,
 			"example": 11
 		},
 		"expand": {

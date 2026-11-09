@@ -2,6 +2,211 @@
 	"$comment": "Accepted risks: findings that do not fail the run (scripts/security-report.mjs). Each entry names the tool, the id of the finding (a CVE, a rule), optionally a part of its location, why it is accepted and until when (YYYY-MM-DD): after that date it fails the run again and must be looked at once more.",
 	"risks": [
 		{
+			"tool": "dockle-nginxions",
+			"id": "CIS-DI-0001",
+			"reason": "the last user is root: see the findings Missing User Instruction (KICS) and DS-0002 (Trivy config) of the same image",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "dockle-nginxions",
+			"id": "CIS-DI-0005",
+			"reason": "Docker Content Trust is a setting of the host that pulls (DOCKER_CONTENT_TRUST=1); the base images of the build are pinned by digest in the Dockerfiles",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "dockle-nginxions-openappsec",
+			"id": "CIS-DI-0001",
+			"reason": "the last user is root: see the findings Missing User Instruction (KICS) and DS-0002 (Trivy config) of the same image",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "dockle-nginxions-openappsec",
+			"id": "CIS-DI-0005",
+			"reason": "Docker Content Trust is a setting of the host that pulls (DOCKER_CONTENT_TRUST=1); the base images of the build are pinned by digest in the Dockerfiles",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "hadolint",
+			"id": "DL3003",
+			"where": "nginxions/Dockerfile",
+			"reason": "style of the Dockerfile of NPMplus (cd inside one RUN that builds from source), no security effect",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "hadolint",
+			"id": "DL3062",
+			"reason": "the modules are pinned: go get takes the versions of LEGO_VERSION, LEGO_UPGRADES and GO_UPGRADES (variables hadolint does not read), go build then builds what go.mod pins",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "hadolint",
+			"id": "DL3013",
+			"where": "nginxions/Dockerfile",
+			"reason": "pip of the image of NPMplus installs certbot and its newest pip and setuptools on purpose (their old versions have known vulnerabilities); the image is scanned before it is published",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "hadolint",
+			"id": "DL3022",
+			"where": "deploy/openappsec/Dockerfile",
+			"reason": "control is a named build context (--build-context control=nginxions/backend/nginxions/control), not a stage",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "trivy-config",
+			"id": "DS-0002",
+			"where": "nginxions/Dockerfile",
+			"reason": "NPMplus starts as root and drops to PUID/PGID itself; the container runs with cap_drop ALL, two capabilities and no-new-privileges (see the KICS finding Missing User Instruction)",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "trivy-config",
+			"id": "DS-0002",
+			"where": "deploy/openappsec/Dockerfile",
+			"reason": "the nano agent of open-appsec runs as root as upstream does (its shared memory and IPC with the attachment of nginx); its own services listen on 127.0.0.1 only",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "trivy-config",
+			"id": "DS-0002",
+			"where": "deploy/dev/Dockerfile",
+			"reason": "the development image (compose.dev.yaml), never published",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "trivy-config",
+			"id": "DS-0026",
+			"where": "deploy/dev/Dockerfile",
+			"reason": "the development image (compose.dev.yaml), never published",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "trivy-config",
+			"id": "DS-0013",
+			"where": "nginxions/Dockerfile",
+			"reason": "style of the Dockerfile of NPMplus (cd inside one RUN that builds from source), no security effect",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "zap-api",
+			"id": "10035",
+			"reason": "the interface (port 81) has the self-signed certificate NPMplus makes at the first start; a browser ignores Strict-Transport-Security on a connection with a certificate error (RFC 6797, 8.1), and it would bind every port of the name. The interface is meant to be opened through a proxy host with a certificate of its own (panel by domain), which sets HSTS",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "zap-ui",
+			"id": "10035",
+			"reason": "the interface (port 81) has the self-signed certificate NPMplus makes at the first start; a browser ignores Strict-Transport-Security on a connection with a certificate error (RFC 6797, 8.1), and it would bind every port of the name. The interface is meant to be opened through a proxy host with a certificate of its own (panel by domain), which sets HSTS",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "testssl-ui",
+			"id": "HSTS",
+			"reason": "the interface (port 81) has the self-signed certificate NPMplus makes at the first start; a browser ignores Strict-Transport-Security on a connection with a certificate error (RFC 6797, 8.1), and it would bind every port of the name. The interface is meant to be opened through a proxy host with a certificate of its own (panel by domain), which sets HSTS",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "nuclei",
+			"id": "self-signed-ssl",
+			"where": "nginxions:81",
+			"reason": "the certificate of the interface (port 81) is the self-signed one NPMplus makes at the first start, see testssl.sh cert_chain_of_trust",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "testssl-ui",
+			"id": "cert_trust_wildcard",
+			"reason": "the self-signed certificate of the interface (port 81), see cert_chain_of_trust",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "testssl-ui",
+			"id": "DNS_CAArecord",
+			"reason": "a CAA record is a matter of the DNS of the administrator; the test has none (a closed network)",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "testssl-ui",
+			"id": "BREACH",
+			"reason": "BREACH needs a secret in the body of a compressed response next to text an attacker sends; the API takes its token from a cookie and a header and does not reflect it in compressed bodies",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "zap-api",
+			"id": "2",
+			"reason": "private addresses in the examples of the API schema (/api/schema) and in answers about the hosts of the administrator (upstream addresses): data of the interface, behind its login",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "zap-ui",
+			"id": "2",
+			"reason": "addresses in the code of the interface (examples and defaults of forms): text of the bundle, not data",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "zap-host",
+			"id": "2",
+			"reason": "the test site behind dast.local (whoami) echoes the addresses of the request: the site, not NginxionS",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "zap-host",
+			"id": "90004",
+			"reason": "Cross-Origin-Resource-Policy is for the site behind the proxy host to send (the test site whoami); it can be added per host in its advanced configuration",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "zap-api",
+			"id": "10096",
+			"reason": "Unix times in answers (created_on, expiry of certificates): data of the interface, not a disclosure",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "zap-ui",
+			"id": "10096",
+			"reason": "numbers of the bundle of the interface that look like Unix times",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "zap-api",
+			"id": "100001",
+			"reason": "ZAP sends requests the schema does not describe (methods and types it guesses); the API answers them with its JSON error, not with the type ZAP expects",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "zap-ui",
+			"id": "10110",
+			"reason": "the bundle of the interface (React and its libraries) holds eval-like functions of libraries; the Content-Security-Policy of the interface forbids unsafe-eval",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "gixy",
+			"id": "hsts_header",
+			"where": "conf.d/default.conf",
+			"reason": "the default site answers names that have no host of their own and no certificate of their own; HSTS for such names would bind names the administrator does not serve",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "gixy",
+			"id": "try_files_is_evil_too",
+			"where": "conf.d/default.conf",
+			"reason": "performance advice of gixy (open_file_cache), no security effect",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "licenses",
+			"id": "UNKNOWN",
+			"where": "busboy@1.6.0",
+			"reason": "MIT: the package.json of the package has no license field, its LICENSE file is the MIT license (Brian White); a dependency of express-fileupload (uploads of NPMplus)",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "licenses",
+			"id": "UNKNOWN",
+			"where": "streamsearch@1.1.0",
+			"reason": "MIT: the package.json of the package has no license field, its LICENSE file is the MIT license (Brian White); a dependency of express-fileupload (uploads of NPMplus)",
+			"until": "2027-05-01"
+		},
+		{
 			"tool": "codeql-js",
 			"id": "js/regex-injection",
 			"where": "nginxions/backend/nginxions/pki/mtls.js",
@@ -13,13 +218,6 @@
 			"id": "js/insufficient-password-hash",
 			"where": "nginxions/backend/nginxions/crowdsec/lapi.js",
 			"reason": "not a stored password hash: the id of the CrowdSec machine is derived from its random 256-bit password so that a new password is a new machine; the password itself is never stored hashed",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "trivy-nginxions",
-			"id": "private-key",
-			"where": "/app/schema/paths/nginx/certificates/certID/upload/post.json",
-			"reason": "the example of the API schema of NPMplus (upload of a custom certificate): a published sample key, not a key of NginxionS",
 			"until": "2027-05-01"
 		},
 		{
@@ -124,20 +322,6 @@
 			"id": "js/path-injection",
 			"where": "nginxions/backend/internal/nginx.js",
 			"reason": "the path of a host's configuration is built from a host type every caller passes as a constant (proxy_host, redirection_host, dead_host, stream, default) and the integer id of its database row; nothing of a request reaches it",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "codeql-js",
-			"id": "js/missing-rate-limiting",
-			"where": "nginxions/backend/routes/users.js",
-			"reason": "POST /api/users/:id/login (log in as another user) needs the JWT of an administrator with the permission to manage users; there is no secret to guess, the login itself (/api/tokens) is the endpoint that matters",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "codeql-js",
-			"id": "js/missing-rate-limiting",
-			"where": "nginxions/backend/routes/nginx/certificates.js",
-			"reason": "the download of a certificate needs the JWT of a user allowed to view certificates; no secret is guessed there",
 			"until": "2027-05-01"
 		},
 		{
