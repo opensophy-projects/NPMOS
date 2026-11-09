@@ -71,8 +71,12 @@ const handle =
 		}
 	};
 
+/** an id of a row in a path: 1 to the largest integer of Postgres (2147483647); a bigger number made the query fail (500) */
+const MAX_ID = 2147483647;
+const validId = (id) => /^[1-9][0-9]{0,9}$/.test(id) && Number(id) <= MAX_ID;
+
 router.param("host_id", (req, res, next, id) => {
-	if (!/^[1-9][0-9]{0,9}$/.test(id)) {
+	if (!validId(id)) {
 		return res.status(400).send({ error: { code: 400, message: "Invalid host id" } });
 	}
 	req.params.host_id = Number.parseInt(id, 10);
@@ -80,7 +84,7 @@ router.param("host_id", (req, res, next, id) => {
 });
 
 router.param("object_id", (req, res, next, id) => {
-	if (!/^[1-9][0-9]{0,9}$/.test(id)) {
+	if (!validId(id)) {
 		return res.status(400).send({ error: { code: 400, message: "Invalid object id" } });
 	}
 	req.params.object_id = Number.parseInt(id, 10);
@@ -88,7 +92,7 @@ router.param("object_id", (req, res, next, id) => {
 });
 
 router.param("version_id", (req, res, next, id) => {
-	if (!/^[1-9][0-9]{0,9}$/.test(id)) {
+	if (!validId(id)) {
 		return res.status(400).send({ error: { code: 400, message: "Invalid version id" } });
 	}
 	req.params.version_id = Number.parseInt(id, 10);
@@ -107,7 +111,7 @@ for (const name of [
 	"label_id",
 ]) {
 	router.param(name, (req, res, next, id) => {
-		if (!/^[1-9][0-9]{0,9}$/.test(id)) {
+		if (!validId(id)) {
 			return res.status(400).send({ error: { code: 400, message: `Invalid ${name}` } });
 		}
 		req.params[name] = Number.parseInt(id, 10);
@@ -2113,6 +2117,7 @@ router
 router.get("/pki/public/crl/:file", async (req, res, next) => {
 	try {
 		const match = /^([1-9][0-9]{0,9})\.crl$/.exec(req.params.file);
+		if (match && !validId(match[1])) return res.status(404).send({ error: { code: 404, message: "No such CRL" } });
 		const der = match ? await internalPki.publicCrl(Number.parseInt(match[1], 10)) : null;
 		if (!der) return res.status(404).send({ error: { code: 404, message: "No such CRL" } });
 		res.set("Content-Type", "application/pkix-crl");
@@ -2129,7 +2134,7 @@ router.get("/pki/public/crl/:file", async (req, res, next) => {
  * ca_id "auto": the CA named by the request, answers valid for a minute (nginx, mTLS with revocation by OCSP)
  */
 const ocspAnswer = async (res, caId, der) => {
-	const id = /^[1-9][0-9]{0,9}$/.test(caId) ? Number.parseInt(caId, 10) : 0;
+	const id = validId(caId) ? Number.parseInt(caId, 10) : 0;
 	const answer = !der
 		? null
 		: caId === "auto"

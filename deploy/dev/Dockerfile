@@ -17,6 +17,8 @@ FROM docker.io/library/node:26-alpine AS backend-deps
 ARG NGINXIONS_BACKEND_DEPS="yaml nodemailer"
 COPY backend/package.json /src/package.json
 WORKDIR /deps
+# the RUN below pipes: a failed step of it fails the build (hadolint DL4006)
+SHELL ["/bin/ash", "-o", "pipefail", "-c"]
 RUN --mount=type=secret,id=ca_bundle,required=false \
     if [ -f /run/secrets/ca_bundle ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/ca_bundle; fi && \
     for dep in $NGINXIONS_BACKEND_DEPS; do \

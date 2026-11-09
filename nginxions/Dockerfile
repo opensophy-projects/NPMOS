@@ -247,7 +247,7 @@ RUN apk upgrade --no-cache -a && \
     CGO_ENABLED=0 GOOS=linux GOARCH="$TARGETARCH" \
       go build -ldflags "-s -w -X main.version=$LEGO_VERSION" -o /lego github.com/go-acme/lego/v4/cmd/lego && \
     cd / && rm -rf /build /go /root/.cache && \
-    /lego --version 2>/dev/null || file /lego
+    { /lego --version 2>/dev/null || file /lego; }
 
 # NginxionS: offline CrowdSec seed (hub snapshot) for the official crowdsec image, see nginxions/crowdsec-seed/seed.sh
 FROM docker.io/crowdsecurity/crowdsec:${CROWDSEC_VERSION} AS crowdsec-seed
@@ -321,6 +321,8 @@ RUN apk upgrade --no-cache -a && \
     cd && \
     rm -r /src /tmp/luarocks_local_cache-* && \
     apk del --no-cache luarocks5.1 git make && \
+# NginxionS: wall (util-linux-misc) is setgid tty to write to the terminals of users; a container has none (Dockle)
+    chmod g-s /usr/bin/wall && \
     \
     sed -i "s|placeholder|$(cat /app/package.json | jq -r .version)|g" /usr/local/nginx/conf/conf.d/crowdsec.conf.disabled && \
     \
@@ -344,7 +346,8 @@ COPY --from=frontend /app/dist /app/frontend
 COPY --from=crowdsec-seed /seed /opt/nginxions/crowdsec-seed
 
 ENTRYPOINT ["tini", "--", "entrypoint.sh"]
-HEALTHCHECK CMD healthcheck.sh
+# NginxionS: exec form (hadolint DL3025), no shell around the check
+HEALTHCHECK CMD ["healthcheck.sh"]
 
 LABEL com.centurylinklabs.watchtower.monitor-only="true"
 LABEL wud.watch="false"

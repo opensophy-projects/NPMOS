@@ -7,6 +7,7 @@ import errs from "../../lib/error.js";
 import jwtdecode from "../../lib/express/jwt-decode.js";
 import apiValidator from "../../lib/validator/api.js";
 import validator from "../../lib/validator/index.js";
+import { sensitiveLimiter } from "../../nginxions/rate-limit.js"; // NginxionS: limit of the download of a certificate
 import { debug, express as logger } from "../../logger.js";
 import { getValidationSchema } from "../../schema/index.js";
 
@@ -326,7 +327,7 @@ router
 	 *
 	 * Renew certificate
 	 */
-	.get(async (req, res, next) => {
+	.get(sensitiveLimiter, async (req, res, next) => {
 		try {
 			const result = await internalCertificate.download(res.locals.access, {
 				id: Number.parseInt(req.params.certificate_id, 10),
