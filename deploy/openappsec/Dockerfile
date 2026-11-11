@@ -22,7 +22,7 @@ ARG TUNING_REF=
 ARG AGENT_RUNTIME=agent
 
 # ---------------------------------------------------------------- agent
-FROM docker.io/library/alpine:3.24.1@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b AS agent-build
+FROM docker.io/library/alpine:3.24.4@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf AS agent-build
 RUN apk add --no-cache build-base cmake git python3 bash linux-headers \
         boost-dev openssl-dev pcre2-dev libxml2-dev gtest-dev curl-dev hiredis-dev redis \
         libmaxminddb-dev yq brotli-dev zlib-dev
@@ -53,7 +53,7 @@ RUN cmake -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_INSTALL_PREFIX=build_out . 
     ls -la /out /out/nano-service-installers
 
 # the runtime of the agent (as the upstream image: /entry.sh and /nano-service-installers/*.sh)
-FROM docker.io/library/alpine:3.24.1@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b AS agent
+FROM docker.io/library/alpine:3.24.4@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf AS agent
 ENV OPENAPPSEC_NANO_AGENT=TRUE
 RUN apk upgrade --no-cache -a && \
     apk add --no-cache busybox zlib brotli brotli-dev bash libstdc++ boost icu-libs curl \
