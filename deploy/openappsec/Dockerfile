@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.28
+# syntax=docker/dockerfile:1.29
 # NginxionS open-appsec: one image, one container (nginxions-openappsec) with everything of the agent side, built from
 # source at pinned commits (sources.env):
 #   - the agent (github.com/openappsec/openappsec) with the patches of agent/patches;
