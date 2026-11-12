@@ -36,10 +36,14 @@ fi
 # from the Check Point cloud, which NginxionS never uses, so the file is ours.
 # Not agent.config.log.useBulkMode=false: without bulk mode every log goes to all streams at once on
 # the request path, the HTTP transaction handler then neither logs nor blocks (checked in CI).
+# orchestration.configTimeoutSeconds: the orchestration waits for the services to confirm a new policy up to 600 s by
+# default and checks no update meanwhile; a confirmation lost while the services restart (an agent restart from the
+# GUI) held every policy change of the GUI for 10 minutes. 60 s, then the policy is applied again.
 mkdir -p /etc/cp/conf
-printf '{"agentSettings": [%s, %s]}\n' \
+printf '{"agentSettings": [%s, %s, %s]}\n' \
     "{\"key\": \"agent.failOpenState.nginxModule\", \"value\": \"$NGINXIONS_FAIL_OPEN\"}" \
     "{\"key\": \"agent.failOpenTimeout.nginxModule\", \"value\": \"$NGINXIONS_FAIL_OPEN_TIMEOUT_MS\"}" \
+    '{"key": "orchestration.configTimeoutSeconds", "value": "60"}' \
     > /etc/cp/conf/settings.json
 
 # what this start applied, for "saved, restart the agent to apply" in the GUI
