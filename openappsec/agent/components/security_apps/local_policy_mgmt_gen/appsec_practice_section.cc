@@ -187,6 +187,13 @@ AppSecPracticeWebAttacks::getMinimumConfidence() const
     return minimum_confidence;
 }
 
+// NginxionS: declared by upstream but never defined (unused there); WebAppSection and PracticeAdvancedConfig read it
+const AppSecWebAttackProtections &
+AppSecPracticeWebAttacks::getprotections() const
+{
+    return protections;
+}
+
 const string &
 AppSecPracticeWebAttacks::getMode(const string &default_mode) const
 {
