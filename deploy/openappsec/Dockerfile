@@ -31,7 +31,8 @@ ADD --keep-git-dir=true https://github.com/openappsec/openappsec.git#${OPENAPPSE
 WORKDIR /src
 # NginxionS patches (see each file): local-only hybrid mode without Fog registration; rate limits for hosts of the
 # local policy (no scheme); no Fog reconnection after a policy update in local-only mode; host:port of services;
-# the feature dump for training; rate limit rules of the local policy (it writes no "action" and "match")
+# the feature dump for training; rate limit rules of the local policy (it writes no "action" and "match"); no access
+# token of the Fog for the local tuning and shared storage services in local-only mode (the logs of the WAF reach tuning)
 COPY agent/patches/ /patches/
 RUN git apply --verbose /patches/*.patch
 # The model of the image: the advanced model of Check Point (agent/waap.data, "Advanced model, V2.0", its license
