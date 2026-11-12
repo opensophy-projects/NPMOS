@@ -35,6 +35,8 @@
 #include "waap_component_impl.h"
 #include "i_waapConfig.h"
 #include "generic_rulebase/rulebase_config.h"
+#include "generic_rulebase/triggers_config.h" // NginxionS: the custom response of the rule
+#include "generic_rulebase/evaluators/trigger_eval.h"
 #include "report_messaging.h"
 #include "first_request_object.h"
 
@@ -732,10 +734,16 @@ WaapComponent::Impl::finishTransaction(IWaf2Transaction& waf2Transaction, EventV
         static BasicRuleConfig no_rule;
         const BasicRuleConfig &rule = getConfigurationWithDefault<BasicRuleConfig>(no_rule, "rulebase", "rulesConfig");
         for (const auto &trigger : rule.getTriggers()) {
-            if (trigger.getType() == "WebUserResponse") {
+            if (trigger.getType() != "WebUserResponse") continue;
+            // a response the policy could not resolve is written with no code: the attachment closed the
+            // connection (444); such a rule keeps the default response
+            ScopedContext ctx;
+            ctx.registerValue<std::set<GenericConfigId>>(TriggerMatcher::ctx_key, {trigger.getId()});
+            auto conf = getConfiguration<WebTriggerConf>("rulebase", "webUserResponse");
+            if (conf.ok() && conf.unpack().getResponseCode() >= 100 && conf.unpack().getResponseCode() <= 599) {
                 web_user_response = trigger.getId();
-                break;
             }
+            break;
         }
     }
     verdict.setWebUserResponseByPractice(web_user_response);
