@@ -724,7 +724,21 @@ WaapComponent::Impl::finishTransaction(IWaf2Transaction& waf2Transaction, EventV
     dbgTrace(D_WAAP) << "finishTransaction() started";
     waf2Transaction.collectFoundPatterns();
     waf2Transaction.sendLog();
-    verdict.setWebUserResponseByPractice(waf2Transaction.getCurrentWebUserResponse());
+    // NginxionS: the response of the practice comes from webUserResponsePerPractice, which only the cloud writes;
+    // with a local policy it was empty and every block of the WAF was the default 403, whatever the custom response
+    // of the rule. Without it, the response of the rule (its WebUserResponse trigger) is used.
+    std::string web_user_response = waf2Transaction.getCurrentWebUserResponse();
+    if (web_user_response.empty()) {
+        static BasicRuleConfig no_rule;
+        const BasicRuleConfig &rule = getConfigurationWithDefault<BasicRuleConfig>(no_rule, "rulebase", "rulesConfig");
+        for (const auto &trigger : rule.getTriggers()) {
+            if (trigger.getType() == "WebUserResponse") {
+                web_user_response = trigger.getId();
+                break;
+            }
+        }
+    }
+    verdict.setWebUserResponseByPractice(web_user_response);
     ReportIS::Severity severity = waf2Transaction.computeEventSeverityFromDecision();
     validateFirstRequestForAsset(severity);
     waapStateTable->deleteState<Waf2Transaction>();

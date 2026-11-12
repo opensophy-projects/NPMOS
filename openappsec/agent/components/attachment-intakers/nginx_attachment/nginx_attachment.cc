@@ -1507,13 +1507,8 @@ private:
             nginx_attachment_event.addTrafficVerdictCounter(nginxAttachmentEvent::trafficVerdict::DROP);
             verdict_to_send.modification_count = 1;
             ScopedContext ctx;
-            // NginxionS: the WAF names the response of its practice only from webUserResponsePerPractice, which the
-            // local policy never writes (the cloud did): the ID was empty, no trigger matched it and every block was
-            // the default 403, whatever the custom response of the rule. Without an ID, the triggers of the rule apply.
-            if (!verdict.getWebUserResponseID().empty()) {
-                set<string> triggers_set{verdict.getWebUserResponseID()};
-                ctx.registerValue<set<GenericConfigId>>(TriggerMatcher::ctx_key, triggers_set);
-            }
+            set<string> triggers_set{verdict.getWebUserResponseID()};
+            ctx.registerValue<set<GenericConfigId>>(TriggerMatcher::ctx_key, triggers_set);
             auto web_trigger_config = getConfiguration<WebTriggerConf>("rulebase", "webUserResponse");
             WebTriggerConf web_trigger_conf = web_trigger_config.ok() ?
                 web_trigger_config.unpack() : WebTriggerConf::default_trigger_conf;
