@@ -1234,7 +1234,8 @@ PolicyMakerUtils::createWebAppSection(
         apssec_practice.getWebAttacks().getMaxHeaderSizeBytes(),
         apssec_practice.getWebAttacks().getMaxBodySizeKb(),
         apssec_practice.getWebAttacks().getMaxObjectDepth(),
-        apssec_practice.getWebAttacks().getMaxUrlSizeBytes()
+        apssec_practice.getWebAttacks().getMaxUrlSizeBytes(),
+        apssec_practice.getWebAttacks().getProtections().getNonValidHttpMethods() // NginxionS: was ignored
     );
 
     WebAppSection web_app = WebAppSection(

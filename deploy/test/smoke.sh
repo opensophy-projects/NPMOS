@@ -191,6 +191,13 @@ if $CURL "$ADMIN/api/nginxions/waf" | grep -q '"reachable": *true'; then
     sleep 2
   done
 
+  step "WAF: a non-standard HTTP method is blocked (recommended practice: nonValidHttpMethods, read by the agent)"
+  for i in $(seq 1 30); do
+    [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 -X ARBITRARY -H 'Host: test.local' "$HTTP/")" = 403 ] && break
+    [ "$i" = 30 ] && fail "the method ARBITRARY was not blocked"
+    sleep 2
+  done
+
   step "Block page: a refused request gets the page of NginxionS, not the one of the agent"
   for i in $(seq 1 30); do
     page=$(curl -s --max-time 10 -H 'Host: test.local' "$HTTP$SQLI")

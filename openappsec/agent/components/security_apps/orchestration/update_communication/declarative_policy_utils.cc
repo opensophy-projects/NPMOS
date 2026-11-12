@@ -106,7 +106,7 @@ DeclarativePolicyUtils::getCleanChecksum(const string &unclean_checksum)
     return clean_checksum;
 }
 
-void
+bool
 DeclarativePolicyUtils::updateCurrentPolicy(const string &policy_checksum)
 {
     string clean_policy_checksum = getCleanChecksum(policy_checksum);
@@ -120,10 +120,11 @@ DeclarativePolicyUtils::updateCurrentPolicy(const string &policy_checksum)
 
     if (maybe_policy.empty()) {
         dbgWarning(D_ORCHESTRATOR) << "Could not generate appsec local policy";
-        return;
+        return false;
     }
 
     curr_policy = maybe_policy;
+    return true;
 }
 
 string
@@ -196,7 +197,12 @@ DeclarativePolicyUtils::getUpdate(CheckUpdateRequest &request)
         return "";
     }
 
-    updateCurrentPolicy(maybe_new_version.unpack());
+    // NginxionS: a policy that could not be generated is not taken as read: its checksum stays unknown, so the next
+    // check tries the same file again (before, it waited for a change of the file and kept the previous policy)
+    if (!updateCurrentPolicy(maybe_new_version.unpack())) {
+        dbgWarning(D_ORCHESTRATOR) << "NginxionS: the local policy is tried again at the next check";
+        return "";
+    }
     string offline_policy_checksum = getPolicyChecksum();
     if (!policy_checksum.ok() || offline_policy_checksum != policy_checksum.unpack()) {
         dbgTrace(D_ORCHESTRATOR) << "Update policy checksum";

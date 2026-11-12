@@ -66,6 +66,9 @@ public:
     const std::string & getErrorDisclosureMode() const;
     bool getNonValidHttpMethods() const;
     const std::string getOpenRedirectMode() const;
+    // NginxionS: the values as written in the policy (prevent, detect, inactive, as-top-level...), for WebAppSection
+    const std::string & getCsrfProtectionValue() const { return csrf_protection; }
+    const std::string & getOpenRedirectValue() const { return open_redirect; }
 
 private:
     std::string csrf_protection;
@@ -151,7 +154,10 @@ public:
     PracticeAdvancedConfig(const AppSecPracticeSpec &parsed_appsec_spec)
         :
         http_header_max_size(parsed_appsec_spec.getWebAttacks().getMaxHeaderSizeBytes()),
-        http_illegal_methods_allowed(0),
+        // NginxionS: non-valid-http-methods of the policy (true: they are blocked), it was always 0
+        http_illegal_methods_allowed(
+            parsed_appsec_spec.getWebAttacks().getprotections().getNonValidHttpMethods() ? 0 : 1
+        ),
         http_request_body_max_size(parsed_appsec_spec.getWebAttacks().getMaxBodySizeKb()),
         json_max_object_depth(parsed_appsec_spec.getWebAttacks().getMaxObjectDepth()),
         url_max_size(parsed_appsec_spec.getWebAttacks().getMaxUrlSizeBytes())
@@ -162,10 +168,12 @@ public:
         int _http_header_max_size,
         int _http_request_body_max_size,
         int _json_max_object_depth,
-        int _url_max_size)
+        int _url_max_size,
+        bool _non_valid_http_methods = true)
         :
         http_header_max_size(_http_header_max_size),
-        http_illegal_methods_allowed(0),
+        // NginxionS: nonValidHttpMethods of the policy (true: they are blocked), it was always 0
+        http_illegal_methods_allowed(_non_valid_http_methods ? 0 : 1),
         http_request_body_max_size(_http_request_body_max_size),
         json_max_object_depth(_json_max_object_depth),
         url_max_size(_url_max_size)
