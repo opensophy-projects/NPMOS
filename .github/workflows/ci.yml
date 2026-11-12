@@ -91,9 +91,9 @@ jobs:
             df_cs=$(sed -n 's/^ARG CROWDSEC_VERSION=//p' "$f")
             [ "$env_cs" = "$df_cs" ] || { echo "::error file=$f::CROWDSEC_VERSION $df_cs != deploy/.env $env_cs"; exit 1; }
           done
-          # the open-appsec sources are pinned to full commits
+          # the upstream commits of the sources in openappsec/ are full commits
           . deploy/openappsec/sources.env
-          for ref in "$OPENAPPSEC_REF" "$SHARED_FILES_REF" "$TUNING_REF"; do
+          for ref in "$OPENAPPSEC_REF" "$ATTACHMENT_REF" "$SHARED_FILES_REF" "$TUNING_REF" "$SMARTSYNC_REF"; do
             echo "$ref" | grep -qE '^[0-9a-f]{40}$' || { echo "::error file=deploy/openappsec/sources.env::not a full commit: $ref"; exit 1; }
           done
           # a rule of renovate.json for a file that was moved stops matching without a word
@@ -136,7 +136,6 @@ jobs:
           v="$(git rev-parse --short HEAD)"
           {
             echo "VERSION=$v"
-            grep -E "^[A-Z_]+=" deploy/openappsec/sources.env
             echo "CROWDSEC_VERSION=$(sed -n 's/^CROWDSEC_VERSION=//p' deploy/.env)"
           } >> "$GITHUB_ENV"
           for f in nginxions/frontend/package.json nginxions/backend/package.json; do
@@ -149,6 +148,7 @@ jobs:
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: nginxions
+          build-contexts: attachment=openappsec/attachment
           load: true
           tags: docker.io/${{ env.NAMESPACE }}/nginxions:${{ env.VERSION }}
           cache-from: type=gha,scope=nginxions-amd64
@@ -160,17 +160,15 @@ jobs:
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: deploy/openappsec
-          build-contexts: control=nginxions/backend/nginxions/control
+          build-contexts: |
+            openappsec=openappsec
+            control=nginxions/backend/nginxions/control
           load: true
           tags: docker.io/${{ env.NAMESPACE }}/nginxions-openappsec:${{ env.VERSION }}
           cache-from: type=gha,scope=openappsec-amd64
           cache-to: type=gha,mode=max,scope=openappsec-amd64
           # smartsync (central learning) is not built: it needs a Fog token the agent lacks in local-only
           # mode. NginxionS learns locally; see docs/adr/0011-learning.md.
-          build-args: |
-            OPENAPPSEC_REF=${{ env.OPENAPPSEC_REF }}
-            SHARED_FILES_REF=${{ env.SHARED_FILES_REF }}
-            TUNING_REF=${{ env.TUNING_REF }}
       - name: closed-network test (full stack)
         env:
           NGINXIONS_REGISTRY: docker.io/${{ env.NAMESPACE }}
@@ -280,6 +278,7 @@ jobs:
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: nginxions
+          build-contexts: attachment=openappsec/attachment
           push: ${{ env.PUBLISH == 'true' }}
           tags: docker.io/${{ env.NAMESPACE }}/nginxions:${{ env.VERSION }}-arm64
           cache-from: type=gha,scope=nginxions-arm64
@@ -329,17 +328,14 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - run: grep -E "^[A-Z_]+=" deploy/openappsec/sources.env >> "$GITHUB_ENV"
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - name: build nginxions-openappsec (arm64)
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: deploy/openappsec
-          build-contexts: control=nginxions/backend/nginxions/control
-          build-args: |
-            OPENAPPSEC_REF=${{ env.OPENAPPSEC_REF }}
-            SHARED_FILES_REF=${{ env.SHARED_FILES_REF }}
-            TUNING_REF=${{ env.TUNING_REF }}
+          build-contexts: |
+            openappsec=openappsec
+            control=nginxions/backend/nginxions/control
           cache-from: type=gha,scope=openappsec-arm64
           cache-to: type=gha,mode=max,scope=openappsec-arm64
 

@@ -124,7 +124,7 @@ grep -q '"waap_scores"' "$work/waap-stock.data" || fail "no stock model in the a
 step "the stock model: every request of the set"
 "$PYTHON" model/replay.py --samples "$samples" --workers "$WORKERS" --target "$SITE" --out "$work/verdicts-stock.jsonl"
 sleep 2
-mv "$NGINXIONS_FEATURES_DIR"/*.jsonl "$work/dump-stock/" 2> /dev/null || fail "the agent wrote no features (patch 0005?)"
+mv "$NGINXIONS_FEATURES_DIR"/*.jsonl "$work/dump-stock/" 2> /dev/null || fail "the agent wrote no features (an agent without the feature dump?)"
 
 step "training"
 "$PYTHON" model/train.py --samples "$samples" --dump "$work/dump-stock" --verdicts "$work/verdicts-stock.jsonl" \

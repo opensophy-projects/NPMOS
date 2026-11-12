@@ -8,7 +8,7 @@ import { getSetting } from "../settings.js";
 import { classify, parseChunk } from "./normalize.js";
 import { startRequests, stopRequests } from "./requests.js";
 import { applyRetention, dropCursors, ensureCurrentPartitions, loadCursors, oldestKeptDay, store } from "./store.js";
-import { scan } from "./tail.js";
+import { isFileKey, scan } from "./tail.js";
 
 const LOG_DIR = process.env.NGINXIONS_APPSEC_LOG_DIR || "/ext/appsec-logs";
 const INTERVAL_MS = 2000;
@@ -67,8 +67,9 @@ const ingestOnce = async ({ dir = LOG_DIR, now = new Date() } = {}) => {
 		state.stored += events.length;
 	}
 	if (available) {
-		// other sources keep their position here too (crowdsec:alerts, mtls:denied)
-		await dropCursors([...cursors.keys()].filter((key) => !keys.includes(key) && !/^(crowdsec|mtls):/.test(key)));
+		// only the cursors of the agent's files: other sources keep their position here too (nginx:requests,
+		// crowdsec:alerts, mtls:denied); dropping the one of the request log made it read again from the start
+		await dropCursors([...cursors.keys()].filter((key) => isFileKey(key) && !keys.includes(key)));
 	}
 	return { events, telemetry: telemetry.length };
 };

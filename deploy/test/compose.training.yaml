@@ -1,5 +1,5 @@
 # Training overlay (scripts/train-model.sh, docs/MODEL.md): the production stack with a site behind a proxy host and
-# the feature dump of the agent switched on. The dump (agent patch 0005) writes only while the directory
+# the feature dump of the agent switched on. The dump (openappsec/agent) writes only while the directory
 # /var/log/nginxions-features exists in the container; nothing but this overlay creates it.
 
 services:

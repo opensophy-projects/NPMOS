@@ -13,6 +13,7 @@ NginxionS — форк NPMplus с встроенными open-appsec (ML-WAF) и
 |---|---|---|
 | `nginxions/` | NPMplus (git subtree, upstream `ZoeyVid/NPMplus`) + наши изменения | см. «Изменения в upstream-коде» |
 | `nginxions/backend/nginxions/`, `nginxions/frontend/src/nginxions/` | Наш код (модули NginxionS) | Новый код — сюда |
+| `openappsec/` | Исходники агента NginxionS: open-appsec `agent/`, `attachment/`, `smartsync-shared-files/`, `smartsync-tuning/`, `smartsync/` (git subtree, upstream `openappsec/*`) | Свой код агента; изменения upstream-файлов — с меткой `NginxionS:`, как в `nginxions/` |
 | `deploy/` | `compose.yaml` (прод: `nginxions`, `openappsec`, `crowdsec`, `postgres` + разовый `nginxions-init`), `compose.dev.yaml`, `.env` (версии), `init/`, `openappsec/` (образ `nginxions-openappsec`), `test/` | |
 | `docs/` | План, ADR, инвентаризация env | |
 
@@ -26,7 +27,7 @@ NginxionS — форк NPMplus с встроенными open-appsec (ML-WAF) и
 
 ## Удалено из upstream
 
-Из `nginxions/` удалены файлы NPMplus, которые NginxionS не использует: `caddy/`, `compose.yaml`, `ech-cron-cloudflare-example.sh`, `renovate.json`, `.github/`; во frontend — страницы, которые заменили страницы NginxionS (`pages/Dashboard`, `pages/AuditLog`, `pages/Certificates`, `pages/Nginx/*`), окна `HTTPCertificateModal`, `DNSCertificateModal`, `PermissionsModal`, хуки `useAuditLogs`, `useHostReport` и функции API только для них. `nginxions/README.md` заменён описанием каталога. Если при обновлении NPMplus они вернутся конфликтом «modify/delete», удаляйте их снова (`git rm`).
+Из `nginxions/` удалены файлы NPMplus, которые NginxionS не использует: `caddy/`, `compose.yaml`, `ech-cron-cloudflare-example.sh`, `renovate.json`, `.github/`; во frontend — страницы, которые заменили страницы NginxionS (`pages/Dashboard`, `pages/AuditLog`, `pages/Certificates`, `pages/Nginx/*`), окна `HTTPCertificateModal`, `DNSCertificateModal`, `PermissionsModal`, хуки `useAuditLogs`, `useHostReport` и функции API только для них. `nginxions/README.md` заменён описанием каталога; `patches/attachment.patch` внесён в код `openappsec/attachment`. Если при обновлении NPMplus они вернутся конфликтом «modify/delete», удаляйте их снова (`git rm`).
 
 ## Обновление NPMplus
 
@@ -59,16 +60,16 @@ scripts/test-airgap.sh
 
 | Образ | Источник | Сборка |
 |---|---|---|
-| `nginxions` | `nginxions/Dockerfile` (+ стадия `crowdsec-seed`) | долго: nginx, aws-lc, attachment из исходников |
-| `nginxions-openappsec` | `deploy/openappsec/Dockerfile`: агент (C++), shared storage и tuning (Go) из исходников, `nginxions-control` (контекст сборки `control=nginxions/backend/nginxions/control`) | долго: C++ |
+| `nginxions` | `nginxions/Dockerfile` (+ стадия `crowdsec-seed`; контекст сборки `attachment=openappsec/attachment`) | долго: nginx, aws-lc, attachment из исходников |
+| `nginxions-openappsec` | `deploy/openappsec/Dockerfile`: агент (C++), shared storage и tuning (Go) из `openappsec/` (контекст сборки `openappsec=openappsec`), `nginxions-control` (контекст `control=nginxions/backend/nginxions/control`) | долго: C++ |
 | CrowdSec, Postgres | официальные образы, версии в `deploy/.env` | — |
 
-Модель агента в образе — продвинутая модель Check Point (`deploy/openappsec/agent/waap.data`, лицензия внутри
+Модель агента в образе — продвинутая модель Check Point (`openappsec/agent/components/security_apps/waap/resources/waap.data`, лицензия внутри
 файла). Модель WAF NginxionS обучается из неё в CI на настоящем агенте (`training.yml`: ветки `training/**` или `[train]` в коммите) и
 выпускается, только если на отложенных сайтах и атаках она не хуже модели образа; устройство, данные и выпуск —
 `docs/MODEL.md`.
 
-Коммиты исходников open-appsec — в `deploy/openappsec/sources.env` (полные хэши, проверяется в CI); при обновлении `OPENAPPSEC_REF` обновите примеры политик в `nginxions/backend/nginxions/waf/objects/examples/`. Локальная сборка всех образов: `scripts/build-images.sh` (тег `local/<имя>:dev`), затем `NGINXIONS_REGISTRY=local NGINXIONS_VERSION=dev scripts/test-airgap.sh`. Долгие сборки (nginxions, openappsec) делаются в CI или разработчиком, не в сессии агента.
+Исходники open-appsec лежат в `openappsec/` и меняются прямо в коде (метка `NginxionS:`). Коммиты upstream, от которых они взяты, — в `deploy/openappsec/sources.env` (полные хэши, проверяется в CI). Обновление: `git subtree pull --prefix=openappsec/<каталог> https://github.com/openappsec/<репозиторий> <коммит> --squash`, конфликты — по меткам `NginxionS:`, новый коммит — в `sources.env`; при обновлении `agent/` обновите примеры политик в `nginxions/backend/nginxions/waf/objects/examples/`. Локальная сборка всех образов: `scripts/build-images.sh` (тег `local/<имя>:dev`), затем `NGINXIONS_REGISTRY=local NGINXIONS_VERSION=dev scripts/test-airgap.sh`. Долгие сборки (nginxions, openappsec) делаются в CI или разработчиком, не в сессии агента.
 
 Контейнер `openappsec` владеет сетью и IPC: порты опубликованы на нём, `nginxions` подключается к ним (`network_mode: service:openappsec`). Его процессы (`deploy/openappsec/nginxions-openappsec.sh`) слушают на 127.0.0.1: агент 7777, `nginxions-control` 7080, shared storage 7811, tuning 7813. Архитектура целиком — в `CODE_OF_CONDUCT.md`.
 

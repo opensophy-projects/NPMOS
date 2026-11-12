@@ -1,0 +1,12 @@
+{
+  "name": "i2datatubeschemasecurityeventlogsv05",
+  "schema": {
+    "partitioning_field": "eventtime",
+    "fields": [
+      {
+        "name": "eventtime",
+        "type": "TEXT"
+      }
+    ]
+  }
+}

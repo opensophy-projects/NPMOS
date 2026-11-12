@@ -6,7 +6,7 @@ import { test } from "node:test";
 import { gzipSync } from "node:zlib";
 import { classify, parseChunk } from "./normalize.js";
 import { eventAggregates, trafficAggregates } from "./store.js";
-import { scan } from "./tail.js";
+import { isFileKey, scan } from "./tail.js";
 
 const attack = (time, extra = {}) => ({
 	eventTime: time,
@@ -396,4 +396,9 @@ test("events: filters of the requests of Events → All", async () => {
 	assert.equal(requestFilters({ outcome: "maybe" }).outcome, "");
 	assert.equal(requestOnly(requestFilters({})), false);
 	assert.equal(requestOnly(f), true);
+});
+
+test("ingest: only the cursors of the agent's files are dropped, not those of the other sources", () => {
+	assert.equal(isFileKey("2049:131074"), true);
+	for (const key of ["nginx:requests", "crowdsec:alerts", "mtls:denied"]) assert.equal(isFileKey(key), false, key);
 });

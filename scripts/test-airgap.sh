@@ -73,6 +73,29 @@ if [[ " ${services[*]} " == *" crowdsec "* ]]; then
   # the IP reputation of the agent stays off (WAF -> Agent): it would hold every request for a lookup
 fi
 
+if [[ " ${services[*]} " == *" openappsec "* ]]; then
+  # smoke sent attacks: the agent sends its logs to the local tuning service, which creates its events database
+  # with the first one. Without a Fog there is no access token: the agent refused to send them (fixed in openappsec/agent).
+  echo "==> the agent's logs reach the local tuning service (its events database exists)"
+  for i in $(seq 1 30); do
+    db=$("${compose[@]}" exec -T postgres psql -U postgres -tAc \
+      "SELECT 1 FROM pg_database WHERE datname = 'i2datatubeschemasecurityeventlogsv03'" 2> /dev/null || true)
+    [ "$db" = 1 ] && break
+    [ "$i" = 30 ] && { echo "FAIL: the tuning service got no logs of the agent (no events database)"; exit 1; }
+    sleep 2
+  done
+  agent_log=$("${compose[@]}" exec -T openappsec sh -c 'cat /var/log/nano_agent/*.dbg* 2> /dev/null' || true)
+  if echo "$agent_log" | grep -q 'Access token is missing'; then
+    echo "FAIL: the agent asks for an access token of the Fog to reach a local service"
+    exit 1
+  fi
+  # the agent of NginxionS has no cloud (openappsec/agent): no connection to a Fog is even tried
+  if echo "$agent_log" | grep -E 'connected to the Fog|Failed to connect to the Fog|Setting a fog connection'; then
+    echo "FAIL: the agent tried to reach a Fog"
+    exit 1
+  fi
+fi
+
 echo "==> no phone-home attempts in logs"
 # Messages that only appear when a component tries to reach a cloud service by default
 if "${compose[@]}" logs --no-color "${services[@]}" 2>&1 \

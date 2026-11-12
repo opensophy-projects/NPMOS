@@ -12,7 +12,8 @@
 //     [--scope images,dast]           only these groups (the gate of the images before they are pushed)
 //
 // Policy (what blocks):
-//   SAST (Semgrep, CodeQL)       high and critical in the code of NginxionS (OURS); upstream NPMplus is reported only
+//   SAST (Semgrep, CodeQL)       high and critical in the code of NginxionS (OURS); upstream NPMplus and the code of
+//                                open-appsec in openappsec/ (being taken over) are reported only
 //   secrets (Gitleaks)           every finding (examples are allowlisted in .github/security/gitleaks.toml)
 //   dependencies (OSV-Scanner)   high and critical with a fixed version
 //   images (Trivy)               high and critical with a fixed version; secrets high and critical; Dockle FATAL
@@ -295,7 +296,7 @@ const CHECKS = [
 		group: "source",
 		category: "SAST",
 		tool: "Semgrep",
-		what: "уязвимости в коде JS/TS, Dockerfile и workflow (правила сообщества + правила NginxionS)",
+		what: "уязвимости в коде JS/TS, Go, C/C++, Dockerfile и workflow (правила сообщества + правила NginxionS)",
 		match: /^semgrep\.sarif$/,
 		parse: sarif,
 		blocks: (f) => f.ours && f.level === "error",
@@ -307,6 +308,26 @@ const CHECKS = [
 		tool: "CodeQL (JS/TS)",
 		what: "пути данных от запроса до опасного вызова (инъекции, SSRF, XSS, обход путей)",
 		match: /^codeql-javascript-typescript\.sarif$/,
+		parse: sarif,
+		blocks: (f) => f.ours && severe(f.severity),
+	},
+	{
+		id: "codeql-cpp",
+		group: "source",
+		category: "SAST",
+		tool: "CodeQL (C/C++)",
+		what: "агент NginxionS (openappsec/agent, attachment): переполнения, небезопасная работа с памятью и строками, инъекции",
+		match: /^codeql-c-cpp\.sarif$/,
+		parse: sarif,
+		blocks: (f) => f.ours && severe(f.severity),
+	},
+	{
+		id: "codeql-go",
+		group: "source",
+		category: "SAST",
+		tool: "CodeQL (Go)",
+		what: "сервисы агента (openappsec/: shared storage, tuning, smartsync): инъекции, SSRF, обход путей",
+		match: /^codeql-go\.sarif$/,
 		parse: sarif,
 		blocks: (f) => f.ours && severe(f.severity),
 	},
@@ -337,7 +358,7 @@ const CHECKS = [
 		group: "source",
 		category: "SCA",
 		tool: "OSV-Scanner",
-		what: "известные уязвимости npm-зависимостей backend и frontend (pnpm-lock.yaml)",
+		what: "известные уязвимости зависимостей: npm backend и frontend (pnpm-lock.yaml), Go-сервисы агента (go.mod)",
 		match: /^osv\.json$/,
 		parse: (doc) => osv(doc).filter((f) => f.tool !== "licenses"),
 		blocks: (f) => severe(f.severity) && !!f.fix,

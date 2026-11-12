@@ -1,0 +1,46 @@
+{
+  "tenantId": "abcd1234",
+  "log": {
+    "eventTime": "2022-08-09T12:43:40.128",
+    "eventName": "WAAP telemetry",
+    "eventSeverity": "Info",
+    "eventPriority": "Medium",
+    "eventType": "Event Driven",
+    "eventLevel": "Log",
+    "eventLogLevel": "info",
+    "eventAudience": "Security",
+    "eventAudienceTeam": "",
+    "eventFrequency": 0,
+    "eventTags": [
+      "Threat Prevention",
+      "Web Application & API Protection"
+    ],
+    "eventSource": {
+      "agentId": "32ca4f3a-77ea-4d6c-b469-47d0672d8477",
+      "eventTraceId": "",
+      "eventSpanId": "",
+      "issuingEngineVersion": "1.2221.345687-dev",
+      "serviceName": "HTTP Transaction Handler",
+      "serviceId": "4",
+      "pracitceType": "Threat Prevention",
+      "practiceSubType": "Web Application",
+      "assetId": "52c0d9cd-fbc0-1447-6f5d-434313d9f34b",
+      "assetName": "DUT",
+      "practiceId": "00c0d9c9-0360-c832-f6ab-ae994bc42c49",
+      "practiceName": "WEB APPLICATION BEST PRACTICE"
+    },
+    "eventData": {
+      "logIndex": 7,
+      "reservedNgenA": 10,
+      "reservedNgenB": 8,
+      "reservedNgenC": 0,
+      "reservedNgenD": 4,
+      "reservedNgenE": 0,
+      "reservedNgenF": 0,
+      "reservedNgenG": 0,
+      "reservedNgenH": 0,
+      "reservedNgenI": 4,
+      "reservedNgenJ": 0
+    }
+  }
+}

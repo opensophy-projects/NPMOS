@@ -1,0 +1,174 @@
+apiVersion: openappsec.io/v1beta2
+kind: AccessControlPractice
+metadata:
+  name: access-control-practice-example
+spec:
+  practiceMode: inherited
+  rateLimit:
+    overrideMode: inherited
+    rules:
+    - action: prevent
+      comment: Limiting access to the resource
+      limit: 100
+      triggers:
+      - log-trigger-example
+      unit: minute
+      uri: /api/resource
+    - action: inherited
+      comment: Rate limiting for authentication requests
+      limit: 50
+      triggers:
+      - log-trigger-example
+      unit: second
+      uri: /api/auth
+
+---
+apiVersion: openappsec.io/v1beta2
+kind: CustomResponse
+metadata:
+  name: custom-response-block-page-example
+spec:
+  mode: block-page
+  messageTitle: "Access Denied"
+  messageBody: "Your request was blocked for security reasons."
+  httpResponseCode: 403
+
+---
+apiVersion: openappsec.io/v1beta2
+kind: Exception
+metadata:
+  name: exception-example
+spec:
+  action: accept
+  condition:
+    - key: countryCode
+      value: US
+
+---
+apiVersion: openappsec.io/v1beta2
+kind: LogTrigger
+metadata:
+  name: log-trigger-example
+spec:
+  accessControlLogging:
+    allowEvents: false
+    dropEvents: true
+  appsecLogging:
+    detectEvents: true
+    preventEvents: true
+    allWebRequests: false
+  additionalSuspiciousEventsLogging:
+    enabled: true
+    minSeverity: high # {high|critical}
+    responseBody: false
+    responseCode: true
+  extendedLogging:
+    urlPath: true
+    urlQuery: true
+    httpHeaders: false
+    requestBody: false
+  logDestination:
+    cloud: true
+    logToAgent: true
+    stdout:
+      format: json-formatted
+
+---
+apiVersion: openappsec.io/v1beta2
+kind: Policy
+metadata:
+    name: policy-example
+spec:
+    default:
+        mode: detect-learn
+        accessControlPractices: [access-control-practice-example]
+        threatPreventionPractices: [threat-prevention-practice-example]
+        triggers: [log-trigger-example]
+        customResponse: custom-response-code-example
+        sourceIdentifiers: ""
+        trustedSources: ""
+        exceptions:
+        - exception-example
+    specificRules:
+        - host: "example.com"
+          mode: prevent-learn
+          threatPreventionPractices: [threat-prevention-practice-example]
+          accessControlPractices: [access-control-practice-example]
+          triggers: [log-trigger-example]
+          customResponse: custom-response-code-example
+          sourceIdentifiers: ""
+          trustedSources: ""
+          exceptions:
+          - exception-example
+---
+apiVersion: openappsec.io/v1beta2
+kind: ThreatPreventionPractice
+metadata:
+  name: threat-prevention-practice-example
+spec:
+  practiceMode: inherited
+  webAttacks:
+    overrideMode: inherited
+    minimumConfidence: high
+  intrusionPrevention:
+  # intrusion prevention (IPS) requires "Premium Edition"
+    overrideMode: inherited
+    maxPerformanceImpact: medium
+    minSeverityLevel: medium
+    minCveYear: 2016
+    highConfidenceEventAction: inherited
+    mediumConfidenceEventAction: inherited
+    lowConfidenceEventAction: detect
+  fileSecurity:
+  # file security requires "Premium Edition"
+    overrideMode: inherited
+    minSeverityLevel: medium
+    highConfidenceEventAction: inherited
+    mediumConfidenceEventAction: inherited
+    lowConfidenceEventAction: detect
+  snortSignatures:
+    # you must specify snort signatures in configmap or file to activate snort inspection
+    overrideMode: inherited
+    configmap: []
+    # relevant for deployments on kubernetes
+    # 0 or 1 configmaps supported in array
+    files: []
+    # relevant for docker and linux embedded deployments
+    # 0 or 1 files supported in array
+  schemaValidation: # schema validation requires "Premium Edition"
+    overrideMode: inherited
+    configmap: []
+    # relevant for deployments on kubernetes
+    # 0 or 1 configmaps supported in array
+    files: []
+    # relevant for docker and linux embedded deployments
+    # 0 or 1 files supported in array
+  antiBot: # antibot requires "Premium Edition"
+    overrideMode: inherited
+    injectedUris: []
+    validatedUris: []
+
+---
+apiVersion: openappsec.io/v1beta2
+kind: TrustedSource
+metadata:
+  name: trusted-sources-example
+spec:
+  minNumOfSources: 3
+  sourcesIdentifiers:
+    - 1.0.0.27
+    - 1.0.0.28
+    - 1.0.0.29
+
+---
+apiVersion: openappsec.io/v1beta2
+kind: SourcesIdentifier
+metadata:
+  name: sources-identifier-example
+spec:
+  sourcesIdentifiers:
+    - identifier: sourceip
+      value:
+        - "192.168.1.1" 
+        - "10.0.0.1"
+

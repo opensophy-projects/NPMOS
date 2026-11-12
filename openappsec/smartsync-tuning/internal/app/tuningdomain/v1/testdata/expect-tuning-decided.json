@@ -1,0 +1,19 @@
+{
+  "decision": "benign",
+  "eventTitle": "a/non/malicious",
+  "eventType": "url",
+  "logQuery": "httpuripath:/a/non/malicious and severity:critical",
+  "severity": "critical",
+  "metrics": [
+    {
+      "metric": "events",
+      "count": 37
+    },
+    {
+      "metric": "sources",
+      "count": 8
+    }
+  ],
+  "attackTypes": [],
+  "policyVersion": 5
+}

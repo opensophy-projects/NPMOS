@@ -1,0 +1,16 @@
+include_directories(${ng_module_osrc_zlib_path}/include)
+add_definitions(-DZLIB_CONST)
+
+add_library(compression_utils SHARED compression_utils.cc)
+add_library(static_compression_utils compression_utils.cc)
+
+target_link_libraries(compression_utils
+    ${Brotli_LIBRARIES}    
+)
+
+add_subdirectory(compression_utils_ut)
+
+install(TARGETS compression_utils DESTINATION lib)
+install(TARGETS compression_utils DESTINATION http_transaction_handler_service/lib)
+
+install(TARGETS static_compression_utils DESTINATION lib)

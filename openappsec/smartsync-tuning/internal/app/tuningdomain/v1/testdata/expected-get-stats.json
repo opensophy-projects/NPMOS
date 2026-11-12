@@ -1,0 +1,9 @@
+{
+  "status" : "notReady",
+  "elapsedTime" : "2d 15h",
+  "totalRequests" : 52137,
+  "criticalRequests" : 247,
+  "highRequests" : 697,
+  "uniqueUrls" : 253,
+  "uniqueSources" : 365
+}

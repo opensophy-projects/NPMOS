@@ -164,9 +164,10 @@ RUN cd /src/nginx && \
     \
     make -j "$(nproc)" install
 
-RUN git-clone-commit.sh https://github.com/openappsec/attachment "$OASA_VER" /src/attachment && \
-    cd /src/attachment && \
-    git apply /src/attachment.patch && \
+# NginxionS: the attachment is built from openappsec/attachment of NginxionS (build context "attachment"), not
+# downloaded at OASA_VER; the changes of attachment.patch of NPMplus are in that code
+COPY --from=attachment . /src/attachment
+RUN cd /src/attachment && \
     cmake /src/attachment -G Ninja && \
     ninja && \
     mv -v /src/attachment/attachments/nginx/ngx_module/libngx_module.so /usr/local/nginx/modules/libngx_module.so

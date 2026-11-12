@@ -7,10 +7,10 @@
 
 | Категория | Инструмент | Что ищет | Где запускается |
 |---|---|---|---|
-| SAST | **Semgrep** | уязвимости JS/TS, Dockerfile и workflow: правила сообщества и правила NginxionS (`.github/security/semgrep.yml`) | `security.yml` |
-| SAST | **CodeQL** (JS/TS, Actions) | путь данных от запроса до опасного вызова: инъекции, SSRF, XSS, обход путей | `security.yml` |
+| SAST | **Semgrep** | уязвимости JS/TS, Go, C/C++, Dockerfile и workflow: правила сообщества и правила NginxionS (`.github/security/semgrep.yml`) | `security.yml` |
+| SAST | **CodeQL** (JS/TS, C/C++, Go, Actions) | путь данных от запроса до опасного вызова: инъекции, SSRF, XSS, обход путей; в агенте — работа с памятью и строками | `security.yml` |
 | Секреты | **Gitleaks** | ключи, пароли и токены в файлах и во **всей истории** git | `security.yml` |
-| SCA | **OSV-Scanner** | известные уязвимости npm-зависимостей backend и frontend; лицензии | `security.yml` |
+| SCA | **OSV-Scanner** | известные уязвимости зависимостей: npm backend и frontend, Go-модули агента (`openappsec/*/go.mod`); лицензии | `security.yml` |
 | SBOM | **Syft** | состав исходников (backend, frontend) и каждого образа: CycloneDX и SPDX | `security.yml`, `ci.yml` |
 | IaC | **hadolint**, **Trivy config**, **KICS** | Dockerfile, compose и workflow: root, лишние права, небезопасные приёмы | `security.yml` |
 | CI/CD | **actionlint**, **zizmor**, **CodeQL Actions** | ошибки и уязвимости самих workflow: инъекции в `${{ }}`, права токена, кеш, непривязанные actions | `security.yml` |
@@ -23,6 +23,11 @@
 | TLS | **testssl.sh** | протоколы, шифры, HSTS, известные атаки на TLS — интерфейса (:81) и прокси-хоста (:443) | `ci.yml` → `images` |
 | nginx | **gixy** | работающая конфигурация nginx (`nginx -T`): SSRF, инъекции заголовков, обход `alias` | `ci.yml` → `images` |
 | Качество | **jscpd**, покрытие тестами | дублирование кода, покрытие backend (`node --test`) и frontend (vitest) | `security.yml` |
+
+Код агента NginxionS (`openappsec/`: агент, attachment, shared storage, tuning, smartsync) проверяется теми же
+сканерами, что и остальной код: Semgrep, CodeQL (C/C++, Go), Gitleaks, OSV-Scanner, hadolint, Trivy config, KICS. Его
+находки пока показываются в отчёте и не блокируют, как и находки upstream NPMplus: это код open-appsec, который мы
+разбираем и исправляем.
 
 К ним добавляются проверки, которые были и раньше: biome, tsc, тесты, shellcheck, `compose config`, закрытый контур.
 

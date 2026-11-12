@@ -67,21 +67,17 @@ services:
       - "${NGINXIONS_HTTPS_PORT:-443}:443/udp"
       - "${NGINXIONS_ADMIN_PORT:-81}:81/tcp"
     # Hybrid mode (= --standalone in the open-appsec docs) applies the declarative local_policy.yaml
-    # written by NginxionS (offline mode only reads a compiled policy). Upstream hybrid mode registers at
-    # the Check Point Fog before it applies any policy, so without internet no policy is ever applied
-    # (checked with the official image). NGINXIONS_LOCAL_ONLY (our patch, deploy/openappsec/agent/patches)
-    # skips the registration; the Fog address points to a closed local port so that nothing else in
-    # the agent can reach the cloud either.
-    command: ["--hybrid-mode", "--fog", "http://127.0.0.1:1"]
+    # written by NginxionS (offline mode only reads a compiled policy). The agent of NginxionS
+    # (openappsec/agent) has no cloud: it never registers, never connects to a Fog and refuses any
+    # message to a host of open-appsec (Check Point), whatever its configuration says.
+    command: ["--hybrid-mode"]
     environment:
       TZ: ${TZ:-UTC}
-      # No AGENT_TOKEN: managed locally by NginxionS (no my.openappsec.io)
-      NGINXIONS_LOCAL_ONLY: "true"
-      # host:port in this namespace (our patch 0004: the agent asks them on port 80, which is nginx's)
+      # host:port in this namespace (our change in openappsec/agent: the agent asks them on port 80, which is nginx's)
       SHARED_STORAGE_HOST: 127.0.0.1:7811
       TUNING_HOST: 127.0.0.1:7813
-      # No LEARNING_HOST: central learning (smartsync) needs a Fog access token the agent does not have
-      # in local-only mode. NginxionS learns locally; see docs/adr/0011-learning.md.
+      # No LEARNING_HOST: central learning (smartsync, several agents) is not in the stack. NginxionS
+      # learns locally; see docs/adr/0011-learning.md.
       # security events also go to the local tuning service (its Postgres DB feeds learning and
       # tuning suggestions); NginxionS keeps its own copy from the log files (nginxions/backend/nginxions/events)
       LOCAL_TUNING_ENABLED: "true"

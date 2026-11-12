@@ -1,0 +1,99 @@
+{
+  "logs": [
+    {
+      "id": 1,
+      "log": {
+        "eventTime": "2022-10-24T14:49:15.937",
+        "eventName": "Failed to update services' policy configuration files. Previous version: Mon Oct 24 14:43:22 UTC 2022. New version: Mon Oct 24 14:48:56 UTC 2022",
+        "eventSeverity": "Critical",
+        "eventPriority": "High",
+        "eventType": "Event Driven",
+        "eventLevel": "Log",
+        "eventLogLevel": "info",
+        "eventAudience": "Security",
+        "eventAudienceTeam": "",
+        "eventFrequency": 0,
+        "eventTags": [
+          "Orchestration"
+        ],
+        "eventSource": {
+          "agentId": "33515259-ab42-4e70-9534-8e479dee796e",
+          "eventTraceId": "",
+          "eventSpanId": "",
+          "issuingEngineVersion": "1.2243.428182-logs_offline",
+          "serviceName": "Orchestration",
+          "k8sClusterId": "950fceed-61c0-4934-ab2d-57b3782a0410"
+        },
+        "eventData": {
+          "logIndex": 3,
+          "policyVersion": "Mon Oct 24 14:48:56 UTC 2022",
+          "previousPolicyVersion": "Mon Oct 24 14:43:22 UTC 2022"
+        }
+      }
+    },
+    {
+      "id": 2,
+      "log": {
+        "eventTime": "2022-11-13T10:20:47.882",
+        "eventName": "Web Request",
+        "eventSeverity": "Info",
+        "eventPriority": "Low",
+        "eventType": "Event Driven",
+        "eventLevel": "Log",
+        "eventLogLevel": "info",
+        "eventAudience": "Security",
+        "eventAudienceTeam": "",
+        "eventFrequency": 0,
+        "eventTags": [
+          "Threat Prevention",
+          "Web Application & API Protection"
+        ],
+        "eventSource": {
+          "agentId": "33515259-ab42-4e70-9534-8e479dee796e",
+          "eventTraceId": "",
+          "eventSpanId": "",
+          "issuingEngineVersion": "1.2243.428182-logs_offline",
+          "serviceName": "HTTP Transaction Handler",
+          "serviceId": "1",
+          "k8sClusterId": "950fceed-61c0-4934-ab2d-57b3782a0410",
+          "assetId": "juice-shop.checkpoint.com/",
+          "assetName": "juice-shop.checkpoint.com/"
+        },
+        "eventData": {
+          "logIndex": 1475,
+          "eventReferenceId": "003ae114-20d9-434b-a815-99e06c12a80d",
+          "assetId": "juice-shop.checkpoint.com/",
+          "assetName": "juice-shop.checkpoint.com/",
+          "sourceIP": "10.224.0.8",
+          "httpSourceId": "10.224.0.8",
+          "sourcePort": 33121,
+          "httpHostName": "juice-shop.checkpoint.com",
+          "httpMethod": "GET",
+          "httpUriPath": "/rest/user/whoami",
+          "httpUriQuery": "",
+          "ruleId": "juice-shop.checkpoint.com/",
+          "securityAction": "Detect",
+          "waapOverride": "None",
+          "practiceType": "Threat Prevention",
+          "practiceSubType": "Web Application",
+          "ruleName": "Any",
+          "practiceId": "921a52dd-ef5e-48e3-ba14-f1d310d024ac",
+          "practiceName": "appsec-best-practice",
+          "waapIncidentType": "",
+          "matchedSample": "",
+          "matchedLocation": "",
+          "matchedParameter": "",
+          "waapFoundIndicators": "",
+          "matchedIndicators": "",
+          "learnedIndicators": "",
+          "waapUserReputationScore": 163,
+          "waapUserReputation": "Low",
+          "waapUriFalsePositiveScore": 0,
+          "waapKeywordsScore": 0,
+          "waapFinalScore": 0,
+          "waapCalculatedThreatLevel": 0
+        }
+      }
+    }
+  ]
+}

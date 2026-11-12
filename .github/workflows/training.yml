@@ -46,7 +46,6 @@ jobs:
         run: |
           {
             echo "VERSION=train-$(git rev-parse --short HEAD)"
-            grep -E "^[A-Z_]+=" deploy/openappsec/sources.env
             echo "CROWDSEC_VERSION=$(sed -n 's/^CROWDSEC_VERSION=//p' deploy/.env)"
           } >> "$GITHUB_ENV"
       - name: trainer (Python) and its tests
@@ -77,6 +76,7 @@ jobs:
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: nginxions
+          build-contexts: attachment=openappsec/attachment
           load: true
           tags: local/nginxions:${{ env.VERSION }}
           # the cache of the CI build; this workflow only reads it
@@ -88,17 +88,15 @@ jobs:
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: deploy/openappsec
-          build-contexts: control=nginxions/backend/nginxions/control
+          build-contexts: |
+            openappsec=openappsec
+            control=nginxions/backend/nginxions/control
           load: true
           tags: local/nginxions-openappsec:${{ env.VERSION }}
           cache-from: |
             type=gha,scope=openappsec-train
             type=gha,scope=openappsec-amd64
           cache-to: type=gha,mode=max,scope=openappsec-train
-          build-args: |
-            OPENAPPSEC_REF=${{ env.OPENAPPSEC_REF }}
-            SHARED_FILES_REF=${{ env.SHARED_FILES_REF }}
-            TUNING_REF=${{ env.TUNING_REF }}
       - name: train and evaluate
         env:
           NGINXIONS_REGISTRY: local

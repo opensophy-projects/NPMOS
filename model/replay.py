@@ -2,7 +2,7 @@
 """Sends the requests of samples.jsonl (model/datasets.py) through the stack and writes the verdict of each.
 
 Every request carries:
-  X-Nginxions-Sample   its id: the feature dump of the agent (agent patch 0005) names the request by it;
+  X-Nginxions-Sample   its id: the feature dump of the agent (openappsec/agent, NginxionS) names the request by it;
   X-Forwarded-For  an address of its own: the training stack identifies sources by this header, so every request
                    comes from a new source. The agent weighs a score by the reputation of its source; from one
                    address the attacks of the set would lower it and the legitimate requests after them would be
