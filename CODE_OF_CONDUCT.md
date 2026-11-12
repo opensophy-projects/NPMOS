@@ -243,7 +243,10 @@ flowchart LR
 - `gen-world-map.mjs` — генерация `worldMap.json` (контуры стран для карты Аналитики)
 - `check-tree.mjs` — проверка CI: каждый файл кода NginxionS упомянут в этом дереве
 - `scan-images.sh` — скан образов: уязвимости и секреты (Trivy), SBOM (Syft), второе мнение (Grype), CIS (Dockle)
-- `test-dast.sh` — DAST: поднимает стек и атакует его (OWASP ZAP, Nuclei, testssl.sh), проверяет nginx (gixy)
+- `test-dast.sh` — DAST: поднимает стек и атакует его (OWASP ZAP, Nuclei, testssl.sh), проверяет nginx (gixy);
+  в расширенном прогоне ещё фаззинг API (Schemathesis) и проверка контейнеров
+- `check-runtime.sh` — проверка работающих контейнеров стека (расширенный прогон): привилегии, capabilities,
+  пространства имён хоста, сокет Docker, root, запись в корень
 - `security-report.mjs` — сводный отчёт безопасности, политика блокировки, читаемые страницы SBOM
 - `sarif-accepted.mjs` — убирает из SARIF принятые риски и подавленные в коде находки перед загрузкой в Code scanning
 - `upgrade-from-npmos.sh` — перенос томов стека времён названия NPMOS (`npmos_*`) в NginxionS: копия томов, имена секретов, роль и база Postgres

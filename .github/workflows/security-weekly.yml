@@ -1,4 +1,4 @@
-# Every Monday: a branch security/<date> is made from work and the full CI runs on it (build, closed-network test,
+# Every Monday: a branch security/<date> is made from work and the extended CI runs on it (build, closed-network test,
 # image scan, DAST, the images published on Docker Hub); its report job opens an issue "Отчёт безопасности <date>".
 # Branches older than 8 weeks are removed. By hand: Actions → Weekly security → Run workflow.
 #
@@ -19,7 +19,7 @@ concurrency:
 
 jobs:
   branch:
-    name: security/<date> from work, full CI on it
+    name: security/<date> from work, extended CI on it
     runs-on: ubuntu-latest
     permissions:
       # the branch
@@ -42,7 +42,7 @@ jobs:
             gh api "repos/$REPO/git/refs" -f ref="refs/heads/$branch" -f sha="$sha" > /dev/null
           fi
           echo "$branch -> work ${sha:0:9}"
-          gh workflow run ci.yml --repo "$REPO" --ref "$branch"
+          gh workflow run ci.yml --repo "$REPO" --ref "$branch" -f level=extended
           # the branches of the last 8 weeks stay
           cutoff=$(date -u -d '56 days ago' +%F)
           gh api "repos/$REPO/git/matching-refs/heads/security/" --jq '.[].ref' | while read -r ref; do
@@ -53,5 +53,5 @@ jobs:
           done
           {
             echo "### Weekly security"
-            echo "Branch \`$branch\` from \`work\` (\`${sha:0:9}\`); the full CI runs on it and opens an issue with its report."
+            echo "Branch \`$branch\` from \`work\` (\`${sha:0:9}\`); the extended CI runs on it and opens an issue with its report."
           } >> "$GITHUB_STEP_SUMMARY"

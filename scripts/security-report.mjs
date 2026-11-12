@@ -104,6 +104,8 @@ const sarif = (doc) => {
 				title: firstLine(res.message?.text) || firstLine(rule?.shortDescription?.text) || res.ruleId,
 				severity: Number.isFinite(score) && score > 0 ? fromScore(score) : fromLevel(level),
 				level,
+				// CodeQL security-and-quality (the extended run): a query without the tag "security" is about quality
+				quality: !(rule?.properties?.tags ?? ["security"]).includes("security"),
 				path,
 				location: at(path, loc?.region?.startLine),
 				url: rule?.helpUri ?? "",
@@ -267,6 +269,29 @@ const nuclei = (lines) =>
 		url: [].concat(n.info?.reference ?? [])[0] ?? "",
 	}));
 
+// Schemathesis (the extended run): one finding per failure and operation; ST401 = an operation that answers without
+// authentication, ST101 = a server error (500)
+const schemathesis = (doc) =>
+	(doc?.failures ?? []).flatMap((f) =>
+		(f.operations ?? [""]).map((op) => ({
+			rule: f.code ?? f.type,
+			title: `${f.title}${op ? `: ${op}` : ""}`,
+			severity: f.code === "ST401" ? "high" : f.code === "ST101" ? "medium" : "low",
+			location: `API :81 ${op}`.trim(),
+			url: "https://schemathesis.readthedocs.io/en/stable/reference/checks/",
+		})),
+	);
+
+// scripts/check-runtime.sh (the extended run)
+const runtime = (doc) =>
+	(doc ?? []).map((r) => ({
+		rule: r.rule,
+		title: `${r.container}: ${r.title}`,
+		severity: r.severity,
+		location: `контейнер ${r.container}`,
+		url: "https://docs.docker.com/reference/compose-file/services/",
+	}));
+
 const testssl = (doc, { target }) =>
 	(Array.isArray(doc) ? doc : (doc?.scanResult ?? []))
 		.filter((t) => ["LOW", "MEDIUM", "HIGH", "CRITICAL"].includes(t.severity))
@@ -312,7 +337,7 @@ const CHECKS = [
 		what: "пути данных от запроса до опасного вызова (инъекции, SSRF, XSS, обход путей)",
 		match: /^codeql-javascript-typescript\.sarif$/,
 		parse: sarif,
-		blocks: (f) => f.ours && severe(f.severity),
+		blocks: (f) => f.ours && severe(f.severity) && !f.quality,
 	},
 	{
 		id: "codeql-cpp",
@@ -322,7 +347,7 @@ const CHECKS = [
 		what: "агент NginxionS (openappsec/agent, attachment): переполнения, небезопасная работа с памятью и строками, инъекции",
 		match: /^codeql-c-cpp\.sarif$/,
 		parse: sarif,
-		blocks: (f) => f.ours && severe(f.severity),
+		blocks: (f) => f.ours && severe(f.severity) && !f.quality,
 	},
 	{
 		id: "codeql-go",
@@ -332,7 +357,7 @@ const CHECKS = [
 		what: "сервисы агента (openappsec/: shared storage, tuning, smartsync): инъекции, SSRF, обход путей",
 		match: /^codeql-go\.sarif$/,
 		parse: sarif,
-		blocks: (f) => f.ours && severe(f.severity),
+		blocks: (f) => f.ours && severe(f.severity) && !f.quality,
 	},
 	{
 		id: "codeql-actions",
@@ -342,7 +367,7 @@ const CHECKS = [
 		what: "уязвимости самих workflow GitHub Actions",
 		match: /^codeql-actions\.sarif$/,
 		parse: sarif,
-		blocks: (f) => severe(f.severity),
+		blocks: (f) => severe(f.severity) && !f.quality,
 	},
 	{
 		id: "gitleaks",
@@ -476,11 +501,10 @@ const CHECKS = [
 		group: "published",
 		category: "Опубликованные образы",
 		tool: "Trivy · Docker Hub",
-		what: "новые CVE в уже выпущенных образах (develop, latest)",
+		what: "новые CVE в уже выпущенных образах (develop, latest, три последних релиза)",
 		match: /^trivy-published-.+\.json$/,
 		parse: (doc, file) => trivy(doc, { image: imageOf(file, "trivy-published-") }),
 		dedupe: true,
-		optional: true,
 		blocks: (f) => severe(f.severity) && !!f.fix,
 	},
 	...[
@@ -521,6 +545,26 @@ const CHECKS = [
 		parse: (doc) => testssl(doc, { target }),
 		blocks: (f) => severe(f.severity),
 	})),
+	{
+		id: "schemathesis",
+		group: "extended",
+		category: "DAST",
+		tool: "Schemathesis",
+		what: "фаззинг API по схеме OpenAPI с сессией: ошибки сервера, операции без аутентификации",
+		match: /^schemathesis\.json$/,
+		parse: schemathesis,
+		blocks: (f) => f.rule === "ST401",
+	},
+	{
+		id: "runtime",
+		group: "extended",
+		category: "Контейнеры",
+		tool: "Проверка запущенных контейнеров",
+		what: "привилегии, capabilities, пространства имён хоста, сокет Docker, root, запись в корень",
+		match: /^runtime\.json$/,
+		parse: runtime,
+		blocks: (f) => severe(f.severity),
+	},
 	{
 		id: "gixy",
 		group: "dast",

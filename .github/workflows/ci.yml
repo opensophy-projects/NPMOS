@@ -7,11 +7,17 @@
 #   tag vX.Y.Z    -> :X.Y.Z and :latest
 #   other events  -> build and test only (registry login is still checked when secrets exist)
 #
-# Two depths (docs/DEVSECOPS.md):
-#   every push      fast checks: lint, types, tests, and security.yml (SAST, secrets, SCA, IaC, the workflows)
+# Three depths (docs/DEVSECOPS.md), chosen by the job "level":
+#   fast            every push: lint, types, tests, and security.yml (SAST, secrets, SCA, IaC, the workflows)
 #   full            also the images: build, closed-network test, image scan, DAST, the security gate before a push.
-#                   On work, tags v*, pull requests, by hand (Run workflow), on branches security/** (security-weekly.yml
-#                   makes one from work every week) and on any push whose commit message holds [full].
+#                   On work, tags v*, pull requests, by hand (Run workflow, level "full") and on any push whose commit
+#                   message holds [full].
+#   extended        the full run and the heavy checks: ZAP full active scan, Nuclei with info and intrusive templates,
+#                   API fuzzing (Schemathesis), runtime checks of the containers, CodeQL security-and-quality, more
+#                   Semgrep rulesets, secrets of every branch, the images published on Docker Hub (every release).
+#                   On branches security/** (security-weekly.yml makes one from work every week), on a pull request
+#                   with the label security-scan (and on each push to it while the label stays) and by hand (Run
+#                   workflow, level "extended", any branch).
 # "report" writes the summary of the run and the artifact security-report (the report, readable SBOMs, raw results);
 # on a branch security/** it also opens an issue with the report.
 name: CI
@@ -20,13 +26,24 @@ on:
     branches: ["**"]
     tags: ["v*"]
   pull_request:
+    # labeled: the label security-scan starts the extended run (the job "level" ignores other labels)
+    types: [opened, synchronize, reopened, labeled]
   workflow_dispatch:
+    inputs:
+      level:
+        description: "Depth: fast (lint, tests, SAST), full (+ images, DAST), extended (+ heavy security checks)"
+        type: choice
+        options: [full, extended, fast]
+        default: full
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # a label other than security-scan gets a group of its own: it must not cancel the run of the pull request
+  group: >-
+    ${{ github.workflow }}-${{ github.ref }}${{ github.event.action == 'labeled' && github.event.label.name != 'security-scan'
+    && format('-{0}', github.run_id) || '' }}
   cancel-in-progress: true
 
 env:
@@ -34,8 +51,42 @@ env:
   PUBLISH: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/work' || startsWith(github.ref, 'refs/tags/v')) && vars.DOCKERHUB_NAMESPACE != '' }}
 
 jobs:
+  level:
+    name: Depth of the run
+    runs-on: ubuntu-latest
+    outputs:
+      level: ${{ steps.level.outputs.level }}
+    steps:
+      - id: level
+        env:
+          EVENT: ${{ github.event_name }}
+          ACTION: ${{ github.event.action }}
+          LABEL: ${{ github.event.label.name }}
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+          INPUT: ${{ inputs.level }}
+          MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          case ",$LABELS," in *,security-scan,*) labelled=1 ;; *) labelled=0 ;; esac
+          if [ "$EVENT" = pull_request ] && [ "$ACTION" = labeled ] && [ "$LABEL" != security-scan ]; then
+            level=none
+          elif [[ "$GITHUB_REF" == refs/heads/security/* ]] || { [ "$EVENT" = pull_request ] && [ "$labelled" = 1 ]; } ||
+            { [ "$EVENT" = workflow_dispatch ] && [ "$INPUT" = extended ]; }; then
+            level=extended
+          elif [ "$EVENT" = workflow_dispatch ] && [ "$INPUT" = fast ]; then
+            level=fast
+          elif [ "$EVENT" != push ] || [ "$GITHUB_REF" = refs/heads/work ] || [[ "$GITHUB_REF" == refs/tags/v* ]] ||
+            [[ "$MESSAGE" == *"[full]"* ]]; then
+            level=full
+          else
+            level=fast
+          fi
+          echo "level=$level" >> "$GITHUB_OUTPUT"
+          echo "### Глубина прогона: $level" >> "$GITHUB_STEP_SUMMARY"
+
   checks:
     name: Lint, types, tests
+    needs: level
+    if: needs.level.outputs.level != 'none'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -116,7 +167,11 @@ jobs:
 
   security:
     name: Security
+    needs: level
+    if: needs.level.outputs.level != 'none'
     uses: ./.github/workflows/security.yml
+    with:
+      level: ${{ needs.level.outputs.level }}
     permissions:
       contents: read
       security-events: write
@@ -124,11 +179,9 @@ jobs:
 
   images:
     name: Images (amd64) + closed-network test + image scan + DAST
-    needs: checks
-    # the full run (see the head of this file); other branches stop after the fast checks
-    if: >-
-      github.event_name != 'push' || github.ref == 'refs/heads/work' || startsWith(github.ref, 'refs/tags/v') ||
-      startsWith(github.ref, 'refs/heads/security/') || contains(github.event.head_commit.message, '[full]')
+    needs: [level, checks]
+    # the full and the extended run (see the head of this file); other branches stop after the fast checks
+    if: needs.level.outputs.level == 'full' || needs.level.outputs.level == 'extended'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -186,9 +239,10 @@ jobs:
           NGINXIONS_VERSION: ${{ env.VERSION }}
           OUT: reports/images
         run: scripts/scan-images.sh
-      - name: DAST (OWASP ZAP, Nuclei, testssl.sh, gixy)
-        timeout-minutes: 50
+      - name: DAST (OWASP ZAP, Nuclei, testssl.sh, gixy; extended also Schemathesis and runtime checks)
+        timeout-minutes: ${{ needs.level.outputs.level == 'extended' && 150 || 50 }}
         env:
+          DAST_LEVEL: ${{ needs.level.outputs.level }}
           NGINXIONS_REGISTRY: docker.io/${{ env.NAMESPACE }}
           NGINXIONS_VERSION: ${{ env.VERSION }}
           OUT: reports/dast
@@ -247,10 +301,11 @@ jobs:
 
   nginxions-arm64:
     name: nginxions image (arm64)
-    needs: checks
+    needs: [level, checks]
     if: >-
       github.event_name == 'push' && (github.ref == 'refs/heads/work' || startsWith(github.ref, 'refs/tags/v')) ||
-      github.event_name == 'workflow_dispatch' && !startsWith(github.ref, 'refs/heads/security/')
+      github.event_name == 'workflow_dispatch' && !startsWith(github.ref, 'refs/heads/security/') &&
+      needs.level.outputs.level != 'fast'
     runs-on: ubuntu-26.04-arm
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -326,8 +381,10 @@ jobs:
 
   appsec-arm64:
     name: nginxions-openappsec image (arm64, experimental)
-    needs: checks
-    if: github.event_name == 'workflow_dispatch' && !startsWith(github.ref, 'refs/heads/security/')
+    needs: [level, checks]
+    if: >-
+      github.event_name == 'workflow_dispatch' && !startsWith(github.ref, 'refs/heads/security/') &&
+      needs.level.outputs.level != 'fast'
     continue-on-error: true
     runs-on: ubuntu-26.04-arm
     steps:
@@ -347,8 +404,8 @@ jobs:
 
   report:
     name: Security report
-    needs: [checks, security, images]
-    if: always()
+    needs: [level, checks, security, images]
+    if: always() && needs.level.outputs.level != 'none'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -365,8 +422,11 @@ jobs:
           merge-multiple: true
       - name: summary
         env:
-          # the images and DAST are expected only when the images were built
-          EXPECT: ${{ needs.images.result == 'skipped' && 'source' || 'source,images,dast' }}
+          # the images and DAST are expected only when the images were built, the heavy checks only in the extended run
+          EXPECT: >-
+            ${{ needs.images.result == 'skipped' && 'source' || 'source,images,dast' }}${{
+            needs.level.outputs.level == 'extended' && (needs.images.result == 'skipped' && ',published' ||
+            ',published,extended') || '' }}
         run: node scripts/security-report.mjs --in reports --out security-report --summary "$GITHUB_STEP_SUMMARY" --expect "$EXPECT"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
