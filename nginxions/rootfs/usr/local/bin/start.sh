@@ -389,6 +389,13 @@ if [ -s "$DEFAULT_STAPLING_FILE" ]; then
     sed -i "s|#\?ssl_certificate_compression|ssl_certificate_compression|g" /usr/local/nginx/conf/conf.d/goaccess.conf.disabled
 fi
 
+# NginxionS: the default site generated before (from default.conf, data volume) keeps the certificate of that start;
+# with a new DEFAULT_CERT_ID the dummy certificate it names is removed above and nginx did not start
+if [ -f /data/nginx/default_host/site.conf ]; then
+    sed -i "s|ssl_certificate .*|ssl_certificate $DEFAULT_CERT;|g" /data/nginx/default_host/site.conf
+    sed -i "s|ssl_certificate_key .*|ssl_certificate_key $DEFAULT_KEY;|g" /data/nginx/default_host/site.conf
+fi
+
 sed -i "s|#\?listen 0.0.0.0:81 |listen $NPM_IPV4_BINDING:$NPM_PORT |g" /usr/local/nginx/conf/conf.d/npmplus.conf
 sed -i "s|#\?listen 0.0.0.0:91 |listen $GOA_IPV4_BINDING:$GOA_PORT |g" /usr/local/nginx/conf/conf.d/goaccess.conf.disabled
 
