@@ -93,7 +93,7 @@ func (a *Adapter) setRoutes(router *chi.Mux) *chi.Mux {
 func createErrorBody(errorName string) string {
 	errorResponse, err := errorloader.GetError(context.Background(), errorName)
 	if err != nil {
-		log.Errorf(err.Error())
+		log.Errorf("%v", err) // NginxionS: the error is not a format string (go vet)
 		errorBody := errorloader.NewErrorResponse("", http.StatusText(http.StatusInternalServerError))
 		return (&errorBody).Error()
 	}

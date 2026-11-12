@@ -303,7 +303,8 @@ func (qg *QueriesGen) GetTuneURLQueryFormat(minCount int, tenantID string) strin
 //GetExceptionsQuery query for exceptions
 func (qg *QueriesGen) GetExceptionsQuery(tenantID string) string {
 	table := qg.genTableName(tenantID)
-	return fmt.Sprintf(
+	// NginxionS: no Sprintf without arguments (go vet: non-constant format string)
+	return (
 		`SELECT
 			'' as tenant_id,
 			exceptionId,
@@ -480,14 +481,22 @@ func (qg *QueriesGen) GenerateLogQuery(data models.TuneEvent, assetName string) 
 		selectClause += fmt.Sprintf(", %v as \"%v\"", field, displayName)
 	}
 	query := selectClause + " from " + qg.genTableName("") + " where "
-	queryCondition := []string{fmt.Sprintf("%v='%v'", fieldNameSeverity, strings.Title(data.Severity))}
+	// NginxionS: the values are SQL literals (sqlLiteral): the title of a tuning event is a parameter, URL or source
+	// of the traffic, an attacker could close the quote (CodeQL go/sql-injection)
+	queryCondition := []string{fmt.Sprintf("%v=%v", fieldNameSeverity, sqlLiteral(strings.Title(data.Severity)))}
 	if assetName != "" {
-		queryCondition = append(queryCondition, fmt.Sprintf("%v='%v'", models.FieldNameAssetID, assetName))
+		queryCondition = append(queryCondition, fmt.Sprintf("%v=%v", models.FieldNameAssetID, sqlLiteral(assetName)))
 	}
 	queryCondition = append(queryCondition, "eventtime::timestamp >= CURRENT_TIMESTAMP - interval '7 days'")
-	queryCondition = append(queryCondition, fmt.Sprintf("%v='%v'", queryFieldsMap[strings.ToLower(data.EventType)],
-		data.EventTitle))
+	queryCondition = append(queryCondition, fmt.Sprintf("%v=%v", queryFieldsMap[strings.ToLower(data.EventType)],
+		sqlLiteral(data.EventTitle)))
 	return query + strings.Join(queryCondition, " and ")
+}
+
+// sqlLiteral is a string literal of PostgreSQL (standard_conforming_strings): quotes doubled, NUL removed
+// (NginxionS)
+func sqlLiteral(v string) string {
+	return "'" + strings.ReplaceAll(strings.ReplaceAll(v, "\x00", ""), "'", "''") + "'"
 }
 
 //Insert prepares statement and args for sql driver

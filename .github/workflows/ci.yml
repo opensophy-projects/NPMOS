@@ -67,6 +67,9 @@ jobs:
           pnpm formatjs compile-folder src/locale/src src/locale/lang
           pnpm tsc --noEmit
           pnpm vitest run
+      - name: Go services of the agent (vet, tests)
+        # shared storage and tuning (built into nginxions-openappsec) and smartsync, in the Go image of its Dockerfile
+        run: scripts/test-go.sh
       - name: file tree
         # every file of the code of NginxionS has a line in CODE_OF_CONDUCT.md
         run: node scripts/check-tree.mjs

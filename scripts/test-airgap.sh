@@ -23,7 +23,10 @@ cleanup() {
       echo "--- open-appsec agent: log files, settings, policy status (failure) ---"
       "${compose[@]}" exec -T openappsec sh -c 'ls -la /var/log/nano_agent; cat /etc/cp/conf/settings.json;
         cat /ext/appsec/nginxions-agent.env; tail -n 5 /var/log/nano_agent/cp-nano-http-transaction-handler.log*;
-        tail -n 20 /var/log/nano_agent/*.err 2> /dev/null' || true
+        tail -n 20 /var/log/nano_agent/*.err 2> /dev/null;
+        echo "--- orchestration: checks of updates, policies applied ---";
+        grep -h "check update\|Check update\|NginxionS\|apply\|Failed" /var/log/nano_agent/cp-nano-orchestration.dbg* \
+          2> /dev/null | tail -n 40' || true
     fi
   fi
   [ "${KEEP:-}" = 1 ] || "${compose[@]}" down -v --remove-orphans > /dev/null 2>&1 || true

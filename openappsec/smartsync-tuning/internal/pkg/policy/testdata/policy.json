@@ -1,0 +1,4 @@
+{"waap": {"WAAP": {"WebApplicationSecurity": [
+  {"assetId": "Any", "assetName": "", "applicationUrls": "*", "webAttackMitigationMode": "Detect",
+   "webAttackMitigationSeverity": "Critical", "trustedSources": []}
+]}}}

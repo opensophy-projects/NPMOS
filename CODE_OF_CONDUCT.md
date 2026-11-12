@@ -213,20 +213,27 @@ flowchart LR
 
 - **`agent/`** — агент (C++): без облака вовсе (не регистрируется, не подключается к Fog, отказывается слать
   сообщения и скачивать файлы с хостов open-appsec/Check Point, ходит к локальным tuning и shared storage без
-  токена); лимиты для хостов без схемы и с портом, правила лимитов локальной политики (без `action` и `match`);
+  токена); политика из GUI (`apply-policy`) применяется за секунды, а не на следующей проверке обновлений; лимиты для хостов без схемы и с портом, правила лимитов локальной политики (без `action` и `match`);
   выгрузка признаков модели для обучения (только на стенде обучения, `docs/MODEL.md`); модель
   `components/security_apps/waap/resources/waap.data` — продвинутая модель Check Point («Advanced model, V2.0»,
   лицензия внутри файла) с заголовками браузеров (`Sec-Fetch-*`, `Priority`…) среди чистых заголовков сигнатур
 - **`attachment/`** — модуль nginx для связи с агентом (`libngx_module.so` образа `nginxions`, контекст сборки
   `attachment`; изменения бывшего патча NPMplus `attachment.patch`: только модуль nginx, zlib-ng)
-- **`smartsync-shared-files/`** — shared storage (Go): файлы обучения и `decisions.data`
-- **`smartsync-tuning/`** — tuning (Go): события WAF, статистика и предложения обучения; пароль базы не пишется в лог; библиотеки подняты в `go.mod` (chi v5 и др.)
+- **`smartsync-shared-files/`** — shared storage (Go): файлы обучения и `decisions.data`; пути REST API не выходят
+  за корень хранилища (`fileSystemDB_nginxions_test.go`)
+- **`smartsync-tuning/`** — tuning (Go): события WAF, статистика и предложения обучения; пароль базы не пишется в
+  лог; значения запроса логов экранированы (`queries_nginxions_test.go`); библиотеки подняты в `go.mod` (chi v5,
+  client-go 0.20 и др.)
 - **`smartsync/`** — централизованное обучение нескольких агентов (Go); в образ не входит
+
+Не используемое NginxionS удалено из upstream (`CLAUDE.md`, «Удалено из upstream»): примеры деплоя, плагины шлюзов
+(kong, apisix, envoy), webhook, Dockerfile upstream, Helm-чарты, готовые бинарники без исходников.
 
 ### `scripts/` — инструменты разработчика
 
 - `build-images.sh` — локальная сборка всех образов (тег `local/<имя>:dev`)
 - `test-airgap.sh` — тест закрытого контура: поднимает стек без интернета и прогоняет `smoke.sh`
+- `test-go.sh` — `go vet` и `go test` Go-сервисов агента (`openappsec/`) в Go-образе их Dockerfile, покрытие для отчёта
 - `check-i18n.mjs` — проверка CI: у каждой строки `en` есть `ru`, в разметке нет текста мимо переводов
 - `crowdsec-hub-snapshot.sh` — снимок hub CrowdSec для серверов без интернета
 - `gen-world-map.mjs` — генерация `worldMap.json` (контуры стран для карты Аналитики)

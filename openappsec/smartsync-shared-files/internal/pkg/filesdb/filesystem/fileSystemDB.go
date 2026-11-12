@@ -18,6 +18,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"openappsec.io/errors"
@@ -97,10 +98,28 @@ func cleanup(root string, ttl time.Duration) {
 	}(root, ttl)
 }
 
+// inRoot is root+path of a path from a request, refused when it leaves the root (NginxionS: "../" in the path of
+// the REST API read and wrote any file of the container, CodeQL go/path-injection)
+func (a *Adapter) inRoot(path string) (string, error) {
+	root := filepath.Clean(a.root)
+	full := filepath.Clean(a.root + path)
+	if full != root && !strings.HasPrefix(full, root+string(filepath.Separator)) {
+		return "", errors.Errorf("path %q is outside the storage", path).SetClass(errors.ClassBadInput)
+	}
+	return full, nil
+}
+
 // GetFilesList return a list of files with their last modified time
 func (a *Adapter) GetFilesList(ctx context.Context, pathPrefix string) ([]models.FileMetadata, error) {
 	log.WithContext(ctx).Infof("list files with prefix: %v", pathPrefix)
-	matches, err := filepath.Glob(a.root + pathPrefix + "*")
+	prefix, err := a.inRoot(pathPrefix)
+	if err != nil {
+		return []models.FileMetadata{}, err
+	}
+	if strings.HasSuffix(pathPrefix, "/") {
+		prefix += string(filepath.Separator)
+	}
+	matches, err := filepath.Glob(prefix + "*")
 	if err != nil {
 		return []models.FileMetadata{}, err
 	}
@@ -132,7 +151,11 @@ func (a *Adapter) GetFilesList(ctx context.Context, pathPrefix string) ([]models
 // GetFile return file content
 func (a *Adapter) GetFile(ctx context.Context, path string) ([]byte, error) {
 	log.WithContext(ctx).Debugf("get file: %v", path)
-	data, err := os.ReadFile(a.root + path)
+	full, err := a.inRoot(path)
+	if err != nil {
+		return []byte{}, err
+	}
+	data, err := os.ReadFile(full)
 	if err != nil {
 		if os.IsNotExist(err) {
 			log.WithContext(ctx).Warnf("file %v not found", path)
@@ -150,10 +173,15 @@ func (a *Adapter) GetFile(ctx context.Context, path string) ([]byte, error) {
 func (a *Adapter) PutFile(ctx context.Context, path string, content []byte, isTemp bool) error {
 	log.WithContext(ctx).Debugf("put file: %v, length: %v", path, len(content))
 
-	if err := os.MkdirAll(a.root+filepath.Dir(path), 0750); err != nil && !os.IsExist(err) {
+	full, err := a.inRoot(path)
+	if err != nil {
 		return err
 	}
-	if err := os.WriteFile(a.root+path, content, 0666); err != nil {
+	if err := os.MkdirAll(filepath.Dir(full), 0750); err != nil && !os.IsExist(err) {
+		return err
+	}
+	// NginxionS: 0640, the files of the storage are not for every user of the container
+	if err := os.WriteFile(full, content, 0640); err != nil {
 		log.WithContext(ctx).Errorf("failed to put file: %v", err)
 		return err
 	}
@@ -161,7 +189,7 @@ func (a *Adapter) PutFile(ctx context.Context, path string, content []byte, isTe
 		go func() {
 			time.Sleep(a.ttl)
 			log.WithContext(ctx).Debugf("ttl expired for file: %v", path)
-			err := os.Remove(a.root + path)
+			err := os.Remove(full)
 			if err != nil {
 				log.WithContext(ctx).Warnf("failed to remove file %v. err: %v", path, err)
 			}

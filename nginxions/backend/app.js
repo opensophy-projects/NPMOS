@@ -20,6 +20,13 @@ app.use((req, _res, next) => {
 app.disable("x-powered-by");
 app.set("json spaces", 2);
 
+// NginxionS: answers of the API (tokens, settings, keys) are not stored by browsers or proxies; a route that may be
+// cached (CRL, OCSP of the PKI) sets its own Cache-Control (DAST: ZAP 10015, 10049)
+app.use((_req, res, next) => {
+	res.set("Cache-Control", "no-store");
+	next();
+});
+
 app.use(
 	fileUpload({
 		limits: { fileSize: 1024 * 1024 },
@@ -66,6 +73,12 @@ app.use("/", mainRoutes);
 // production error handler
 // no stacktraces leaked to user
 app.use((err, req, res, _) => {
+	// NginxionS: a bad ?expand= (not a relation of the object) is a bad request of the client, not an internal error
+	// (objection: ValidationError, statusCode 400; DAST: ZAP answered 500 to ?expand=http://...)
+	if (!err.status && err.name === "ValidationError" && err.statusCode === 400) {
+		err.status = 400;
+		err.public = true;
+	}
 	const payload = {
 		error: {
 			code: err.status || 500,

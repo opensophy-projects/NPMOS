@@ -1,0 +1,8 @@
+{"waap": {"WAAP": {"WebApplicationSecurity": [
+  {"assetId": "Any", "assetName": "", "applicationUrls": "*", "webAttackMitigationMode": "Detect",
+   "webAttackMitigationSeverity": "Critical", "trustedSources": []},
+  {"assetId": "example.com", "assetName": "example.com", "applicationUrls": "example.com",
+   "webAttackMitigationMode": "Detect", "webAttackMitigationSeverity": "Critical",
+   "trustedSources": [{"minNumOfSources": 3, "sourcesIdentifiers": [{"value": "source-identifier-1"},
+     {"value": "source-identifier-2"}]}]}
+]}}}

@@ -233,14 +233,15 @@ COPY backend /app
 
 # NginxionS: lego, the second ACME client (nginxions/backend/nginxions/acme/lego.js): ES256 account keys and the name in the CN of
 # the CSR, which some CAs require and certbot does not do. Built from the source of its release (Go module proxy).
-FROM --platform="$BUILDPLATFORM" alpine:3.24.1@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b AS lego
+# NginxionS: lego is built with the Go of the golang image (the same as deploy/openappsec/Dockerfile, raised by
+# Renovate): the go package of Alpine lags behind the fixes of its standard library (Trivy, Grype: GO-2026-6859)
+FROM --platform="$BUILDPLATFORM" docker.io/library/golang:1.27-alpine@sha256:eb61c3873c97416fff0116553fff65d67a3549f72e11d9758849a689cdd8b523 AS lego
 SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
 ARG TARGETARCH
 ARG LEGO_VERSION=v4.35.2
 # libraries raised over the ones of the release: their versions have known vulnerabilities (Trivy, docs/DEVSECOPS.md)
 ARG LEGO_UPGRADES="golang.org/x/crypto@v0.58.1-0.20261009181718-2f1f834330b2 golang.org/x/net@v0.62.0 golang.org/x/text@v0.43.0 google.golang.org/grpc@v1.85.0 github.com/go-jose/go-jose/v4@v4.1.9 software.sslmate.com/src/go-pkcs12@v0.7.2"
-RUN apk upgrade --no-cache -a && \
-    apk add --no-cache go && \
+RUN apk add --no-cache file && \
     mkdir /build && cd /build && \
     export GOTOOLCHAIN=local GOFLAGS=-trimpath GOPATH=/go && \
     go mod init build && \
@@ -324,6 +325,8 @@ RUN apk upgrade --no-cache -a && \
     apk del --no-cache luarocks5.1 git make && \
 # NginxionS: wall (util-linux-misc) is setgid tty to write to the terminals of users; a container has none (Dockle)
     chmod g-s /usr/bin/wall && \
+# NginxionS: no setuid program: passwd and the like are for users who log in, the services run as their own users
+    find / -xdev -perm /6000 -type f -exec chmod ug-s {} + && \
     \
     sed -i "s|placeholder|$(cat /app/package.json | jq -r .version)|g" /usr/local/nginx/conf/conf.d/crowdsec.conf.disabled && \
     \

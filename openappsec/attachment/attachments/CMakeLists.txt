@@ -1,8 +1,3 @@
-#add_subdirectory(nano_attachment)
-if ("${ATTACHMENT_TYPE}" STREQUAL "envoy")
-    add_subdirectory(envoy)
-elseif("${ATTACHMENT_TYPE}" STREQUAL "kong")
-    message(STATUS "ATTACHMENT_TYPE = ${ATTACHMENT_TYPE}")
-else()
-    add_subdirectory(nginx)
-endif()
+# NginxionS: the nginx attachment only; the envoy, kong and nano attachments of upstream are removed (NginxionS
+# protects nginx only, CLAUDE.md "Удалено из upstream")
+add_subdirectory(nginx)

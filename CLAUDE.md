@@ -29,6 +29,8 @@ NginxionS — форк NPMplus с встроенными open-appsec (ML-WAF) и
 
 Из `nginxions/` удалены файлы NPMplus, которые NginxionS не использует: `caddy/`, `compose.yaml`, `ech-cron-cloudflare-example.sh`, `renovate.json`, `.github/`; во frontend — страницы, которые заменили страницы NginxionS (`pages/Dashboard`, `pages/AuditLog`, `pages/Certificates`, `pages/Nginx/*`), окна `HTTPCertificateModal`, `DNSCertificateModal`, `PermissionsModal`, хуки `useAuditLogs`, `useHostReport` и функции API только для них. `nginxions/README.md` заменён описанием каталога; `patches/attachment.patch` внесён в код `openappsec/attachment`. Если при обновлении NPMplus они вернутся конфликтом «modify/delete», удаляйте их снова (`git rm`).
 
+Из `openappsec/` удалено то, что агент NginxionS не собирает и не запускает: `agent/deployment/` (примеры деплоя), `agent/build_system/apisix/`, `agent/build_system/charts/`, `agent/build_system/docker/Dockerfile` (образ — `deploy/openappsec/Dockerfile`), установщики Check Point без исходников (intelligence, CrowdSec auxiliary), готовые бинарники `agent/external/yajl` (примеры и тесты), `attachment/docker/` (kong, envoy, webhook), `attachment/attachments/{envoy,kong,nano_attachment}`, `smartsync*/build/` (их Dockerfile), `smartsync-tuning/internal/app/tuningdomain/v1` (не собирался). При `git subtree pull` они возвращаются конфликтом «modify/delete» — удаляйте снова.
+
 ## Обновление NPMplus
 
 ```bash
@@ -47,6 +49,8 @@ cd nginxions/backend && pnpm install --frozen-lockfile && pnpm biome ci . --assi
 cd nginxions/frontend && pnpm install --frozen-lockfile && pnpm biome ci . --assist-enabled=false \
   && node check-locales.cjs && node ../../scripts/check-i18n.mjs && pnpm formatjs compile-folder src/locale/src src/locale/lang \
   && pnpm tsc --noEmit && pnpm vitest run
+# Go-сервисы агента (openappsec/): vet и тесты в Go-образе их Dockerfile
+scripts/test-go.sh
 # shell, compose
 shellcheck -S warning scripts/*.sh deploy/*/*.sh
 docker compose -f deploy/compose.yaml config -q

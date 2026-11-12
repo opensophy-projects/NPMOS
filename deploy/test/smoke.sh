@@ -56,6 +56,14 @@ code=$(curl -sS -k -b $JAR -o /dev/null -w '%{http_code}' -X POST "$ADMIN/api/ng
 sleep 2
 $CURL "$ADMIN/api/" | grep -q '"status": *"OK"' || fail "backend is down after disabling a missing 404 host"
 
+step "a ?expand= that is not a relation answers 400, not an internal error (found by ZAP)"
+for expand in 'http%3A%2F%2Fwww.google.com%2F' 'nothing' '%5Bowner'; do
+  code=$(curl -sS -k -b $JAR -o /dev/null -w '%{http_code}' "$ADMIN/api/nginx/access-lists?expand=$expand")
+  [ "$code" = 400 ] || fail "access lists with ?expand=$expand: expected 400, got $code"
+done
+code=$(curl -sS -k -b $JAR -o /dev/null -w '%{http_code}' "$ADMIN/api/nginx/access-lists?expand=owner,items")
+[ "$code" = 200 ] || fail "access lists with ?expand=owner,items: expected 200, got $code"
+
 step "create a proxy host test.local -> test-upstream"
 $CURL -H 'Content-Type: application/json' "$ADMIN/api/nginx/proxy-hosts" -d '{
   "domain_names": ["test.local"], "forward_scheme": "http",
