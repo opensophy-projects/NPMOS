@@ -10,21 +10,15 @@
 services:
   nginxions-init:
     image: nginxions:dev
-    # repeated from compose.yaml: KICS checks each compose file alone
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
+    # the healthcheck of compose.yaml, here too: KICS checks each compose file alone (capabilities and
+    # no-new-privileges come from compose.yaml; a list repeated in an overlay is refused by compose)
     healthcheck:
       test: ["CMD", "test", "-s", "/secrets/nginxions/db_password"]
 
   nginxions:
     image: nginxions:dev
-    # repeated from compose.yaml: KICS checks each compose file alone
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
+    # the healthcheck of compose.yaml, here too: KICS checks each compose file alone (capabilities and
+    # no-new-privileges come from compose.yaml; a list repeated in an overlay is refused by compose)
     healthcheck:
       test: ["CMD", "healthcheck.sh"]
     build:

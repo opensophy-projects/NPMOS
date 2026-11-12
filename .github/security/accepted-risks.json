@@ -690,6 +690,38 @@
 			"where": "Non-Storable",
 			"reason": "informational: the API answers Cache-Control: no-store on purpose (tokens, settings), app.js",
 			"until": "2027-05-01"
+		},
+		{
+			"tool": "kics",
+			"id": "610e266e-6c12-4bca-9925-1ed0cd29742b",
+			"where": "deploy/compose.dev.yaml",
+			"reason": "an overlay of compose.yaml: the services it shares with compose.yaml (nginxions, nginxions-init, openappsec) get security_opt from there (docker compose config merges them); compose refuses the same item repeated in the overlay. The services of the overlay itself have it",
+			"until": "2027-05-01",
+			"kind": "false-positive"
+		},
+		{
+			"tool": "kics",
+			"id": "ce76b7d0-9e77-464d-b86f-c5c48e03e22d",
+			"where": "deploy/compose.dev.yaml",
+			"reason": "an overlay of compose.yaml: the services it shares with compose.yaml (nginxions, nginxions-init, openappsec) get cap_drop from there (docker compose config merges them); compose refuses the same item repeated in the overlay. The services of the overlay itself have it",
+			"until": "2027-05-01",
+			"kind": "false-positive"
+		},
+		{
+			"tool": "kics",
+			"id": "610e266e-6c12-4bca-9925-1ed0cd29742b",
+			"where": "deploy/test/compose.training.yaml",
+			"reason": "an overlay of compose.yaml: the services it shares with compose.yaml (nginxions, nginxions-init, openappsec) get security_opt from there (docker compose config merges them); compose refuses the same item repeated in the overlay. The services of the overlay itself have it",
+			"until": "2027-05-01",
+			"kind": "false-positive"
+		},
+		{
+			"tool": "kics",
+			"id": "ce76b7d0-9e77-464d-b86f-c5c48e03e22d",
+			"where": "deploy/test/compose.training.yaml",
+			"reason": "an overlay of compose.yaml: the services it shares with compose.yaml (nginxions, nginxions-init, openappsec) get cap_drop from there (docker compose config merges them); compose refuses the same item repeated in the overlay. The services of the overlay itself have it",
+			"until": "2027-05-01",
+			"kind": "false-positive"
 		}
 	]
 }
