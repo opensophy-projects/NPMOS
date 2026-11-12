@@ -638,6 +638,11 @@ done
 echo "$log" | grep -q '"known": *false' || fail "not-a-host.local is not marked as unknown: $log"
 $CURL "$ADMIN/api/nginxions/analytics/requests?path=/smoke-known&limit=5" | grep -q '"known": *true' \
   || fail "the request to test.local is not in the request log as a known host"
+# the log is read every 5 s and the ingest of the agent's log ran every 5 s too: it dropped the position of the
+# request log, which was read again from its start (each request stored hundreds of times)
+sleep 16
+known=$($CURL "$ADMIN/api/nginxions/analytics/requests?path=/smoke-known&limit=1" | grep -o '"total": *[0-9]*' | grep -o '[0-9]*$')
+[ "$known" = 1 ] || fail "one request is stored $known times in the request log"
 $CURL "$ADMIN/api/nginxions/analytics/requests?q=smoke-unknown&status=4xx,5xx,2xx,3xx&maxMs=60000&limit=5" \
   | grep -q '"not-a-host.local"' || fail "Events → Requests: search and filters miss the request"
 $CURL "$ADMIN/api/nginxions/analytics/requests/export?format=csv&q=smoke-unknown" | grep -q 'not-a-host.local' \

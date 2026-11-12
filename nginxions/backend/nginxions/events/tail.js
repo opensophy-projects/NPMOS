@@ -59,6 +59,9 @@ const rotatedRest = async (dir, name, cursor) => {
  *   rotated?: boolean}} Chunk  rotated: the rest of a rotated file, read completely, no position to keep
  */
 
+/** a cursor of a log file of the agent ("<device>:<inode>"); other sources keep theirs with a name ("nginx:requests") */
+export const isFileKey = (key) => /^\d+:\d+$/.test(key);
+
 /**
  * New data of every log file.
  * @param {string} dir
