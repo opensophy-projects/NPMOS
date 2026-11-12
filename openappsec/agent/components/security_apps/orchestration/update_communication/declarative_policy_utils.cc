@@ -41,6 +41,7 @@ DeclarativePolicyUtils::upon(const ApplyPolicyEvent &event)
     dbgTrace(D_ORCHESTRATOR) << "Apply policy event";
     local_policy_path = event.getPolicyPath();
     should_apply_local_policy = true;
+    apply_requests++; // NginxionS: see apply_requests
 }
 // LCOV_EXCL_STOP
 
@@ -59,6 +60,11 @@ DeclarativePolicyUtils::shouldApplyPolicy()
 void
 DeclarativePolicyUtils::turnOffApplyLocalPolicyFlag()
 {
+    // NginxionS: a request that came after the policy file was read is applied at the next check
+    if (apply_requests != apply_requests_read) {
+        dbgInfo(D_ORCHESTRATOR) << "NginxionS: the policy changed while it was applied, it is applied again";
+        return;
+    }
     should_apply_local_policy = false;
 }
 
@@ -178,6 +184,7 @@ DeclarativePolicyUtils::getUpdate(CheckUpdateRequest &request)
 
     string policy_response = "";
     auto policy_checksum = request.getPolicy();
+    apply_requests_read = apply_requests; // NginxionS: the requests up to now are served by this read
 
     auto maybe_new_version = getLocalPolicyChecksum();
     if (!maybe_new_version.ok() || maybe_new_version == curr_version) {
@@ -217,5 +224,6 @@ DeclarativePolicyUtils::periodicPolicyLoad()
     if (*new_checksum == curr_checksum) return;
 
     should_apply_local_policy = true;
+    apply_requests++; // NginxionS: see apply_requests
     curr_checksum = *new_checksum;
 }
