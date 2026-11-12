@@ -194,6 +194,9 @@ DeclarativePolicyUtils::getUpdate(CheckUpdateRequest &request)
             return getPolicyChecksum();
         }
         dbgDebug(D_ORCHESTRATOR) << "No new version is currently available";
+        // NginxionS: a request for the file already applied has nothing left to apply (the flag stayed on: a check
+        // every 10 s, see waitForNextCheck)
+        if (maybe_new_version.ok()) turnOffApplyLocalPolicyFlag();
         return "";
     }
 
