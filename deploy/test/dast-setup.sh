@@ -39,6 +39,11 @@ api_json "$ADMIN/api/users" -d "{\"name\": \"Admin\", \"nickname\": \"admin\", \
   \"auth\": {\"type\": \"password\", \"secret\": \"$PASSWORD\"}}" > /dev/null
 api_json "$ADMIN/api/tokens" -d "{\"identity\": \"$EMAIL\", \"secret\": \"$PASSWORD\"}" > /dev/null
 
+step "PKI -> Settings: the address of NginxionS, so that its certificates name their CRL and OCSP responder"
+# without it the certificates have no revocation information (testssl.sh cert_revocation); the defaults otherwise
+api_ok -X PUT "$ADMIN/api/nginxions/pki/settings" -d '{"public_url": "https://nginxions:81", "crl_days": 30,
+  "client_days": 365, "server_days": 397, "key_type": "ec-p256", "p12_compatible": true, "templates": []}' > /dev/null
+
 step "a root CA, a trust domain and a server certificate for dast.local (PKI of NginxionS)"
 root_id=$(api_ok "$ADMIN/api/nginxions/pki/cas" \
   -d '{"kind": "root", "name": "DAST Root", "subject": {"common_name": "DAST Root", "organization": "NginxionS"}}' | json_id)
