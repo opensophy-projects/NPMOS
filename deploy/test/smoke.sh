@@ -381,6 +381,41 @@ if $CURL "$ADMIN/api/nginxions/waf" | grep -q '"reachable": *true'; then
     sleep 1
   done
 
+  host_objects() {
+    $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/nginxions/waf/hosts/1" -d "{\"enabled\": true,
+      \"mode\": \"prevent-learn\", \"minimum_confidence\": \"high\", \"objects\": $1}" > /dev/null
+  }
+  wait_format() {
+    for i in $(seq 1 30); do
+      $CURL "$ADMIN/api/nginxions/waf/policy" | grep -q "\"format\": *\"$1\"" && return 0
+      sleep 1
+    done
+    fail "the policy is not $1: $($CURL "$ADMIN/api/nginxions/waf/policy" | head -c 400)"
+  }
+
+  step "WAF -> Policy: v1beta2 applies every exception of a rule, not only the first"
+  # the agent took the first exception of a rule only: the second one, for the tester's IP, had no effect
+  other=$(post_json POST /objects '{"kind": "exception", "name": "smoke-other",
+    "spec": {"action": "accept", "condition": [{"key": "sourceIp", "value": "192.0.2.7"}]}}' | new_id)
+  mine=$(post_json POST /objects "{\"kind\": \"exception\", \"name\": \"smoke-mine\",
+    \"spec\": {\"action\": \"accept\", \"condition\": [{\"key\": \"sourceIp\", \"value\": \"$client_ip\"}]}}" | new_id)
+  [ -n "$other" ] && [ -n "$mine" ] || fail "the exceptions were not created"
+  host_objects "{\"accessControlPractices\": [$limit], \"exceptions\": [$other, $mine]}"
+  wait_format v1beta2
+  wait_status "$SQLI" 200 "the second exception of a rule (v1beta2) does not let the attack through"
+  host_objects null
+  wait_format v1beta1
+  wait_status "$SQLI" 403 "SQLi is not blocked once the exceptions are gone"
+
+  step "WAF -> Policy: a custom response «response code only» answers with its own code"
+  code406=$(post_json POST /objects '{"kind": "custom_response", "name": "smoke-406",
+    "spec": {"mode": "response-code-only", "httpResponseCode": 406}}' | new_id)
+  [ -n "$code406" ] || fail "the custom response was not created"
+  host_objects "{\"customResponse\": $code406}"
+  wait_status "$SQLI" 406 "the attack is not answered with the code of the custom response"
+  host_objects null
+  wait_status "$SQLI" 403 "SQLi is not answered with 403 again"
+
   step "WAF -> Policy: the v1beta2 example of open-appsec is imported and applied by the agent"
   applied_at() { $CURL "$ADMIN/api/nginxions/waf" | json | grep -o '"lastPolicyUpdate":"[^"]*"'; }
   before=$(last_version)

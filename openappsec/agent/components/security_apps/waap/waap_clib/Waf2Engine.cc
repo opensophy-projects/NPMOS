@@ -1844,6 +1844,14 @@ Waf2Transaction::sendLog()
         logOverride = OVERRIDE_IGNORE;
     }
 
+    // NginxionS: the threat level and the attack types of the transaction (DecisionTelemetryData had them, they were
+    // never set: the counters by threat and attack type of the telemetry and the learning statistics stayed 0)
+    auto autonomous_decision = std::dynamic_pointer_cast<AutonomousSecurityDecision>(
+        m_waapDecision.getDecision(AUTONOMOUS_SECURITY_DECISION)
+    );
+    if (autonomous_decision) telemetryData.threat = autonomous_decision->getThreatLevel();
+    if (m_scanResult) telemetryData.attackTypes = m_scanResult->attack_types;
+
     WaapTelemetryEvent(assetId, telemetryData).notify();
     auto it = m_overrideStateByPractice.find(decision_type);
     if ((it != m_overrideStateByPractice.end() && it->second.bSupressLog) ||

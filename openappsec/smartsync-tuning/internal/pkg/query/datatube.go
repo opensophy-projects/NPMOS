@@ -65,6 +65,7 @@ type GenQueries interface {
 	CreateTable(id string) (string, error)
 	CreateDatabase() string
 	CreateTablePartition(id string, eventTime string) (string, error)
+	CreateIndexes(id string) []string // NginxionS
 	ParseError(err error) errors.Class
 	ScanArray(value driver.Value, arr any) error
 }
@@ -81,6 +82,10 @@ type Adapter struct {
 	elpisTenant string
 	tenantsList []string
 	tenantsLock sync.Locker
+	// NginxionS: the UTC day whose next partition was created ahead (ensureNextPartition)
+	nextPartitionDay  string
+	nextPartitionLock sync.Mutex
+	indexesCreated    bool
 }
 
 type converter func(columns []string, data []driver.Value) interface{}
@@ -757,6 +762,7 @@ func (qa *Adapter) InsertLog(ctx context.Context, message *models.AgentMessage) 
 			return errors.Wrap(err, "failed to open connection to DB")
 		}
 	}
+	qa.ensureNextPartition(ctx, conn, message)
 	affected, err := executeStmt(ctx, conn, stmtStr, args)
 	if err != nil {
 		log.WithContext(ctx).Infof("encounter error: %v on first insertion attempt", err)
@@ -801,10 +807,18 @@ func executeStmt(ctx context.Context, conn driver.Conn, stmtStr string, args []d
 	return affected, nil
 }
 
+// NginxionS: a partition is created with a lock timeout. CREATE TABLE ... PARTITION OF waits for an exclusive lock of
+// the table, behind the long queries of the statistics: every insert of the new day failed meanwhile and the writers
+// piled up (openappsec/openappsec, "High resource consumption caused by openappsec-db").
+const partitionLockTimeout = "SET lock_timeout = '10s'"
+
 func (qa *Adapter) createTablePartition(ctx context.Context, conn driver.Conn, message *models.AgentMessage) error {
 	createStmt, err := qa.genQuery.CreateTablePartition(message.TenantID, message.Log.EventTime)
 	if err != nil {
 		return errors.Wrap(err, "failed to generate statement")
+	}
+	if _, err := executeStmt(ctx, conn, partitionLockTimeout, nil); err != nil {
+		log.WithContext(ctx).Infof("failed to set the lock timeout, err: %v", err)
 	}
 	_, err = executeStmt(ctx, conn, createStmt, nil)
 	if err != nil {
@@ -820,6 +834,39 @@ func (qa *Adapter) createTablePartition(ctx context.Context, conn driver.Conn, m
 		}
 	}
 	return err
+}
+
+// NginxionS: once a day, the partition of the next day is created ahead, so that the first inserts after midnight
+// (UTC) find it and no insert waits for the DDL. A failure is only logged: the insert creates it as before.
+func (qa *Adapter) ensureNextPartition(ctx context.Context, conn driver.Conn, message *models.AgentMessage) {
+	now := time.Now().UTC()
+	today := now.Format("2006-01-02")
+	qa.nextPartitionLock.Lock()
+	defer qa.nextPartitionLock.Unlock()
+	if qa.nextPartitionDay == today {
+		return
+	}
+	// NginxionS: the indexes of the statistics queries (see CreateIndexes), once per start of the service
+	if !qa.indexesCreated {
+		qa.indexesCreated = true
+		for _, stmt := range qa.genQuery.CreateIndexes(message.TenantID) {
+			if _, err := executeStmt(ctx, conn, stmt, nil); err != nil {
+				log.WithContext(ctx).Warnf("failed to create an index, err: %v", err)
+			}
+		}
+	}
+	if message.Log == nil {
+		return
+	}
+	next := *message
+	nextLog := *message.Log
+	nextLog.EventTime = now.AddDate(0, 0, 1).Format("2006-01-02T15:04:05.000")
+	next.Log = &nextLog
+	if err := qa.createTablePartition(ctx, conn, &next); err != nil {
+		log.WithContext(ctx).Warnf("failed to create the partition of the next day ahead, err: %v", err)
+		return
+	}
+	qa.nextPartitionDay = today
 }
 
 func (qa *Adapter) createTable(ctx context.Context, conn driver.Conn, message *models.AgentMessage) error {

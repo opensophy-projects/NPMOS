@@ -750,6 +750,9 @@ void unescapeUnicode(string& text) {
                     else if (isSpecialUnicode(code)) {
                         *result++ = convertSpecialUnicode(code);
                     }
+                    else if (char replacement = nonAsciiReplacement(code)) {
+                        *result++ = replacement; // NginxionS: see nonAsciiReplacement
+                    }
 
                     if (pAcc) {
                         pAcc = NULL; // throw away the accumulated source (escaped) sequencec.
@@ -852,6 +855,9 @@ void unescapeUnicode(string& text) {
         }
         else if (isSpecialUnicode(code)) {
             *result++ = convertSpecialUnicode(code);
+        }
+        else if (char replacement = nonAsciiReplacement(code)) {
+            *result++ = replacement; // NginxionS: see nonAsciiReplacement
         }
 
         if (pAcc) {

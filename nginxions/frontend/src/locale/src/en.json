@@ -5735,9 +5735,6 @@
 	"nginxions.policy.view": {
 		"defaultMessage": "View"
 	},
-	"nginxions.policy.warning.exceptions": {
-		"defaultMessage": "Rule {rule} has several exceptions: in v1beta2 the agent applies only the first one. Join them into one exception."
-	},
 	"nginxions.policy.warning.missing": {
 		"defaultMessage": "Rule {rule} refers to {name}, which does not exist (expert fragment?): the agent ignores it."
 	},

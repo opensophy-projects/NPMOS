@@ -17,7 +17,7 @@ import YAML from "yaml";
 import db from "../../db.js";
 import { debug, global as logger } from "../../logger.js";
 import { getCurrentCustom, mergeCustom, parseCustom } from "./custom.js";
-import { asV2, danglingRefs, needsV2, toV1, v2ExceptionLimits } from "./objects/format.js";
+import { asV2, danglingRefs, needsV2, toV1 } from "./objects/format.js";
 import { buildDoc, seedBuiltins } from "./objects/store.js";
 
 const POLICY_FILE = process.env.NGINXIONS_APPSEC_POLICY_FILE || "/ext/appsec/local_policy.yaml";
@@ -73,8 +73,6 @@ const buildPolicy = async ({ custom, candidate } = {}) => {
 		format,
 		reasons,
 		warnings: [
-			// v1beta2: the agent applies only the first exception of a rule
-			...(format === "v1beta2" ? v2ExceptionLimits(merged).map((rule) => `exceptions:${rule}`) : []),
 			// names the agent will not find (an expert fragment refers to a renamed or deleted object)
 			...danglingRefs(merged).map((ref) => `missing:${ref}`),
 		],

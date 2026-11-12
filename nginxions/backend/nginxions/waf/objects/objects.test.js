@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { asV2, danglingRefs, fromV1, isV1, needsV2, toV1, v2ExceptionLimits } from "./format.js";
+import { asV2, danglingRefs, fromV1, isV1, needsV2, toV1 } from "./format.js";
 import { BUILTIN, builtinSpec, KINDS, normalize, TEMPLATES } from "./model.js";
 
 test("built-in objects are complete and valid", () => {
@@ -134,7 +134,6 @@ test("fragments in either syntax, v1beta2 only when needed", () => {
 		inactive.policies.specificRules.map((r) => r.accessControlPractices),
 		[["none"], ["rl"]],
 	);
-	assert.deepEqual(v2ExceptionLimits(example), ["default"]);
 	assert.deepEqual(danglingRefs(example), []);
 	const dangling = structuredClone(example);
 	dangling.policies.specificRules[0].exceptions = ["gone"];
