@@ -71,7 +71,7 @@ if [ ! -e /crowdsec-conf/config.yaml.local ]; then
   echo "nginxions-init: CrowdSec registration of NginxionS enabled"
 fi
 
-# open-appsec agent installed before NGINXIONS_LOCAL_ONLY (phase 0) keeps the cloud Fog address in its
+# an agent installed by an early NginxionS (phase 0) keeps the Fog address of the cloud in its
 # config volume across upgrades; point it to the closed local port (see openappsec in compose.yaml)
 agent_details=/appsec-conf/agent_details.json
 if [ -s "$agent_details" ] && [ "$(jq -r '."Fog domain"' "$agent_details")" != 127.0.0.1 ]; then

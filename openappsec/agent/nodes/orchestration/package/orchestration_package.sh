@@ -432,7 +432,9 @@ if [ "$RUN_MODE" = "install" ] && [ $var_offline_mode = false ]; then
         fi
     fi
     if [ $var_hybrid_mode = true ] && [ -z "$var_fog_address" ]; then
-        var_fog_address="$var_default_gem_fog_address"
+        # NginxionS: the agent of NginxionS has no cloud; the address is a closed local port it never connects to
+        # (it was the Fog of Check Point)
+        var_fog_address="http://127.0.0.1:1"
     fi
 
     if [ -n "$var_proxy" ]; then

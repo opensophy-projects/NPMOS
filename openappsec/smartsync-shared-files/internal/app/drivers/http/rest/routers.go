@@ -6,7 +6,7 @@ import (
 
 	"openappsec.io/smartsync-shared-files/internal/app/utils"
 
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"openappsec.io/ctxutils"
 	healthhandlers "openappsec.io/health/http/rest"
 	"openappsec.io/httputils/middleware"

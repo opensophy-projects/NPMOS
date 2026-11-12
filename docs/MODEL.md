@@ -1,6 +1,6 @@
 # Модель WAF NginxionS: обучение, проверка, выпуск
 
-**Модель в образе** — продвинутая модель Check Point («Advanced model, V2.0»): `deploy/openappsec/agent/waap.data`
+**Модель в образе** — продвинутая модель Check Point («Advanced model, V2.0»): `openappsec/agent/components/security_apps/waap/resources/waap.data`
 кладётся в исходники агента при сборке образа `nginxions-openappsec` вместо базовой модели open-appsec (как велит README
 модели). Лицензия Check Point — внутри файла (ключ `license`), она сохраняется и в моделях, обученных из неё.
 

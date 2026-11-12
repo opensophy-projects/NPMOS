@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"openappsec.io/errors"
 	"openappsec.io/httputils/responses"
 	"openappsec.io/log"

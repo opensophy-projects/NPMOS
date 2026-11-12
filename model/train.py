@@ -7,7 +7,7 @@ Input (from scripts/train-model.sh):
   samples.jsonl    the requests with labels and train/test split (model/datasets.py)
   dump/*.jsonl     what the agent with the stock model found in each value of each request
   verdicts.jsonl   what the agent with the stock model decided (model/replay.py)
-  waap.data        the model of the image (the advanced model of Check Point, deploy/openappsec/agent/waap.data):
+  waap.data        the model of the image (the advanced model of Check Point, openappsec/agent/components/security_apps/waap/resources/waap.data):
                    signatures stay, the scores are trained; a linear base model is where the training starts (its
                    weights are the prior of L2, a feature the training part never shows keeps its weight)
 

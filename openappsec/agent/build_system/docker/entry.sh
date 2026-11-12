@@ -1,7 +1,5 @@
 #!/bin/bash
 
-INTELLIGENCE_INSTALLATION_SCRIPT="install-cp-agent-intelligence-service.sh"
-CROWDSEC_INSTALLATION_SCRIPT="install-cp-crowdsec-aux.sh"
 HTTP_TRANSACTION_HANDLER_SERVICE="install-cp-nano-service-http-transaction-handler.sh"
 ATTACHMENT_REGISTRATION_SERVICE="install-cp-nano-attachment-registration-manager.sh"
 ORCHESTRATION_INSTALLATION_SCRIPT="install-cp-nano-agent.sh"
@@ -106,10 +104,8 @@ if [ "$CENTRAL_NGINX_MANAGER" == "true" ]; then
     /nano-service-installers/$NGINX_CENTRAL_MANAGER_INSTALLATION_SCRIPT --install
 fi
 
-if [ "$CROWDSEC_ENABLED" == "true" ]; then
-    /nano-service-installers/$INTELLIGENCE_INSTALLATION_SCRIPT --install
-    /nano-service-installers/$CROWDSEC_INSTALLATION_SCRIPT --install
-fi
+# NginxionS: no intelligence service and CrowdSec auxiliary service of Check Point (prebuilt, no sources, a cloud
+# behind them); NginxionS runs CrowdSec with its own bouncer
 
 # use advanced model if exist as data for agent
 FILE=/advanced-model/open-appsec-advanced-model.tgz

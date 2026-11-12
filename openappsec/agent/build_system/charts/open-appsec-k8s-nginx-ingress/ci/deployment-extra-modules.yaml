@@ -1,9 +1,0 @@
-controller:
-  service:
-    type: ClusterIP
-  extraModules:
-    - name: opentelemetry
-      image:
-        registry: registry.k8s.io
-        image: busybox
-        tag: latest

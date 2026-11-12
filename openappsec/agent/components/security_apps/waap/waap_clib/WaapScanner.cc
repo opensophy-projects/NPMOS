@@ -148,7 +148,7 @@ double Waap::Scanner::getScoreFromPool(
 }
 
 // Ignore scan results from specific fields on csp-report json in case those are not filtered by learning
-bool Waap::Scanner::isKeyCspReport(const std::string &key, Waf2ScanResult &res, DeepParser &dp)
+bool Waap::Scanner::isKeyCspReport(const std::string &key, Waf2ScanResult &res, DeepParser &dp) // gitleaks:allow (a field name, not a secret)
 {
     if (res.score < 8.0f && res.location == "body" && dp.getActualParser(0) == "jsonParser") {
         if (key == "csp-report.blocked-uri" || key == "csp-report.script-sample" ||

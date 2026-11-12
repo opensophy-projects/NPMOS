@@ -14,6 +14,7 @@
 #include "messaging_comp.h"
 
 #include <fstream>
+#include <cctype>
 #include <string>
 
 #include "agent_core_utilities.h"
@@ -98,6 +99,31 @@ isMessageToFog(const MessageMetadata message_metadata)
     return message_metadata.isToFog();
 }
 
+// NginxionS: the agent of NginxionS has no cloud. A message to the Fog, or to any host of the cloud of open-appsec
+// (Check Point), is refused here, before a connection: nothing of the agent reaches out, whatever its configuration
+// says (a Fog address, a token, a log or a metric "to the cloud").
+static bool
+endsWith(const string &value, const string &suffix)
+{
+    return value.size() >= suffix.size() && value.compare(value.size() - suffix.size(), suffix.size(), suffix) == 0;
+}
+
+static bool
+isCloudHost(string host)
+{
+    for (auto &c : host) c = tolower(c);
+    for (const string &domain : {"checkpoint.com", "openappsec.io"}) {
+        if (host == domain || endsWith(host, "." + domain)) return true;
+    }
+    return false;
+}
+
+static bool
+isCloudDestination(const MessageMetadata &metadata)
+{
+    return metadata.isToFog() || isCloudHost(metadata.getHostName());
+}
+
 Maybe<Connection>
 MessagingComp::getConnection(MessageCategory category, const MessageMetadata &metadata)
 {
@@ -125,6 +151,10 @@ MessagingComp::sendMessage(
     const MessageMetadata &message_metadata
 )
 {
+    if (isCloudDestination(message_metadata)) {
+        dbgDebug(D_MESSAGING) << "NginxionS: no cloud, a message to " << message_metadata.getHostName() << " is dropped";
+        return genError<HTTPResponse>(HTTPStatusCode::HTTP_UNKNOWN, "NginxionS: the agent has no cloud");
+    }
     auto maybe_conn = getConnection(category, message_metadata);
     if (!maybe_conn.ok()) {
         dbgWarning(D_MESSAGING) << "Failed to get connection. Error: " << maybe_conn.getErr();
@@ -220,6 +250,8 @@ MessagingComp::sendAsyncMessage(
     bool force_buffering
 )
 {
+    // NginxionS: a message to the cloud would only fill the buffer: it is never sent
+    if (isCloudDestination(message_metadata)) return;
     MessageMetadata new_message_metadata = message_metadata;
     new_message_metadata.setShouldBufferMessage(force_buffering);
     i_messaging_buffer->pushNewBufferedMessage(body, method, uri, category, new_message_metadata, false);
@@ -297,51 +329,11 @@ MessagingComp::uploadFile(
 }
 
 bool
-MessagingComp::setFogConnection(const string &host, uint16_t port, bool is_secure, MessageCategory category)
+MessagingComp::setFogConnection(const string &host, uint16_t port, bool, MessageCategory)
 {
-    dbgTrace(D_MESSAGING) << "Setting a fog connection to " << host << ":" << port;
-    MessageMetadata metadata(host, port, true);
-
-    I_ProxyConfiguration *proxy_configuration = Singleton::Consume<I_ProxyConfiguration>::by<Messaging>();
-    auto load_env_proxy = proxy_configuration->loadProxy();
-    if (!load_env_proxy.ok()) {
-        dbgDebug(D_MESSAGING)
-            << "Could not initialize load proxy from environment, Error: "
-            << load_env_proxy.getErr();
-    }
-
-    ProxyProtocol proxy_protocol = is_secure ? ProxyProtocol::HTTPS : ProxyProtocol::HTTP;
-    if (proxy_configuration->getProxyExists(proxy_protocol)) {
-        auto proxy_host = proxy_configuration->getProxyDomain(proxy_protocol);
-        auto proxy_port = proxy_configuration->getProxyPort(proxy_protocol);
-        auto maybe_proxy_auth = proxy_configuration->getProxyAuthentication(proxy_protocol);
-
-        if (proxy_host.ok() && proxy_port.ok()) {
-            string proxy_auth = maybe_proxy_auth.ok() ? *maybe_proxy_auth : "";
-            dbgDebug(D_MESSAGING) << "Setting proxy address: " << *proxy_host << ":" << *proxy_port;
-            MessageProxySettings proxy_settings(proxy_host.unpack(), proxy_auth, proxy_port.unpack());
-            metadata.setProxySettings(proxy_settings);
-        }
-    }
-
-    I_MessagingConnection *i_conn = Singleton::Consume<I_MessagingConnection>::from<ConnectionComponent>();
-    auto conn = i_conn->establishConnection(metadata, category);
-    if (!conn.ok()) {
-        dbgWarning(D_MESSAGING) << "Failed to establish connection to fog: " << conn.getErr();
-        return false;
-    }
-
-    dbgInfo(D_MESSAGING)
-        << "Successfully connected to the Fog: "
-        << host
-        << ":"
-        << port
-        << " via "
-        << (metadata.isProxySet() ? "proxy, using " : "")
-        << (is_secure ? "secure" : "clear")
-        << " connection";
-
-    return true;
+    // NginxionS: the agent of NginxionS has no cloud, no connection to a Fog
+    dbgDebug(D_MESSAGING) << "NginxionS: no cloud, no Fog connection to " << host << ":" << port;
+    return false;
 }
 
 bool

@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 2.8.4)
+# NginxionS: from attachment.patch of NPMplus: the nginx module only (no docker, nodes, nano_attachment), zlib-ng
+cmake_minimum_required(VERSION 3.5.0)
 project(ngen)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -Wno-terminate")
@@ -17,5 +18,5 @@ include_directories(core/include/attachments)
 
 add_subdirectory(core)
 add_subdirectory(attachments)
-add_subdirectory(docker)
-add_subdirectory(nodes)
+#add_subdirectory(docker)
+#add_subdirectory(nodes)

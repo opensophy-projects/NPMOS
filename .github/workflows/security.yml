@@ -36,11 +36,13 @@ jobs:
         run: |
           . .github/security/tools.env
           mkdir -p out
-          # community rulesets (downloaded without an account) and the rules of NginxionS
+          # community rulesets (downloaded without an account) and the rules of NginxionS; Go and C/C++ for the agent
+          # of NginxionS (openappsec/)
           docker run --rm -v "$PWD:/src" -w /src "$SEMGREP_IMAGE" semgrep scan --metrics=off --disable-version-check \
             --config p/javascript --config p/typescript --config p/nodejs --config p/react --config p/expressjs \
             --config p/jwt --config p/sql-injection --config p/command-injection --config p/xss \
             --config p/insecure-transport --config p/secrets --config p/dockerfile --config p/github-actions \
+            --config p/golang --config p/c \
             --config .github/security/semgrep.yml \
             --sarif-output=out/semgrep.sarif --json-output=out/semgrep.json --quiet
       # accepted risks and findings suppressed in the source stay in out/ (the report), not in code scanning
@@ -69,7 +71,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [javascript-typescript, actions]
+        # c-cpp and go: the agent of NginxionS and its services (openappsec/); C++ without a build (build-mode none),
+        # Go built by CodeQL (autobuild finds the modules of openappsec/)
+        include:
+          - language: javascript-typescript
+            build-mode: none
+          - language: actions
+            build-mode: none
+          - language: c-cpp
+            build-mode: none
+          - language: go
+            build-mode: autobuild
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -77,7 +89,7 @@ jobs:
       - uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
           languages: ${{ matrix.language }}
-          build-mode: none
+          build-mode: ${{ matrix.build-mode }}
           queries: security-extended
           config-file: .github/security/codeql.yml
       - uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
@@ -95,8 +107,12 @@ jobs:
         env:
           LANGUAGE: ${{ matrix.language }}
         run: |
-          tool=codeql-js
-          [ "$LANGUAGE" = actions ] && tool=codeql-actions
+          case "$LANGUAGE" in
+            actions) tool=codeql-actions ;;
+            c-cpp) tool=codeql-cpp ;;
+            go) tool=codeql-go ;;
+            *) tool=codeql-js ;;
+          esac
           mkdir -p upload && node scripts/sarif-accepted.mjs "$tool" "out/codeql-$LANGUAGE.sarif" "upload/codeql.sarif"
       - uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
@@ -157,6 +173,10 @@ jobs:
           . .github/security/tools.env
           mkdir -p out
           locks=(-L nginxions/backend/pnpm-lock.yaml -L nginxions/frontend/pnpm-lock.yaml)
+          # the Go modules of the agent side (openappsec/): shared storage, tuning, smartsync
+          for m in openappsec/smartsync-shared-files openappsec/smartsync-tuning openappsec/smartsync; do
+            locks+=(-L "$m/go.mod")
+          done
           # exit 1: something was found (the report decides); above 1: the scan failed
           rc=0
           docker run --rm -v "$PWD:/src" -w /src "$OSV_SCANNER_IMAGE" scan source --format json \
@@ -203,12 +223,13 @@ jobs:
           . .github/security/tools.env
           mkdir -p out/kics
           docker run --rm -v "$PWD:/src" -w /src "$HADOLINT_IMAGE" hadolint --config .github/security/hadolint.yaml \
-            --no-fail -f json nginxions/Dockerfile deploy/openappsec/Dockerfile deploy/dev/Dockerfile > out/hadolint.json
+            --no-fail -f json nginxions/Dockerfile deploy/openappsec/Dockerfile deploy/dev/Dockerfile \
+            $(git ls-files 'openappsec/**Dockerfile*') > out/hadolint.json
           docker run --rm -v "$PWD:/src" -w /src "$TRIVY_IMAGE" config --quiet --format json \
-            --output out/trivy-config.json --skip-dirs nginxions/frontend/node_modules --skip-dirs nginxions/backend/node_modules \
-            --skip-dirs openappsec .
+            --output out/trivy-config.json --skip-dirs nginxions/frontend/node_modules --skip-dirs nginxions/backend/node_modules .
           docker run --rm -v "$PWD:/src" "$KICS_IMAGE" scan --no-progress --disable-secrets --ignore-on-exit results \
-            -p /src/deploy,/src/nginxions/Dockerfile,/src/.github/workflows -o /src/out/kics --report-formats json,sarif
+            -p /src/deploy,/src/nginxions/Dockerfile,/src/.github/workflows,/src/openappsec -o /src/out/kics \
+            --report-formats json,sarif
           # KICS repeats CWE entries in the taxonomies of its SARIF, which code scanning rejects
           sudo chown -R "$(id -u)" out
           jq '(.runs[].taxonomies[]?.taxa) |= unique' out/kics/results.sarif > out/kics/results.tmp

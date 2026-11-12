@@ -1098,8 +1098,7 @@ namespace Util {
     };
 // LCOV_EXCL_STOP
 
-    static const std::string s_EncryptionKey = "KSO+hOFs1q5SkEnx8bvp67Om2zyHDD6ZJF4NHAa3R94=";;
-    static const std::string s_EncryptionIV = "sxJNyEO7i6YfA1p9CTglHw==";
+    // NginxionS: a hardcoded encryption key and IV of upstream (used nowhere) are removed
 
     // trim from start
     static inline std::string &ltrim(std::string &s) {

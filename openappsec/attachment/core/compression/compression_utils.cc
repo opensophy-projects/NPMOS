@@ -21,7 +21,8 @@
 #include <tuple>
 #include <strings.h>
 #include <string.h>
-#include <zlib.h>
+// NginxionS: zlib-ng of the nginxions image (from attachment.patch of NPMplus)
+#include <zlib-ng.h>
 #include <brotli/encode.h>
 #include <brotli/decode.h>
 
@@ -116,7 +117,7 @@ struct CompressionStream
     br_encoder_state(nullptr),
     br_decoder_state(nullptr)
     {
-        bzero(&stream, sizeof(z_stream));
+        bzero(&stream, sizeof(zng_stream));
     }
 
     ~CompressionStream() { fini(); }
@@ -127,7 +128,7 @@ struct CompressionStream
         compression_type = type;
     }
 
-    tuple<basic_string<unsigned char>, bool>
+    tuple<vector<uint8_t>, bool>
     decompress(const unsigned char *data, uint32_t size)
     {
         if (state == TYPE::DECOMPRESS_BROTLI) return decompressBrotli(data, size);
@@ -153,7 +154,7 @@ struct CompressionStream
 
         vector<unsigned char> work_space;
         work_space.reserve(4096);
-        basic_string<unsigned char> res;
+        vector<uint8_t> res;
         int retries = 0;
 
         while (stream.avail_in != 0) {
@@ -162,7 +163,7 @@ struct CompressionStream
 
             auto old_total_out = stream.total_out;
 
-            auto inflate_res = inflate(&stream, zlib_no_flush);
+            auto inflate_res = zng_inflate(&stream, zlib_no_flush);
 
             if (inflate_res != Z_OK && inflate_res != Z_STREAM_END) {
                 fini();
@@ -170,7 +171,7 @@ struct CompressionStream
             }
 
             if (stream.total_out != old_total_out) {
-                res.append(work_space.data(), stream.total_out - old_total_out);
+                res.insert(res.end(), work_space.data(), work_space.data() + (stream.total_out - old_total_out));
             } else {
                 ++retries;
                 if (retries > max_retries) {
@@ -188,7 +189,7 @@ struct CompressionStream
         return make_tuple(res, false);
     }
 
-    basic_string<unsigned char>
+    vector<uint8_t>
     compress(CompressionType type, const unsigned char *data, uint32_t size, int is_last_chunk)
     {
         if (type == CompressionType::BROTLI) return compressBrotli(data, size, is_last_chunk);
@@ -199,8 +200,8 @@ struct CompressionStream
         stream.next_in = data;
 
         vector<unsigned char> work_space;
-        work_space.reserve(deflateBound(&stream, stream.avail_in));
-        basic_string<unsigned char> res;
+        work_space.reserve(zng_deflateBound(&stream, stream.avail_in));
+        vector<uint8_t> res;
         int retries = 0;
 
         while (stream.avail_in != 0 || is_last_chunk) {
@@ -209,14 +210,14 @@ struct CompressionStream
 
             auto old_total_out = stream.total_out;
 
-            int deflate_res = deflate(&stream, is_last_chunk ? zlib_finish_flush : zlib_sync_flush);
+            int deflate_res = zng_deflate(&stream, is_last_chunk ? zlib_finish_flush : zlib_sync_flush);
 
             if (deflate_res != Z_OK && deflate_res != Z_STREAM_END) {
                 fini();
                 throw runtime_error("error in 'deflate': " + getZlibError(deflate_res));
             }
             if (stream.total_out != old_total_out) {
-                res.append(work_space.data(), stream.total_out - old_total_out);
+                res.insert(res.end(), work_space.data(), work_space.data() + (stream.total_out - old_total_out));
             } else {
                 ++retries;
                 if (retries > max_retries) {
@@ -239,7 +240,7 @@ private:
     {
         if (state != TYPE::UNINITIALIZED) return;
 
-        auto init_status = inflateInit2(&stream, default_num_window_bits + 32);
+        auto init_status = zng_inflateInit2(&stream, default_num_window_bits + 32);
         if (init_status != zlib_ok_return_value) {
             throw runtime_error(
                 "Failed to initialize decompression stream. Error: " + getZlibError(init_status)
@@ -276,7 +277,7 @@ private:
             }
         }
 
-        int init_status = deflateInit2(
+        int init_status = zng_deflateInit2(
             &stream,
             default_compression_level,
             default_compression_method,
@@ -293,7 +294,7 @@ private:
         state = TYPE::COMPRESS;
     }
 
-    basic_string<unsigned char>
+    vector<uint8_t>
     compressBrotli(const unsigned char *data, uint32_t size, int is_last_chunk)
     {
         if (state == TYPE::UNINITIALIZED) {
@@ -307,7 +308,7 @@ private:
             throw runtime_error("Compression stream in inconsistent state for Brotli compression");
         }
 
-        basic_string<unsigned char> output;
+        vector<uint8_t> output;
         vector<uint8_t> buffer(16384);
         int retries = 0;
         const uint8_t* next_in = data;
@@ -336,7 +337,7 @@ private:
 
             size_t bytes_written = buffer.size() - available_out;
             if (bytes_written > 0) {
-                output.append(buffer.data(), bytes_written);
+                output.insert(output.end(), buffer.data(), buffer.data() + bytes_written);
                 retries = 0;
             } else {
                 retries++;
@@ -356,7 +357,7 @@ private:
         return output;
     }
 
-    tuple<basic_string<unsigned char>, bool>
+    tuple<vector<uint8_t>, bool>
     decompressBrotli(const unsigned char *data, uint32_t size)
     {
         if (state != TYPE::DECOMPRESS_BROTLI) {
@@ -368,7 +369,7 @@ private:
             state = TYPE::DECOMPRESS_BROTLI;
         }
 
-        basic_string<unsigned char> output;
+        vector<uint8_t> output;
         const uint8_t* next_in = data;
         size_t available_in = size;
 
@@ -400,7 +401,7 @@ private:
             // Handle any produced output
             size_t bytes_produced = buffer.size() - available_out;
             if (bytes_produced > 0) {
-                output.append(buffer.data(), bytes_produced);
+                output.insert(output.end(), buffer.data(), buffer.data() + bytes_produced);
             }
 
             if (result == BROTLI_DECODER_RESULT_SUCCESS) {
@@ -487,8 +488,8 @@ private:
     {
         int end_stream_res = zlib_ok_return_value;
 
-        if (state == TYPE::DECOMPRESS) end_stream_res = inflateEnd(&stream);
-        if (state == TYPE::COMPRESS) end_stream_res = deflateEnd(&stream);
+        if (state == TYPE::DECOMPRESS) end_stream_res = zng_inflateEnd(&stream);
+        if (state == TYPE::COMPRESS) end_stream_res = zng_deflateEnd(&stream);
 
         if (br_encoder_state) {
             BrotliEncoderDestroyInstance(br_encoder_state);
@@ -527,7 +528,7 @@ private:
     }
 
     CompressionType compression_type;
-    z_stream stream;
+    zng_stream stream;
         enum class TYPE {
         UNINITIALIZED,
         COMPRESS,
@@ -565,7 +566,7 @@ finiCompressionStream(CompressionStream *compression_stream)
 }
 
 static unsigned char *
-duplicateMemory(const basic_string<unsigned char> &str)
+duplicateMemory(const vector<uint8_t> &str)
 {
     auto res = static_cast<unsigned char *>(malloc(str.size()));
 

@@ -170,7 +170,7 @@ if $CURL "$ADMIN/api/nginxions/waf" | grep -q '"reachable": *true'; then
   [ "$(status "/?q=hello")" = 200 ] || fail "a normal request was blocked"
 
   step "WAF: the request headers of a browser pass (a stylesheet of Chrome: Sec-Fetch-Dest: style)"
-  # the agent's model takes "style" for XSS: without waap-headers.json every stylesheet of Chrome was refused
+  # the agent's model takes "style" for XSS: without the browser headers among its clean headers (its waap.data) every stylesheet of Chrome was refused
   browser=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 -H 'Host: test.local' -H 'Accept: text/css,*/*;q=0.1' \
     -H 'Sec-Fetch-Dest: style' -H 'Sec-Fetch-Mode: no-cors' -H 'Sec-Fetch-Site: same-origin' -H 'Priority: u=0' \
     -H 'Sec-Ch-Ua-Mobile: ?0' -H 'Sec-Ch-Ua-Platform: "Linux"' "$HTTP/assets/index.css")

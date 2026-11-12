@@ -82,7 +82,7 @@ const wafHosts = async () => {
 
 const hostById = async (id) => (await wafHosts()).find((h) => h.id === id) ?? null;
 
-// the tenant of the agent, from its events: none when it runs local only (NGINXIONS_LOCAL_ONLY, no registration)
+// the tenant of the agent, from its events: none: the agent of NginxionS never registers at a cloud
 let tenantCache = { value: "", at: 0 };
 const getTenant = async () => {
 	if (Date.now() - tenantCache.at < 10 * 60 * 1000) return tenantCache.value;

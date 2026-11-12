@@ -24,22 +24,14 @@ FROM docker.io/library/alpine:3.24.4@sha256:f59abe656b692d901e184be3445e08478660
 RUN apk add --no-cache build-base cmake git python3 bash linux-headers \
         boost-dev openssl-dev pcre2-dev libxml2-dev gtest-dev curl-dev hiredis-dev redis \
         libmaxminddb-dev yq brotli-dev zlib-dev
-# changes of NginxionS in the agent (grep "NginxionS:"): local-only hybrid mode without Fog registration and
-# reconnection; rate limits for hosts of the local policy (no scheme) and its rules (no "action" and "match");
-# host:port of services; the feature dump for training; no access token of the Fog for the local tuning and shared
-# storage services in local-only mode
+# changes of NginxionS in the agent (grep "NginxionS:"): no cloud at all (no registration, no Fog, no message or
+# download to a host of open-appsec, no token for the local services); rate limits for hosts of the local policy (no
+# scheme) and its rules (no "action" and "match"); host:port of services; the feature dump for training. Its model
+# (components/security_apps/waap/resources/waap.data) is the advanced model of Check Point ("Advanced model, V2.0",
+# its license inside the file) with the request headers of browsers (Sec-Fetch-*, Priority, client hints) among the
+# clean headers of its signatures; a model uploaded in WAF -> Agent replaces it at the start of the agent.
 COPY --from=openappsec agent/ /src/
 WORKDIR /src
-# The model of the image: the advanced model of Check Point (agent/waap.data, "Advanced model, V2.0", its license
-# inside the file) in place of the basic model of the sources, as its README says for a build of the agent. A model
-# uploaded in WAF -> Agent replaces it at the start of the agent; removing that one brings this one back.
-COPY agent/waap.data components/security_apps/waap/resources/waap.data
-# Request headers every browser sends (Sec-Fetch-*, Priority, client hints) are not in the list of clean
-# headers of the agent's signatures: the model takes "Sec-Fetch-Dest: style" for XSS and refuses every
-# stylesheet Chrome loads. waap-headers.json adds them with strict patterns; another value is scanned as before.
-COPY agent/waap-headers.json /patches/waap-headers.json
-COPY agent/merge-headers.py /patches/merge-headers.py
-RUN python3 /patches/merge-headers.py
 RUN cmake -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_INSTALL_PREFIX=build_out . && \
     make -j"$(nproc)" install && \
     make package && \
@@ -62,23 +54,19 @@ RUN chmod +x /entry.sh /nano-service-installers/* && ln -s entry.sh cp-nano-agen
 # ---------------------------------------------------------------- shared storage and tuning (Go)
 # the same binaries and configs as their upstream images; modules are vendored under dependencies/
 FROM docker.io/library/golang:1.27-alpine@sha256:eb61c3873c97416fff0116553fff65d67a3549f72e11d9758849a689cdd8b523 AS go-build
+# their libraries are raised in their go.mod over the ones of upstream (known vulnerabilities, docs/DEVSECOPS.md)
 ENV GOMODCACHE=/vendor CGO_ENABLED=0 GOOS=linux GOTOOLCHAIN=local
-# libraries raised over the ones of the sources: those have known vulnerabilities (Trivy, docs/DEVSECOPS.md); the
-# Kubernetes client of tuning (its CRD listener, unused by NginxionS) to the last patch of its 0.17 line
-ARG GO_UPGRADES="golang.org/x/crypto@v0.58.1-0.20261009181718-2f1f834330b2 golang.org/x/net@v0.62.0 golang.org/x/text@v0.43.0 golang.org/x/oauth2@v0.37.0 github.com/sirupsen/logrus@v1.10.2 k8s.io/apimachinery@v0.17.16 k8s.io/client-go@v0.17.16 k8s.io/api@v0.17.16"
 
 FROM go-build AS shared-storage
 COPY --from=openappsec smartsync-shared-files/ /app/
 WORKDIR /app
-RUN go get $GO_UPGRADES && go mod tidy && \
-    go build -ldflags="-w -s" -a -installsuffix cgo -o /out/app ./cmd/server/ && cp -r configs /out/configs
+RUN go build -ldflags="-w -s" -a -installsuffix cgo -o /out/app ./cmd/server/ && cp -r configs /out/configs
 
 FROM go-build AS tuning
 # tuning: no database password in its log (NginxionS: in its code)
 COPY --from=openappsec smartsync-tuning/ /app/
 WORKDIR /app
-RUN go get $GO_UPGRADES && go mod tidy && \
-    go build -ldflags="-w -s" -a -installsuffix cgo -o /out/app ./cmd/server/ && cp -r configs /out/configs && \
+RUN go build -ldflags="-w -s" -a -installsuffix cgo -o /out/app ./cmd/server/ && cp -r configs /out/configs && \
     { [ ! -d api ] || cp -r api /out/api; }
 
 # ---------------------------------------------------------------- the image

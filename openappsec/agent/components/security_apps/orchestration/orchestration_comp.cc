@@ -2153,19 +2153,6 @@ private:
     // LCOV_EXCL_STOP
 
     bool
-    shouldReconnectToFog(
-        const string &fog,
-        const uint16_t port,
-        const bool is_secure)
-    {
-        return
-            i_agent_details->getAccessToken().empty() ||
-            i_agent_details->getSSLFlag() != is_secure ||
-            !i_agent_details->getFogPort().ok() || i_agent_details->getFogPort().unpack() != port ||
-            !i_agent_details->getFogDomain().ok() || i_agent_details->getFogDomain().unpack() != fog;
-    }
-
-    bool
     updateFogAddress(const string &fog_addr)
     {
         dbgFlow(D_ORCHESTRATOR) << "Setting a fog address: " << fog_addr;
@@ -2183,53 +2170,10 @@ private:
             return true;
         }
 
-        // NginxionS: local-only hybrid mode (NGINXIONS_LOCAL_ONLY=true) has no Fog. After every policy update the agent
-        // connected to the Fog address, failed, and reported the applied policy as failed with no version.
-        const char *nginxions_local_only = getenv("NGINXIONS_LOCAL_ONLY");
-        if (nginxions_local_only != nullptr && string(nginxions_local_only) == "true") {
-            dbgDebug(D_ORCHESTRATOR) << "NginxionS local-only mode: no Fog connection";
-            return true;
-        }
-
-        if (fog_addr.empty()) return false; // Fog address could not be empty on online update mode
-
-        auto fog_params = parseURLParams(fog_addr);
-        if (!fog_params.ok()) {
-            dbgWarning(D_ORCHESTRATOR) << "Failed to update Fog address, Error: " << fog_params.getErr();
-            return false;
-        }
-        string fog_domain;
-        string fog_query;
-        uint16_t fog_port = 0;
-        bool encrypted_fog_connection;
-        tie(fog_domain, fog_query, fog_port, encrypted_fog_connection) = fog_params.unpack();
-
-        auto message = Singleton::Consume<I_Messaging>::by<OrchestrationComp>();
-
-        if (!shouldReconnectToFog(fog_domain, fog_port, encrypted_fog_connection)) {
-            dbgDebug(D_ORCHESTRATOR) << "Skipping reconnection to the Fog - Fog details did not change";
-            return true;
-        }
-
-        if (message->setFogConnection(fog_domain, fog_port, encrypted_fog_connection, MessageCategory::GENERIC)) {
-            i_agent_details->setFogPort(fog_port);
-            i_agent_details->setFogDomain(fog_domain);
-            i_agent_details->setSSLFlag(encrypted_fog_connection);
-
-            if (i_agent_details->writeAgentDetails()) {
-                dbgDebug(D_ORCHESTRATOR) << "Agent details was successfully saved";
-            } else {
-                dbgWarning(D_ORCHESTRATOR) << "Failed to save agent details to a file";
-            }
-
-            auto i_update_communication = Singleton::Consume<I_UpdateCommunication>::by<OrchestrationComp>();
-            i_update_communication->setAddressExtenesion(fog_query);
-            i_orchestration_status->setFogAddress(fog_addr);
-            return true;
-        }
-
-        dbgWarning(D_ORCHESTRATOR) << "Failed to connect to the Fog, Address: " << fog_addr;
-        return false;
+        // NginxionS: the agent of NginxionS has no cloud. After every policy update the agent connected to the Fog
+        // address, failed, and reported the applied policy as failed with no version.
+        dbgDebug(D_ORCHESTRATOR) << "NginxionS: no cloud, no Fog connection";
+        return true;
     }
 
     // Returns Base URL, Query, Port, SSL

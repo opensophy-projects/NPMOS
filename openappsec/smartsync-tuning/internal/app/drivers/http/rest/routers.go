@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-chi/chi"
-	chimiddleware "github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5"
+	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	confhandlers "openappsec.io/configuration/http/rest"
 	"openappsec.io/ctxutils"
 	"openappsec.io/errors/errorloader"

@@ -1,2 +1,2 @@
 add_subdirectory(docker)
-add_subdirectory(charts)
+# NginxionS: no Helm charts (Kubernetes, Kong): NginxionS runs the agent in its own container

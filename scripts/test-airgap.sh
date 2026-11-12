@@ -84,8 +84,14 @@ if [[ " ${services[*]} " == *" openappsec "* ]]; then
     [ "$i" = 30 ] && { echo "FAIL: the tuning service got no logs of the agent (no events database)"; exit 1; }
     sleep 2
   done
-  if "${compose[@]}" exec -T openappsec sh -c 'cat /var/log/nano_agent/*.dbg* 2> /dev/null' | grep -q 'Access token is missing'; then
+  agent_log=$("${compose[@]}" exec -T openappsec sh -c 'cat /var/log/nano_agent/*.dbg* 2> /dev/null' || true)
+  if echo "$agent_log" | grep -q 'Access token is missing'; then
     echo "FAIL: the agent asks for an access token of the Fog to reach a local service"
+    exit 1
+  fi
+  # the agent of NginxionS has no cloud (openappsec/agent): no connection to a Fog is even tried
+  if echo "$agent_log" | grep -E 'connected to the Fog|Failed to connect to the Fog|Setting a fog connection'; then
+    echo "FAIL: the agent tried to reach a Fog"
     exit 1
   fi
 fi

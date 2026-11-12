@@ -18,8 +18,19 @@ description = "reference sources removed from the repository (open-appsec, open-
 paths = ['''^(openappsec-main|open-appsec-npm-master|smartsync-tuning-main|newpayloads-newpayloads|NPMplus)/''']
 
 [[allowlists]]
-description = "the sources of open-appsec in openappsec/ (upstream): keys and tokens of their tests and examples"
-paths = ['''^openappsec/''']
+description = "the import of the upstream sources of open-appsec into openappsec/ (git subtree: the squashed contents and their merges): what they held (test keys of Helm charts, Go download caches, an unused key of the agent) was removed from the code after them; the code as it is now is scanned with the files"
+commits = [
+  "533ddc7bf3d40b87c9c5477820c1cb301d7e4a2c",
+  "fce7b56dabafb450de835def664499de4b99d037",
+  "487a1f6b8f6469e63ae264878faaab4250fbe5f1",
+  "92a8a7e4c268273c4975b8b2ca4681f1b0448278",
+  "a8f7112dcad018d75272bfd8246ae5326b6a560a",
+  "ee41f6ce0bb25deab4a7a5d92dc6b7fed1e83915",
+  "959b317c1b567943c6f5ee3c89523693dd40e02d",
+  "c19dde9487a81c7ee5ce67245b6d77a8727b346f",
+  "cc2be60e2f10453a03e7cf93dbac524a3dab965c",
+  "a4f96ceed2fcc6e9a3f131bbc2f4b264b2646a7d",
+]
 
 [[allowlists]]
 description = "a test of NginxionS: a masked private key that checks the redaction of diagnostic archives"
@@ -37,7 +48,7 @@ paths = ['''^deploy/openappsec/agent/patches/0005-feature-dump-for-training\.pat
 
 [[allowlists]]
 description = "the model of the agent (the advanced model of Check Point): attack keywords and regular expressions of the signatures, not secrets; model/waap.data is where it was first uploaded"
-paths = ['''^deploy/openappsec/agent/waap\.data$''', '''^model/waap\.data$''']
+paths = ['''^openappsec/agent/components/security_apps/waap/resources/[^/]+\.data$''', '''^model/waap\.data$''']
 
 [[allowlists]]
 description = "the reports of the scan itself (out/): the scan of the files runs after the scan of the history wrote its report there"

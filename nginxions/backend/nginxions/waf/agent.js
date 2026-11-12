@@ -39,7 +39,7 @@ const getAgentStatus = async () => {
 		lastPolicyUpdate: none(raw["Last policy update"]),
 		lastUpdate: none(raw["Last update"]),
 		lastUpdateStatus: updateStatus(raw["Last update status"]),
-		// with NGINXIONS_LOCAL_ONLY the agent never registers at the Fog; "Registration status" is meaningless
+		// the agent of NginxionS has no cloud and never registers; "Registration status" is meaningless
 		mode: "local",
 	};
 };

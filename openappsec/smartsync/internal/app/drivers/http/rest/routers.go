@@ -24,8 +24,8 @@ import (
 	"openappsec.io/httputils/middleware"
 	"openappsec.io/log"
 
-	"github.com/go-chi/chi"
-	chimiddleware "github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5"
+	chimiddleware "github.com/go-chi/chi/v5/middleware"
 )
 
 const (

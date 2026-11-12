@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"openappsec.io/smartsync-tuning/models"
 	"openappsec.io/ctxutils"
 	"openappsec.io/errors"

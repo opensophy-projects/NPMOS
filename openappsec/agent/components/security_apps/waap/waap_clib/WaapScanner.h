@@ -48,7 +48,7 @@ namespace Waap {
             Waf2ScanResult &res, const std::vector<std::string> &newKeywords, const std::string &poolName
         );
         bool shouldIgnoreOverride(const Waf2ScanResult &res);
-        bool isKeyCspReport(const std::string &key, Waf2ScanResult &res, DeepParser &dp);
+        bool isKeyCspReport(const std::string &key, Waf2ScanResult &res, DeepParser &dp); // gitleaks:allow (a parameter named "key", not a secret)
         
         Waf2ScanResult m_lastScanResult;
         IWaf2Transaction *m_transaction;

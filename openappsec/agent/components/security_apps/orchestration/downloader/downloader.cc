@@ -320,6 +320,21 @@ Downloader::Impl::downloadCertificatesFromFog(const vector<string> &certificate_
     return file_path;
 }
 
+// NginxionS: a host of the cloud of open-appsec (Check Point)
+static bool
+isCloudHost(string host)
+{
+    for (auto &c : host) c = tolower(c);
+    for (const string &domain : {"checkpoint.com", "openappsec.io"}) {
+        if (host == domain) return true;
+        const string suffix = "." + domain;
+        if (host.size() > suffix.size() && host.compare(host.size() - suffix.size(), suffix.size(), suffix) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
 Maybe<string>
 Downloader::Impl::downloadFileFromURL(
     const string &url,
@@ -357,6 +372,10 @@ Downloader::Impl::downloadFileFromURL(
     URLParser parsed_url(new_url);
     Maybe<string> base_url = parsed_url.getBaseURL();
     if (!base_url.ok()) return base_url;
+    // NginxionS: the agent of NginxionS has no cloud: nothing is downloaded from a host of open-appsec (Check Point)
+    if (parsed_url.getProtocol() != URLProtocol::LOCAL_FILE && isCloudHost(base_url.unpack())) {
+        return genError("NginxionS: the agent has no cloud, no download from " + base_url.unpack());
+    }
     Maybe<string> file_path = genError("Empty path");
     string file_name = service_name + ".download";
     if (parsed_url.getProtocol() == URLProtocol::LOCAL_FILE) {

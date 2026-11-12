@@ -165,10 +165,9 @@ RUN cd /src/nginx && \
     make -j "$(nproc)" install
 
 # NginxionS: the attachment is built from openappsec/attachment of NginxionS (build context "attachment"), not
-# downloaded at OASA_VER; the patch of NPMplus is still applied to it
+# downloaded at OASA_VER; the changes of attachment.patch of NPMplus are in that code
 COPY --from=attachment . /src/attachment
 RUN cd /src/attachment && \
-    git apply /src/attachment.patch && \
     cmake /src/attachment -G Ninja && \
     ninja && \
     mv -v /src/attachment/attachments/nginx/ngx_module/libngx_module.so /usr/local/nginx/modules/libngx_module.so

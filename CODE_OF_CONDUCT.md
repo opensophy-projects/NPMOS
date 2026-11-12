@@ -194,9 +194,6 @@ flowchart LR
   - `nginxions-openappsec.sh` — запуск процессов контейнера: агент, shared storage, tuning, `nginxions-control`
   - `sources.env` — коммиты upstream open-appsec, от которых взяты исходники в `openappsec/` (для их обновления)
   - `agent/nginxions-entry.sh` — настройки агента из GUI (WAF → Агент) при каждом его старте
-  - `agent/merge-headers.py` — добавляет заголовки из `waap-headers.json` в сигнатуры агента при сборке
-  - `agent/waap.data` — модель агента в образе: продвинутая модель Check Point («Advanced model, V2.0», лицензия внутри файла)
-  - `agent/waap-headers.json` — заголовки браузеров (`Sec-Fetch-*`, `Priority`…) со строгими шаблонами значений, чтобы агент не принимал их за атаку
 - **`test/`** — закрытый контур, DAST, стенд обучения модели
   - `compose.airgap.yaml` — стек без выхода в интернет
   - `smoke.sh` — сценарии проверки всех функций на этом стеке
@@ -211,16 +208,19 @@ flowchart LR
 ### `openappsec/` — исходники агента NginxionS (open-appsec)
 
 Код open-appsec, взятый через `git subtree` (коммиты upstream — `deploy/openappsec/sources.env`) и развиваемый как
-свой: изменения NginxionS помечены `NginxionS:` в коде. Из него собираются образы; сканеры исходников его не
-проверяют (проверяются собранные образы).
+свой: изменения NginxionS помечены `NginxionS:` в коде. Из него собираются образы; его проверяют все сканеры
+исходников, как остальной код (`docs/DEVSECOPS.md`). Агент не обращается к облаку open-appsec ни при какой настройке.
 
-- **`agent/`** — агент (C++): только локальный режим без облака (без регистрации, переподключения и токена облака
-  для локальных tuning и shared storage); лимиты для хостов без схемы и с портом, правила лимитов локальной политики
-  (без `action` и `match`); выгрузка признаков модели для обучения (только на стенде обучения, `docs/MODEL.md`)
+- **`agent/`** — агент (C++): без облака вовсе (не регистрируется, не подключается к Fog, отказывается слать
+  сообщения и скачивать файлы с хостов open-appsec/Check Point, ходит к локальным tuning и shared storage без
+  токена); лимиты для хостов без схемы и с портом, правила лимитов локальной политики (без `action` и `match`);
+  выгрузка признаков модели для обучения (только на стенде обучения, `docs/MODEL.md`); модель
+  `components/security_apps/waap/resources/waap.data` — продвинутая модель Check Point («Advanced model, V2.0»,
+  лицензия внутри файла) с заголовками браузеров (`Sec-Fetch-*`, `Priority`…) среди чистых заголовков сигнатур
 - **`attachment/`** — модуль nginx для связи с агентом (`libngx_module.so` образа `nginxions`, контекст сборки
-  `attachment`; патч NPMplus `nginxions/patches/attachment.patch` накладывается при сборке)
+  `attachment`; изменения бывшего патча NPMplus `attachment.patch`: только модуль nginx, zlib-ng)
 - **`smartsync-shared-files/`** — shared storage (Go): файлы обучения и `decisions.data`
-- **`smartsync-tuning/`** — tuning (Go): события WAF, статистика и предложения обучения; пароль базы не пишется в лог
+- **`smartsync-tuning/`** — tuning (Go): события WAF, статистика и предложения обучения; пароль базы не пишется в лог; библиотеки подняты в `go.mod` (chi v5 и др.)
 - **`smartsync/`** — централизованное обучение нескольких агентов (Go); в образ не входит
 
 ### `scripts/` — инструменты разработчика

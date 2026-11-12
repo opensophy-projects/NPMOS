@@ -47,19 +47,14 @@ HybridCommunication::init()
     }
 }
 
-// NginxionS: local-only hybrid mode. Hybrid mode applies the declarative local policy, but the
-// orchestration loop starts only after the agent has registered at the Fog. Without internet that
-// never happens and no policy is ever applied. NginxionS manages the agent locally and sets
-// NGINXIONS_LOCAL_ONLY=true: the agent then never contacts the Fog and starts orchestration at once.
+// NginxionS: the agent of NginxionS has no cloud. Hybrid mode applies the declarative local policy, but the
+// orchestration loop started only after the agent had registered at the Fog; without internet that never happened
+// and no policy was ever applied. The agent never registers: orchestration starts at once.
 Maybe<void>
 HybridCommunication::authenticateAgent()
 {
-    const char *local_only = getenv("NGINXIONS_LOCAL_ONLY");
-    if (local_only != nullptr && string(local_only) == "true") {
-        dbgInfo(D_ORCHESTRATOR) << "NginxionS local-only mode: skipping registration at the Fog";
-        return Maybe<void>();
-    }
-    return FogAuthenticator::authenticateAgent();
+    dbgInfo(D_ORCHESTRATOR) << "NginxionS: no cloud, no registration at the Fog";
+    return Maybe<void>();
 }
 
 Maybe<void>

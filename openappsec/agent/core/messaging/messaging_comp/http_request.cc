@@ -15,7 +15,6 @@
 
 #include <sstream>
 #include <string>
-#include <cstdlib>
 
 #include "messaging.h"
 
@@ -138,12 +137,10 @@ HTTPRequest::addAccessToken(const Connection &conn, bool dont_add_access_token)
 
     string access_token = Singleton::Consume<I_AgentDetails>::by<Messaging>()->getAccessToken();
     if (access_token.empty()) {
-        // NginxionS: local-only mode (NGINXIONS_LOCAL_ONLY=true, patch 0001) never registers at the Fog, so there is no
-        // access token. The agent then only talks to the local services (tuning, shared storage), which take no token:
-        // the logs of the WAF to the tuning service failed here ("Access token is missing.") and learning had no data.
-        const char *local_only = getenv("NGINXIONS_LOCAL_ONLY");
-        if (local_only != nullptr && string(local_only) == "true") return Maybe<void>();
-        return genError("Access token is missing.");
+        // NginxionS: the agent never registers at a cloud, so there is no access token. It only talks to the local
+        // services (tuning, shared storage), which take no token: the logs of the WAF to the tuning service failed here
+        // ("Access token is missing.") and learning had no data.
+        return Maybe<void>();
     }
     insertHeader("Authorization", "Bearer " + access_token);
     return Maybe<void>();

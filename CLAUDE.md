@@ -27,7 +27,7 @@ NginxionS — форк NPMplus с встроенными open-appsec (ML-WAF) и
 
 ## Удалено из upstream
 
-Из `nginxions/` удалены файлы NPMplus, которые NginxionS не использует: `caddy/`, `compose.yaml`, `ech-cron-cloudflare-example.sh`, `renovate.json`, `.github/`; во frontend — страницы, которые заменили страницы NginxionS (`pages/Dashboard`, `pages/AuditLog`, `pages/Certificates`, `pages/Nginx/*`), окна `HTTPCertificateModal`, `DNSCertificateModal`, `PermissionsModal`, хуки `useAuditLogs`, `useHostReport` и функции API только для них. `nginxions/README.md` заменён описанием каталога. Если при обновлении NPMplus они вернутся конфликтом «modify/delete», удаляйте их снова (`git rm`).
+Из `nginxions/` удалены файлы NPMplus, которые NginxionS не использует: `caddy/`, `compose.yaml`, `ech-cron-cloudflare-example.sh`, `renovate.json`, `.github/`; во frontend — страницы, которые заменили страницы NginxionS (`pages/Dashboard`, `pages/AuditLog`, `pages/Certificates`, `pages/Nginx/*`), окна `HTTPCertificateModal`, `DNSCertificateModal`, `PermissionsModal`, хуки `useAuditLogs`, `useHostReport` и функции API только для них. `nginxions/README.md` заменён описанием каталога; `patches/attachment.patch` внесён в код `openappsec/attachment`. Если при обновлении NPMplus они вернутся конфликтом «modify/delete», удаляйте их снова (`git rm`).
 
 ## Обновление NPMplus
 
@@ -64,7 +64,7 @@ scripts/test-airgap.sh
 | `nginxions-openappsec` | `deploy/openappsec/Dockerfile`: агент (C++), shared storage и tuning (Go) из `openappsec/` (контекст сборки `openappsec=openappsec`), `nginxions-control` (контекст `control=nginxions/backend/nginxions/control`) | долго: C++ |
 | CrowdSec, Postgres | официальные образы, версии в `deploy/.env` | — |
 
-Модель агента в образе — продвинутая модель Check Point (`deploy/openappsec/agent/waap.data`, лицензия внутри
+Модель агента в образе — продвинутая модель Check Point (`openappsec/agent/components/security_apps/waap/resources/waap.data`, лицензия внутри
 файла). Модель WAF NginxionS обучается из неё в CI на настоящем агенте (`training.yml`: ветки `training/**` или `[train]` в коммите) и
 выпускается, только если на отложенных сайтах и атаках она не хуже модели образа; устройство, данные и выпуск —
 `docs/MODEL.md`.

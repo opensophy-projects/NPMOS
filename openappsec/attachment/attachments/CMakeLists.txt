@@ -1,4 +1,4 @@
-add_subdirectory(nano_attachment)
+#add_subdirectory(nano_attachment)
 if ("${ATTACHMENT_TYPE}" STREQUAL "envoy")
     add_subdirectory(envoy)
 elseif("${ATTACHMENT_TYPE}" STREQUAL "kong")
