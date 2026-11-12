@@ -1,0 +1,381 @@
+{{- if  (not (eq .Values.kind "Vanilla")) }}
+{{- include  "isControllerTagValid" . -}}
+apiVersion: apps/v1
+{{- if (eq .Values.kind "AppSec") }}
+{{- if (eq .Values.controller.kind "DaemonSet") }}
+kind: DaemonSet
+{{- else }}
+kind: Deployment
+{{- end }}
+{{- else if eq .Values.kind "AppSecStateful" }}
+kind: StatefulSet
+{{- end }}
+metadata:
+  labels:
+    {{- include "ingress-nginx.labels" . | nindent 4 }}
+    app.kubernetes.io/component: controller
+    {{- with .Values.controller.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  name: {{ include "ingress-nginx.controller.fullname" . }}
+  namespace: {{ include "ingress-nginx.namespace" . }}
+  {{- if .Values.controller.annotations }}
+  annotations: {{ toYaml .Values.controller.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if eq .Values.kind "AppSecStateful" }}
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Delete
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "ingress-nginx.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: controller
+  {{- if not (or .Values.controller.autoscaling.enabled .Values.controller.keda.enabled) }}
+  {{- if eq .Values.kind "AppSecStateful" }}
+  serviceName: "open-appsec-stateful-set"
+  {{- end }}
+  {{- if or (not (eq .Values.controller.kind "DaemonSet")) (and (eq .Values.kind "AppSecStateful") (eq .Values.controller.kind "DaemonSet")) }}
+  replicas: {{ .Values.controller.replicaCount }}
+  {{- end }}
+  {{- end }}
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+  {{- if .Values.controller.updateStrategy }}
+  {{- if (and (not (eq .Values.kind "AppSecStateful")) (eq .Values.controller.kind "DaemonSet")) }}
+  updateStrategy: {{ toYaml .Values.controller.updateStrategy | nindent 4 }}:
+  {{- else }}
+  strategy: {{ toYaml .Values.controller.updateStrategy | nindent 4 }}
+  {{- end }}
+  {{- end }}
+  {{- if (eq .Values.kind "AppSec") }}
+  minReadySeconds: {{ .Values.controller.minReadySeconds }}
+  {{- end }}
+  template:
+    metadata:
+    {{- if .Values.controller.podAnnotations }}
+      annotations:
+      {{- range $key, $value := .Values.controller.podAnnotations }}
+        {{ $key }}: {{ $value | quote }}
+      {{- end }}
+    {{- end }}
+      labels:
+        {{- include "ingress-nginx.labels" . | nindent 8 }}
+        app.kubernetes.io/component: controller
+        {{- with .Values.controller.labels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- if .Values.controller.podLabels }}
+        {{- toYaml .Values.controller.podLabels | nindent 8 }}
+      {{- end }}
+    spec:
+    {{- if .Values.controller.dnsConfig }}
+      dnsConfig: {{ toYaml .Values.controller.dnsConfig | nindent 8 }}
+    {{- end }}
+    {{- if .Values.controller.hostAliases }}
+      hostAliases: {{ tpl (toYaml .Values.controller.hostAliases) $ | nindent 8 }}
+    {{- end }}
+    {{- if .Values.controller.hostname }}
+      hostname: {{ toYaml .Values.controller.hostname | nindent 8 }}
+    {{- end }}
+      dnsPolicy: {{ .Values.controller.dnsPolicy }}
+    {{- if .Values.imagePullSecrets }}
+      imagePullSecrets: {{ toYaml .Values.imagePullSecrets | nindent 8 }}
+    {{- end }}
+    {{- if .Values.controller.priorityClassName }}
+      priorityClassName: {{ .Values.controller.priorityClassName | quote }}
+    {{- end }}
+    {{- if or .Values.controller.podSecurityContext .Values.controller.sysctls }}
+      securityContext:
+      {{- if .Values.controller.podSecurityContext }}
+        {{- toYaml .Values.controller.podSecurityContext | nindent 8 }}
+      {{- end }}
+      {{- if .Values.controller.sysctls }}
+        sysctls:
+        {{- range $sysctl, $value := .Values.controller.sysctls }}
+          - name: {{ $sysctl | quote }}
+            value: {{ $value | quote }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+    {{- if .Values.controller.shareProcessNamespace }}
+      shareProcessNamespace: {{ .Values.controller.shareProcessNamespace }}
+    {{- end }}
+      containers:
+        - name: {{ .Values.appsec.name }}
+          securityContext:
+            {{ toYaml .Values.appsec.securityContext | nindent 12 }}
+          {{- $tag := .Values.appsec.image.tag }}
+          {{- if .Values.appsec.configMapContent.crowdsec.enabled }}
+          {{- $tag = "crowdsec-1.2314-rc1" }}
+          {{- end }}
+          {{- with .Values.appsec.image }}
+          image: "{{- if .registry }}{{ .registry }}/{{- end }}{{- if .repository }}{{ .repository }}/{{- end }}{{ .image }}{{- if .tag }}:{{ .tag }}{{- end }}{{- if (.digest) -}} @{{.digest}} {{- end }}"
+          {{- end }}
+          command:
+          - {{ .Values.appsec.command }}
+          imagePullPolicy: {{ .Values.appsec.image.pullPolicy }}
+          args:
+        {{- if (eq "standalone" .Values.appsec.mode) }}
+          - --hybrid-mode
+          - --token
+          - cp-3fb5c718-5e39-47e6-8d5e-99b4bc5660b74b4b7fc8-5312-451d-a763-aaf7872703c0
+        {{- else }}
+          - --token
+          - {{ .Values.appsec.agentToken }}
+        {{- end -}}
+        {{- if .Values.appsec.customFog.enabled }}
+          - --fog
+          - {{ .Values.appsec.customFog.fogAddress }}
+        {{- end }}
+        {{- if .Values.appsec.proxy }}
+          - --proxy
+          - {{ .Values.appsec.proxy }}
+        {{- end }}
+          imagePullPolicy: {{ .Values.appsec.image.pullPolicy }}
+          env:
+            - name: user_email
+              value: {{ .Values.appsec.userEmail }}
+            - name: registered_server
+              value: "NGINX Server"
+        {{- if eq .Values.appsec.playground false }}
+            - name: SHARED_STORAGE_HOST
+              value: {{ .Values.appsec.storage.name }}-svc
+            - name: LEARNING_HOST
+              value: {{ .Values.appsec.learning.name }}-svc
+            - name: TUNING_HOST
+              value: {{ .Values.appsec.tuning.name }}-svc
+        {{- else }}
+            - name: PLAYGROUND
+              value: "true"
+        {{- end }}
+          envFrom:
+          - configMapRef:
+              name: {{ .Values.appsec.configMapName | default "appsec-settings-configmap" }}
+          - secretRef:
+              name: {{ .Values.appsec.secretName | default "appsec-settings-secret" }}
+          resources:
+            {{ toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+          - name: advanced-model
+            mountPath: /advanced-model
+        {{- if (eq .Values.appsec.persistence.enabled true) }}
+          - name: appsec-conf
+            mountPath: /etc/cp/conf
+          - name: appsec-data
+            mountPath: /etc/cp/data
+        {{- end }}
+        - name: {{ .Values.controller.containerName }}
+          {{- $tag := .Values.appsec.nginx.image.tag }}
+          {{- if .Values.appsec.configMapContent.crowdsec.enabled }}
+          {{- $tag = "1.2303.1-rc1-v1.3.0" }}
+          {{- end }}
+          {{- with .Values.appsec.nginx.image }}
+          image: "{{ .repository }}:{{ .tag }}"
+          {{- end }}
+          imagePullPolicy: {{ .Values.controller.image.pullPolicy }}
+        {{- if .Values.controller.lifecycle }}
+          lifecycle: {{ toYaml .Values.controller.lifecycle | nindent 12 }}
+        {{- end }}
+          args: {{ include "ingress-nginx.params" . | nindent 12 }}
+          securityContext: {{ include "ingress-nginx.controller.containerSecurityContext" . | nindent 12 }}
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          {{- if .Values.controller.enableMimalloc }}
+            - name: LD_PRELOAD
+              value: /usr/local/lib/libmimalloc.so
+          {{- end }}
+          {{- if .Values.controller.extraEnvs }}
+            {{- toYaml .Values.controller.extraEnvs | nindent 12 }}
+          {{- end }}
+          {{- if .Values.controller.startupProbe }}
+          startupProbe: {{ toYaml .Values.controller.startupProbe | nindent 12 }}
+          {{- end }}
+          {{- if .Values.controller.livenessProbe }}
+          livenessProbe: {{ toYaml .Values.controller.livenessProbe | nindent 12 }}
+          {{- end }}
+          {{- if .Values.controller.readinessProbe }}
+          readinessProbe: {{ toYaml .Values.controller.readinessProbe | nindent 12 }}
+          {{- end }}
+          ports:
+          {{- range $key, $value := .Values.controller.containerPort }}
+            - name: {{ $key }}
+              containerPort: {{ $value }}
+              protocol: TCP
+              {{- if $.Values.controller.hostPort.enabled }}
+              hostPort: {{ index $.Values.controller.hostPort.ports $key | default $value }}
+              {{- end }}
+          {{- end }}
+          {{- if .Values.controller.metrics.enabled }}
+            - name: {{ .Values.controller.metrics.portName }}
+              containerPort: {{ .Values.controller.metrics.port }}
+              protocol: TCP
+          {{- end }}
+          {{- if .Values.controller.admissionWebhooks.enabled }}
+            - name: webhook
+              containerPort: {{ .Values.controller.admissionWebhooks.port }}
+              protocol: TCP
+          {{- end }}
+          {{- range $key, $value := .Values.tcp }}
+            - name: {{ if $.Values.portNamePrefix }}{{ $.Values.portNamePrefix }}-{{ end }}{{ $key }}-tcp
+              containerPort: {{ $key }}
+              protocol: TCP
+              {{- if $.Values.controller.hostPort.enabled }}
+              hostPort: {{ $key }}
+              {{- end }}
+          {{- end }}
+          {{- range $key, $value := .Values.udp }}
+            - name: {{ if $.Values.portNamePrefix }}{{ $.Values.portNamePrefix }}-{{ end }}{{ $key }}-udp
+              containerPort: {{ $key }}
+              protocol: UDP
+              {{- if $.Values.controller.hostPort.enabled }}
+              hostPort: {{ $key }}
+              {{- end }}
+          {{- end }}
+        {{- if (or .Values.controller.customTemplate.configMapName .Values.controller.extraVolumeMounts .Values.controller.admissionWebhooks.enabled .Values.controller.extraModules .Values.controller.opentelemetry.enabled) }}
+          volumeMounts:
+          {{- if (or .Values.controller.extraModules .Values.controller.opentelemetry.enabled) }}
+            - name: modules
+            {{- if .Values.controller.image.chroot }}
+              mountPath: /chroot/modules_mount
+            {{- else }}
+              mountPath: /modules_mount
+            {{- end }}
+          {{- end }}
+          {{- if .Values.controller.customTemplate.configMapName }}
+            - mountPath: /etc/nginx/template
+              name: nginx-template-volume
+              readOnly: true
+          {{- end }}
+          {{- if .Values.controller.admissionWebhooks.enabled }}
+            - name: webhook-cert
+              mountPath: /usr/local/certificates/
+              readOnly: true
+          {{- end }}
+          {{- if .Values.controller.extraVolumeMounts }}
+            {{- toYaml .Values.controller.extraVolumeMounts | nindent 12 }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.controller.resources }}
+          resources: {{ toYaml .Values.controller.resources | nindent 12 }}
+        {{- end }}
+      {{- if .Values.controller.extraContainers }}
+        {{- toYaml .Values.controller.extraContainers | nindent 8 }}
+      {{- end }}
+    {{- if (or .Values.controller.extraInitContainers .Values.controller.extraModules .Values.controller.opentelemetry.enabled) }}
+      initContainers:
+      {{- if .Values.controller.extraInitContainers }}
+        {{- toYaml .Values.controller.extraInitContainers | nindent 8 }}
+      {{- end }}
+      {{- if .Values.controller.extraModules }}
+        {{- range .Values.controller.extraModules }}
+          {{- $containerSecurityContext := .containerSecurityContext | default $.Values.controller.containerSecurityContext }}
+          {{- include "extraModules" (dict "name" .name "image" .image "containerSecurityContext" $containerSecurityContext "resources" .resources) | nindent 8 }}
+        {{- end }}
+      {{- end }}
+      {{- if .Values.controller.opentelemetry.enabled }}
+        {{- with .Values.controller.opentelemetry }}
+          {{- $containerSecurityContext := .containerSecurityContext | default $.Values.controller.containerSecurityContext }}
+          {{- include "extraModules" (dict "name" .name "image" .image "containerSecurityContext" $containerSecurityContext "resources" .resources) | nindent 8 }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+    {{- if .Values.controller.hostNetwork }}
+      hostNetwork: {{ .Values.controller.hostNetwork }}
+    {{- end }}
+    {{- if .Values.controller.nodeSelector }}
+      nodeSelector: {{ toYaml .Values.controller.nodeSelector | nindent 8 }}
+    {{- end }}
+    {{- if .Values.controller.tolerations }}
+      tolerations: {{ toYaml .Values.controller.tolerations | nindent 8 }}
+    {{- end }}
+    {{- if .Values.controller.affinity }}
+      affinity: {{ toYaml .Values.controller.affinity | nindent 8 }}
+    {{- end }}
+    {{- if .Values.controller.topologySpreadConstraints }}
+      topologySpreadConstraints: {{ tpl (toYaml .Values.controller.topologySpreadConstraints) $ | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ template "ingress-nginx.serviceAccountName" . }}
+      terminationGracePeriodSeconds: {{ .Values.controller.terminationGracePeriodSeconds }}
+    {{- if (or .Values.controller.customTemplate.configMapName .Values.controller.extraVolumeMounts .Values.controller.admissionWebhooks.enabled .Values.controller.extraVolumes .Values.controller.extraModules .Values.controller.opentelemetry.enabled) }}
+      volumes:
+        - name: advanced-model
+          configMap:
+            name: advanced-model-config
+            optional: true
+      {{- if (and (eq .Values.kind "AppSec") .Values.appsec.persistence.enabled) }}
+        - name: appsec-conf
+          persistentVolumeClaim:
+            claimName: {{ .Values.appsec.name }}-conf
+        - name: appsec-data
+          persistentVolumeClaim:
+            claimName: {{ .Values.appsec.name }}-data
+      {{- end }}
+      {{- if (or .Values.controller.extraModules .Values.controller.opentelemetry.enabled)}}
+        - name: modules
+          emptyDir: {}
+      {{- end }}
+      {{- if .Values.controller.customTemplate.configMapName }}
+        - name: nginx-template-volume
+          configMap:
+            name: {{ .Values.controller.customTemplate.configMapName }}
+            items:
+            - key: {{ .Values.controller.customTemplate.configMapKey }}
+              path: nginx.tmpl
+      {{- end }}
+      {{- if .Values.controller.admissionWebhooks.enabled }}
+        - name: webhook-cert
+          secret:
+            secretName: {{ include "ingress-nginx.admissionWebhooks.fullname" . }}
+        {{- if .Values.controller.admissionWebhooks.certManager.enabled }}
+            items:
+              - key: tls.crt
+                path: cert
+              - key: tls.key
+                path: key
+        {{- end }}
+      {{- end }}
+      {{- if .Values.controller.extraVolumes }}
+        {{ toYaml .Values.controller.extraVolumes | nindent 8 }}
+      {{- end }}
+    {{- end }}
+  {{- if (and (eq .Values.kind "AppSecStateful") .Values.appsec.persistence.enabled) }}
+  volumeClaimTemplates:
+  - metadata:
+      name: appsec-conf
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      # Need to create a storage class resource.
+    {{- if .Values.appsec.persistence.storageClass }}
+    {{- if (eq "-" .Values.appsec.persistence.storageClass) }}
+      storageClassName: ""
+    {{- else }}
+      storageClassName: "{{ .Values.appsec.persistence.storageClass }}"
+    {{- end -}}
+    {{- end }}
+      resources:
+        requests:
+          storage: {{ .Values.appsec.persistence.conf.size | quote }}
+  - metadata:
+      name: appsec-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      # Need to create a storage class resource.
+    {{- if .Values.appsec.persistence.storageClass }}
+    {{- if (eq "-" .Values.appsec.persistence.storageClass) }}
+      storageClassName: ""
+    {{- else }}
+      storageClassName: "{{ .Values.appsec.persistence.storageClass }}"
+    {{- end -}}
+    {{- end }}
+      resources:
+        requests:
+          storage: {{ .Values.appsec.persistence.data.size | quote }}
+{{- end }}
+{{- end }}
