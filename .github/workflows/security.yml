@@ -222,9 +222,9 @@ jobs:
         run: |
           . .github/security/tools.env
           mkdir -p out/kics
+          mapfile -t dockerfiles < <(git ls-files 'nginxions/Dockerfile' 'deploy/**Dockerfile*' 'openappsec/**Dockerfile*')
           docker run --rm -v "$PWD:/src" -w /src "$HADOLINT_IMAGE" hadolint --config .github/security/hadolint.yaml \
-            --no-fail -f json nginxions/Dockerfile deploy/openappsec/Dockerfile deploy/dev/Dockerfile \
-            $(git ls-files 'openappsec/**Dockerfile*') > out/hadolint.json
+            --no-fail -f json "${dockerfiles[@]}" > out/hadolint.json
           docker run --rm -v "$PWD:/src" -w /src "$TRIVY_IMAGE" config --quiet --format json \
             --output out/trivy-config.json --skip-dirs nginxions/frontend/node_modules --skip-dirs nginxions/backend/node_modules .
           docker run --rm -v "$PWD:/src" "$KICS_IMAGE" scan --no-progress --disable-secrets --ignore-on-exit results \
@@ -316,6 +316,8 @@ jobs:
           node --test --experimental-test-coverage --test-coverage-include='nginxions/**' \
             --test-coverage-exclude='**/*.test.js' --test-reporter=dot --test-reporter-destination=stdout \
             --test-reporter=lcov --test-reporter-destination=../../out/lcov-backend.info 'nginxions/**/*.test.js'
+      - name: coverage of the Go services of the agent (go test)
+        run: COVERAGE_DIR=out scripts/test-go.sh
       - name: coverage of the frontend (vitest)
         working-directory: nginxions/frontend
         run: |

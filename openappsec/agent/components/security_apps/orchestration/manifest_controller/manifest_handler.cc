@@ -384,8 +384,10 @@ string
 ManifestHandler::getCurrentTimestamp()
 {
     time_t now = time(nullptr);
-    tm* now_tm = localtime(&now);
+    // NginxionS: localtime_r, localtime shares one buffer between threads (CodeQL cpp/potentially-dangerous-function)
+    tm now_tm{};
+    localtime_r(&now, &now_tm);
     char timestamp[20];
-    strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", now_tm);
+    strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", &now_tm);
     return string(timestamp);
 }

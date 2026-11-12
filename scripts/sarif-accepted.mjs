@@ -38,7 +38,11 @@ export const accepted = (result) => {
 	const path = repoPath(loc?.artifactLocation?.uri);
 	const location = path ? `${path}${loc?.region?.startLine ? `:${loc.region.startLine}` : ""}` : "";
 	const message = String(result.message?.text ?? "");
-	return risks.find((r) => r.id === id && (!r.where || location.includes(r.where) || message.includes(r.where)));
+	// "unfixed" entries (images, no fixed version yet) need the report's view of the fix: never left out here
+	return risks.find(
+		(r) =>
+			!r.unfixed && (r.id === id || r.id === "*") && (!r.where || location.includes(r.where) || message.includes(r.where)),
+	);
 };
 
 const doc = JSON.parse(readFileSync(input, "utf8"));

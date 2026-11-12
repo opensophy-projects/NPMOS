@@ -67,7 +67,7 @@ func (a *Adapter) ConnectToSentinel(ctx context.Context, c SentinelConf) error {
 	options.MasterName = c.MasterName
 	options.Password = c.Password
 	if c.TLSEnabled {
-		options.TLSConfig = &tls.Config{}
+		options.TLSConfig = &tls.Config{MinVersion: tls.VersionTLS12} // NginxionS: no TLS 1.0/1.1
 	}
 	a.client = redis.NewFailoverClient(&options)
 
@@ -91,7 +91,7 @@ func (a *Adapter) ConnectToStandalone(ctx context.Context, c StandaloneConf) err
 	options.Addr = c.Address
 	options.Password = c.Password
 	if c.TLSEnabled {
-		options.TLSConfig = &tls.Config{}
+		options.TLSConfig = &tls.Config{MinVersion: tls.VersionTLS12} // NginxionS: no TLS 1.0/1.1
 	}
 	a.client = redis.NewClient(&options)
 

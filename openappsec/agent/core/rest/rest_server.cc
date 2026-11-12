@@ -252,7 +252,9 @@ RestServer::Impl::prepareConfiguration()
         dbgInfo(D_API) << "Rest port range start: " << *range_start << ", end: " << *range_end;
         // starting_port_range = *range_start;
         port_range.resize(*range_end - *range_start);
-        for (uint16_t i = 0, port = *range_start; i < port_range.size(); i++, port++) {
+        // NginxionS: a size_t index, a uint16_t one never ends on a range of 65536 ports (CodeQL)
+        uint16_t port = *range_start;
+        for (size_t i = 0; i < port_range.size(); i++, port++) {
             port_range[i] = port;
         }
     }

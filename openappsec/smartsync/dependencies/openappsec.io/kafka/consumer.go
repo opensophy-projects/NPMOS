@@ -302,7 +302,7 @@ func (c *Consumer) defaultDialer() *kafkago.Dialer {
 	return &kafkago.Dialer{
 		Timeout:   timeout,
 		DualStack: true,
-		TLS:       &tls.Config{},
+		TLS:       &tls.Config{MinVersion: tls.VersionTLS12}, // NginxionS: no TLS 1.0/1.1
 	}
 }
 

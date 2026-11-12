@@ -22,14 +22,15 @@
 | DAST | **Nuclei** | известные CVE, открытые панели и файлы, ошибки конфигурации | `ci.yml` → `images` |
 | TLS | **testssl.sh** | протоколы, шифры, HSTS, известные атаки на TLS — интерфейса (:81) и прокси-хоста (:443) | `ci.yml` → `images` |
 | nginx | **gixy** | работающая конфигурация nginx (`nginx -T`): SSRF, инъекции заголовков, обход `alias` | `ci.yml` → `images` |
-| Качество | **jscpd**, покрытие тестами | дублирование кода, покрытие backend (`node --test`) и frontend (vitest) | `security.yml` |
+| Качество | **jscpd**, покрытие тестами | дублирование кода, покрытие backend (`node --test`), frontend (vitest) и Go-сервисов агента (`scripts/test-go.sh`) | `security.yml` |
 
-Код агента NginxionS (`openappsec/`: агент, attachment, shared storage, tuning, smartsync) проверяется теми же
-сканерами, что и остальной код: Semgrep, CodeQL (C/C++, Go), Gitleaks, OSV-Scanner, hadolint, Trivy config, KICS. Его
-находки пока показываются в отчёте и не блокируют, как и находки upstream NPMplus: это код open-appsec, который мы
-разбираем и исправляем.
+Код агента NginxionS (`openappsec/`: агент, attachment, shared storage, tuning, smartsync) — наш код: его проверяют те
+же сканеры (Semgrep, CodeQL C/C++ и Go, Gitleaks, OSV-Scanner, hadolint, Trivy config, KICS), и его высокие и
+критические находки блокируют, как в остальном коде NginxionS. Части upstream, которые агент не собирает (примеры
+деплоя, плагины других шлюзов, их Dockerfile), удалены, а не исключены из сканов.
 
-К ним добавляются проверки, которые были и раньше: biome, tsc, тесты, shellcheck, `compose config`, закрытый контур.
+К ним добавляются проверки, которые были и раньше: biome, tsc, тесты (backend, frontend, Go-сервисы агента —
+`scripts/test-go.sh`), shellcheck, `compose config`, закрытый контур.
 
 DAST (`scripts/test-dast.sh`) поднимает прод-стек, настраивает его как администратор в GUI (`deploy/test/dast-setup.sh`:
 первый админ, корневой CA и серверный сертификат PKI NginxionS, прокси-хост `dast.local` с TLS, HTTP/2, HSTS и фильтром
@@ -58,7 +59,7 @@ workflow. Проверить свою ветку полностью: назов�
 
 | Проверка | Блокирует |
 |---|---|
-| Semgrep, CodeQL | высокие и критические находки **в коде NginxionS** (`nginxions/backend/nginxions`, `nginxions/frontend/src/nginxions`, `deploy`, `scripts`, `.github`); в коде upstream NPMplus — только в отчёт |
+| Semgrep, CodeQL | высокие и критические находки **в коде NginxionS** (`nginxions/backend/nginxions`, `nginxions/frontend/src/nginxions`, `openappsec`, `deploy`, `scripts`, `.github`); в коде upstream NPMplus — только в отчёт |
 | Gitleaks | любая находка (примеры upstream исключены в `.github/security/gitleaks.toml` с причинами) |
 | OSV-Scanner | высокие и критические, **если есть исправленная версия** |
 | Trivy (образы) | высокие и критические с исправленной версией; секреты в слоях — высокие и критические |
@@ -79,12 +80,15 @@ workflow. Проверить свою ветку полностью: назов�
 ## Отчёт
 
 - **Сводка прогона**: Actions → прогон → Summary, раздел «Отчёт безопасности NginxionS». Там итог, таблица всех
-  проверок (сколько критических, высоких, средних и низких находок, что блокирует), блокирующие находки, принятые
-  риски, SBOM, метрики качества и подробности по каждому инструменту.
+  проверок (сколько открытых критических, высоких, средних и низких находок, сколько ложных срабатываний и принятых
+  рисков, что блокирует), блокирующие находки, ложные срабатывания, принятые риски, записи списка рисков, которые
+  больше ничего не находят, SBOM, метрики качества и открытые находки по каждому инструменту.
 - **Артефакт `security-report`** (внизу страницы прогона):
   - `security-report.html` — тот же отчёт страницей со всеми находками;
   - `security-report.md` — он же в Markdown;
   - `sbom/` — SBOM каждого состава: `source-backend`, `source-frontend`, `nginxions`, `nginxions-openappsec`;
+  - `findings.json` — каждая находка с вердиктом (`open`, `blocking`, `false-positive`, `accepted`) и причиной: для
+    скриптов и сравнения прогонов;
   - `raw/` — исходные результаты всех сканеров (SARIF, JSON; отчёты ZAP в HTML).
 - **Security → Code scanning**: находки Semgrep, CodeQL, Gitleaks, OSV-Scanner, KICS, zizmor, Scorecard и Trivy с
   историей, фильтрами и привязкой к строкам кода.
@@ -106,14 +110,27 @@ Node.js, бинарники Go.
 
 SBOM зависимостей репозитория также строит сам GitHub: Insights → Dependency graph → Export SBOM.
 
-## Принятые риски
+## Ложные срабатывания и принятые риски
 
-Если находку нельзя или не нужно исправлять (нет исправления upstream, ложное срабатывание), её вносят в
-`.github/security/accepted-risks.json`:
+Каждая находка либо исправляется, либо получает вердикт в `.github/security/accepted-risks.json`:
+
+- **ложное срабатывание** (`"kind": "false-positive"`): это не уязвимость этого кода — инструмент ошибся или
+  отмеченный путь данных задуман и безопасен; `reason` объясняет почему (чем проверено значение, какой тест это
+  показывает);
+- **принятый риск** (без `kind`): находка настоящая, но остаётся по указанной причине (нет исправления в Alpine,
+  так устроено взаимодействие контейнеров, решение владельца репозитория) — до даты `until`.
 
 ```json
 {
 	"risks": [
+		{
+			"kind": "false-positive",
+			"tool": "codeql-go",
+			"id": "go/sql-injection",
+			"where": "smartsync-tuning/internal/pkg/query/datatube.go",
+			"reason": "значения запроса — литералы SQL (sqlLiteral), queries_nginxions_test.go проверяет кавычку в заголовке",
+			"until": "2027-05-01"
+		},
 		{
 			"tool": "trivy-nginxions",
 			"id": "CVE-2026-12345",
@@ -125,9 +142,14 @@ SBOM зависимостей репозитория также строит с�
 }
 ```
 
-`tool` — id проверки из `scripts/security-report.mjs` (`semgrep`, `codeql-js`, `gitleaks`, `osv`, `trivy-nginxions`, `zap-api`…)
-или `*`; `where` — часть места находки (необязательно). После даты `until` находка снова блокирует, и решение
-нужно принять заново. Принятые риски показываются в отчёте отдельным разделом.
+`tool` — id проверки из `scripts/security-report.mjs` (`semgrep`, `codeql-js`, `codeql-cpp`, `codeql-go`, `osv`,
+`trivy-nginxions`, `grype-nginxions`, `zap-api`…) или `*`; `id` — правило или CVE, `*` — любое (только вместе с
+`where`); `where` — часть места или названия находки (необязательно); `"unfixed": true` — запись действует, только
+пока у находки нет исправленной версии (пакеты Alpine): как только исправление появится, находка снова открыта. После
+даты `until` находка снова блокирует, и решение нужно принять заново. Ложные срабатывания и принятые риски
+показываются в отчёте отдельными разделами и считаются в сводке отдельно от открытых находок. Запись, которая в
+прогоне ничего не нашла (находку исправили, код переехал), попадает в раздел «Записи без находок» и предупреждение
+прогона: её удаляют или правят `where`.
 
 Во вкладку **Security → Code scanning** GitHub они не попадают: перед загрузкой SARIF `scripts/sarif-accepted.mjs`
 убирает из него принятые риски этого инструмента и находки, подавленные в коде (`// nosemgrep: <правило> -- почему`);

@@ -261,7 +261,7 @@ bool Waap::Scanner::suspiciousHit(Waf2ScanResult& res, DeepParser &dp,
     if (score > 1.0f) {
         DetectionEvent(location, res.keyword_matches).notify();
         char buf[128];
-        sprintf(buf, "%.3f", score);
+        snprintf(buf, sizeof(buf), "%.3f", score); // NginxionS: bounded (CodeQL cpp/overrunning-write-with-float)
         const std::string& res_location = m_transaction->getDeepParser().m_key.first();
         const std::string& res_param_name = m_transaction->getDeepParser().m_key.str();
         m_transaction->addNote(

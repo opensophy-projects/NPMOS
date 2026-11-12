@@ -21,7 +21,7 @@ func (c *ReaderClient) ListTuningDecision(opts metav1.ListOptions) (*models.Tuni
 		Get().
 		Resource("tuningdecisions").
 		VersionedParams(&opts, scheme.ParameterCodec).
-		Do().
+		Do(context.TODO()).
 		Into(&result)
 
 	return &result, err
@@ -35,7 +35,7 @@ func (c *ReaderClient) ListPolicy(opts metav1.ListOptions) (*models.PolicyList, 
 		Get().
 		Resource("policies").
 		VersionedParams(&opts, scheme.ParameterCodec).
-		Do().
+		Do(context.TODO()).
 		Into(&result)
 
 	return &result, err
@@ -49,7 +49,7 @@ func (c *ReaderClient) GetTrustedSources(name string, opts metav1.GetOptions) (*
 		Resource("trustedsources").
 		Name(name).
 		VersionedParams(&opts, scheme.ParameterCodec).
-		Do().
+		Do(context.TODO()).
 		Into(&result)
 
 	return &result, err
@@ -63,7 +63,7 @@ func (c *ReaderClient) GetPractice(name string, opts metav1.GetOptions) (*models
 		Resource("practices").
 		Name(name).
 		VersionedParams(&opts, scheme.ParameterCodec).
-		Do().
+		Do(context.TODO()).
 		Into(&result)
 	return &result, err
 }
@@ -76,7 +76,7 @@ func (c *ReaderClient) Get(name string, opts metav1.GetOptions) (*models.TuningD
 		Resource("tuningdecisions").
 		Name(name).
 		VersionedParams(&opts, scheme.ParameterCodec).
-		Do().
+		Do(context.TODO()).
 		Into(&result)
 
 	return &result, err
@@ -89,7 +89,7 @@ func (c *ReaderClient) Create(decision *models.TuningDecision) (*models.TuningDe
 		Post().
 		Resource("tuningdecisions").
 		Body(decision).
-		Do().
+		Do(context.TODO()).
 		Into(&result)
 
 	return &result, err

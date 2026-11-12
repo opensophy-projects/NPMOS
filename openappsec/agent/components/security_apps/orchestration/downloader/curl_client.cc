@@ -239,7 +239,8 @@ HttpCurl::writeResponseCallback(
     uint size_of_data,
     ostream out_stream)
 {
-    const unsigned long total_bytes(num_of_messages * size_of_data);
+    // NginxionS: multiplied as unsigned long, the product of two uint may overflow (CodeQL)
+    const unsigned long total_bytes(static_cast<unsigned long>(num_of_messages) * size_of_data);
     out_stream.write(in_buf, total_bytes);
     return total_bytes;
 }

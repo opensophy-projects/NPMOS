@@ -8,6 +8,10 @@ import (
 	"openappsec.io/smartsync-tuning/models"
 )
 
+// NginxionS: the fixtures are the policy of the agent (JSON) the adapter reads, not local_policy.yaml; the version
+// is the time of reading
+var defaultSources = models.TrustedSourcesPolicy{NumOfSources: 3, SourcesIdentifiers: []models.Identifier{}}
+
 func TestAdapter_GetPolicy(t *testing.T) {
 	type args struct {
 		ctx           context.Context
@@ -25,25 +29,26 @@ func TestAdapter_GetPolicy(t *testing.T) {
 		{
 			name:    "not found failure",
 			args:    args{},
-			path:    "testdata/not-exists.yaml",
+			path:    "testdata/not-exists.json",
 			want:    []models.AssetDetails{},
 			wantErr: true,
 		},
 		{
 			name: "default policy",
 			args: args{},
-			path: "./testdata/local_policy.yaml",
+			path: "./testdata/policy.json",
 			want: []models.AssetDetails{{AssetID: "Any", PolicyVersion: 0, Mode: "Detect", Level: "Critical",
-				ApplicationUrls: "*"}},
+				ApplicationUrls: "*", Type: models.WaapTypeWebApp, TrustedSources: defaultSources}},
 			wantErr: false,
 		},
 		{
 			name: "policy with specific rule",
 			args: args{},
-			path: "./testdata/local_policy_with_rule.yaml",
+			path: "./testdata/policy_with_rule.json",
 			want: []models.AssetDetails{{AssetID: "Any", PolicyVersion: 0, Mode: "Detect", Level: "Critical",
-				ApplicationUrls: "*"},
+				ApplicationUrls: "*", Type: models.WaapTypeWebApp, TrustedSources: defaultSources},
 				{
+					Type:            models.WaapTypeWebApp,
 					AssetID:         "example.com",
 					Name:            "example.com",
 					PolicyVersion:   0,
@@ -52,7 +57,7 @@ func TestAdapter_GetPolicy(t *testing.T) {
 					ApplicationUrls: "example.com",
 					TrustedSources: models.TrustedSourcesPolicy{
 						NumOfSources:       3,
-						SourcesIdentifiers: []models.Identifier{{"source-identifier-1"}, {"source-identifier-2"}},
+						SourcesIdentifiers: []models.Identifier{{Value: "source-identifier-1"}, {Value: "source-identifier-2"}},
 					},
 				},
 			},
@@ -66,6 +71,9 @@ func TestAdapter_GetPolicy(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetPolicy() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+			for i := range got {
+				got[i].PolicyVersion = 0 // the time the policy was read
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetPolicy() got = %v, want %v", got, tt.want)
@@ -91,16 +99,16 @@ func TestAdapter_GetPolicyDetails(t *testing.T) {
 		{
 			name:    "not found failure",
 			args:    args{assetID: "example.com"},
-			path:    "./testdata/local_policy.yaml",
+			path:    "./testdata/policy.json",
 			want:    models.AssetDetails{},
 			wantErr: true,
 		},
 		{
 			name: "default policy",
 			args: args{assetID: "Any"},
-			path: "./testdata/local_policy.yaml",
+			path: "./testdata/policy.json",
 			want: models.AssetDetails{AssetID: "Any", PolicyVersion: 0, Mode: "Detect", Level: "Critical",
-				ApplicationUrls: "*"},
+				ApplicationUrls: "*", Type: models.WaapTypeWebApp, TrustedSources: defaultSources},
 			wantErr: false,
 		},
 	}
@@ -113,6 +121,7 @@ func TestAdapter_GetPolicyDetails(t *testing.T) {
 				t.Errorf("GetPolicyDetails() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+			got.PolicyVersion = 0 // the time the policy was read
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetPolicyDetails() got = %v, want %v", got, tt.want)
 			}
@@ -186,7 +195,7 @@ type conf struct {
 }
 
 func (c *conf) GetString(key string) (string, error) {
-	return "./testdata/local_policy.yaml", nil
+	return "./testdata/policy.json", nil
 }
 
 func TestNewAdapter(t *testing.T) {

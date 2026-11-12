@@ -1038,8 +1038,8 @@ case 12:
 YY_RULE_SETUP
 #line 93 "lexer.lpp"
 {
-    int ch;
-    sscanf(yytext + 2, "%x", &ch);
+    int ch = 0; // NginxionS: checked, the pattern makes it 4 hex digits (CodeQL cpp/missing-check-scanf)
+    if (sscanf(yytext + 2, "%4x", &ch) != 1) throw make_error(yyextra->loc, "bad Unicode escape sequence");
     yyextra->str.push_back(ch);
   }
 	YY_BREAK

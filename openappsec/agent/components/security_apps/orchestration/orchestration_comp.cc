@@ -2011,7 +2011,28 @@ private:
 
             dbgDebug(D_ORCHESTRATOR) << "Next check for update will be in: " << sleep_interval << " seconds";
             Singleton::Consume<I_Environment>::by<OrchestrationComp>()->finishTrace();
-            Singleton::Consume<I_MainLoop>::by<OrchestrationComp>()->yield(seconds(sleep_interval));
+            waitForNextCheck();
+        }
+    }
+
+    // NginxionS: a policy applied from the GUI (REST apply-policy) is handled within seconds. The agent applied it
+    // only at its next check of updates: 30 s, and up to 300 s after failed checks (calcSleepInterval), so a change
+    // of the WAF in the GUI took minutes to protect.
+    void
+    waitForNextCheck()
+    {
+        auto mainloop = Singleton::Consume<I_MainLoop>::by<OrchestrationComp>();
+        auto declarative_policy = Singleton::Consume<I_DeclarativePolicy>::from<DeclarativePolicyUtils>();
+        const auto start = i_time->getMonotonicTime();
+        const auto end = start + chrono::duration_cast<chrono::microseconds>(seconds(sleep_interval));
+        // a policy that fails to apply keeps its flag: it is tried again at most every 10 s
+        const auto min_wait = chrono::duration_cast<chrono::microseconds>(seconds(10));
+        while (i_time->getMonotonicTime() < end) {
+            mainloop->yield(seconds(1));
+            if (i_time->getMonotonicTime() - start >= min_wait && declarative_policy->shouldApplyPolicy()) {
+                dbgInfo(D_ORCHESTRATOR) << "NginxionS: a policy is waiting to be applied, checking for updates now";
+                return;
+            }
         }
     }
 

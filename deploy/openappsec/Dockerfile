@@ -43,9 +43,11 @@ RUN cmake -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_INSTALL_PREFIX=build_out . 
 # the runtime of the agent (as the upstream image: /entry.sh and /nano-service-installers/*.sh)
 FROM docker.io/library/alpine:3.24.4@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf AS agent
 ENV OPENAPPSEC_NANO_AGENT=TRUE
+# no gdb (upstream: crash dumps by hand) and no brotli-dev (headers): the agent runs neither. python3 is explicit
+# (it came with gdb): the agent converts the Snort signatures of a policy with scripts/snort_to_ips_local.py
 RUN apk upgrade --no-cache -a && \
-    apk add --no-cache busybox zlib brotli brotli-dev bash libstdc++ boost icu-libs curl \
-        libunwind gdb libxml2 pcre2 ca-certificates coreutils
+    apk add --no-cache busybox zlib brotli bash libstdc++ boost icu-libs curl \
+        libunwind libxml2 pcre2 ca-certificates coreutils python3
 COPY --from=agent-build /out/self_managed_openappsec_manifest.json /tmp/self_managed_openappsec_manifest.json
 COPY --from=agent-build /out/nano-service-installers/ /nano-service-installers/
 COPY --from=agent-build /out/entry.sh /entry.sh

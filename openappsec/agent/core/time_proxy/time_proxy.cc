@@ -94,8 +94,10 @@ public:
     getWalltimeStr(const microseconds &time_to_convert)
     {
         time_t ttime = duration_cast<seconds>(time_to_convert).count();
-        struct tm *gm_time = gmtime(&ttime);
-        return parseTime(time_to_convert, gm_time);
+        // NginxionS: gmtime_r/localtime_r, gmtime and localtime share one buffer between threads
+        struct tm gm_time{};
+        gmtime_r(&ttime, &gm_time);
+        return parseTime(time_to_convert, &gm_time);
     }
 
     std::string
@@ -103,8 +105,9 @@ public:
     {
         microseconds time_in_microseconds = getWalltime();
         time_t ttime = duration_cast<seconds>(time_in_microseconds).count();
-        struct tm *local_time = localtime(&ttime);
-        return parseTime(time_in_microseconds, local_time);
+        struct tm local_time{};
+        localtime_r(&ttime, &local_time);
+        return parseTime(time_in_microseconds, &local_time);
     }
 
 private:

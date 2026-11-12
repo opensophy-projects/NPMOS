@@ -1,5 +1,5 @@
 {
-	"$comment": "Accepted risks: findings that do not fail the run (scripts/security-report.mjs). Each entry names the tool, the id of the finding (a CVE, a rule), optionally a part of its location, why it is accepted and until when (YYYY-MM-DD): after that date it fails the run again and must be looked at once more.",
+	"$comment": "Findings that do not fail the run (scripts/security-report.mjs). Each entry names the tool, the id of the finding (a CVE, a rule), optionally a part of its location (where), why and until when (YYYY-MM-DD): after that date it fails the run again and must be looked at once more. \"kind\": \"false-positive\": not a vulnerability of this code (the tool is wrong, or the flagged flow is intended and safe: the reason says why); without kind: an accepted risk, a real weakness kept for the reason given. The report counts both apart from the open findings.",
 	"risks": [
 		{
 			"tool": "dockle-nginxions",
@@ -33,6 +33,7 @@
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "hadolint",
 			"id": "DL3062",
 			"reason": "the modules are pinned: go get takes the versions of LEGO_VERSION, LEGO_UPGRADES and GO_UPGRADES (variables hadolint does not read), go build then builds what go.mod pins",
@@ -46,6 +47,7 @@
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "hadolint",
 			"id": "DL3022",
 			"where": "deploy/openappsec/Dockerfile",
@@ -125,48 +127,56 @@
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "testssl-ui",
 			"id": "BREACH",
 			"reason": "BREACH needs a secret in the body of a compressed response next to text an attacker sends; the API takes its token from a cookie and a header and does not reflect it in compressed bodies",
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "zap-api",
 			"id": "2",
 			"reason": "private addresses in the examples of the API schema (/api/schema) and in answers about the hosts of the administrator (upstream addresses): data of the interface, behind its login",
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "zap-ui",
 			"id": "2",
 			"reason": "addresses in the code of the interface (examples and defaults of forms): text of the bundle, not data",
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "zap-host",
 			"id": "2",
 			"reason": "the test site behind dast.local (whoami) echoes the addresses of the request: the site, not NginxionS",
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "zap-host",
 			"id": "90004",
 			"reason": "Cross-Origin-Resource-Policy is for the site behind the proxy host to send (the test site whoami); it can be added per host in its advanced configuration",
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "zap-api",
 			"id": "10096",
 			"reason": "Unix times in answers (created_on, expiry of certificates): data of the interface, not a disclosure",
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "zap-ui",
 			"id": "10096",
 			"reason": "numbers of the bundle of the interface that look like Unix times",
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "zap-api",
 			"id": "100001",
 			"reason": "ZAP sends requests the schema does not describe (methods and types it guesses); the API answers them with its JSON error, not with the type ZAP expects",
@@ -186,6 +196,7 @@
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "gixy",
 			"id": "try_files_is_evil_too",
 			"where": "conf.d/default.conf",
@@ -193,6 +204,7 @@
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "licenses",
 			"id": "UNKNOWN",
 			"where": "busboy@1.6.0",
@@ -200,6 +212,7 @@
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "licenses",
 			"id": "UNKNOWN",
 			"where": "streamsearch@1.1.0",
@@ -214,6 +227,7 @@
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "codeql-js",
 			"id": "js/insufficient-password-hash",
 			"where": "nginxions/backend/nginxions/crowdsec/lapi.js",
@@ -221,48 +235,7 @@
 			"until": "2027-05-01"
 		},
 		{
-			"tool": "codeql-js",
-			"id": "js/type-confusion-through-parameter-tampering",
-			"where": "nginxions/backend/nginxions/crowdsec/index.js",
-			"reason": "the value is checked with Buffer.isBuffer before its length is read (an upload or an OCSP request is a Buffer or is refused); CodeQL does not take Buffer.isBuffer for a type check",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "codeql-js",
-			"id": "js/type-confusion-through-parameter-tampering",
-			"where": "nginxions/backend/nginxions/geoip/index.js",
-			"reason": "the value is checked with Buffer.isBuffer before its length is read (an upload or an OCSP request is a Buffer or is refused); CodeQL does not take Buffer.isBuffer for a type check",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "codeql-js",
-			"id": "js/type-confusion-through-parameter-tampering",
-			"where": "nginxions/backend/nginxions/geoip/mmdb.js",
-			"reason": "the value is checked with Buffer.isBuffer before its length is read (an upload or an OCSP request is a Buffer or is refused); CodeQL does not take Buffer.isBuffer for a type check",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "codeql-js",
-			"id": "js/type-confusion-through-parameter-tampering",
-			"where": "nginxions/backend/nginxions/pki/index.js",
-			"reason": "the value is checked with Buffer.isBuffer before its length is read (an upload or an OCSP request is a Buffer or is refused); CodeQL does not take Buffer.isBuffer for a type check",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "codeql-js",
-			"id": "js/insecure-temporary-file",
-			"where": "nginxions/backend/nginxions/files.js",
-			"reason": "the temporary path comes from files.test.js (mkdtempSync, a private directory of the test); the product opens only its own files under /data",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "codeql-js",
-			"id": "js/remote-property-injection",
-			"where": "nginxions/backend/nginxions/geoip/mmdb.js",
-			"reason": "maps of an uploaded GeoIP database are objects without a prototype (Object.create(null)) and a key __proto__ is skipped: a key cannot reach a prototype",
-			"until": "2027-05-01"
-		},
-		{
+			"kind": "false-positive",
 			"tool": "trivy-nginxions",
 			"id": "CVE-2025-47273",
 			"where": "setuptools",
@@ -306,18 +279,21 @@
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "gixy",
 			"id": "ssl_ecdh_curve",
 			"reason": "nginx of NginxionS is built with AWS-LC, which knows X25519MLKEM768: the post-quantum group does not stop nginx (it starts in every test)",
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "gixy",
 			"id": "weak_ssl_tls",
 			"reason": "gixy cannot resolve the cipher selectors of the configuration; testssl.sh checks the ciphers nginx really offers (dast.local:443) and finds none weak",
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "codeql-js",
 			"id": "js/path-injection",
 			"where": "nginxions/backend/internal/nginx.js",
@@ -325,6 +301,7 @@
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "codeql-js",
 			"id": "js/clear-text-storage-of-sensitive-data",
 			"where": "nginxions/backend/routes/oidc.js",
@@ -332,6 +309,7 @@
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "codeql-js",
 			"id": "js/user-controlled-bypass",
 			"where": "nginxions/backend/models/token.js",
@@ -339,6 +317,7 @@
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "codeql-js",
 			"id": "js/user-controlled-bypass",
 			"where": "nginxions/backend/internal/2fa.js",
@@ -346,6 +325,7 @@
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "codeql-js",
 			"id": "js/sensitive-get-query",
 			"where": "nginxions/backend/nginxions/routes.js",
@@ -353,6 +333,7 @@
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "codeql-js",
 			"id": "js/sensitive-get-query",
 			"where": "nginxions/backend/routes/nginx/certificates.js",
@@ -360,6 +341,7 @@
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "codeql-js",
 			"id": "js/http-to-file-access",
 			"where": "nginxions/backend/internal/user.js",
@@ -367,6 +349,7 @@
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "codeql-js",
 			"id": "js/http-to-file-access",
 			"where": "nginxions/backend/nginxions/block-page.js",
@@ -374,6 +357,7 @@
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "codeql-js",
 			"id": "js/http-to-file-access",
 			"where": "nginxions/backend/nginxions/acme-csr",
@@ -381,6 +365,7 @@
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "codeql-js",
 			"id": "js/http-to-file-access",
 			"where": "nginxions/backend/nginxions/acme.js",
@@ -388,6 +373,7 @@
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "codeql-js",
 			"id": "js/http-to-file-access",
 			"where": "nginxions/backend/nginxions/crowdsec/",
@@ -395,6 +381,7 @@
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "codeql-js",
 			"id": "js/http-to-file-access",
 			"where": "nginxions/backend/nginxions/geoip/index.js",
@@ -402,6 +389,7 @@
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "codeql-js",
 			"id": "js/http-to-file-access",
 			"where": "nginxions/backend/nginxions/pki/openssl.js",
@@ -409,6 +397,7 @@
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "codeql-js",
 			"id": "js/file-access-to-http",
 			"where": "nginxions/backend/nginxions/crowdsec/lapi.js",
@@ -416,17 +405,11 @@
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "codeql-js",
 			"id": "js/file-access-to-http",
 			"where": "nginxions/backend/nginxions/control/client.js",
 			"reason": "the token of nginxions-control, read from the secrets volume, is sent to nginxions-control on 127.0.0.1 only",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "semgrep",
-			"id": "dockerfile.security.missing-user-entrypoint.missing-user-entrypoint",
-			"where": "deploy/openappsec/Dockerfile",
-			"reason": "the open-appsec agent runs its services as root (as upstream): its installers write /etc/cp, it shares IPC and /dev/shm with the nginx attachment, nginxions-control reaches the Docker socket; the container has no-new-privileges and only internal networks",
 			"until": "2027-05-01"
 		},
 		{
@@ -560,6 +543,7 @@
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "kics",
 			"id": "9b6b0f38-92a2-41f9-b881-3a1083d99f1b",
 			"where": "nginxions/Dockerfile",
@@ -573,6 +557,7 @@
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "kics",
 			"id": "b16e8501-ef3c-44e1-a543-a093238099c9",
 			"where": "nginxions/Dockerfile",
@@ -580,6 +565,7 @@
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "zizmor",
 			"id": "zizmor/self-repository",
 			"where": ".github/workflows/ci.yml",
@@ -606,12 +592,7 @@
 			"until": "2027-05-01"
 		},
 		{
-			"tool": "scorecard",
-			"id": "PinnedDependenciesID",
-			"reason": "what is not pinned by hash: packages of Alpine (only the current version exists, see KICS apk) and pip/npm in build stages; actions and base images are pinned by commit and digest",
-			"until": "2027-05-01"
-		},
-		{
+			"kind": "false-positive",
 			"tool": "trivy-nginxions",
 			"id": "CVE-2026-59890",
 			"where": "setuptools",
@@ -619,6 +600,7 @@
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "trivy-nginxions",
 			"id": "GHSA-xmj3-9gf7-h52w",
 			"where": "setuptools",
@@ -626,10 +608,322 @@
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
 			"tool": "trivy-nginxions",
 			"id": "sendgrid-api-token",
 			"where": "/app/frontend/assets/index-",
 			"reason": "not a token: the list of country codes of the flag icons, joined with dots (…SE.SG.SH.SI.SJ…), matches the SendGrid pattern of Trivy (SG. and 66 characters with dots)",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "codeql-cpp",
+			"id": "cpp/world-writable-file-creation",
+			"where": "shmem_ipc",
+			"reason": "the shared memory queues between nginx (its workers run as their own user in the container nginxions) and the agent (root in the container openappsec): both must write them. The IPC namespace (/dev/shm) is private to these two containers (ipc: service:openappsec), no other user or container sees it",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "codeql-cpp",
+			"id": "cpp/world-writable-file-creation",
+			"where": "socket_is.cc",
+			"reason": "the Unix sockets of the agent under /dev/shm/check-point, written by the nginx attachment of the other container: see shmem_ipc, the namespace is private to the two containers",
+			"until": "2027-05-01"
+		},
+		{
+			"kind": "false-positive",
+			"tool": "codeql-cpp",
+			"id": "cpp/path-injection",
+			"where": "cpnano_debug.cc",
+			"reason": "cpnano is the command-line tool of the operator inside the container; the variable (the path of the agent's files) is set by whoever runs it, who can already read and write every file there",
+			"until": "2027-05-01"
+		},
+		{
+			"kind": "false-positive",
+			"tool": "codeql-go",
+			"id": "go/clear-text-logging",
+			"where": "openappsec.io/log/log.go",
+			"reason": "the request logging middleware logs only the headers it is given: X-Correlation-Id, X-Request-Id and X-Trace-Id (routers.go), ids of a request, no credential",
+			"until": "2027-05-01"
+		},
+		{
+			"kind": "false-positive",
+			"tool": "codeql-go",
+			"id": "go/log-injection",
+			"where": "openappsec.io/log/",
+			"reason": "the logs are JSON (openappsec.io/log: formatter -> json.Marshal), a value with a line break is escaped inside its string and cannot forge an entry",
+			"until": "2027-05-01"
+		},
+		{
+			"kind": "false-positive",
+			"tool": "codeql-go",
+			"id": "go/path-injection",
+			"where": "smartsync/internal/pkg/lock/flock/flock.go",
+			"reason": "the lock key has every '/' replaced by '-' before it is joined to the lock directory: it names a file of that directory and nothing else (smartsync is not built into the image)",
+			"until": "2027-05-01"
+		},
+		{
+			"kind": "false-positive",
+			"tool": "codeql-go",
+			"id": "go/path-injection",
+			"where": "smartsync-shared-files/internal/pkg/filesdb/filesystem/fileSystemDB.go",
+			"reason": "every path of the REST API goes through inRoot (filepath.Clean, then a prefix check against the root): '../' is refused, fileSystemDB_nginxions_test.go reads, writes and lists outside the root and fails",
+			"until": "2027-05-01"
+		},
+		{
+			"kind": "false-positive",
+			"tool": "codeql-go",
+			"id": "go/sql-injection",
+			"where": "smartsync-tuning/internal/pkg/query/datatube.go",
+			"reason": "the values of the log query of a tuning event are SQL literals (sqlLiteral in pg/queries.go: quotes doubled, NUL removed; standard_conforming_strings); queries_nginxions_test.go checks a title that closes the quote",
+			"until": "2027-05-01"
+		},
+		{
+			"kind": "false-positive",
+			"tool": "semgrep",
+			"id": "go.lang.security.audit.crypto.use_of_weak_crypto.use-of-sha1",
+			"where": "sharedstorage.go",
+			"reason": "SHA-1 of an asset id only names its directory in the shared storage (the same name the agent uses), no integrity or secret depends on it",
+			"until": "2027-05-01"
+		},
+		{
+			"kind": "false-positive",
+			"tool": "semgrep",
+			"id": "go.lang.security.audit.crypto.math_random.math-random-used",
+			"where": "smartsync/internal/pkg/db/s3/s3.go",
+			"reason": "random jitter between retries of a request, not a secret or a token",
+			"until": "2027-05-01"
+		},
+		{
+			"kind": "false-positive",
+			"tool": "hadolint",
+			"id": "DL3022",
+			"where": "nginxions/Dockerfile",
+			"reason": "attachment is a named build context (--build-context attachment=openappsec/attachment, CI and scripts/build-images.sh), not a stage hadolint could see",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "grype-nginxions",
+			"id": "*",
+			"where": "sqlite-libs",
+			"unfixed": true,
+			"reason": "no fixed version in Alpine yet (Trivy, which reads the security data of Alpine, reports none); sqlite comes with python3 (certbot of NPMplus), NginxionS keeps its data in PostgreSQL",
+			"until": "2027-02-01"
+		},
+		{
+			"tool": "grype-nginxions-openappsec",
+			"id": "*",
+			"where": "sqlite-libs",
+			"unfixed": true,
+			"reason": "no fixed version in Alpine yet (Trivy reports none); sqlite comes with python3, which the agent runs only to convert Snort signatures of a policy",
+			"until": "2027-02-01"
+		},
+		{
+			"tool": "grype-nginxions",
+			"id": "*",
+			"where": "python3",
+			"unfixed": true,
+			"reason": "no fixed version in Alpine yet (Trivy reports none); python3 runs certbot of NPMplus, no request of a client reaches it",
+			"until": "2027-02-01"
+		},
+		{
+			"tool": "grype-nginxions-openappsec",
+			"id": "*",
+			"where": "python3",
+			"unfixed": true,
+			"reason": "no fixed version in Alpine yet (Trivy reports none); the agent runs python3 only to convert the Snort signatures of a policy (scripts/snort_to_ips_local.py)",
+			"until": "2027-02-01"
+		},
+		{
+			"tool": "grype-nginxions",
+			"id": "*",
+			"where": "busybox",
+			"unfixed": true,
+			"reason": "no fixed version in Alpine yet (Trivy reports none); the CVE is in wget/ssl_client of busybox, which no service of NginxionS runs with input of a client",
+			"until": "2027-02-01"
+		},
+		{
+			"tool": "grype-nginxions-openappsec",
+			"id": "*",
+			"where": "busybox",
+			"unfixed": true,
+			"reason": "no fixed version in Alpine yet (Trivy reports none); the CVE is in wget/ssl_client of busybox, used only by the healthcheck against 127.0.0.1",
+			"until": "2027-02-01"
+		},
+		{
+			"tool": "grype-nginxions",
+			"id": "*",
+			"where": "ssl_client",
+			"unfixed": true,
+			"reason": "part of busybox, see busybox",
+			"until": "2027-02-01"
+		},
+		{
+			"tool": "grype-nginxions-openappsec",
+			"id": "*",
+			"where": "ssl_client",
+			"unfixed": true,
+			"reason": "part of busybox, see busybox",
+			"until": "2027-02-01"
+		},
+		{
+			"tool": "grype-nginxions",
+			"id": "*",
+			"where": "lua5.1",
+			"unfixed": true,
+			"reason": "no fixed version in Alpine; the Lua of the CrowdSec bouncer of nginx runs its own scripts, no Lua code of a client",
+			"until": "2027-02-01"
+		},
+		{
+			"tool": "grype-nginxions",
+			"id": "*",
+			"where": "ada-libs",
+			"unfixed": true,
+			"reason": "no fixed version in Alpine (the URL parser of Node.js); Grype matches an old CVE of ada 2.x by name, Trivy reports none for ada 4",
+			"until": "2027-02-01"
+		},
+		{
+			"tool": "grype-nginxions-openappsec",
+			"id": "*",
+			"where": "ada-libs",
+			"unfixed": true,
+			"reason": "no fixed version in Alpine (the URL parser of Node.js of nginxions-control, which listens on 127.0.0.1); Trivy reports none for ada 4",
+			"until": "2027-02-01"
+		},
+		{
+			"kind": "false-positive",
+			"tool": "grype-nginxions",
+			"id": "CVE-2016-2781",
+			"reason": "chroot --userspec of coreutils can be escaped through TIOCSTI of a terminal; no service runs chroot, a container has no terminal of a user, and Linux 6.2+ disables TIOCSTI",
+			"until": "2027-05-01"
+		},
+		{
+			"kind": "false-positive",
+			"tool": "grype-nginxions-openappsec",
+			"id": "CVE-2016-2781",
+			"reason": "chroot --userspec of coreutils can be escaped through TIOCSTI of a terminal; no service runs chroot, a container has no terminal of a user, and Linux 6.2+ disables TIOCSTI",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "grype-nginxions",
+			"id": "*",
+			"where": "coreutils",
+			"unfixed": true,
+			"reason": "no fixed version in Alpine yet (Trivy reports none); coreutils are used by the scripts of the image with their own arguments",
+			"until": "2027-02-01"
+		},
+		{
+			"tool": "grype-nginxions-openappsec",
+			"id": "*",
+			"where": "coreutils",
+			"unfixed": true,
+			"reason": "no fixed version in Alpine yet (Trivy reports none); coreutils are used by the scripts of the agent with their own arguments",
+			"until": "2027-02-01"
+		},
+		{
+			"kind": "false-positive",
+			"tool": "zap-api",
+			"id": "100000",
+			"where": "Client Error",
+			"reason": "answers 4xx to requests ZAP makes up (deleting or reading objects that do not exist, wrong types): the API refusing them is the expected result",
+			"until": "2027-05-01"
+		},
+		{
+			"kind": "false-positive",
+			"tool": "zap-api",
+			"id": "10112",
+			"reason": "informational: ZAP recognises the login answer (a session token) of POST /api/tokens, the purpose of that route",
+			"until": "2027-05-01"
+		},
+		{
+			"kind": "false-positive",
+			"tool": "zap-ui",
+			"id": "10027",
+			"reason": "comments of libraries in the bundle of the interface (words like 'user', 'select'), no secret or internal detail",
+			"until": "2027-05-01"
+		},
+		{
+			"kind": "false-positive",
+			"tool": "zap-ui",
+			"id": "10109",
+			"reason": "informational: the interface is a single-page application",
+			"until": "2027-05-01"
+		},
+		{
+			"kind": "false-positive",
+			"tool": "zap-ui",
+			"id": "10015",
+			"reason": "the files of the interface have hashed names and may be cached; index.html holds no data of a user (the API answers no-store)",
+			"until": "2027-05-01"
+		},
+		{
+			"kind": "false-positive",
+			"tool": "zap-ui",
+			"id": "10049",
+			"reason": "the files of the interface have hashed names and may be cached; index.html holds no data of a user (the API answers no-store)",
+			"until": "2027-05-01"
+		},
+		{
+			"kind": "false-positive",
+			"tool": "zap-host",
+			"id": "10015",
+			"reason": "the headers of the test site behind dast.local (whoami): caching is the matter of the site behind a proxy host, NginxionS passes its answer as it is",
+			"until": "2027-05-01"
+		},
+		{
+			"kind": "false-positive",
+			"tool": "zap-host",
+			"id": "10049",
+			"reason": "the headers of the test site behind dast.local (whoami): caching is the matter of the site behind a proxy host, NginxionS passes its answer as it is",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "scorecard",
+			"id": "BranchProtectionID",
+			"reason": "a setting of the repository on GitHub, the decision of its owner (protection of work and of release tags); CI runs on every branch and PR",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "scorecard",
+			"id": "CodeReviewID",
+			"reason": "one maintainer: changes are checked by CI (lint, tests, security report) instead of a second reviewer",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "scorecard",
+			"id": "LicenseID",
+			"reason": "the license of the project is the decision of its owner; the code taken from upstream keeps its license (nginxions/LICENSE.MIT, openappsec/*/LICENSE)",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "scorecard",
+			"id": "SASTID",
+			"reason": "SAST runs on every push and PR; Scorecard counts commits merged without it (merges of Renovate updates)",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "scorecard",
+			"id": "CITestsID",
+			"reason": "CI runs on every PR; Scorecard counts a PR merged before its checks ended",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "scorecard",
+			"id": "SecurityPolicyID",
+			"reason": "SECURITY.md is found (score 9); the point missing is a link to a reporting form of GitHub, a setting of the repository",
+			"until": "2027-05-01"
+		},
+		{
+			"tool": "scorecard",
+			"id": "VulnerabilitiesID",
+			"reason": "the count of OSV for the whole repository, upstream code included; each one is in this report (OSV-Scanner) with its own verdict",
+			"until": "2027-05-01"
+		},
+		{
+			"kind": "false-positive",
+			"tool": "zap-api",
+			"id": "10049",
+			"where": "Non-Storable",
+			"reason": "informational: the API answers Cache-Control: no-store on purpose (tokens, settings), app.js",
 			"until": "2027-05-01"
 		}
 	]

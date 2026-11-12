@@ -12,21 +12,24 @@
 //     [--scope images,dast]           only these groups (the gate of the images before they are pushed)
 //
 // Policy (what blocks):
-//   SAST (Semgrep, CodeQL)       high and critical in the code of NginxionS (OURS); upstream NPMplus and the code of
-//                                open-appsec in openappsec/ (being taken over) are reported only
+//   SAST (Semgrep, CodeQL)       high and critical in the code of NginxionS (OURS), the agent of NginxionS in
+//                                openappsec/ included; upstream NPMplus is reported only
 //   secrets (Gitleaks)           every finding (examples are allowlisted in .github/security/gitleaks.toml)
 //   dependencies (OSV-Scanner)   high and critical with a fixed version
 //   images (Trivy)               high and critical with a fixed version; secrets high and critical; Dockle FATAL
 //   IaC, workflows               hadolint errors in deploy/; every actionlint error; zizmor high
 //   DAST                         ZAP high (confidence medium or more); Nuclei, testssl.sh, gixy high and critical
 //   reported only                Grype (second opinion), KICS, Trivy config, Scorecard, licenses, quality metrics
-// A finding listed in .github/security/accepted-risks.json does not block until its end date.
+// A finding listed in .github/security/accepted-risks.json does not block: "kind": "false-positive" (the tool is wrong
+// about this code, the reason says why) or an accepted risk (default: real, not fixed for the reason given, until its end
+// date). Every other finding is open: the report counts open findings by severity, false positives and accepted
+// risks apart.
 import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { basename, dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const OURS = /^(nginxions\/backend\/nginxions\/|nginxions\/frontend\/src\/nginxions\/|deploy\/|scripts\/|\.github\/)/;
+const OURS = /^(nginxions\/backend\/nginxions\/|nginxions\/frontend\/src\/nginxions\/|openappsec\/|deploy\/|scripts\/|\.github\/)/;
 const SEVERITIES = ["critical", "high", "medium", "low", "info"];
 const SEVERITY_RU = { critical: "критическая", high: "высокая", medium: "средняя", low: "низкая", info: "инфо" };
 const DETAILS_LIMIT = 60;
@@ -541,7 +544,9 @@ const acceptance = (check, f) =>
 	accepted.find(
 		(r) =>
 			(r.tool === check.id || r.tool === "*") &&
-			r.id === f.rule &&
+			(r.id === f.rule || r.id === "*") &&
+			// "unfixed": only while the finding has no fixed version (a package of Alpine with no fix yet)
+			(!r.unfixed || !f.fix) &&
 			(!r.where || f.location.includes(r.where) || f.title.includes(r.where)),
 	);
 
@@ -567,6 +572,7 @@ for (const check of CHECKS) {
 				f.blocking = check.blocks(f);
 				// non-blocking findings too: the reason shows in the report and they are left out of code scanning
 				const risk = acceptance(check, f);
+				if (risk) risk.used = true;
 				if (risk) {
 					if (risk.until && risk.until < today) f.expired = risk;
 					else {
@@ -584,6 +590,9 @@ for (const check of CHECKS) {
 	result.missing = own.length === 0;
 	result.findings.sort((a, b) => b.blocking - a.blocking || SEVERITIES.indexOf(a.severity) - SEVERITIES.indexOf(b.severity));
 	result.blockingCount = result.findings.filter((f) => f.blocking).length;
+	result.open = result.findings.filter((f) => !f.accepted);
+	result.falsePositives = result.findings.filter((f) => f.accepted?.kind === "false-positive").length;
+	result.acceptedCount = result.findings.length - result.open.length - result.falsePositives;
 	result.status = result.error
 		? "error"
 		: result.missing
@@ -592,7 +601,7 @@ for (const check of CHECKS) {
 				: "skipped"
 			: result.blockingCount
 				? "fail"
-				: result.findings.length
+				: result.open.length
 					? "warn"
 					: "pass";
 	checks.push(result);
@@ -600,8 +609,27 @@ for (const check of CHECKS) {
 
 const blocking = checks.flatMap((c) => c.findings.filter((f) => f.blocking).map((f) => ({ ...f, check: c })));
 const broken = checks.filter((c) => c.status === "missing" || c.status === "error");
-const acceptedFindings = checks.flatMap((c) => c.findings.filter((f) => f.accepted).map((f) => ({ ...f, check: c })));
+const acceptedFindings = checks.flatMap((c) =>
+	c.findings.filter((f) => f.accepted && f.accepted.kind !== "false-positive").map((f) => ({ ...f, check: c })),
+);
+const falsePositives = checks.flatMap((c) =>
+	c.findings.filter((f) => f.accepted?.kind === "false-positive").map((f) => ({ ...f, check: c })),
+);
+// one row per tool, rule and reason: a reason covers every place of the same finding
+const grouped = (findings) => {
+	const groups = new Map();
+	for (const f of findings) {
+		const key = `${f.check.id}\u0000${f.rule}\u0000${f.accepted.reason}`;
+		const g = groups.get(key) ?? { ...f, places: [] };
+		g.places.push(f.location);
+		groups.set(key, g);
+	}
+	return [...groups.values()];
+};
 const passed = blocking.length === 0 && broken.length === 0;
+// entries of accepted-risks.json that matched nothing in a check that ran: the finding is gone (fixed, or the code
+// moved), the entry is to be removed or its "where" corrected
+const stale = accepted.filter((r) => !r.used && checks.some((c) => (c.id === r.tool || r.tool === "*") && !c.missing));
 
 // ---------------------------------------------------------------- SBOM
 
@@ -657,6 +685,12 @@ for (const file of files.filter((f) => /^lcov-.+\.info$/.test(basename(f)))) {
 	const part = basename(file).replace(/^lcov-/, "").replace(/\.info$/, "");
 	if (found) metrics.push([`Покрытие тестами: ${part}`, `${((hit / found) * 100).toFixed(1)}% строк (${hit} из ${found})`]);
 }
+// go tool cover -func of each Go service of the agent (scripts/test-go.sh): its last line is the total
+for (const file of files.filter((f) => /^coverage-go-.+\.txt$/.test(basename(f)))) {
+	const total = readFileSync(file, "utf8").trim().split("\n").at(-1)?.match(/([\d.]+)%$/);
+	const part = basename(file).replace(/^coverage-go-/, "").replace(/\.txt$/, "");
+	if (total) metrics.push([`Покрытие тестами: ${part} (Go)`, `${total[1]}% операторов`]);
+}
 for (const file of files.filter((f) => basename(f) === "coverage-summary.json")) {
 	const lines = readJson(file)?.total?.lines;
 	if (lines) metrics.push(["Покрытие тестами: frontend", `${lines.pct}% строк (${lines.covered} из ${lines.total})`]);
@@ -702,15 +736,21 @@ const markdown = () => {
 		"",
 	);
 	out.push("## Сводка", "");
-	out.push("| | Категория | Инструмент | Что проверяет | Крит. | Высок. | Сред. | Низк. | Блокирует |");
-	out.push("|---|---|---|---|--:|--:|--:|--:|--:|");
+	out.push("| | Категория | Инструмент | Что проверяет | Крит. | Высок. | Сред. | Низк. | Ложные | Принято | Блокирует |");
+	out.push("|---|---|---|---|--:|--:|--:|--:|--:|--:|--:|");
 	for (const c of checks) {
-		const n = countBy(c.findings);
+		const n = countBy(c.open);
 		out.push(
-			`| ${ICON[c.status]} | ${c.category} | ${md(c.tool)} | ${md(c.what)}${c.status === "pass" || c.status === "warn" || c.status === "fail" ? "" : ` — *${STATUS_RU[c.status]}*`} | ${n.critical} | ${n.high} | ${n.medium} | ${n.low} | ${c.blockingCount || ""} |`,
+			`| ${ICON[c.status]} | ${c.category} | ${md(c.tool)} | ${md(c.what)}${c.status === "pass" || c.status === "warn" || c.status === "fail" ? "" : ` — *${STATUS_RU[c.status]}*`} | ${n.critical} | ${n.high} | ${n.medium} | ${n.low} | ${c.falsePositives || ""} | ${c.acceptedCount || ""} | ${c.blockingCount || ""} |`,
 		);
 	}
-	out.push("", "✅ чисто · ⚠️ есть замечания, не блокируют · ❌ блокирует · ❗ проверка не дала результата · ➖ не запускалась в этом прогоне", "");
+	out.push(
+		"",
+		"Серьёзность — открытые находки; **Ложные** — ложные срабатывания (инструмент ошибся, причина в списке ниже); **Принято** — настоящие находки, принятые с причиной и сроком.",
+		"",
+		"✅ открытых нет · ⚠️ есть открытые, не блокируют · ❌ блокирует · ❗ проверка не дала результата · ➖ не запускалась в этом прогоне",
+		"",
+	);
 	if (broken.length) {
 		out.push("## Проверки без результата", "");
 		for (const c of broken) out.push(`- **${md(c.tool)}**: ${c.error || "файл результата не найден — шаг упал или не запускался"}`);
@@ -726,10 +766,30 @@ const markdown = () => {
 		if (blocking.length > 200) out.push("", `…и ещё ${blocking.length - 200} — в security-report.html.`);
 		out.push("");
 	}
+	const placesOf = (g) =>
+		`${where({ ...g, location: g.places[0] })}${g.places.length > 1 ? ` и ещё ${g.places.length - 1}` : ""}`;
+	if (falsePositives.length) {
+		out.push("## Ложные срабатывания", "", "| Инструмент | Правило | Где | Почему ложное |", "|---|---|---|---|");
+		for (const g of grouped(falsePositives))
+			out.push(`| ${md(g.check.tool)} | ${link(g)} | ${placesOf(g)} | ${md(g.accepted.reason)} |`);
+		out.push("");
+	}
 	if (acceptedFindings.length) {
 		out.push("## Принятые риски", "", "| Инструмент | Правило | Где | Причина | До |", "|---|---|---|---|---|");
-		for (const f of acceptedFindings)
-			out.push(`| ${md(f.check.tool)} | ${link(f)} | ${where(f)} | ${md(f.accepted.reason)} | ${f.accepted.until ?? "—"} |`);
+		for (const g of grouped(acceptedFindings))
+			out.push(`| ${md(g.check.tool)} | ${link(g)} | ${placesOf(g)} | ${md(g.accepted.reason)} | ${g.accepted.until ?? "—"} |`);
+		out.push("");
+	}
+	if (stale.length) {
+		out.push(
+			"## Записи без находок",
+			"",
+			"Эти записи `.github/security/accepted-risks.json` ничего не нашли в проверках этого прогона: находка исправлена или код переехал — запись удалить или поправить `where`.",
+			"",
+			"| Инструмент | Правило | Где | Причина |",
+			"|---|---|---|---|",
+		);
+		for (const r of stale) out.push(`| ${md(r.tool)} | ${md(r.id)} | ${md(r.where ?? "")} | ${md(r.reason)} |`);
 		out.push("");
 	}
 	if (sboms.length) {
@@ -746,15 +806,15 @@ const markdown = () => {
 		for (const [k, v] of metrics) out.push(`- **${k}**: ${v}`);
 		out.push("");
 	}
-	const detailed = checks.filter((c) => c.findings.length);
+	const detailed = checks.filter((c) => c.open.length);
 	if (detailed.length) {
-		out.push("## Подробности", "");
+		out.push("## Открытые находки", "");
 		for (const c of detailed) {
-			out.push(`<details><summary>${ICON[c.status]} ${md(c.tool)} — ${c.findings.length}</summary>`, "");
+			out.push(`<details><summary>${ICON[c.status]} ${md(c.tool)} — ${c.open.length}</summary>`, "");
 			out.push("| Серьёзность | Правило | Что | Где | Исправление |", "|---|---|---|---|---|");
-			for (const f of c.findings.slice(0, DETAILS_LIMIT))
+			for (const f of c.open.slice(0, DETAILS_LIMIT))
 				out.push(`| ${f.blocking ? "❌ " : ""}${SEVERITY_RU[f.severity]} | ${link(f)} | ${md(f.title)} | ${where(f)} | ${md(f.fix ?? "")} |`);
-			if (c.findings.length > DETAILS_LIMIT) out.push("", `…и ещё ${c.findings.length - DETAILS_LIMIT} — в security-report.html.`);
+			if (c.open.length > DETAILS_LIMIT) out.push("", `…и ещё ${c.open.length - DETAILS_LIMIT} — в security-report.html.`);
 			out.push("", "</details>", "");
 		}
 	}
@@ -786,7 +846,7 @@ const findingRows = (findings, withTool) =>
 	findings
 		.map(
 			(f) =>
-				`<tr><td class="sev ${f.severity}">${f.blocking ? "❌ " : ""}${SEVERITY_RU[f.severity]}</td>${withTool ? `<td>${esc(f.check.tool)}</td>` : ""}<td>${f.url ? `<a href="${esc(f.url)}">${esc(f.rule)}</a>` : esc(f.rule)}</td><td>${esc(f.title)}${f.accepted ? `<br><small>принято: ${esc(f.accepted.reason)}</small>` : ""}${f.expired ? `<br><small>срок принятия риска истёк ${esc(f.expired.until)}</small>` : ""}</td><td><code>${esc(f.location)}</code></td><td>${esc(f.fix ?? "")}</td></tr>`,
+				`<tr><td class="sev ${f.severity}">${f.blocking ? "❌ " : ""}${SEVERITY_RU[f.severity]}</td>${withTool ? `<td>${esc(f.check.tool)}</td>` : ""}<td>${f.url ? `<a href="${esc(f.url)}">${esc(f.rule)}</a>` : esc(f.rule)}</td><td>${esc(f.title)}${f.accepted ? `<br><small>${f.accepted.kind === "false-positive" ? "ложное срабатывание" : "принято"}: ${esc(f.accepted.reason)}</small>` : ""}${f.expired ? `<br><small>срок принятия риска истёк ${esc(f.expired.until)}</small>` : ""}</td><td><code>${esc(f.location)}</code></td><td>${esc(f.fix ?? "")}</td></tr>`,
 		)
 		.join("");
 
@@ -803,17 +863,21 @@ const html = () => {
 			? `<div class="verdict ok">✅ Проверки пройдены: блокирующих находок нет</div>`
 			: `<div class="verdict bad">❌ Не пройдено: блокирующих находок ${blocking.length}${broken.length ? `, проверок без результата ${broken.length}` : ""}</div>`,
 	);
-	b.push("<h2>Сводка</h2><div class='table'><table><tr><th></th><th>Категория</th><th>Инструмент</th><th>Что проверяет</th><th>Крит.</th><th>Высок.</th><th>Сред.</th><th>Низк.</th><th>Блокирует</th></tr>");
+	b.push("<h2>Сводка</h2><div class='table'><table><tr><th></th><th>Категория</th><th>Инструмент</th><th>Что проверяет</th><th>Крит.</th><th>Высок.</th><th>Сред.</th><th>Низк.</th><th>Ложные</th><th>Принято</th><th>Блокирует</th></tr>");
 	for (const c of checks) {
-		const n = countBy(c.findings);
+		const n = countBy(c.open);
 		b.push(
-			`<tr><td title="${STATUS_RU[c.status]}">${ICON[c.status]}</td><td>${esc(c.category)}</td><td>${esc(c.tool)}</td><td>${esc(c.what)}${["missing", "error", "skipped"].includes(c.status) ? ` — <em>${STATUS_RU[c.status]}</em>` : ""}</td><td class="n">${n.critical}</td><td class="n">${n.high}</td><td class="n">${n.medium}</td><td class="n">${n.low}</td><td class="n">${c.blockingCount || ""}</td></tr>`,
+			`<tr><td title="${STATUS_RU[c.status]}">${ICON[c.status]}</td><td>${esc(c.category)}</td><td>${esc(c.tool)}</td><td>${esc(c.what)}${["missing", "error", "skipped"].includes(c.status) ? ` — <em>${STATUS_RU[c.status]}</em>` : ""}</td><td class="n">${n.critical}</td><td class="n">${n.high}</td><td class="n">${n.medium}</td><td class="n">${n.low}</td><td class="n">${c.falsePositives || ""}</td><td class="n">${c.acceptedCount || ""}</td><td class="n">${c.blockingCount || ""}</td></tr>`,
 		);
 	}
 	b.push("</table></div>");
 	if (blocking.length)
 		b.push(
 			`<h2>Блокирующие находки</h2><div class="table"><table><tr><th>Серьёзность</th><th>Инструмент</th><th>Правило</th><th>Что</th><th>Где</th><th>Исправление</th></tr>${findingRows(blocking, true)}</table></div>`,
+		);
+	if (falsePositives.length)
+		b.push(
+			`<h2>Ложные срабатывания</h2><div class="table"><table><tr><th>Серьёзность</th><th>Инструмент</th><th>Правило</th><th>Что</th><th>Где</th><th>Исправление</th></tr>${findingRows(falsePositives, true)}</table></div>`,
 		);
 	if (acceptedFindings.length)
 		b.push(
@@ -885,6 +949,22 @@ if (outDir) {
 		const spdx = s.file.replace(/\.cdx\.json$/, ".spdx.json");
 		if (existsSync(spdx)) copyFileSync(spdx, join(outDir, "sbom", `${s.name}.spdx.json`));
 	}
+	// every finding with its verdict, for scripts and for comparing runs
+	writeFileSync(
+		join(outDir, "findings.json"),
+		`${JSON.stringify(
+			checks.flatMap((c) =>
+				c.findings.map(({ accepted: a, expired: e, ...f }) => ({
+					check: c.id,
+					...f,
+					verdict: a ? (a.kind === "false-positive" ? "false-positive" : "accepted") : f.blocking ? "blocking" : "open",
+					reason: a?.reason ?? e?.reason ?? "",
+				})),
+			),
+			null,
+			1,
+		)}\n`,
+	);
 	// the raw results of the scanners, for whoever wants to dig further
 	for (const file of files) {
 		const dest = join(outDir, "raw", relative(inDir, file));
@@ -895,9 +975,12 @@ if (outDir) {
 if (args.summary) writeFileSync(args.summary, `${report.slice(0, 900_000)}\n`, { flag: "a" });
 
 for (const c of checks)
-	console.log(`${ICON[c.status]} ${c.tool.padEnd(34)} ${String(c.findings.length).padStart(5)} found, ${c.blockingCount} blocking${c.error ? ` (${c.error})` : ""}`);
+	console.log(
+		`${ICON[c.status]} ${c.tool.padEnd(34)} ${String(c.findings.length).padStart(5)} found: ${c.open.length} open, ${c.falsePositives} false positive, ${c.acceptedCount} accepted, ${c.blockingCount} blocking${c.error ? ` (${c.error})` : ""}`,
+	);
 for (const c of broken) console.log(`::error title=${c.tool}::${c.error || "no result: the step failed or did not run"}`);
 for (const f of blocking.slice(0, 50))
 	console.log(`::error title=${f.check.tool}: ${f.rule}::${f.title}${f.location ? ` (${f.location})` : ""}`);
+if (stale.length) console.log(`::warning title=accepted-risks.json::${stale.length} entries matched no finding (see the report)`);
 console.log(passed ? "OK: the security policy passed" : `FAIL: ${blocking.length} blocking findings, ${broken.length} checks without result`);
 process.exit(passed ? 0 : 1);
