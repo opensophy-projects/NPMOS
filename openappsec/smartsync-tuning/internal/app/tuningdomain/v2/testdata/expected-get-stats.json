@@ -1,0 +1,14 @@
+{
+  "status" : "notReady",
+  "elapsedTime" : "2d 15h",
+  "totalRequests" : 52137,
+  "criticalRequests" : 247,
+  "highRequests" : 697,
+  "uniqueUrls" : 253,
+  "uniqueSources" : 365,
+  "totalElapsedTime" : 63,
+  "benignRequests" : 51193,
+  "maliciousRequests" : 944,
+  "readiness": "notReady.icon",
+  "recommendation" : "learn.icon"
+}

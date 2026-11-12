@@ -1,0 +1,210 @@
+{
+  "Query": {
+    "Stats": [
+      {
+        "ElapsedTime": 39,
+        "SourcesCount": 3,
+        "URLsCount": 13,
+        "Count": 43
+      }
+    ],
+    "Severity": [
+      {
+        "TotalRequests": 5000,
+        "HighSeverityRequests": 500,
+        "CriticalSeverityRequests": 200
+      }
+    ],
+    "Tuning": [
+      {
+        "Severity": "Critical",
+        "ExtraFieldName": "url",
+        "ExtraFieldValue": "/some/url.php",
+        "URLsCount": 1,
+        "SourcesCount": 6,
+        "Count": 50,
+        "AttackTypes": [
+          "LDAP Injection"
+        ],
+        "LogIDs": [1, 2, 3, 4, 5]
+      },
+      {
+        "Severity": "High",
+        "ExtraFieldName": "url",
+        "ExtraFieldValue": "/a/b/c.php",
+        "URLsCount": 1,
+        "SourcesCount": 5,
+        "Count": 90,
+        "AttackTypes": [
+          "LDAP Injection"
+        ],
+        "LogIDs": [6, 7, 8, 9, 10]
+      },
+      {
+        "Severity": "Critical",
+        "ExtraFieldName": "source",
+        "ExtraFieldValue": "127.0.0.1",
+        "URLsCount": 15,
+        "SourcesCount": 1,
+        "Count": 40,
+        "AttackTypes": [
+          "SQL Injection"
+        ],
+        "LogIDs": [1, 2, 3, 11, 22]
+      },
+      {
+        "Severity": "Critical",
+        "ExtraFieldName": "parameterName",
+        "ExtraFieldValue": "q",
+        "URLsCount": 2,
+        "SourcesCount": 8,
+        "Count": 120,
+        "AttackTypes": [
+          "SQL Injection"
+        ],
+        "LogIDs": [12, 13, 14]
+      },
+      {
+        "Severity": "Critical",
+        "ExtraFieldName": "parameterValue",
+        "ExtraFieldValue": "select",
+        "URLsCount": 2,
+        "SourcesCount": 3,
+        "Count": 20,
+        "AttackTypes": [
+          "SQL Injection"
+        ],
+        "LogIDs": [100, 20, 30]
+      }
+    ]
+  },
+  "DB": {
+    "Stats": {
+      "status": "notReady",
+      "elapsedTime": "1d 15h",
+      "totalRequests": 43,
+      "criticalRequests": 200,
+      "highRequests": 500,
+      "uniqueUrls": 13,
+      "uniqueSources": 3
+    },
+    "Tuning": [
+
+      {
+        "decision": "undecided",
+        "eventType": "parameterValue",
+        "eventTitle": "select",
+        "severity": "critical",
+        "logQuery": "severity:critical and e:v",
+        "metrics": [
+          {
+            "metric": "events",
+            "count": 20
+          },
+          {
+            "metric": "sources",
+            "count": 3
+          },
+          {
+            "metric": "urls",
+            "count": 2
+          }
+        ],
+        "attackTypes": [
+          "SQL Injection"
+        ]
+      },
+      {
+        "decision": "undecided",
+        "eventType": "source",
+        "eventTitle": "127.0.0.1",
+        "severity": "critical",
+        "logQuery": "severity:critical and e:v",
+        "metrics": [
+          {
+            "metric": "events",
+            "count": 40
+          },
+          {
+            "metric": "urls",
+            "count": 15
+          }
+        ],
+        "attackTypes": [
+          "SQL Injection"
+        ]
+      },
+      {
+        "decision": "undecided",
+        "eventType": "url",
+        "eventTitle": "/some/url.php",
+        "severity": "critical",
+        "logQuery": "severity:critical and e:v",
+        "metrics": [
+          {
+            "metric": "events",
+            "count": 50
+          },
+          {
+            "metric": "sources",
+            "count": 6
+          }
+        ],
+        "attackTypes": [
+          "LDAP Injection"
+        ]
+      },
+      {
+        "decision": "undecided",
+        "eventType": "url",
+        "eventTitle": "/a/b/c.php",
+        "severity": "high",
+        "logQuery": "severity:critical and e:v",
+        "metrics": [
+          {
+            "metric": "events",
+            "count": 90
+          },
+          {
+            "metric": "sources",
+            "count": 5
+          }
+        ],
+        "attackTypes": [
+          "LDAP Injection"
+        ]
+      },
+      {
+        "decision": "undecided",
+        "eventType": "parameterName",
+        "eventTitle": "q",
+        "severity": "critical",
+        "logQuery": "severity:critical and e:v",
+        "metrics": [
+          {
+            "metric": "events",
+            "count": 120
+          },
+          {
+            "metric": "sources",
+            "count": 8
+          },
+          {
+            "metric": "urls",
+            "count": 2
+          }
+        ],
+        "attackTypes": [
+          "SQL Injection"
+        ]
+      }
+    ]
+  },
+  "Management": {
+    "Parameters": {
+    }
+  },
+  "Conf": {
+    "TenantsList": "All"
+  }
+}

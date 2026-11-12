@@ -1,0 +1,959 @@
+{
+  "profiles": [
+    {
+      "name": "WAAP Agent 6b5bc293-d796-420b-ac57-7c184613c943",
+      "profileType": "agent",
+      "agent": {
+        "agentType": "reverse-proxy",
+        "reverseProxy": {
+          "webApplications": [
+            {
+              "applicationUrls": [
+                "https://juice-shop-36616ca8-382c-4b39-afad-d7009bf599ec.checkpoint.com"
+              ],
+              "upstreamUrl": "http://1.1.1.1",
+              "proxySettings": [],
+              "isExternalCertificate": true
+            }
+          ]
+        },
+        "maxNumberOfAgents": 10,
+        "upgradeMode": "automatic"
+      },
+      "isToken": true,
+      "tokenType": "sameToken",
+      "id": "5fb388b2d0593a0010be6e53",
+      "$type": "profile_v2"
+    },
+    {
+      "name": "a lot of tokens",
+      "comment": "",
+      "profileType": "agent",
+      "maxNumberOfAgents": 1002,
+      "isToken": true,
+      "agent": {
+        "maxNumberOfAgents": 1002,
+        "generatedTokens": 0,
+        "anyFog": true,
+        "agentType": "embedded",
+        "upgradeMode": "automatic",
+        "agentSettings": [],
+        "reverseProxy": {
+          "assets": []
+        }
+      },
+      "tokenType": "sameToken",
+      "id": "5f6c92ecade6f40010c2d6ce",
+      "$schemaLink": "api/v1/schemas/schema?path=ngen/v1/profiles/v2/profile.root.json",
+      "$type": "profile_v2"
+    },
+    {
+      "name": "bbb",
+      "comment": "",
+      "profileType": "agent",
+      "maxNumberOfAgents": 500,
+      "isToken": true,
+      "agent": {
+        "maxNumberOfAgents": 500,
+        "generatedTokens": 0,
+        "anyFog": true,
+        "agentType": "embedded",
+        "upgradeMode": "automatic",
+        "agentSettings": [],
+        "reverseProxy": {
+          "assets": []
+        }
+      },
+      "tokenType": "sameToken",
+      "id": "5f832733d3bc220010a95e14",
+      "$schemaLink": "api/v1/schemas/schema?path=ngen/v1/profiles/v2/profile.root.json",
+      "$type": "profile_v2"
+    },
+    {
+      "name": "debug test ",
+      "comment": "",
+      "profileType": "agent",
+      "maxNumberOfAgents": 200,
+      "isToken": true,
+      "agent": {
+        "maxNumberOfAgents": 200,
+        "generatedTokens": 0,
+        "anyFog": true,
+        "agentType": "embedded",
+        "upgradeMode": "automatic",
+        "upgradeDay": [
+          "sunday"
+        ],
+        "upgradeTime": "0:00",
+        "agentSettings": [
+          {
+            "key": "agent.debug.flag.communication",
+            "value": "Trace",
+            "id": "a6500151-e71b-402d-8f8f-c227fbdf3238"
+          }
+        ],
+        "proxySettings": [],
+        "upgradeDurationHours": 4,
+        "reverseProxy": {
+          "assets": []
+        }
+      },
+      "anyFog": true,
+      "tokenType": "sameToken",
+      "id": "5f59ed5ba66a1b0010d918a3",
+      "$type": "profile_v2"
+    },
+    {
+      "name": "fdhgdf",
+      "comment": "",
+      "profileType": "agent",
+      "maxNumberOfAgents": 400,
+      "isToken": true,
+      "agent": {
+        "maxNumberOfAgents": 400,
+        "generatedTokens": 0,
+        "anyFog": true,
+        "agentType": "embedded",
+        "upgradeMode": "automatic",
+        "agentSettings": [],
+        "reverseProxy": {
+          "assets": []
+        }
+      },
+      "tokenType": "sameToken",
+      "id": "5f82f244d3bc220010a95d3b",
+      "$schemaLink": "api/v1/schemas/schema?path=ngen/v1/profiles/v2/profile.root.json",
+      "$type": "profile_v2"
+    },
+    {
+      "name": "meirf-token-check",
+      "comment": "",
+      "profileType": "agent",
+      "isToken": true,
+      "agent": {
+        "maxNumberOfAgents": 10,
+        "generatedTokens": 0,
+        "anyFog": true,
+        "agentType": "embedded",
+        "upgradeMode": "automatic",
+        "upgradeDay": [
+          "sunday"
+        ],
+        "upgradeTime": "0:00",
+        "agentSettings": [],
+        "upgradeDurationHours": 4,
+        "reverseProxy": {
+          "assets": []
+        }
+      },
+      "tokenType": "sameToken",
+      "id": "5f5f001ca8872a001082823a",
+      "$schemaLink": "api/v1/schemas/schema?path=ngen/v1/profiles/v2/profile.root.json",
+      "$type": "profile_v2"
+    },
+    {
+      "name": "regwege",
+      "comment": "",
+      "profileType": "agent",
+      "maxNumberOfAgents": 500,
+      "isToken": true,
+      "agent": {
+        "maxNumberOfAgents": 500,
+        "generatedTokens": 0,
+        "anyFog": true,
+        "agentType": "embedded",
+        "upgradeMode": "automatic",
+        "agentSettings": [],
+        "reverseProxy": {
+          "assets": []
+        }
+      },
+      "tokenType": "sameToken",
+      "id": "5f8333ded3bc220010a95e18",
+      "$schemaLink": "api/v1/schemas/schema?path=ngen/v1/profiles/v2/profile.root.json",
+      "$type": "profile_v2"
+    },
+    {
+      "name": "yanivi-tokens",
+      "comment": "",
+      "profileType": "agent",
+      "maxNumberOfAgents": 1000,
+      "isToken": true,
+      "agent": {
+        "maxNumberOfAgents": 1000,
+        "generatedTokens": 0,
+        "anyFog": true,
+        "agentType": "embedded",
+        "upgradeMode": "automatic",
+        "agentSettings": [],
+        "reverseProxy": {
+          "assets": []
+        }
+      },
+      "tokenType": "sameToken",
+      "id": "5f7b063845c94b00104715cd",
+      "$schemaLink": "api/v1/schemas/schema?path=ngen/v1/profiles/v2/profile.root.json",
+      "$type": "profile_v2"
+    }
+  ],
+  "securityApps": {
+    "accessControlV2": {},
+    "waap": {
+      "WAAP": {
+        "WebApplicationSecurity": [
+          {
+            "context": "Any(All(Any(EqualHost(192.168.197.128)),EqualListeningPort(80)), All(Any(EqualHost(192.168.52.215)),EqualListeningPort(80)))",
+            "webAttackMitigationMode": "Prevent",
+            "webAttackMitigation": true,
+            "webAttackMitigationSeverity": "High",
+            "webAttackMitigationAction": "Balanced",
+            "practiceId": "5ef1cdce55b6d60010f92a16",
+            "practiceName": "Web Protection",
+            "zoneId": "",
+            "assetId": "5f143cb2c4e8aa5d57b6800f",
+            "assetName": "Achi power Web App",
+            "ruleId": "5f143d1fe0e11800119b7fdb",
+            "ruleName": "Achi web protection",
+            "applicationUrls": "https://www.example.com",
+            "overrides": [],
+            "triggers": [
+              {
+                "name": "Web user response trigger",
+                "comment": "",
+                "webUserResponse": {
+                  "detailsLevel": "Response Code Only",
+                  "responseCodeOnly": {
+                    "httpCode": 401
+                  }
+                },
+                "id": "5ef1cee5569b2f0010439903",
+                "$type": "trigger_v1",
+                "$triggerType": "webUserResponse"
+              },
+              {
+                "name": "Logging trigger",
+                "comment": "",
+                "log": {
+                  "verbosity": "Standard",
+                  "complianceWarnings": true,
+                  "complianceViolations": true,
+                  "acAllow": true,
+                  "acDrop": true,
+                  "tpDetect": true,
+                  "tpPrevent": true,
+                  "webRequests": true,
+                  "webUrlPath": true,
+                  "webUrlQuery": true,
+                  "webHeaders": true,
+                  "webBody": true,
+                  "logToCloud": true,
+                  "logToAgent": true
+                },
+                "id": "5ef1ceb855b6d60010f92a18",
+                "$type": "trigger_v1",
+                "$triggerType": "log"
+              }
+            ],
+            "trustedSources": [
+              {
+                "id": "5884db18-ae0b-4ffe-a1dc-a957020b6c1e",
+                "name": "OR-TS",
+                "parameterType": "TrustedSource",
+                "numOfSources": 10,
+                "sourcesIdentifiers": [
+                  {
+                    "sourceIdentifier": "Source IP",
+                    "value": "1.2.3.4"
+                  },
+                  {
+                    "sourceIdentifier": "Source IP",
+                    "value": "5.6.7.8"
+                  }
+                ]
+              }
+            ],
+            "waapParameters": [],
+            "antiBot": {
+              "injected": [],
+              "validated": []
+            },
+            "botProtection": false,
+            "csrfProtection": "Disabled",
+            "openRedirect": "Disabled",
+            "errorDisclosure": "Disabled",
+            "botProtection_v2": "Disabled"
+          }
+        ],
+        "WebAPISecurity": [
+          {
+            "context": "Any(All(Any(EqualHost(192.168.52.215)),EqualListeningPort(8000)), All(Any(EqualHost(192.168.52.212)),EqualListeningPort(8000)))",
+            "webAttackMitigationMode": "Prevent",
+            "webAttackMitigation": true,
+            "webAttackMitigationSeverity": "High",
+            "webAttackMitigationAction": "Balanced",
+            "practiceId": "5ef1cdb0767fb600101d6495",
+            "practiceName": "API Protection",
+            "zoneId": "",
+            "assetId": "5f143c96c4e8aa505ab6800d",
+            "assetName": "Achi Power API",
+            "ruleId": "5f143cdae0e11800119b7fd2",
+            "ruleName": "Achi web API",
+            "applicationUrls": "https://www.example2.com",
+            "overrides": [],
+            "triggers": [
+              {
+                "name": "Block page trigger",
+                "comment": "",
+                "webUserResponse": {
+                  "detailsLevel": "Block Page",
+                  "blockPage": {
+                    "messageTitle": "Web Request Blocked",
+                    "messageBody": "Check Point Infinity Next Blocked this request as it was found to be unauthorized or malicious.",
+                    "httpCode": 400
+                  }
+                },
+                "id": "5ef1cf69767fb600101d6497",
+                "$type": "trigger_v1",
+                "$triggerType": "webUserResponse"
+              },
+              {
+                "name": "Logging trigger",
+                "comment": "",
+                "log": {
+                  "verbosity": "Standard",
+                  "complianceWarnings": true,
+                  "complianceViolations": true,
+                  "acAllow": true,
+                  "acDrop": true,
+                  "tpDetect": true,
+                  "tpPrevent": true,
+                  "webRequests": true,
+                  "webUrlPath": true,
+                  "webUrlQuery": true,
+                  "webHeaders": true,
+                  "webBody": true,
+                  "logToCloud": true,
+                  "logToAgent": true
+                },
+                "id": "5ef1ceb855b6d60010f92a18",
+                "$type": "trigger_v1",
+                "$triggerType": "log"
+              }
+            ],
+            "trustedSources": [
+              {
+                "id": "5884db18-ae0b-4ffe-a1dc-a95702435c1e",
+                "name": "OR-TS-Cookie",
+                "parameterType": "TrustedSource",
+                "numOfSources": 10,
+                "sourcesIdentifiers": [
+                  {
+                    "sourceIdentifier": "Cookie:ortCookie",
+                    "value": "cookieValue1"
+                  }
+                ]
+              }
+            ],
+            "waapParameters": [],
+            "schemaValidation": true,
+            "oas": [
+              "eyJvcGVuYXBpIjoiMy4wLjEiLCJpbmZvIjp7InRpdGxlIjoiQWNtZSBTbWFydE1ldGVyIEFQSSIsImRlc2NyaXB0aW9uIjoiT3BlbkFQSSBEZW1vIiwidGVybXNPZlNlcnZpY2UiOiJodHRwczovL2FjbWUtcG93ZXItZTJlLWludC13YWFwLmNsb3VkLm5nZW4uY2hlY2twb2ludC5jb20vIiwiY29udGFjdCI6eyJlbWFpbCI6ImFwaXRlYW1AY2xvdWQubmdlbi5jaGVja3BvaW50LmNvbSJ9LCJ2ZXJzaW9uIjoiMS4wLjAifSwic2VydmVycyI6W3sidXJsIjoiaHR0cHM6Ly9hY21lLXBvd2VyLWUyZS1pbnQtd2FhcC5jbG91ZC5uZ2VuLmNoZWNrcG9pbnQuY29tLyJ9XSwicGF0aHMiOnsiL0luZ2VzdGlvbi1BcHAvc2V0TmV3UmVhZGluZyI6eyJwb3N0Ijp7InRhZ3MiOlsiU21hcnRNZXRlciBuZXcgcmVhZGluZyByZXBvcnQiXSwic3VtbWFyeSI6IlNlbmQgU21hcnRNZXRlciBSZWFkIiwicmVxdWVzdEJvZHkiOnsiY29udGVudCI6eyJhcHBsaWNhdGlvbi9qc29uIjp7InNjaGVtYSI6eyJ0eXBlIjoib2JqZWN0IiwicHJvcGVydGllcyI6eyJ1dWlkIjp7InR5cGUiOiJzdHJpbmciLCJmb3JtYXQiOiJ1dWlkIiwiZGVzY3JpcHRpb24iOiJTbWFydE1ldGVyIHVuaXF1ZSBpZGVudGlmaXRpZXIifSwiY291bnROdW1iZXIiOnsidHlwZSI6Im51bWJlciIsImRlc2NyaXB0aW9uIjoiU21hcnRNZXRlciBjb3VudGVyIn0sInJlYWRpbmdWYWx1ZSI6eyJ0eXBlIjoibnVtYmVyIiwiZGVzY3JpcHRpb24iOiJTbWFydE1ldGVyIHJlYWRpbmcgdmFsdWUiLCJtYXhpbXVtIjoxMDAwMDAwLCJtaW5pbXVtIjoxLCJleGNsdXNpdmVNYXhpbXVtIjpmYWxzZSwiZXhjbHVzaXZlTWluaW11bSI6ZmFsc2V9LCJyZWFkaW5nVGltZSI6eyJ0eXBlIjoic3RyaW5nIiwiZm9ybWF0IjoiZGF0ZSIsImRlc2NyaXB0aW9uIjoiU21hcnRNZXRlciByZWFkaW5nIHRpbWUifX19LCJleGFtcGxlcyI6eyJDb250ZW50Ijp7InN1bW1hcnkiOiJFeGFtcGxlIG9mIGNvbnRlbnQiLCJ2YWx1ZSI6eyJVVUlEIjoiZjM5Yjc3NTMtYmEyNi00NzYwLWIxNTEtNTZmZDk5MTEzMjkwIiwiY291bnROdW1iZXIiOjEwLCJyZWFkaW5nVmFsdWUiOjMwLCJyZWFkaW5nVGltZSI6IjEzIEp1bmUsIDIwMTkgMTM6MzM6MzEifX19fX0sInJlcXVpcmVkIjpmYWxzZX0sInJlc3BvbnNlcyI6eyIyMDAiOnsiZGVzY3JpcHRpb24iOiJzdWNjZXNzIn19fX19LCJjb21wb25lbnRzIjp7InNjaGVtYXMiOnsiQ29udGVudCI6eyJ0eXBlIjoib2JqZWN0IiwicHJvcGVydGllcyI6eyJVVUlEIjp7InR5cGUiOiJzdHJpbmciLCJmb3JtYXQiOiJ1dWlkIiwiZGVzY3JpcHRpb24iOiJTbWFydE1ldGVyIHVuaXF1ZSBpZGVudGlmaXRpZXIifSwiY291bnROdW1iZXIiOnsidHlwZSI6Im51bWJlciIsImRlc2NyaXB0aW9uIjoiU21hcnRNZXRlciBjb3VudGVyIn0sInJlYWRpbmdWYWx1ZSI6eyJ0eXBlIjoibnVtYmVyIiwiZGVzY3JpcHRpb24iOiJTbWFydE1ldGVyIHJlYWRpbmcgdmFsdWUiLCJtYXhpbXVtIjoxMDAwLCJtaW5pbXVtIjoxLCJleGNsdXNpdmVNYXhpbXVtIjpmYWxzZSwiZXhjbHVzaXZlTWluaW11bSI6ZmFsc2V9LCJyZWFkaW5nVGltZSI6eyJ0eXBlIjoic3RyaW5nIiwiZm9ybWF0IjoiZGF0ZSIsImRlc2NyaXB0aW9uIjoiU21hcnRNZXRlciByZWFkaW5nIHRpbWUifX19fX19"
+            ]
+          }
+        ]
+      }
+    },
+    "kubernetescalico": {
+      "rules": [
+        {
+          "apiVersion": "crd.projectcalico.org/v1",
+          "kind": "GlobalNetworkPolicy",
+          "metadata": {
+            "name": "default.allow-kube-system",
+            "labels": {
+              "checkpoint": null
+            }
+          },
+          "spec": {
+            "order": 13000,
+            "selector": "projectcalico.org/namespace == 'kube-system'",
+            "types": [
+              "Egress",
+              "Ingress"
+            ],
+            "egress": [
+              {
+                "action": "Allow"
+              }
+            ],
+            "ingress": [
+              {
+                "action": "Allow"
+              }
+            ]
+          }
+        },
+        {
+          "apiVersion": "crd.projectcalico.org/v1",
+          "kind": "GlobalNetworkPolicy",
+          "metadata": {
+            "name": "default.allow-cp-agent",
+            "labels": {
+              "checkpoint": null
+            }
+          },
+          "spec": {
+            "order": 11000,
+            "selector": "projectcalico.org/namespace == 'cpns'",
+            "types": [
+              "Ingress",
+              "Egress"
+            ],
+            "egress": [
+              {
+                "action": "Allow",
+                "destination": {}
+              }
+            ]
+          }
+        },
+        {
+          "apiVersion": "crd.projectcalico.org/v1",
+          "kind": "GlobalNetworkPolicy",
+          "metadata": {
+            "name": "default.allow-dns-access",
+            "labels": {
+              "checkpoint": null
+            }
+          },
+          "spec": {
+            "order": 13000,
+            "selector": "all()",
+            "types": [
+              "Egress"
+            ],
+            "egress": [
+              {
+                "action": "Allow",
+                "protocol": "UDP",
+                "destination": {
+                  "selector": "projectcalico.org/namespace == 'kube-system'",
+                  "ports": [
+                    53
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "apiVersion": "crd.projectcalico.org/v1",
+          "kind": "GlobalNetworkPolicy",
+          "metadata": {
+            "name": "default.checkpoint-default-deny",
+            "labels": {
+              "checkpoint": null
+            }
+          },
+          "spec": {
+            "selector": "all()",
+            "order": 14000,
+            "types": [
+              "Egress",
+              "Ingress"
+            ]
+          }
+        }
+      ]
+    },
+    "virtualPatching": {},
+    "capsule8": {},
+    "webUserResponse": {
+      "HTTP manager": {
+        "Web trigger conf": [
+          {
+            "context": "Any(All(Any(EqualHost(192.168.52.215)),EqualListeningPort(8000)), All(Any(EqualHost(192.168.52.212)),EqualListeningPort(8000)))",
+            "response code": 400,
+            "response title": "Web Request Blocked",
+            "response body": "Check Point Infinity Next Blocked this request as it was found to be unauthorized or malicious.",
+            "details level": "block page"
+          },
+          {
+            "context": "Any(All(Any(EqualHost(192.168.197.128)),EqualListeningPort(80)), All(Any(EqualHost(192.168.52.215)),EqualListeningPort(80)))",
+            "response code": 401,
+            "response title": "",
+            "response body": "",
+            "details level": "response code only"
+          }
+        ]
+      }
+    },
+    "iotWorkload": {},
+    "activeContextConfig": {
+      "HTTP manager": {
+        "Active Context Config": [
+          {
+            "context": "Any(All(Any(EqualHost(192.168.52.215)),EqualListeningPort(8000)), All(Any(EqualHost(192.168.52.212)),EqualListeningPort(8000)))",
+            "value": true
+          },
+          {
+            "context": "Any(All(Any(EqualHost(192.168.197.128)),EqualListeningPort(80)), All(Any(EqualHost(192.168.52.215)),EqualListeningPort(80)))",
+            "value": true
+          },
+          {
+            "context": "Any(All(Any(EqualHost(192.168.52.212)),EqualListeningPort(8000),BeginWithUri(/Integration-app)))",
+            "value": true
+          },
+          {
+            "context": "Any(All(Any(EqualHost(192.168.186.134)),EqualListeningPort(80),BeginWithUri(/user-app)))",
+            "value": true
+          },
+          {
+            "context": "Any(All(Any(EqualHost(192.168.153.128)),EqualListeningPort(8000),BeginWithUri(/Ingestion-App)))",
+            "value": true
+          },
+          {
+            "context": "Any(All(Any(EqualHost(juice-shop-36616ca8-382c-4b39-afad-d7009bf599ec.checkpoint.com)),EqualListeningPort(443)))",
+            "value": true
+          },
+          {
+            "context": "All()",
+            "value": false
+          }
+        ]
+      }
+    },
+    "parameters": {},
+    "triggers": {
+      "rulebase": {
+        "log": [
+          {
+            "verbosity": "Standard",
+            "complianceWarnings": true,
+            "complianceViolations": true,
+            "acAllow": true,
+            "acDrop": true,
+            "tpDetect": true,
+            "tpPrevent": true,
+            "webRequests": true,
+            "webUrlPath": true,
+            "webUrlQuery": true,
+            "webHeaders": true,
+            "webBody": true,
+            "logToCloud": true,
+            "logToAgent": true,
+            "context": "triggerId(5ef1ceb855b6d60010f92a18)",
+            "triggerName": "Logging trigger",
+            "triggerType": "log"
+          }
+        ],
+        "webUserResponse": [
+          {
+            "context": "triggerId(5ef1cf69767fb600101d6497)",
+            "triggerName": "Block page trigger",
+            "triggerType": "webUserResponse",
+            "details level": "Block Page",
+            "response code": 400,
+            "response body": "Check Point Infinity Next Blocked this request as it was found to be unauthorized or malicious.",
+            "response title": "Web Request Blocked"
+          },
+          {
+            "context": "triggerId(5ef1cee5569b2f0010439903)",
+            "triggerName": "Web user response trigger",
+            "triggerType": "webUserResponse",
+            "details level": "Response Code Only",
+            "response code": 401
+          }
+        ]
+      }
+    },
+    "rules": {
+      "rulebase": {
+        "usedPracticesTypes": [
+          "Web API",
+          "Web Application"
+        ],
+        "usedZones": [],
+        "rulesConfig": [
+          {
+            "ruleId": "5f143cdae0e11800119b7fd2",
+            "ruleName": "Achi web API",
+            "practices": [
+              {
+                "practiceId": "5ef1cdb0767fb600101d6495",
+                "practiceName": "API Protection"
+              }
+            ],
+            "triggers": [
+              {
+                "triggerId": "5ef1cf69767fb600101d6497",
+                "triggerType": "webUserResponse",
+                "triggerName": "Block page trigger"
+              },
+              {
+                "triggerId": "5ef1ceb855b6d60010f92a18",
+                "triggerType": "log",
+                "triggerName": "Logging trigger"
+              }
+            ],
+            "parameters": [
+              {
+                "parameterId": "5ef1cfc755b6d60010f92a1c",
+                "parameterName": "Acme API scheme",
+                "parameterType": "OAS Schema"
+              }
+            ],
+            "assetId": "5f143c96c4e8aa505ab6800d",
+            "assetName": "Achi Power API",
+            "zoneId": "",
+            "zoneName": "",
+            "context": "Any(All(Any(EqualHost(192.168.52.215)),EqualListeningPort(8000)), All(Any(EqualHost(192.168.52.212)),EqualListeningPort(8000)))",
+            "priority": 1
+          },
+          {
+            "ruleId": "5f143d1fe0e11800119b7fdb",
+            "ruleName": "Achi web protection",
+            "practices": [
+              {
+                "practiceId": "5ef1cdce55b6d60010f92a16",
+                "practiceName": "Web Protection"
+              }
+            ],
+            "triggers": [
+              {
+                "triggerId": "5ef1cee5569b2f0010439903",
+                "triggerType": "webUserResponse",
+                "triggerName": "Web user response trigger"
+              },
+              {
+                "triggerId": "5ef1ceb855b6d60010f92a18",
+                "triggerType": "log",
+                "triggerName": "Logging trigger"
+              }
+            ],
+            "parameters": [],
+            "assetId": "5f143cb2c4e8aa5d57b6800f",
+            "assetName": "Achi power Web App",
+            "zoneId": "",
+            "zoneName": "",
+            "context": "Any(All(Any(EqualHost(192.168.197.128)),EqualListeningPort(80)), All(Any(EqualHost(192.168.52.215)),EqualListeningPort(80)))",
+            "priority": 1
+          },
+          {
+            "ruleId": "5ef1cffb55b6d60010f92a1e",
+            "ruleName": "Acme web API",
+            "practices": [
+              {
+                "practiceId": "5ef1cdb0767fb600101d6495",
+                "practiceName": "API Protection"
+              }
+            ],
+            "triggers": [
+              {
+                "triggerId": "5ef1ceb855b6d60010f92a18",
+                "triggerType": "log",
+                "triggerName": "Logging trigger"
+              }
+            ],
+            "parameters": [
+              {
+                "parameterId": "5ef1cfc755b6d60010f92a1c",
+                "parameterName": "Acme API scheme",
+                "parameterType": "OAS Schema"
+              }
+            ],
+            "assetId": "5f03716679d28d377a33b4b6",
+            "assetName": "ACME Power API",
+            "zoneId": "",
+            "zoneName": "",
+            "context": "Any(All(Any(EqualHost(192.168.52.212)),EqualListeningPort(8000),BeginWithUri(/Integration-app)))",
+            "priority": 1
+          },
+          {
+            "ruleId": "5ef1d03755b6d60010f92a22",
+            "ruleName": "Acme web protection",
+            "practices": [
+              {
+                "practiceId": "5ef1cdce55b6d60010f92a16",
+                "practiceName": "Web Protection"
+              }
+            ],
+            "triggers": [
+              {
+                "triggerId": "5ef1ceb855b6d60010f92a18",
+                "triggerType": "log",
+                "triggerName": "Logging trigger"
+              }
+            ],
+            "parameters": [],
+            "assetId": "5f0371af79d28db67533b4b8",
+            "assetName": "Acme Power Web Application",
+            "zoneId": "",
+            "zoneName": "",
+            "context": "Any(All(Any(EqualHost(192.168.186.134)),EqualListeningPort(80),BeginWithUri(/user-app)))",
+            "priority": 1
+          },
+          {
+            "ruleId": "5f590b57be1415001065a186",
+            "ruleName": "Another Web API",
+            "practices": [
+              {
+                "practiceId": "5ef1cdb0767fb600101d6495",
+                "practiceName": "API Protection"
+              }
+            ],
+            "triggers": [
+              {
+                "triggerId": "5ef1ceb855b6d60010f92a18",
+                "triggerType": "log",
+                "triggerName": "Logging trigger"
+              }
+            ],
+            "parameters": [
+              {
+                "parameterId": "5ef1cfc755b6d60010f92a1c",
+                "parameterName": "Acme API scheme",
+                "parameterType": "OAS Schema"
+              }
+            ],
+            "assetId": "5f590b3b6f23004da5ef9e79",
+            "assetName": "Another Power API",
+            "zoneId": "",
+            "zoneName": "",
+            "context": "Any(All(Any(EqualHost(192.168.153.128)),EqualListeningPort(8000),BeginWithUri(/Ingestion-App)))",
+            "priority": 1
+          },
+          {
+            "ruleId": "5f590be3be1415001065a189",
+            "ruleName": "Another Web Protection",
+            "practices": [
+              {
+                "practiceId": "5ef1cdce55b6d60010f92a16",
+                "practiceName": "Web Protection"
+              }
+            ],
+            "triggers": [
+              {
+                "triggerId": "5ef1ceb855b6d60010f92a18",
+                "triggerType": "log",
+                "triggerName": "Logging trigger"
+              }
+            ],
+            "parameters": [],
+            "assetId": "5f0371af79d28db67533b4b8",
+            "assetName": "Acme Power Web Application",
+            "zoneId": "",
+            "zoneName": "",
+            "context": "Any(All(Any(EqualHost(192.168.186.134)),EqualListeningPort(80),BeginWithUri(/user-app)))",
+            "priority": 1
+          },
+          {
+            "ruleId": "5fb388b3d0593a0010be6e55",
+            "ruleName": "JuiceShop WAAP b630083b-2309-426e-8705-c4e0d3d2f94b",
+            "practices": [
+              {
+                "practiceId": "5ef1cdb0767fb600101d6495",
+                "practiceName": "API Protection"
+              }
+            ],
+            "triggers": [],
+            "parameters": [],
+            "assetId": "5fb388b2fbd7b58134202624",
+            "assetName": "Juice Shop f8f12835-aaec-4e07-ae1c-e553e73b0d84",
+            "zoneId": "",
+            "zoneName": "",
+            "context": "Any(All(Any(EqualHost(juice-shop-36616ca8-382c-4b39-afad-d7009bf599ec.checkpoint.com)),EqualListeningPort(443)))",
+            "priority": 1
+          }
+        ]
+      }
+    },
+    "zones": {
+      "rulebase": {
+        "zones": [
+          {
+            "id": "5dd6b6a00aa6bc00107d2aa1",
+            "name": "Europe Finance Servers",
+            "match": {
+              "type": "condition",
+              "key": "server",
+              "op": "equals",
+              "value": [
+                "finance"
+              ]
+            },
+            "adjacentZones": [
+              {
+                "direction": "from",
+                "zoneId": "5e0dca04eeee100010755834"
+              }
+            ]
+          },
+          {
+            "id": "5e1f1d4e0b4e09001055353b",
+            "name": "Europe Fincance Users",
+            "match": {
+              "type": "operator",
+              "op": "and",
+              "items": [
+                {
+                  "type": "condition",
+                  "key": "location",
+                  "op": "equals",
+                  "value": [
+                    "EU"
+                  ]
+                },
+                {
+                  "type": "condition",
+                  "key": "user-group",
+                  "op": "equals",
+                  "value": [
+                    "Finance"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "id": "5e3a858517976600117e3782",
+            "name": "Finance Zone",
+            "match": {
+              "type": "operator",
+              "op": "or",
+              "items": [
+                {
+                  "type": "condition",
+                  "key": "user-group",
+                  "op": "equals",
+                  "value": [
+                    "finance"
+                  ]
+                },
+                {
+                  "type": "condition",
+                  "key": "main-ip",
+                  "op": "equals",
+                  "value": [
+                    "192.168.13.0/24"
+                  ]
+                }
+              ]
+            },
+            "adjacentZones": [
+              {
+                "direction": "to",
+                "zoneId": "5e3a85fa17976600117e3784"
+              }
+            ]
+          },
+          {
+            "id": "5e3a85fa17976600117e3784",
+            "name": "IL Finance Servers",
+            "match": {
+              "type": "condition",
+              "key": "role",
+              "op": "equals",
+              "value": [
+                "web-server"
+              ]
+            },
+            "adjacentZones": [
+              {
+                "zoneId": "5e3a858517976600117e3782",
+                "direction": "from"
+              }
+            ]
+          },
+          {
+            "id": "5e0dca04eeee100010755834",
+            "name": "US Fincance Users",
+            "match": {
+              "type": "operator",
+              "op": "and",
+              "items": [
+                {
+                  "type": "condition",
+                  "key": "user-group",
+                  "op": "equals",
+                  "value": [
+                    "finance"
+                  ]
+                },
+                {
+                  "type": "condition",
+                  "key": "location",
+                  "op": "equals",
+                  "value": [
+                    "US"
+                  ]
+                }
+              ]
+            },
+            "adjacentZones": [
+              {
+                "zoneId": "5dd6b6a00aa6bc00107d2aa1",
+                "direction": "to"
+              }
+            ]
+          },
+          {
+            "id": "5e1f091c0b4e09001055351e",
+            "name": "newZone",
+            "match": {
+              "type": "operator",
+              "op": "and",
+              "items": [
+                {
+                  "type": "condition",
+                  "key": "color",
+                  "op": "equals",
+                  "value": [
+                    "green"
+                  ]
+                },
+                {
+                  "type": "condition",
+                  "key": "instance-type",
+                  "op": "equals",
+                  "value": [
+                    "EC2"
+                  ]
+                }
+              ]
+            },
+            "adjacentZones": []
+          },
+          {
+            "id": "5df8a039450c920010d9ac49",
+            "name": "test zone",
+            "match": {
+              "type": "operator",
+              "op": "and",
+              "items": [
+                {
+                  "type": "condition",
+                  "key": "key1",
+                  "op": "equals",
+                  "value": [
+                    "val1"
+                  ]
+                },
+                {
+                  "type": "condition",
+                  "key": "key2",
+                  "op": "equals",
+                  "value": [
+                    "val2"
+                  ]
+                }
+              ]
+            },
+            "adjacentZones": []
+          }
+        ]
+      }
+    },
+    "iotCloudAppPolicy": {}
+  }
+}

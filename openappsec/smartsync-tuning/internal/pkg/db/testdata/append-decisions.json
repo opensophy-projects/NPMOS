@@ -1,0 +1,23 @@
+[
+  {
+    "decision": "benign",
+    "eventTitle": "a/non/ort/waap",
+    "eventType": "param",
+    "logQuery": "httpuripath:/a/non/bening and severity:critical",
+    "severity": "critical",
+    "metrics": [
+      {
+        "metric": "events",
+        "count": 200
+      },
+      {
+        "metric": "sources",
+        "count": 900
+      }
+    ],
+    "attackTypes": [],
+    "policyVersion": 5
+  }
+]
+
+

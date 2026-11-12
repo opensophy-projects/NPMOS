@@ -1,0 +1,40 @@
+[
+  {
+    "decision" : "benign",
+    "eventTitle" : "/a/benign",
+    "eventType" : "url",
+    "severity" : "high",
+    "logQuery" : "httpuripath:/a/benign and severity:high",
+    "metrics" :
+            [
+              {
+                "metric" : "events",
+                "count" : 27
+              },
+              {
+                "metric" : "sources",
+                "count" : 6
+              }
+            ],
+    "policyVersion": 3
+  },
+  {
+    "decision" : "malicious",
+    "eventTitle" : "192.169.15.17",
+    "eventType" : "source",
+    "severity" : "critical",
+    "logQuery" : "httpsourceid:192.169.15.17 and severity:critical",
+    "metrics" :
+    [
+      {
+        "metric" : "events",
+        "count" : 59
+      },
+      {
+        "metric" : "urls",
+        "count" : 5
+      }
+    ],
+    "policyVersion": 1
+  }
+]

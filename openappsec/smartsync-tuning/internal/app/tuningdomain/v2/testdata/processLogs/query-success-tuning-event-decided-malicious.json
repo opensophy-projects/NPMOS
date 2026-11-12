@@ -1,0 +1,205 @@
+{
+  "Query": {
+    "Stats": [
+          {
+            "ElapsedTime": 39,
+            "SourcesCount": 315,
+            "URLsCount": 130,
+            "Count": 43000,
+            "TotalRequests": 43000,
+            "StartupTime": 140500
+          }
+        ],
+    "Severity": [
+      {
+        "TotalRequests": 43000,
+        "HighSeverityRequests": 500,
+        "CriticalSeverityRequests": 200
+      }
+    ],
+    "Tuning": [
+          {
+            "Severity": "Critical",
+            "ExtraFieldName": "url",
+            "ExtraFieldValue": "/some/url.php",
+            "URLsCount": 1,
+            "SourcesCount": 6,
+            "Count": 50,
+            "LogIDs": [1]
+          },
+          {
+            "Severity": "High",
+            "ExtraFieldName": "url",
+            "ExtraFieldValue": "/a/b/c.php",
+            "URLsCount": 1,
+            "SourcesCount": 5,
+            "Count": 90,
+            "LogIDs": [2]
+          },
+          {
+            "Severity": "Critical",
+            "ExtraFieldName": "source",
+            "ExtraFieldValue": "127.0.0.1",
+            "URLsCount": 15,
+            "SourcesCount": 1,
+            "Count": 40,
+            "LogIDs": [3]
+          },
+          {
+            "Severity": "Critical",
+            "ExtraFieldName": "parameterName",
+            "ExtraFieldValue": "q",
+            "URLsCount": 2,
+            "SourcesCount": 8,
+            "Count": 120,
+            "LogIDs": [4]
+          },
+          {
+            "Severity": "Critical",
+            "ExtraFieldName": "parameterValue",
+            "ExtraFieldValue": "select",
+            "URLsCount": 2,
+            "SourcesCount": 3,
+            "Count": 20,
+            "LogIDs": [5]
+          }
+        ]
+  },
+  "DB": {
+    "State": {
+    },
+    "Expect": {
+      "Statistics": {
+        "status": "ready",
+        "elapsedTime": "1d 15h",
+        "totalRequests": 43000,
+        "criticalRequests": 200,
+        "highRequests": 500,
+        "uniqueUrls": 130,
+        "uniqueSources": 315,
+        "startupTime": 0,
+        "legitimateRequests": 42300,
+        "maliciousRequests": 700,
+        "readiness": 3,
+        "readinessDisplayName": "High School",
+        "readinessToolTip" : "To graduate, at least 43000 additional HTTP requests and 33 additional learning hours are required",
+        "recommendation": 1,
+        "recommendationDisplayName": "Keep Learning",
+        "recommendationToolTip" : "The learning mechanism requires additional HTTP requests and time",
+        "preLvlReqCount": 43000,
+        "requestsFromStart": 43000
+      },
+      "TuningEvents": [
+        {
+          "decision": "undecided",
+          "eventType": "parameterValue",
+          "eventTitle": "select",
+          "severity": "critical",
+          "logQuery": "severity:critical and e:v",
+          "metrics": [
+            {
+              "metric": "events",
+              "count": 20
+            },
+            {
+              "metric": "sources",
+              "count": 3
+            },
+            {
+              "metric": "urls",
+              "count": 2
+            }
+          ],
+          "attackTypes": []
+        },
+        {
+          "decision": "undecided",
+          "eventType": "url",
+          "eventTitle": "/some/url.php",
+          "severity": "critical",
+          "logQuery": "severity:critical and e:v",
+          "metrics": [
+            {
+              "metric": "events",
+              "count": 50
+            },
+            {
+              "metric": "sources",
+              "count": 6
+            }
+          ],
+          "attackTypes": []
+        },
+        {
+          "decision": "undecided",
+          "eventType": "parameterName",
+          "eventTitle": "q",
+          "severity": "critical",
+          "logQuery": "severity:critical and e:v",
+          "metrics": [
+            {
+              "metric": "events",
+              "count": 120
+            },
+            {
+              "metric": "sources",
+              "count": 8
+            },
+            {
+              "metric": "urls",
+              "count": 2
+            }
+          ],
+          "attackTypes": []
+        }
+      ],
+      "TuningEventsDecided": [
+        {
+          "decision": "malicious",
+          "eventType": "url",
+          "eventTitle": "/a/b/c.php",
+          "severity": "high",
+          "logQuery": "severity:critical and e:v",
+          "metrics": [
+            {
+              "metric": "events",
+              "count": 90
+            },
+            {
+              "metric": "sources",
+              "count": 5
+            }
+          ],
+          "attackTypes": []
+        }
+      ]
+    }
+  },
+  "S3": {
+    "Decisions": {
+      "decisions": [
+        {
+          "decision": "benign",
+          "eventType": "source",
+          "eventTitle": "127.0.0.1",
+          "severity": "high",
+          "logQuery": "severity:critical and e:v",
+          "metrics": [
+            {
+              "metric": "events",
+              "count": 90
+            },
+            {
+              "metric": "sources",
+              "count": 5
+            }
+          ],
+          "attackTypes": []
+        }
+      ]
+    }
+  },
+  "Conf": {
+    "TenantsList": "All"
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "limit": 100,
+  "offset": 1,
+  "query": {
+    "operator": "AND",
+    "operands": [{
+      "operator": "NOT_EQUALS",
+      "key": "class",
+      "value": "true"
+    }, {
+      "operator": "OR",
+      "operands": [{
+        "operator": "CONTAINS",
+        "key": "name",
+        "value": ""
+      }, {
+        "operator": "CONTAINS",
+        "key": "mainAttributes.applicationUrlsString",
+        "value": ""
+      }, {
+        "operator": "CONTAINS",
+        "key": "mainAttributes.privateIpAddress",
+        "value": ""
+      }, {
+        "operator": "CONTAINS",
+        "key": "mainAttributes.cloudNetwork",
+        "value": ""
+      }, {
+        "operator": "CONTAINS",
+        "key": "family",
+        "value": ""
+      }, {
+        "operator": "AND",
+        "operands": [{
+          "operator": "greaterThanEquals",
+          "key": "attributes.portsRanges.max",
+          "value": 0
+        }, {
+          "operator": "lessThanEquals",
+          "key": "attributes.portsRanges.min",
+          "value": 0
+        }]
+      }]
+    }, {
+      "operator": "NOT_EQUALS",
+      "key": "sourceId",
+      "value": "70ddb119-4318-4e8b-849e-84544bffbba7"
+    }, {
+      "operator": "NOT_EQUALS",
+      "key": "sourceId",
+      "value": "f93e5ac9-d062-4317-b6b9-22febd038045"
+    }]
+  }
+}

@@ -1,0 +1,166 @@
+{
+  "assets": [
+    {
+      "schemaVersion": 1,
+      "ttl": 900,
+      "assetType": "WebApplication",
+      "assetTypeSchemaVersion": 1,
+      "permissionType": "tenant",
+      "name": "test",
+      "class": "workload",
+      "category": "cloud",
+      "family": "Web Application",
+      "confidence": 900,
+      "mainAttributes": {
+        "applicationUrls": "http://www.example.com"
+      },
+      "attributes": {
+        "assetExceptions": {
+          "exceptions": {
+            "id1": {
+              "lastHitEvent": "2000-01-01T20:00",
+              "hitCount": 10,
+              "sharedHitCount": 12
+            },
+            "id2": {
+              "lastHitEvent": "2001-01-01T20:00",
+              "hitCount": 20,
+              "sharedHitCount": 20
+            }
+          }
+        },
+        "certificateStatus": [
+          {
+            "profileId": "12345678-1234-1234-1234-123456789012",
+            "certType": "aws",
+            "url": "https://www.example.com",
+            "status": "success",
+            "message": "ok"
+          }
+        ],
+        "excludeFromFacets": "true",
+        "mgmtId": "18bc110f-120e-a40e-b971-af663292c992",
+        "tuningDecisions": [
+          {
+            "id": "1a",
+            "decision": "benign",
+            "eventType": "url",
+            "eventTitle": "/a/benign",
+            "severity": "high",
+            "logQuery": "httpuripath:/a/benign and severity:high",
+            "metrics": [
+              {
+                "metric": "events",
+                "count": 27
+              },
+              {
+                "metric": "sources",
+                "count": 6
+              }
+            ],
+            "attackTypes": [],
+            "enforced": false,
+            "policyVersion": 0
+          },
+          {
+            "id": "1b",
+            "decision": "malicious",
+            "eventType": "source",
+            "eventTitle": "192.169.15.17",
+            "severity": "critical",
+            "logQuery": "httpsourceid:192.169.15.17 and severity:critical",
+            "metrics": [
+              {
+                "metric": "events",
+                "count": 59
+              },
+              {
+                "metric": "urls",
+                "count": 5
+              }
+            ],
+            "attackTypes": [],
+            "enforced": false,
+            "policyVersion": 0
+          }
+        ],
+        "tuningStatistics": {
+          "status": "notReady",
+          "elapsedTime": "2d 15h",
+          "totalRequests": 52137,
+          "criticalRequests": 247,
+          "highRequests": 697,
+          "uniqueUrls": 253,
+          "uniqueSources": 365,
+          "startupTime": 140500,
+          "legitimateRequests": 51193,
+          "maliciousRequests": 944,
+          "readiness": 1,
+          "readinessDisplayName": "notReady",
+          "readinessToolTip": "",
+          "preLvlReqCount": 1,
+          "recommendation": 1,
+          "recommendationDisplayName": "KeepLearning",
+          "recommendationToolTip": "",
+          "mitigationMode": "Detect",
+          "mitigationLevel": "High",
+          "requestsFromStart": 52137
+        },
+        "tuningSuggestions": [
+          {
+            "id": "1a",
+            "decision": "undecided",
+            "eventType": "url",
+            "eventTitle": "/a/non/malicious",
+            "severity": "critical",
+            "logQuery": "httpuripath:/a/non/malicious and severity:critical",
+            "metrics": [
+              {
+                "metric": "events",
+                "count": 37
+              },
+              {
+                "metric": "sources",
+                "count": 8
+              }
+            ],
+            "attackTypes": null,
+            "enforced": false,
+            "policyVersion": 0
+          },
+          {
+            "id": "1b",
+            "decision": "undecided",
+            "eventType": "source",
+            "eventTitle": "192.168.15.17",
+            "severity": "critical",
+            "logQuery": "httpsourceid:192.168.15.17 and severity:critical",
+            "metrics": [
+              {
+                "metric": "events",
+                "count": 77
+              },
+              {
+                "metric": "urls",
+                "count": 12
+              }
+            ],
+            "attackTypes": null,
+            "enforced": false,
+            "policyVersion": 0
+          }
+        ],
+        "upstreamStatus": [
+          {
+            "agentID": "agent789",
+            "status": "Success",
+            "message": ""
+          }
+        ]
+      }
+    }
+  ],
+  "status": "done",
+  "totalNumAssets": 1,
+  "cursor": ""
+}

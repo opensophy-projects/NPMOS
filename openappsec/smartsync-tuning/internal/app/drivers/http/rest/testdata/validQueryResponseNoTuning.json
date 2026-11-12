@@ -1,0 +1,51 @@
+{
+  "assets": [
+    {
+      "schemaVersion": 1,
+      "ttl": 900,
+      "assetType": "WebApplication",
+      "assetTypeSchemaVersion": 1,
+      "permissionType": "tenant",
+      "name": "test",
+      "class": "workload",
+      "category": "cloud",
+      "family": "Web Application",
+      "confidence": 900,
+      "mainAttributes": {
+        "applicationUrls": "http://www.example.com"
+      },
+      "attributes": {
+        "assetExceptions": {},
+        "excludeFromFacets": "true",
+        "mgmtId": "18bc110f-120e-a40e-b971-af663292c992",
+        "tuningDecisions": [],
+        "tuningStatistics": {
+          "status": "notReady",
+          "elapsedTime": "2d 15h",
+          "totalRequests": 52137,
+          "criticalRequests": 247,
+          "highRequests": 697,
+          "uniqueUrls": 253,
+          "uniqueSources": 365,
+          "startupTime": 140500,
+          "legitimateRequests": 51193,
+          "maliciousRequests": 944,
+          "readiness": 1,
+          "readinessDisplayName": "notReady",
+          "readinessToolTip": "",
+          "preLvlReqCount": 1,
+          "recommendation": 1,
+          "recommendationDisplayName": "KeepLearning",
+          "recommendationToolTip": "",
+          "mitigationMode": "Detect",
+          "mitigationLevel": "High",
+          "requestsFromStart": 52137
+        },
+        "tuningSuggestions": []
+      }
+    }
+  ],
+  "status": "done",
+  "totalNumAssets": 1,
+  "cursor": ""
+}

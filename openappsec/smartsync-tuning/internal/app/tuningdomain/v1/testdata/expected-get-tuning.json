@@ -1,0 +1,38 @@
+[
+  {
+    "decision" : "undecided",
+    "eventTitle" : "/a/non/malicious",
+    "eventType" : "url",
+    "logQuery" : "httpuripath:/a/non/malicious and severity:critical",
+    "severity" : "critical",
+    "metrics" :
+            [
+              {
+                "metric" : "events",
+                "count" : 37
+              },
+              {
+                "metric" : "sources",
+                "count" : 8
+              }
+            ]
+  },
+  {
+    "decision" : "undecided",
+    "eventTitle" : "192.168.15.17",
+    "eventType" : "source",
+    "logQuery" : "httpsourceid:192.168.15.17 and severity:critical",
+    "severity" : "critical",
+    "metrics" :
+    [
+      {
+        "metric" : "events",
+        "count" : 77
+      },
+      {
+        "metric" : "urls",
+        "count" : 12
+      }
+    ]
+  }
+]

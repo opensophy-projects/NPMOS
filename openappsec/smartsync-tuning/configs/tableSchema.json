@@ -1,0 +1,640 @@
+{
+  "name": "i2datatubeschemasecurityeventlogsv03",
+  "schema": {
+    "partitioning_field": "eventTime",
+    "fields": [
+      {
+        "name": "eventTime",
+        "type": "TEXT"
+      },
+      {
+        "name": "eventName",
+        "type": "TEXT"
+      },
+      {
+        "name": "eventSeverity",
+        "type": "TEXT"
+      },
+      {
+        "name": "eventLogLevel",
+        "type": "TEXT"
+      },
+      {
+        "name": "eventPriority",
+        "type": "TEXT"
+      },
+      {
+        "name": "eventType",
+        "type": "TEXT"
+      },
+      {
+        "name": "eventConfidence",
+        "type": "TEXT"
+      },
+      {
+        "name": "eventLevel",
+        "type": "TEXT"
+      },
+      {
+        "name": "eventAudience",
+        "type": "TEXT"
+      },
+      {
+        "name": "eventAudienceTeam",
+        "type": "TEXT"
+      },
+      {
+        "name": "eventFrequency",
+        "type": "INT"
+      },
+      {
+        "name": "serviceName",
+        "type": "TEXT"
+      },
+      {
+        "name": "eventId",
+        "type": "TEXT"
+      },
+      {
+        "name": "eventTraceId",
+        "type": "TEXT"
+      },
+      {
+        "name": "eventSpanId",
+        "type": "TEXT"
+      },
+      {
+        "name": "agentId",
+        "type": "TEXT"
+      },
+      {
+        "name": "agentType",
+        "type": "TEXT"
+      },
+      {
+        "name": "fogId",
+        "type": "TEXT"
+      },
+      {
+        "name": "fogType",
+        "type": "TEXT"
+      },
+      {
+        "name": "attachmentName",
+        "type": "TEXT"
+      },
+      {
+        "name": "issuingEngine",
+        "type": "TEXT"
+      },
+      {
+        "name": "sourceProcess",
+        "type": "TEXT"
+      },
+      {
+        "name": "ruleId",
+        "type": "TEXT"
+      },
+      {
+        "name": "waapUserReputation",
+        "type": "TEXT"
+      },
+      {
+        "name": "ruleName",
+        "type": "TEXT"
+      },
+      {
+        "name": "assetId",
+        "type": "TEXT"
+      },
+      {
+        "name": "assetName",
+        "type": "TEXT"
+      },
+      {
+        "name": "practiceId",
+        "type": "TEXT"
+      },
+      {
+        "name": "practiceType",
+        "type": "TEXT"
+      },
+      {
+        "name": "pracitceType",
+        "type": "TEXT"
+      },
+      {
+        "name": "practiceSubType",
+        "type": "TEXT"
+      },
+      {
+        "name": "practiceName",
+        "type": "TEXT"
+      },
+      {
+        "name": "zoneId",
+        "type": "TEXT"
+      },
+      {
+        "name": "zoneName",
+        "type": "TEXT"
+      },
+      {
+        "name": "parameterId",
+        "type": "TEXT"
+      },
+      {
+        "name": "parameterName",
+        "type": "TEXT"
+      },
+      {
+        "name": "triggerId",
+        "type": "TEXT"
+      },
+      {
+        "name": "triggerName",
+        "type": "TEXT"
+      },
+      {
+        "name": "httpSourceId",
+        "type": "TEXT"
+      },
+      {
+        "name": "reservedNgenA",
+        "type": "INT"
+      },
+      {
+        "name": "reservedNgenB",
+        "type": "INT"
+      },
+      {
+        "name": "reservedNgenC",
+        "type": "INT"
+      },
+      {
+        "name": "reservedNgenD",
+        "type": "INT"
+      },
+      {
+        "name": "reservedNgenE",
+        "type": "INT"
+      },
+      {
+        "name": "reservedNgenF",
+        "type": "INT"
+      },
+      {
+        "name": "reservedNgenG",
+        "type": "INT"
+      },
+      {
+        "name": "reservedNgenH",
+        "type": "INT"
+      },
+      {
+        "name": "reservedNgenI",
+        "type": "INT"
+      },
+      {
+        "name": "reservedNgenJ",
+        "type": "INT"
+      },
+      {
+        "name": "logIndex",
+        "type": "INT"
+      },
+      {
+        "name": "matchedCategory",
+        "type": "TEXT"
+      },
+      {
+        "name": "stateKey",
+        "type": "TEXT"
+      },
+      {
+        "name": "matchedIndicators",
+        "type": "TEXT"
+      },
+      {
+        "name": "httpHostName",
+        "type": "TEXT"
+      },
+      {
+        "name": "sourceIp",
+        "type": "TEXT"
+      },
+      {
+        "name": "destinationIp",
+        "type": "TEXT"
+      },
+      {
+        "name": "httpMethod",
+        "type": "TEXT"
+      },
+      {
+        "name": "httpUri",
+        "type": "TEXT"
+      },
+      {
+        "name": "httpRequestHeaders",
+        "type": "TEXT"
+      },
+      {
+        "name": "matchedSample",
+        "type": "TEXT"
+      },
+      {
+        "name": "securityAction",
+        "type": "TEXT"
+      },
+      {
+        "name": "interfaceDirection",
+        "type": "INT"
+      },
+      {
+        "name": "interfaceName",
+        "type": "TEXT"
+      },
+      {
+        "name": "ipProtocol",
+        "type": "TEXT"
+      },
+      {
+        "name": "packetLength",
+        "type": "INT"
+      },
+      {
+        "name": "sequenceNumber",
+        "type": "INT"
+      },
+      {
+        "name": "sourcePort",
+        "type": "INT"
+      },
+      {
+        "name": "destinationPort",
+        "type": "INT"
+      },
+      {
+        "name": "waapOverride",
+        "type": "TEXT"
+      },
+      {
+        "name": "waapUserReputationScore",
+        "type": "INT"
+      },
+      {
+        "name": "waapUriFalsePositiveScore",
+        "type": "INT"
+      },
+      {
+        "name": "waapKeywordsScore",
+        "type": "INT"
+      },
+      {
+        "name": "waapFinalScore",
+        "type": "INT"
+      },
+      {
+        "name": "waapIncidentDetails",
+        "type": "TEXT"
+      },
+      {
+        "name": "httpRequestBody",
+        "type": "TEXT"
+      },
+      {
+        "name": "httpUriPath",
+        "type": "TEXT"
+      },
+      {
+        "name": "httpUriQuery",
+        "type": "TEXT"
+      },
+      {
+        "name": "maliciousContent",
+        "type": "TEXT"
+      },
+      {
+        "name": "waapFoundIndicators",
+        "type": "TEXT"
+      },
+      {
+        "name": "learnedIndicators",
+        "type": "TEXT"
+      },
+      {
+        "name": "proxyIp",
+        "type": "TEXT"
+      },
+      {
+        "name": "protectionId",
+        "type": "TEXT"
+      },
+      {
+        "name": "waapIncidentType",
+        "type": "TEXT"
+      },
+      {
+        "name": "matchedLocation",
+        "type": "TEXT"
+      },
+      {
+        "name": "matchedParameter",
+        "type": "TEXT"
+      },
+      {
+        "name": "eventTags",
+        "type": "TEXT"
+      },
+      {
+        "name": "tags",
+        "type": "TEXT"
+      },
+      {
+        "name": "product",
+        "type": "TEXT",
+        "mode": "REQUIRED"
+      },
+      {
+        "name": "id",
+        "type": "TEXT",
+        "mode": "REQUIRED"
+      },
+      {
+        "name": "log_version",
+        "type": "INT"
+      },
+      {
+        "name": "source",
+        "type": "TEXT"
+      },
+      {
+        "name": "tenant_id",
+        "type": "TEXT"
+      },
+      {
+        "name": "severity",
+        "type": "INT"
+      },
+      {
+        "name": "time",
+        "type": "TIMESTAMP",
+        "mode": "REQUIRED"
+      },
+      {
+        "name": "lastUpdateTime",
+        "type": "TIMESTAMP"
+      },
+      {
+        "name": "type",
+        "type": "TEXT"
+      },
+      {
+        "name": "orig",
+        "type": "TEXT"
+      },
+      {
+        "name": "domain",
+        "type": "TEXT"
+      },
+      {
+        "name": "orig_log_server",
+        "type": "TEXT"
+      },
+      {
+        "name": "issuingFunction",
+        "type": "TEXT"
+      },
+      {
+        "name": "issuingFile",
+        "type": "TEXT"
+      },
+      {
+        "name": "issuingLine",
+        "type": "INT"
+      },
+      {
+        "name": "debugMessage",
+        "type": "TEXT"
+      },
+      {
+        "name": "eventReferenceId",
+        "type": "TEXT"
+      },
+      {
+        "name": "httpResponseBody",
+        "type": "TEXT"
+      },
+      {
+        "name": "httpResponseCode",
+        "type": "TEXT"
+      },
+      {
+        "name": "sourceCountryName",
+        "type": "TEXT"
+      },
+      {
+        "name": "destinationCountryName",
+        "type": "TEXT"
+      },
+      {
+        "name": "issuingEngineVersion",
+        "type": "TEXT"
+      },
+      {
+        "name": "suppressedLogsCount",
+        "type": "INT"
+      },
+      {
+        "name": "notificationId",
+        "type": "TEXT"
+      },
+      {
+        "name": "incidentType",
+        "type": "TEXT"
+      },
+      {
+        "name": "appsecMatchedSourceIdentifierType",
+        "type": "TEXT"
+      },
+      {
+        "name": "appsecMatchedSourceIdentifierValue",
+        "type": "TEXT"
+      },
+      {
+        "name": "matchedSignatureSeverity",
+        "type": "TEXT"
+      },
+      {
+        "name": "matchedSignaturePerformance",
+        "type": "TEXT"
+      },
+      {
+        "name": "matchedSignatureConfidence",
+        "type": "TEXT"
+      },
+      {
+        "name": "sourceZoneId",
+        "type": "TEXT"
+      },
+      {
+        "name": "sourceZoneName",
+        "type": "TEXT"
+      },
+      {
+        "name": "destinationZoneId",
+        "type": "TEXT"
+      },
+      {
+        "name": "destinationZoneName",
+        "type": "TEXT"
+      },
+      {
+        "name": "sourceInfo",
+        "type": "TEXT"
+      },
+      {
+        "name": "destinationInfo",
+        "type": "TEXT"
+      },
+      {
+        "name": "sourceAssetId",
+        "type": "TEXT"
+      },
+      {
+        "name": "sourceAssetName",
+        "type": "TEXT"
+      },
+      {
+        "name": "destinationAssetId",
+        "type": "TEXT"
+      },
+      {
+        "name": "destinationAssetName",
+        "type": "TEXT"
+      },
+      {
+        "name": "dnsQueriedDomain",
+        "type": "TEXT"
+      },
+      {
+        "name": "dnsResponse",
+        "type": "TEXT"
+      },
+      {
+        "name": "serviceId",
+        "type": "TEXT"
+      },
+      {
+        "name": "serviceFamilyId",
+        "type": "TEXT"
+      },
+      {
+        "name": "policyVersion",
+        "type": "TEXT"
+      },
+      {
+        "name": "matchedSignatureYear",
+        "type": "TEXT"
+      },
+      {
+        "name": "matchedSignatureCVE",
+        "type": "TEXT"
+      },
+      {
+        "name": "preventEngineMatchesSample",
+        "type": "INT"
+      },
+      {
+        "name": "detectEngineMatchesSample",
+        "type": "INT"
+      },
+      {
+        "name": "ignoreEngineMatchesSample",
+        "type": "INT"
+      },
+      {
+        "name": "advisoryName",
+        "type": "TEXT"
+      },
+      {
+        "name": "advisoryLink",
+        "type": "TEXT"
+      },
+      {
+        "name": "exceptionIdList",
+        "type": "TEXT",
+        "mode": "REPEATED"
+      },
+      {
+        "name": "indicatorsSource",
+        "type": "TEXT"
+      },
+      {
+        "name": "indicatorsVersion",
+        "type": "TEXT"
+      },
+      {
+        "name": "eventTopic",
+        "type": "TEXT"
+      },
+      {
+        "name": "eventRemediation",
+        "type": "TEXT"
+      },
+      {
+        "name": "layer7Protocol",
+        "type": "TEXT"
+      },
+      {
+        "name": "originalRoute",
+        "type": "TEXT"
+      },
+      {
+        "name": "selectedRoute",
+        "type": "TEXT"
+      },
+      {
+        "name": "matchReason",
+        "type": "TEXT"
+      },
+      {
+        "name": "agentHostIdentifier",
+        "type": "TEXT"
+      },
+      {
+        "name": "agentHostName",
+        "type": "TEXT"
+      },
+      {
+        "name": "userDefinedId",
+        "type": "TEXT"
+      },
+      {
+        "name": "matchedFileSizeTEXT",
+        "type": "TEXT"
+      },
+      {
+        "name": "k8sClusterId",
+        "type": "TEXT"
+      },
+      {
+        "name": "k8sVersion",
+        "type": "TEXT"
+      },
+      {
+        "name": "eventCategory",
+        "type": "TEXT"
+      },
+      {
+        "name": "agentHostInstanceIdentifier",
+        "type": "TEXT"
+      },
+      {
+        "name": "agentHostInstanceName",
+        "type": "TEXT"
+      }
+    ]
+  }
+}
