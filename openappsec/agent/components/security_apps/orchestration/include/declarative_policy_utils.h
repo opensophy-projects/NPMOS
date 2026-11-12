@@ -2,6 +2,7 @@
 #define __DECLARATIVE_POLICY_UTILS_H__
 
 #include <chrono>
+#include <cstdint>
 #include <functional>
 #include <tuple>
 #include <vector>
@@ -95,6 +96,11 @@ private:
     std::string curr_policy;
     std::string curr_checksum;
     bool should_apply_local_policy;
+    // NginxionS: requests to apply the local policy (REST apply-policy, a changed file), counted. A request that
+    // comes while a policy is being applied keeps the flag: the flag was cleared at the end of the application and
+    // the newer file was never applied (the GUI wrote two versions within a second, the agent kept the first).
+    uint64_t apply_requests = 0;
+    uint64_t apply_requests_read = 0;
 };
 
 #endif // __DECLARATIVE_POLICY_UTILS_H__

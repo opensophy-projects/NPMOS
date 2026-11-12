@@ -19,7 +19,7 @@ import proxyHostModel from "../../models/proxy_host.js";
 import streamModel from "../../models/stream.js";
 import { scopeHosts } from "../rbac/scope.js";
 import internalPki, { onCrlChange } from "./index.js";
-import { escapeRe, RULE_FIELDS, RULE_OPS, ruleRegex, trustSet } from "./trust.js";
+import { escapeRe, RULE_FIELDS, RULE_OPS, regexProblem, ruleRegex, trustSet } from "./trust.js";
 import { ASCII_VALUE } from "./x509.js";
 
 const DIR = process.env.NGINXIONS_MTLS_DIR || "/data/nginxions/pki/nginx";
@@ -385,11 +385,9 @@ const validate = (data, hostType, host, cas) => {
 			if (values.length !== 1 || re.length > 200 || /["\n\r]|\\\\/.test(re)) {
 				throw new errs.ValidationError('regex: one expression up to 200 characters, without " and \\\\');
 			}
-			try {
-				new RegExp(re);
-			} catch (err) {
-				throw new errs.ValidationError(`regex: ${err.message}`);
-			}
+			// NginxionS: checked without compiling it in the backend (CodeQL js/regex-injection): nginx runs it
+			const problem = regexProblem(re);
+			if (problem) throw new errs.ValidationError(`regex: ${problem}`);
 		} else {
 			for (const v of values) {
 				const ok = rule.field === "serial" ? /^[0-9A-Fa-f]{1,64}$/.test(v) : ASCII_VALUE.test(v);

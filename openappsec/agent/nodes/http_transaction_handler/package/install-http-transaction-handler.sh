@@ -221,9 +221,8 @@ run_installation()
     install_policy $is_debug_mode "$var_certs_dir"
     install_waap
 
-    cp_exec "cp -fr scripts/snort3_to_ips $SNORT_SCRIPTS_PATH/snort3_to_ips"
-    cp_exec "cp -f  scripts/exception.py $SNORT_SCRIPTS_PATH/exception.py"
-    cp_exec "cp -f scripts/snort_to_ips_local.py $SNORT_SCRIPTS_PATH/snort_to_ips_local.py"
+    # NginxionS: the converter of Snort signatures in JavaScript (no Python in the image)
+    cp_exec "cp -f scripts/snort_to_ips_local.mjs $SNORT_SCRIPTS_PATH/snort_to_ips_local.mjs"
 
     ${INSTALL_COMMAND} lib/libshmem_ipc.so /usr/lib/cpnano/
     ${INSTALL_COMMAND} lib/libcompression_utils.so /usr/lib/

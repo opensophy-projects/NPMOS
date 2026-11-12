@@ -6,9 +6,20 @@ services:
   test-upstream:
     image: docker.io/traefik/whoami:${WHOAMI_VERSION}
     container_name: nginxions-train-upstream
+    # listens on 80 without the capability NET_BIND_SERVICE
+    sysctls:
+      net.ipv4.ip_unprivileged_port_start: 0
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     networks:
       - internal
 
   openappsec:
+    # the healthcheck of compose.yaml, here too: KICS checks each compose file alone (capabilities and
+    # no-new-privileges come from compose.yaml; a list repeated in an overlay is refused by compose)
+    healthcheck:
+      test: ["CMD", "/bin/sh", "-c", "wget -q -T 4 -O /dev/null http://127.0.0.1:7080/healthz || nc -z -w 4 127.0.0.1 7777"]
     volumes:
       - ${NGINXIONS_FEATURES_DIR:?the directory of the feature dump}:/var/log/nginxions-features

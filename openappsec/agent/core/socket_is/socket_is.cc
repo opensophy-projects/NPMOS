@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <sys/stat.h>
 #include <errno.h>
+#include <cstdlib>
 #include "debug.h"
 #include "config.h"
 #include "singleton.h"
@@ -40,6 +41,25 @@ static const std::chrono::microseconds CHRONO_CHECK_CONNECTION_INTERVAL =
 USE_DEBUG_FLAG(D_SOCKET);
 
 using namespace std;
+
+// NginxionS: the Unix sockets of the agent are read and written by its services (root) and by nginx of the container
+// nginxions, whose group is NGINXIONS_IPC_GID (its PGID; 0, root, by default): 0660 and that group, not writable by
+// every user (CodeQL cpp/world-writable-file-creation)
+static void
+shareSocket(const char *path)
+{
+    const char *gid = getenv("NGINXIONS_IPC_GID");
+    if (gid != nullptr && *gid != '\0') {
+        char *end = nullptr;
+        long group = strtol(gid, &end, 10);
+        if (*end == '\0' && group >= 0 && chown(path, static_cast<uid_t>(-1), static_cast<gid_t>(group)) == -1) {
+            dbgWarning(D_SOCKET) << "Failed to set the group of the socket: " << strerror(errno);
+        }
+    }
+    if (chmod(path, 0660) == -1) {
+        dbgWarning(D_SOCKET) << "Failed to set the permissions of the socket: " << strerror(errno);
+    }
+}
 
 class SocketInternal
 {
@@ -713,7 +733,7 @@ public:
             return genError("Failed to set the listening socket");
         }
 
-        chmod(unix_socket->server.sun_path, 0666);
+        shareSocket(unix_socket->server.sun_path);
 
         return move(unix_socket);
     }
@@ -783,7 +803,7 @@ public:
             return genError("Failed to bind the socket");
         }
 
-        chmod(unix_socket->server.sun_path, 0666);
+        shareSocket(unix_socket->server.sun_path);
 
         return move(unix_socket);
     }

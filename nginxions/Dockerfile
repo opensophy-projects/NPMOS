@@ -56,62 +56,56 @@ ARG LDFLAGS="-m64 -Wl,-s -Wl,-O2 -Wl,--lto-O3 -Wl,--icf=safe -Wl,--gc-sections -
 RUN git config --global advice.detachedHead false && \
     git config --global init.defaultBranch main
 
+# NginxionS: git -C, cmake -S/-B, ninja -C and WORKDIR instead of cd in the RUNs (hadolint DL3003, Trivy DS-0013)
 RUN git-clone-commit.sh https://github.com/aws/aws-lc "$AWSLC_VER" /src/aws-lc && \
-    cd /src/aws-lc && \
-    git apply /src/aws-lc-tls13-cipher-preference.patch && \
-    cmake /src/aws-lc -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DDISABLE_GO=ON -DDISABLE_PERL=ON -DBUILD_TESTING=OFF && \
-    ninja install
+    git -C /src/aws-lc apply /src/aws-lc-tls13-cipher-preference.patch && \
+    cmake -S /src/aws-lc -B /src/aws-lc -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DDISABLE_GO=ON -DDISABLE_PERL=ON -DBUILD_TESTING=OFF && \
+    ninja -C /src/aws-lc install
 
 RUN git-clone-commit.sh https://github.com/nginx/nginx "$NGINX_VER" /src/nginx && \
-    cd /src/nginx && \
     wget -q https://patch-diff.githubusercontent.com/raw/nginx/nginx/pull/689.patch -O /src/nginx/1.patch && \
     echo "73fdee62748f1624f87015a951a2480fd0d4fe566a81d92b852b51536d954b91  /src/nginx/1.patch" | sha256sum -c - && \
-    git apply /src/nginx/1.patch && \
+    git -C /src/nginx apply /src/nginx/1.patch && \
     wget -q https://patch-diff.githubusercontent.com/raw/nginx/nginx/pull/1333.patch -O /src/nginx/3.patch && \
     echo "01bf75b130b8f91075ec913a400a8debfab6da0ac609711c7d412ddbe59dd898  /src/nginx/3.patch" | sha256sum -c - && \
-    git apply /src/nginx/3.patch && \
+    git -C /src/nginx apply /src/nginx/3.patch && \
     wget -q https://raw.githubusercontent.com/nginx-modules/ngx_http_tls_dyn_size/refs/heads/master/nginx__dynamic_tls_records_"$DTR_VER"%2B.patch -O /src/nginx/4.patch && \
     echo "0aa9c73e7515dbbd48ecc798f7894412c1a50e96e98aee25847e823059faf821  /src/nginx/4.patch" | sha256sum -c - && \
-    git apply /src/nginx/4.patch && \
+    git -C /src/nginx apply /src/nginx/4.patch && \
     wget -q https://raw.githubusercontent.com/openresty/openresty/refs/heads/master/patches/nginx/"$RCP_VER"/nginx-"$RCP_VER"-resolver_conf_parsing.patch -O /src/nginx/5.patch && \
     echo "bda9db7d2766b20c9490f1ccd6d2da72fee402ade219efb32fe341851dbdd7c8  /src/nginx/5.patch" | sha256sum -c - && \
-    git apply /src/nginx/5.patch && \
+    git -C /src/nginx apply /src/nginx/5.patch && \
     wget -q https://raw.githubusercontent.com/zlib-ng/patches/refs/heads/master/nginx/"$ZNP_VER"-zlib-ng.patch -O /src/nginx/6.patch && \
     echo "bcd0f2fb9723fc1f251f94cead8d5160e767f7d4a04365331396a72a9ba54c6b  /src/nginx/6.patch" | sha256sum -c - && \
-    git apply /src/nginx/6.patch && \
-    git apply /src/nginx-footer.patch && \
-    git apply /src/nginx-ip-sni.patch && \
-    git apply /src/nginx-gso-fix.patch && \
-    git apply /src/nginx-buffer-log.patch && \
-    git apply /src/nginx-ech-boringssl-awslc.patch && \
-    git apply /src/nginx-cert-compression-brotli.patch && \
+    git -C /src/nginx apply /src/nginx/6.patch && \
+    git -C /src/nginx apply /src/nginx-footer.patch && \
+    git -C /src/nginx apply /src/nginx-ip-sni.patch && \
+    git -C /src/nginx apply /src/nginx-gso-fix.patch && \
+    git -C /src/nginx apply /src/nginx-buffer-log.patch && \
+    git -C /src/nginx apply /src/nginx-ech-boringssl-awslc.patch && \
+    git -C /src/nginx apply /src/nginx-cert-compression-brotli.patch && \
     \
     git-clone-commit.sh https://github.com/google/ngx_brotli "$NB_VER" /src/ngx_brotli && \
-    cd /src/ngx_brotli && \
-    git apply /src/ngx_brotli.patch && \
+    git -C /src/ngx_brotli apply /src/ngx_brotli.patch && \
     git-clone-commit.sh https://github.com/clyfish/ngx_unbrotli "$NUB_VER" /src/ngx_unbrotli && \
-    cd /src/ngx_unbrotli && \
-    git apply /src/ngx_unbrotli.patch && \
+    git -C /src/ngx_unbrotli apply /src/ngx_unbrotli.patch && \
     git-clone-commit.sh https://github.com/tokers/zstd-nginx-module "$ZNM_VER" /src/zstd-nginx-module && \
-    cd /src/zstd-nginx-module && \
     wget -q https://patch-diff.githubusercontent.com/raw/tokers/zstd-nginx-module/pull/23.patch -O /src/zstd-nginx-module/1.patch && \
     echo "10d1e564e6b8300e0357b40932ba76c45984b33f545042830b21af37c349fbf8  /src/zstd-nginx-module/1.patch" | sha256sum -c - && \
     wget -q https://patch-diff.githubusercontent.com/raw/tokers/zstd-nginx-module/pull/44.patch -O /src/zstd-nginx-module/2.patch && \
     echo "12527df37f8d8757871cb8dd17d6d82a72d564c6af9d996fc7fb2abec93e4d80  /src/zstd-nginx-module/2.patch" | sha256sum -c - && \
-    git apply /src/zstd-nginx-module.patch && \
-    git apply /src/zstd-nginx-module/1.patch && \
-    git apply /src/zstd-nginx-module/2.patch && \
+    git -C /src/zstd-nginx-module apply /src/zstd-nginx-module.patch && \
+    git -C /src/zstd-nginx-module apply /src/zstd-nginx-module/1.patch && \
+    git -C /src/zstd-nginx-module apply /src/zstd-nginx-module/2.patch && \
     git-clone-commit.sh https://github.com/HanadaLee/ngx_http_unzstd_filter_module "$NHUZFM_VER" /src/ngx_http_unzstd_filter_module && \
     git-clone-commit.sh https://github.com/aperezdc/ngx-fancyindex "$NF_VER" /src/ngx-fancyindex && \
-    cd /src/ngx-fancyindex && \
     wget -q https://patch-diff.githubusercontent.com/raw/aperezdc/ngx-fancyindex/pull/176.patch -O /src/ngx-fancyindex/1.patch && \
     echo "0b76992c0981e5beda1f158493d0334dcbdfe381348ea0eeeb09123bd9aaa4d3  /src/ngx-fancyindex/1.patch" | sha256sum -c - && \
-    git apply /src/ngx-fancyindex/1.patch && \
+    git -C /src/ngx-fancyindex apply /src/ngx-fancyindex/1.patch && \
     git-clone-commit.sh https://github.com/openresty/headers-more-nginx-module "$HMNM_VER" /src/headers-more-nginx-module && \
     git-clone-commit.sh https://github.com/vision5/ngx_devel_kit "$NDK_VER" /src/ngx_devel_kit && \
     git-clone-commit.sh https://github.com/openresty/lua-nginx-module "$LNM_VER" /src/lua-nginx-module && \
-    cd /src/lua-nginx-module && \
-    git apply /src/lua-nginx-module.patch && \
+    git -C /src/lua-nginx-module apply /src/lua-nginx-module.patch && \
     \
     git-clone-commit.sh https://github.com/nginx/njs "$NJS_VER" /src/njs && \
     git-clone-commit.sh https://github.com/kvspb/nginx-auth-ldap "$NAL_VER" /src/nginx-auth-ldap && \
@@ -119,8 +113,8 @@ RUN git-clone-commit.sh https://github.com/nginx/nginx "$NGINX_VER" /src/nginx &
     git-clone-commit.sh https://github.com/gabihodoroaga/nginx-ntlm-module "$NNTLM_VER" /src/nginx-ntlm-module && \
     git-clone-commit.sh https://github.com/leev/ngx_http_geoip2_module "$NHG2M_VER" /src/ngx_http_geoip2_module
 
-RUN cd /src/nginx && \
-    /src/nginx/auto/configure \
+WORKDIR /src/nginx
+RUN /src/nginx/auto/configure \
     --build=NPMplus \
     --user=root \
     --group=root \
@@ -167,10 +161,18 @@ RUN cd /src/nginx && \
 # NginxionS: the attachment is built from openappsec/attachment of NginxionS (build context "attachment"), not
 # downloaded at OASA_VER; the changes of attachment.patch of NPMplus are in that code
 COPY --from=attachment . /src/attachment
-RUN cd /src/attachment && \
-    cmake /src/attachment -G Ninja && \
+WORKDIR /src/attachment
+RUN cmake /src/attachment -G Ninja && \
     ninja && \
     mv -v /src/attachment/attachments/nginx/ngx_module/libngx_module.so /usr/local/nginx/modules/libngx_module.so
+
+# NginxionS: cjson of LuaJIT for the CrowdSec bouncer, built here: the package lua5.1-cjson of Alpine brings Lua 5.1 and
+# its CVEs into the image (Grype), and nginx runs LuaJIT
+ARG LCJ_VER=5f53e878d0441e1555f53060178c61d161079e06 # 2.1.0.20
+RUN git-clone-commit.sh https://github.com/openresty/lua-cjson "$LCJ_VER" /src/lua-cjson && \
+    make -C /src/lua-cjson LUA_INCLUDE_DIR="$LUAJIT_INC" CC=clang && \
+    llvm-strip -s /src/lua-cjson/cjson.so && \
+    file /src/lua-cjson/cjson.so
 
 RUN find /usr/local/nginx/modules -name "*.so" -exec llvm-strip -s {} \; && \
     llvm-strip -s /usr/local/nginx/sbin/nginx && \
@@ -241,14 +243,14 @@ ARG TARGETARCH
 ARG LEGO_VERSION=v4.35.2
 # libraries raised over the ones of the release: their versions have known vulnerabilities (Trivy, docs/DEVSECOPS.md)
 ARG LEGO_UPGRADES="golang.org/x/crypto@v0.58.1-0.20261009181718-2f1f834330b2 golang.org/x/net@v0.62.0 golang.org/x/text@v0.43.0 google.golang.org/grpc@v1.85.0 github.com/go-jose/go-jose/v4@v4.1.9 software.sslmate.com/src/go-pkcs12@v0.7.2"
+WORKDIR /build
 RUN apk add --no-cache file && \
-    mkdir /build && cd /build && \
     export GOTOOLCHAIN=local GOFLAGS=-trimpath GOPATH=/go && \
     go mod init build && \
     go get "github.com/go-acme/lego/v4/cmd/lego@$LEGO_VERSION" $LEGO_UPGRADES && \
     CGO_ENABLED=0 GOOS=linux GOARCH="$TARGETARCH" \
       go build -ldflags "-s -w -X main.version=$LEGO_VERSION" -o /lego github.com/go-acme/lego/v4/cmd/lego && \
-    cd / && rm -rf /build /go /root/.cache && \
+    rm -rf /go /root/.cache && \
     { /lego --version 2>/dev/null || file /lego; }
 
 # NginxionS: offline CrowdSec seed (hub snapshot) for the official crowdsec image, see nginxions/crowdsec-seed/seed.sh
@@ -269,6 +271,9 @@ ARG LCSB_VER=3e82dd61508ed9683b5007f823c69b112c59ac6f # v1.0.14
 # NginxionS: lua-resty-string from git like the other Lua libraries: its rock has no source package on luarocks.org,
 # luarocks fetched the archive of GitHub (archive/v0.09.tar.gz), which fails again and again, and the build with it
 ARG LRS_VER=e363ac306db6135bdda9399511742fe36ebd4cbb # v0.09
+# NginxionS: lua-resty-http and lua-resty-openssl from git too, not with luarocks: luarocks needs Lua 5.1 (its CVEs, Grype)
+ARG LRH_VER=03995ff9a08194d48d446ed2fa099cd6de38fbef # v0.18.0
+ARG LRO_VER=4ebee84ec3d829ef610005db1978ae591ed77a31 # 1.9.0
 
 COPY --from=nginx /usr/local/nginx                                                                         /usr/local/nginx
 COPY --from=nginx /usr/local/bin/bssl                                                                      /usr/local/bin/bssl
@@ -276,6 +281,8 @@ COPY --from=nginx /usr/local/bin/bssl                                           
 COPY --from=lego  /lego                                                                                    /usr/local/bin/lego
 COPY --from=nginx /usr/local/lib/libssl.so                                                                 /usr/local/lib/libssl.so
 COPY --from=nginx /usr/local/lib/libcrypto.so                                                              /usr/local/lib/libcrypto.so
+# NginxionS: cjson of LuaJIT, see the stage nginx
+COPY --from=nginx /src/lua-cjson/cjson.so                                                                  /usr/lib/lua/5.1/cjson.so
 COPY --from=nginx /src/attachment/core/shmem_ipc_2/libshmem_ipc_2.so                                       /usr/local/lib/libshmem_ipc_2.so
 COPY --from=nginx /src/attachment/core/compression/libosrc_compression_utils.so                            /usr/local/lib/libosrc_compression_utils.so
 COPY --from=nginx /src/attachment/attachments/nginx/nginx_attachment_util/libosrc_nginx_attachment_util.so /usr/local/lib/libosrc_nginx_attachment_util.so
@@ -289,40 +296,39 @@ COPY COPYING /COPYING
 WORKDIR /app
 RUN apk upgrade --no-cache -a && \
     apk add --no-cache tzdata tini llvm-libunwind libc++ \
-                       pcre2 luajit zlib-ng brotli zstd lua5.1-cjson libxml2 libldap quickjs-ng-libs libmaxminddb-libs \
+                       pcre2 luajit zlib-ng brotli zstd libxml2 libldap quickjs-ng-libs libmaxminddb-libs \
                        curl coreutils findutils grep jq openssl shadow su-exec util-linux-misc \
                        bash bash-completion nano \
                        logrotate goaccess fcgi \
-                       luarocks5.1 git make \
+                       git make \
                        nodejs python3 && \
-    \
-    luarocks-5.1 install lua-resty-http && \
-    luarocks-5.1 install lua-resty-openssl && \
-    sed -i 's|^local legacy_nids = {}$|C.ERR_clear_error()\n&|' /usr/local/share/lua/5.1/resty/openssl/pkey.lua && \
     \
     git config --global advice.detachedHead false && \
     git config --global init.defaultBranch main && \
     \
+    mkdir -p /usr/local/share/lua/5.1/resty && \
+    git-clone-commit.sh https://github.com/ledgetech/lua-resty-http "$LRH_VER" /src/lua-resty-http && \
+    cp -r /src/lua-resty-http/lib/resty/. /usr/local/share/lua/5.1/resty/ && \
+    git-clone-commit.sh https://github.com/fffonion/lua-resty-openssl "$LRO_VER" /src/lua-resty-openssl && \
+    cp -r /src/lua-resty-openssl/lib/resty/. /usr/local/share/lua/5.1/resty/ && \
+    sed -i 's|^local legacy_nids = {}$|C.ERR_clear_error()\n&|' /usr/local/share/lua/5.1/resty/openssl/pkey.lua && \
+    \
     git-clone-commit.sh https://github.com/openresty/lua-resty-core "$LRC_VER" /src/lua-resty-core && \
-    cd /src/lua-resty-core && \
-    make -j "$(nproc)" install LUA_LIB_DIR=/usr/local/share/lua/5.1 && \
+    make -C /src/lua-resty-core -j "$(nproc)" install LUA_LIB_DIR=/usr/local/share/lua/5.1 && \
     \
     git-clone-commit.sh https://github.com/openresty/lua-resty-lrucache "$LRL_VER" /src/lua-resty-lrucache && \
-    cd /src/lua-resty-lrucache && \
-    make -j "$(nproc)" install LUA_LIB_DIR=/usr/local/share/lua/5.1 && \
+    make -C /src/lua-resty-lrucache -j "$(nproc)" install LUA_LIB_DIR=/usr/local/share/lua/5.1 && \
     \
     git-clone-commit.sh https://github.com/openresty/lua-resty-string "$LRS_VER" /src/lua-resty-string && \
-    cd /src/lua-resty-string && \
-    make install LUA_LIB_DIR=/usr/local/share/lua/5.1 && \
+    make -C /src/lua-resty-string install LUA_LIB_DIR=/usr/local/share/lua/5.1 && \
     \
     git-clone-commit.sh https://github.com/crowdsecurity/lua-cs-bouncer "$LCSB_VER" /src/lua-cs-bouncer && \
     mv /src/lua-cs-bouncer/lib/* /usr/local/share/lua/5.1 && \
     mv /src/lua-cs-bouncer/templates/captcha.html /etc/captcha.html.original && \
     mv /src/lua-cs-bouncer/templates/ban.html /etc/ban.html.original && \
     \
-    cd && \
-    rm -r /src /tmp/luarocks_local_cache-* && \
-    apk del --no-cache luarocks5.1 git make && \
+    rm -r /src && \
+    apk del --no-cache git make && \
 # NginxionS: wall (util-linux-misc) is setgid tty to write to the terminals of users; a container has none (Dockle)
     chmod g-s /usr/bin/wall && \
 # NginxionS: no setuid program: passwd and the like are for users who log in, the services run as their own users
@@ -331,8 +337,9 @@ RUN apk upgrade --no-cache -a && \
     sed -i "s|placeholder|$(cat /app/package.json | jq -r .version)|g" /usr/local/nginx/conf/conf.d/crowdsec.conf.disabled && \
     \
     python3 -m venv /usr/local && \
-# NginxionS: setuptools too: the one of the venv has known vulnerabilities (Trivy, docs/DEVSECOPS.md)
-    pip install --no-cache-dir --upgrade pip setuptools certbot && \
+# NginxionS: setuptools too: the one of the venv has known vulnerabilities (Trivy, docs/DEVSECOPS.md); pinned versions
+# (hadolint DL3013), raised with the image
+    pip install --no-cache-dir --upgrade pip==26.3 setuptools==84.2.1 certbot==5.10.0 && \
     \
     wget -q https://raw.githubusercontent.com/tomwassenberg/certbot-ocsp-fetcher/refs/heads/main/certbot-ocsp-fetcher -O - | sed "s|/live||g" > /usr/local/bin/certbot-ocsp-fetcher.sh && \
     wget -q https://raw.githubusercontent.com/vasilevich/nginxbeautifier/5cee8db2a505f2a253e24691399c828c043071fc/index.js -O /usr/local/bin/nginxbeautifier && \
