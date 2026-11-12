@@ -37,7 +37,7 @@ NginxionS — форк NPMplus с встроенными open-appsec (ML-WAF) и
 git subtree pull --prefix=nginxions https://github.com/ZoeyVid/NPMplus <tag> --squash
 ```
 
-Берём только релизные теги NPMplus (`YYYY-MM-DD-rN`): они ставятся не на `develop`, а `develop` может содержать незавершённые изменения. После обновления: разрешить конфликты по меткам `NginxionS:`, поменять `NPMPLUS_BASE` в `deploy/dev/Dockerfile` на тот же тег, прогнать проверки и закрытый контур. Текущий тег: **2026-10-22-r1**.
+Берём только релизные теги NPMplus (`YYYY-MM-DD-rN`): они ставятся не на `develop`, а `develop` может содержать незавершённые изменения. После обновления: разрешить конфликты по меткам `NginxionS:`, поменять образ NPMplus в последнем `FROM` `deploy/dev/Dockerfile` на тот же тег (с его дайджестом), прогнать проверки и закрытый контур. Текущий тег: **2026-10-22-r1**.
 
 ## Команды проверки
 

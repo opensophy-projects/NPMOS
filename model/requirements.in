@@ -1,0 +1,3 @@
+# the trainer of the WAF model (model/train.py): the input of requirements.txt (with hashes)
+numpy==2.5.4
+scipy==1.18.1

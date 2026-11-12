@@ -33,6 +33,8 @@ cleanup() {
     echo "--- logs (failure) ---"
     "${compose[@]}" logs --no-color --tail 60 || true
   fi
+  # the log of the interface next to the reports: the cause of an error answer the scanners met (500 of ZAP)
+  "${compose[@]}" logs --no-color nginxions 2> /dev/null | grep -v "ngx_cp\|ngx_http_cp" > "$out/nginxions.log" || true
   [ "${KEEP:-}" = 1 ] || "${compose[@]}" down -v --remove-orphans > /dev/null 2>&1 || true
   rm -rf "$templates"
   exit $status

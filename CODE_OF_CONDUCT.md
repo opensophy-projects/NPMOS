@@ -258,7 +258,8 @@ flowchart LR
 - `waapmodel.py` — формат модели агента (`waap.data`) и её оценка, вычисленная так же, как в агенте
 - `train.py` — обучение: разреженная логистическая регрессия по признакам агента, порог, `waap.data` и `.tgz`
 - `evaluate.py` — сравнение со штатной моделью по решениям агента, проверка совпадения оценок, решение о выпуске
-- `requirements.txt` — numpy и scipy для обучения
+- `requirements.txt` — numpy и scipy для обучения, с хешами (`pip --require-hashes`)
+- `requirements.in` — их версии, из которых `uv pip compile --generate-hashes` делает `requirements.txt`
 - `test_model.py` — тесты: формат, данные, полный цикл на синтетике
 
 ### `docs/` — документация
@@ -280,6 +281,7 @@ flowchart LR
 
 - `Dockerfile` — образ nginxions: nginx, attachment open-appsec и модули из исходников, lego, офлайн-сид CrowdSec
 - `README.md` — что лежит в каталоге
+- `certbot-requirements.txt` — certbot образа и его зависимости с версиями и хешами (`pip --require-hashes`)
 - `crowdsec-seed/` — сборка офлайн-снимка hub CrowdSec, который кладётся в образ
 - `patches/` — патчи nginx и его модулей
 - **`rootfs/`** — файлы, которые копируются в образ как есть

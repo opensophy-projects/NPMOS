@@ -165,7 +165,9 @@ GitHub закрывает такие оповещения при следующ�
   `no-new-privileges` и `healthcheck`; порты публикуются на `NGINXIONS_BIND_IP` / `NGINXIONS_ADMIN_BIND_IP`
   (по умолчанию `0.0.0.0`). Оверлеи `compose.dev.yaml` и `deploy/test/` повторяют это для своих сервисов;
 - **Python и SQLite в образе агента**: сигнатуры Snort конвертирует `snort_to_ips_local.mjs` (Node.js образа), тест
-  `snort_to_ips_local.test.mjs` сверяет его вывод с питоновским оригиналом upstream;
+  `snort_to_ips_local.test.mjs` сверяет его вывод с питоновским оригиналом upstream; из Boost ставятся только
+  библиотеки, которые линкуют бинарники агента (`scanelf` в стадии сборки), а не пакет `boost`, тянувший
+  `boost-python3`, Python и SQLite; сборка падает, если они всё же попали в образ;
 - **Lua 5.1 в образе `nginxions`**: `cjson` собирается под LuaJIT, `lua-resty-http`/`lua-resty-openssl` берутся из
   git по коммиту (без luarocks);
 - **IPC агента**: очереди в `/dev/shm` принадлежат пользователю и группе nginx и имеют права `0660`, сокеты агента —
@@ -176,7 +178,15 @@ GitHub закрывает такие оповещения при следующ�
   повторений вида `(a+)+` (ReDoS в nginx);
 - **`eval(` в бандле** (ZAP 10110): редактор кода подсвечивает только nginx, YAML, JSON, Bash и PHP
   (`src/nginxions/components/CodeEditor.tsx`), грамматики остальных ~300 языков Prism в бандл не попадают;
-- **Dockerfile**: без `cd` в `RUN` (`git -C`, `make -C`, `WORKDIR`), версии pip закреплены, `HEALTHCHECK` в dev-образе;
+- **Dockerfile**: без `cd` в `RUN` (`git -C`, `make -C`, `WORKDIR`), `HEALTHCHECK` в dev-образе;
+- **закрепление зависимостей** (Scorecard Pinned-Dependencies): образы CrowdSec, Node и NPMplus — по digest (тег
+  CrowdSec CI сверяет с `deploy/.env`), certbot образа (`nginxions/certbot-requirements.txt`) и тренер модели
+  (`model/requirements.txt`) ставятся `pip --require-hashes` со всеми зависимостями;
+- **ответы API с ошибкой** (ZAP 100000, 90022): данные, которые отвергла база (несуществующий сертификат или список
+  доступа, неверный тип, дубликат), — 400, а не 500; `Cache-Control: no-cache, no-store, must-revalidate` (ZAP 10015);
+  лог интерфейса прогона DAST сохраняется в `dast/nginxions.log` артефакта;
+- **сертификат PKI без отзыва** (testssl `cert_revocation`): при заданном в «PKI → Настройки» адресе NginxionS
+  сертификаты называют свои CRL и OCSP; DAST задаёт его, как администратор;
 - **провайдер покрытия vitest** — в `devDependencies` фронтенда (lockfile), а не ставится в задаче CI;
 - **лицензия** — `LICENSE` в корне (AGPL-3.0, как у NPMplus).
 

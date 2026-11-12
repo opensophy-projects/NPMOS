@@ -93,8 +93,9 @@ jobs:
         run: |
           env_cs=$(sed -n 's/^CROWDSEC_VERSION=//p' deploy/.env)
           for f in nginxions/Dockerfile deploy/dev/Dockerfile; do
-            df_cs=$(sed -n 's/^ARG CROWDSEC_VERSION=//p' "$f")
-            [ "$env_cs" = "$df_cs" ] || { echo "::error file=$f::CROWDSEC_VERSION $df_cs != deploy/.env $env_cs"; exit 1; }
+            # the image of the CrowdSec seed is pinned by tag and digest (OpenSSF Scorecard): its tag is deploy/.env's
+            from_cs=$(sed -n 's|^FROM docker.io/crowdsecurity/crowdsec:\([^@ ]*\)@sha256:.*|\1|p' "$f")
+            [ "$env_cs" = "$from_cs" ] || { echo "::error file=$f::FROM crowdsec:$from_cs != deploy/.env $env_cs"; exit 1; }
           done
           # the upstream commits of the sources in openappsec/ are full commits
           . deploy/openappsec/sources.env

@@ -1,6 +1,4 @@
 # syntax=docker/dockerfile:1.25.0@sha256:0adf442eae370b6087e08edc7c50b552d80ddf261576f4ebd6421006b2461f12
-# NginxionS: must match CROWDSEC_VERSION in deploy/.env (checked in CI)
-ARG CROWDSEC_VERSION=v1.8.2
 FROM alpine:3.24.1@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b AS nginx
 SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
 
@@ -253,8 +251,9 @@ RUN apk add --no-cache file && \
     rm -rf /go /root/.cache && \
     { /lego --version 2>/dev/null || file /lego; }
 
-# NginxionS: offline CrowdSec seed (hub snapshot) for the official crowdsec image, see nginxions/crowdsec-seed/seed.sh
-FROM docker.io/crowdsecurity/crowdsec:${CROWDSEC_VERSION} AS crowdsec-seed
+# NginxionS: offline CrowdSec seed (hub snapshot) for the official crowdsec image, see nginxions/crowdsec-seed/seed.sh;
+# the tag of CROWDSEC_VERSION pinned by its digest (OpenSSF Scorecard; CI checks the tag against deploy/.env)
+FROM docker.io/crowdsecurity/crowdsec:v1.8.2@sha256:65b74942f7e7ed5c60fde4ac15fc4ba715904c398c8b16dd451f4907d90347d4 AS crowdsec-seed
 ARG HUB_BRANCH=master
 ARG HUB_ITEMS="parsers crowdsecurity/docker-logs crowdsecurity/cri-logs; collections ZoeyVid/npmplus crowdsecurity/appsec-virtual-patching crowdsecurity/appsec-generic-rules"
 ARG HUB_URL_TEMPLATE=
@@ -292,6 +291,8 @@ COPY --from=backend  /app      /app
 COPY rootfs  /
 COPY LICENSE.MIT /LICENSE.MIT
 COPY COPYING /COPYING
+# NginxionS: certbot and its dependencies pinned by hash
+COPY certbot-requirements.txt /tmp/certbot-requirements.txt
 
 WORKDIR /app
 RUN apk upgrade --no-cache -a && \
@@ -337,9 +338,10 @@ RUN apk upgrade --no-cache -a && \
     sed -i "s|placeholder|$(cat /app/package.json | jq -r .version)|g" /usr/local/nginx/conf/conf.d/crowdsec.conf.disabled && \
     \
     python3 -m venv /usr/local && \
-# NginxionS: setuptools too: the one of the venv has known vulnerabilities (Trivy, docs/DEVSECOPS.md); pinned versions
-# (hadolint DL3013), raised with the image
-    pip install --no-cache-dir --upgrade pip==26.3 setuptools==84.2.1 certbot==5.10.0 && \
+# NginxionS: setuptools too: the one of the venv has known vulnerabilities (Trivy, docs/DEVSECOPS.md); every package
+# pinned by version and hash (certbot-requirements.txt, pip --require-hashes; hadolint DL3013, Scorecard)
+    pip install --no-cache-dir --upgrade --require-hashes -r /tmp/certbot-requirements.txt && \
+    rm /tmp/certbot-requirements.txt && \
     \
     wget -q https://raw.githubusercontent.com/tomwassenberg/certbot-ocsp-fetcher/refs/heads/main/certbot-ocsp-fetcher -O - | sed "s|/live||g" > /usr/local/bin/certbot-ocsp-fetcher.sh && \
     wget -q https://raw.githubusercontent.com/vasilevich/nginxbeautifier/5cee8db2a505f2a253e24691399c828c043071fc/index.js -O /usr/local/bin/nginxbeautifier && \

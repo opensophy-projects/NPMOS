@@ -50,6 +50,13 @@
 			"until": "2027-05-01"
 		},
 		{
+			"kind": "false-positive",
+			"tool": "nuclei",
+			"id": "untrusted-root-certificate",
+			"reason": "the interface of the test stack has a certificate of a root CA the test creates in the PKI of NginxionS (DAST has no public CA in a closed network); a root of an administrator is trusted by the clients they give it to. testssl.sh checks the chain from that root (--add-ca)",
+			"until": "2027-05-01"
+		},
+		{
 			"tool": "testssl-ui",
 			"id": "DNS_CAArecord",
 			"reason": "a CAA record is a record of the DNS of the domain of the administrator, not of NginxionS; the test stack has no DNS (a closed network) and its names have no zone",
