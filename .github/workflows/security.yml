@@ -321,10 +321,7 @@ jobs:
       - name: coverage of the frontend (vitest)
         working-directory: nginxions/frontend
         run: |
-          . ../../.github/security/tools.env
           pnpm install --frozen-lockfile
-          # the coverage provider only in this job: the dependencies of the frontend stay those of upstream
-          pnpm add --save-dev "@vitest/coverage-v8@$VITEST_COVERAGE_VERSION" > /dev/null
           pnpm vitest run --coverage.enabled --coverage.provider=v8 --coverage.reporter=json-summary \
             --coverage.include='src/nginxions/**' --coverage.reportsDirectory=../../out/coverage-frontend
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

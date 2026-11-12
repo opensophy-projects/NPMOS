@@ -54,6 +54,8 @@ echo "==> set up: admin, PKI certificate, proxy host dast.local"
 "${compose[@]}" run --rm -T dast-setup
 cookie=$("${compose[@]}" run --rm -T --entrypoint cat dast-setup /state/cookie)
 [ -n "$cookie" ] || { echo "no session for the scanners"; exit 1; }
+# the root CA of the PKI of the test: the interface and dast.local have certificates it issued
+"${compose[@]}" run --rm -T --entrypoint cat dast-setup /state/ca.pem > "$out/dast-ca.pem"
 ip=$(docker inspect -f "{{(index .NetworkSettings.Networks \"$net\").IPAddress}}" "$("${compose[@]}" ps -q openappsec)")
 run=(docker run --rm --network "$net" --add-host "dast.local:$ip" -v "$out:/out")
 
@@ -99,7 +101,8 @@ scan nuclei "${run[@]}" -v "$templates:/templates:ro" -v "$templates/.nuclei-ign
 testssl() {
   local name=$1
   shift
-  "${run[@]}" "$TESTSSL_IMAGE" --quiet --warnings off --color 0 --severity LOW --jsonfile "/out/$name.json" "$@" || true
+  "${run[@]}" "$TESTSSL_IMAGE" --quiet --warnings off --color 0 --severity LOW --add-ca /out/dast-ca.pem \
+    --jsonfile "/out/$name.json" "$@" || true
   [ -s "$out/$name.json" ]
 }
 scan testssl-ui testssl testssl-ui nginxions:81

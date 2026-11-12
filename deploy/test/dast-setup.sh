@@ -64,6 +64,25 @@ for i in $(seq 1 30); do
   sleep 2
 done
 
+step "the interface (port 81) with a certificate of the PKI (Settings -> General -> default certificate), as an administrator sets it"
+ui=$(api_ok "$ADMIN/api/nginxions/pki/certs" -d "{\"ca_id\": $ca_id, \"profile\": \"server\",
+  \"subject\": {\"common_name\": \"nginxions\"}, \"sans\": {\"dns\": [\"nginxions\"]}, \"install\": true}")
+ui_id=$(echo "$ui" | tr -d ' \n' | grep -o '"certificate_id":[0-9]*' | grep -o '[0-9]*$')
+[ -n "$ui_id" ] || fail "certificate of the interface was not installed: $ui"
+# the root CA for the scanners that check the chain (testssl.sh --add-ca)
+api_ok "$ADMIN/api/nginxions/pki/cas/$root_id/export" -d '{"format": "cert"}' | tr -d ' \n' \
+  | grep -o '"data_base64":"[^"]*"' | cut -d'"' -f4 | base64 -d > /state/ca.pem
+grep -q "BEGIN CERTIFICATE" /state/ca.pem || fail "root CA was not exported"
+api_ok -X PUT "$ADMIN/api/nginxions/system/settings" \
+  -d "{\"values\": [{\"env\": \"DEFAULT_CERT_ID\", \"value\": $ui_id}], \"apply\": true}" > /dev/null
+# nginxions restarts: the interface answers again with the certificate of the PKI (checked against the root CA)
+sleep 5
+for i in $(seq 1 60); do
+  curl -sS --max-time 10 --cacert /state/ca.pem "$ADMIN/api/" 2> /dev/null | grep -q '"status": *"OK"' && break
+  [ "$i" = 60 ] && fail "the interface did not come back with the certificate of the PKI"
+  sleep 2
+done
+
 # the cookie of the session (Netscape format of the jar: the value is the 7th field)
 token=$(awk '$6 == "__Host-Http-token" { print $7 }' "$JAR")
 [ -n "$token" ] || fail "no session cookie in the jar"

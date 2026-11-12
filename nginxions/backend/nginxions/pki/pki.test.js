@@ -7,7 +7,7 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { Liquid } from "liquidjs";
 import * as ops from "./ops.js";
-import { ruleRegex, trustSet } from "./trust.js";
+import { regexProblem, ruleRegex, trustSet } from "./trust.js";
 import {
 	extConfig,
 	generateKey,
@@ -223,6 +223,24 @@ test("rules on client certificates become nginx regular expressions", () => {
 	assert.ok(re.test("O=NginxionS,CN=admin-1"));
 	assert.ok(!re.test("CN=xadmin-1,O=NginxionS"));
 	assert.ok(!re.test("O=NginxionS,OU=CN=admin-1x"));
+});
+
+test("a regular expression of a rule is checked without compiling it: balanced, no nested repetition", () => {
+	for (const ok of [
+		"admin-[0-9]+",
+		"^(foo|bar)$",
+		"(?:IT|Sec\\.Ops)",
+		"(?i)admin",
+		"a{2,5}",
+		"(a|b)+",
+		"[(]+",
+		"(ab{2})+",
+	]) {
+		assert.equal(regexProblem(ok), null, ok);
+	}
+	for (const bad of ["(a+)+", "(x*)*y", "(?<n>a+)+", "((a)", "a)", "\\", "*a", "[a-z"]) {
+		assert.ok(regexProblem(bad), bad);
+	}
 });
 
 test("the mTLS templates render the nginx directives", async () => {

@@ -32,7 +32,16 @@ services:
     # no process gains privileges it did not start with (setuid binaries, file capabilities)
     security_opt:
       - no-new-privileges:true
+    # root on volumes that are root's: no capability is needed (no chown to another user)
+    cap_drop:
+      - ALL
     entrypoint: ["/bin/sh", "/nginxions-init.sh"]
+    # a one-time job: healthy once the secrets are written
+    healthcheck:
+      test: ["CMD", "test", "-s", "/secrets/nginxions/db_password"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
     volumes:
       - ./init/nginxions-init.sh:/nginxions-init.sh:ro
       - secrets:/secrets
@@ -55,17 +64,33 @@ services:
     # no process gains privileges it did not start with (setuid binaries, file capabilities)
     security_opt:
       - no-new-privileges:true
+    # the agent and its services run as root on files of root; the Docker socket is root's: no capability is needed
+    cap_drop:
+      - ALL
+    # the namespace of the network is this container's: nginx of nginxions listens on 80, 443 and 81 without the
+    # capability NET_BIND_SERVICE
+    sysctls:
+      net.ipv4.ip_unprivileged_port_start: 0
+    # the same check as the image: nginxions-control answers, or the agent listens
+    healthcheck:
+      test: ["CMD", "/bin/sh", "-c", "wget -q -T 4 -O /dev/null http://127.0.0.1:7080/healthz || nc -z -w 4 127.0.0.1 7777"]
+      interval: 30s
+      timeout: 5s
+      start_period: 60s
+      retries: 3
     depends_on:
       nginxions-init:
         condition: service_completed_successfully
       postgres:
         condition: service_healthy
     ipc: shareable
+    # NGINXIONS_BIND_IP: the address of the host the ports are published on (all of them by default: a reverse proxy);
+    # NGINXIONS_ADMIN_BIND_IP: the one of the interface (81), e.g. 127.0.0.1 or an address of a management network
     ports:
-      - "${NGINXIONS_HTTP_PORT:-80}:80/tcp"
-      - "${NGINXIONS_HTTPS_PORT:-443}:443/tcp"
-      - "${NGINXIONS_HTTPS_PORT:-443}:443/udp"
-      - "${NGINXIONS_ADMIN_PORT:-81}:81/tcp"
+      - "${NGINXIONS_BIND_IP:-0.0.0.0}:${NGINXIONS_HTTP_PORT:-80}:80/tcp"
+      - "${NGINXIONS_BIND_IP:-0.0.0.0}:${NGINXIONS_HTTPS_PORT:-443}:443/tcp"
+      - "${NGINXIONS_BIND_IP:-0.0.0.0}:${NGINXIONS_HTTPS_PORT:-443}:443/udp"
+      - "${NGINXIONS_ADMIN_BIND_IP:-0.0.0.0}:${NGINXIONS_ADMIN_PORT:-81}:81/tcp"
     # Hybrid mode (= --standalone in the open-appsec docs) applies the declarative local_policy.yaml
     # written by NginxionS (offline mode only reads a compiled policy). The agent of NginxionS
     # (openappsec/agent) has no cloud: it never registers, never connects to a Fog and refuses any
@@ -141,11 +166,18 @@ services:
     ipc: service:openappsec
     cap_drop:
       - ALL
+    # nginx (root) sets the groups of its workers; the ports below 1024 need no capability (sysctls of openappsec)
     cap_add:
-      - NET_BIND_SERVICE
       - SETGID
     security_opt:
       - no-new-privileges:true
+    # the same check as the image
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
     environment:
       TZ: ${TZ:-UTC}
       DB_POSTGRES_HOST: postgres
@@ -189,6 +221,15 @@ services:
     # no process gains privileges it did not start with (setuid binaries, file capabilities)
     security_opt:
       - no-new-privileges:true
+    # the entrypoint of the image (root) gives the data directory to the user postgres and switches to it
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETUID
+      - SETGID
     depends_on:
       nginxions-init:
         condition: service_completed_successfully
@@ -220,6 +261,9 @@ services:
     # no process gains privileges it did not start with (setuid binaries, file capabilities)
     security_opt:
       - no-new-privileges:true
+    # CrowdSec runs as root on files of root (its volumes, the logs it reads): no capability is needed
+    cap_drop:
+      - ALL
     depends_on:
       nginxions-init:
         condition: service_completed_successfully

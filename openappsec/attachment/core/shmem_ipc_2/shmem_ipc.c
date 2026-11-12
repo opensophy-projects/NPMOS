@@ -139,8 +139,10 @@ createOneWayIPCQueue(
         return NULL;
     }
 
-    if (is_owner && chmod(shmem_path, 0666) == -1) {
-        writeDebug(logging_data, WarningLevel, "Failed to set the permissions");
+    // NginxionS: the queue belongs to the user and group of nginx (the attachment, user_id and group_id), read and
+    // written by them and the agent (root): 0660, not writable by every user (CodeQL cpp/world-writable-file-creation)
+    if (is_owner && (chown(shmem_path, user_id, group_id) == -1 || chmod(shmem_path, 0660) == -1)) {
+        writeDebug(logging_data, WarningLevel, "Failed to set the owner and the permissions");
         destroySharedRingQueue(logging_data, ring_queue, global_data, is_owner, isTowardsOwner(is_owner, is_tx_queue));
         return NULL;
     }

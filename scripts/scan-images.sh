@@ -37,6 +37,8 @@ for img in nginxions nginxions-openappsec; do
   docker run --rm -v "$out:/out" "$GRYPE_IMAGE" "sbom:/out/sbom-$img.cdx.json" -q -o json --file "/out/grype-$img.json"
 
   echo "==> $img: CIS checks of the image (Dockle)"
-  docker run --rm "${sock[@]}" -v "$out:/out" "$DOCKLE_IMAGE" --exit-code 0 -f json -o "/out/dockle-$img.json" "$ref"
+  # DOCKER_CONTENT_TRUST=1 (CIS-DI-0005): the trust of what is pulled; the base images of the Dockerfiles are pinned by
+  # digest, which is stronger than a signed tag
+  docker run --rm "${sock[@]}" -e DOCKER_CONTENT_TRUST=1 -v "$out:/out" "$DOCKLE_IMAGE" --exit-code 0 -f json -o "/out/dockle-$img.json" "$ref"
 done
 echo "OK: images scanned, reports in $OUT"

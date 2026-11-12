@@ -70,6 +70,8 @@ jobs:
       - name: Go services of the agent (vet, tests)
         # shared storage and tuning (built into nginxions-openappsec) and smartsync, in the Go image of its Dockerfile
         run: scripts/test-go.sh
+      - name: converter of Snort signatures of the agent (JavaScript = Python of upstream)
+        run: node --test openappsec/agent/nodes/http_transaction_handler/package/snort_to_ips_local.test.mjs
       - name: file tree
         # every file of the code of NginxionS has a line in CODE_OF_CONDUCT.md
         run: node scripts/check-tree.mjs

@@ -29,6 +29,8 @@
 		"react-router-dom": "7.18.1",
 		"react-select": "5.10.2",
 		"react-toastify": "11.1.0",
+		"refractor": "4.9.0",
+		"rehype-prism-plus": "2.0.0",
 		"rooks": "9.8.0"
 	},
 	"devDependencies": {
@@ -45,6 +47,7 @@
 		"@types/react-dom": "19.2.3",
 		"@types/react-table": "7.7.20",
 		"@vitejs/plugin-react": "6.0.3",
+		"@vitest/coverage-v8": "4.1.12",
 		"happy-dom": "20.10.6",
 		"postcss": "8.5.19",
 		"sass": "1.101.0",

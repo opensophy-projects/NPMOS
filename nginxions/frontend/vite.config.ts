@@ -2,6 +2,7 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import "vitest/config";
 import { execFileSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 
 const runLocaleScripts = () => {
 	execFileSync("pnpm", ["formatjs", "compile-folder", "src/locale/src", "src/locale/lang"], {
@@ -39,6 +40,14 @@ export default defineConfig({
 	],
 	resolve: {
 		tsconfigPaths: true,
+		// NginxionS: the code editor with the grammars the interface shows only (src/nginxions/components/CodeEditor.tsx);
+		// the editor itself imports the package without its grammars (/nohighlight)
+		alias: [
+			{
+				find: /^@uiw\/react-textarea-code-editor$/,
+				replacement: fileURLToPath(new URL("./src/nginxions/components/CodeEditor.tsx", import.meta.url)),
+			},
+		],
 	},
 	server: {
 		host: true,

@@ -1065,10 +1065,11 @@ PolicyMakerUtils::createSnortProtecionsSection(const string &file_name, bool is_
         << "Reading snort signatures from"
         << (is_temporary ? " temporary" : "") << " file " << path;
 
-    auto snort_script_path = getFilesystemPathConfig() + "/scripts/snort_to_ips_local.py";
+    // NginxionS: the converter in JavaScript, run by Node.js of the image (snort_to_ips_local.mjs): no Python in it
+    auto snort_script_path = getFilesystemPathConfig() + "/scripts/snort_to_ips_local.mjs";
     auto tmp_out = "/tmp/" + file_name + ".out";
     auto tmp_err = "/tmp/" + file_name + ".err";
-    auto cmd = "python3 " + snort_script_path + " " + path + " " + tmp_out + " " + tmp_err;
+    auto cmd = "node " + snort_script_path + " " + path + " " + tmp_out + " " + tmp_err;
 
     auto res = Singleton::Consume<I_ShellCmd>::by<LocalPolicyMgmtGenerator>()->getExecOutput(cmd);
 

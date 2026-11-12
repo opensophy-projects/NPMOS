@@ -8,28 +8,9 @@
 			"until": "2027-05-01"
 		},
 		{
-			"tool": "dockle-nginxions",
-			"id": "CIS-DI-0005",
-			"reason": "Docker Content Trust is a setting of the host that pulls (DOCKER_CONTENT_TRUST=1); the base images of the build are pinned by digest in the Dockerfiles",
-			"until": "2027-05-01"
-		},
-		{
 			"tool": "dockle-nginxions-openappsec",
 			"id": "CIS-DI-0001",
 			"reason": "the last user is root: see the findings Missing User Instruction (KICS) and DS-0002 (Trivy config) of the same image",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "dockle-nginxions-openappsec",
-			"id": "CIS-DI-0005",
-			"reason": "Docker Content Trust is a setting of the host that pulls (DOCKER_CONTENT_TRUST=1); the base images of the build are pinned by digest in the Dockerfiles",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "hadolint",
-			"id": "DL3003",
-			"where": "nginxions/Dockerfile",
-			"reason": "style of the Dockerfile of NPMplus (cd inside one RUN that builds from source), no security effect",
 			"until": "2027-05-01"
 		},
 		{
@@ -37,13 +18,6 @@
 			"tool": "hadolint",
 			"id": "DL3062",
 			"reason": "the modules are pinned: go get takes the versions of LEGO_VERSION, LEGO_UPGRADES and GO_UPGRADES (variables hadolint does not read), go build then builds what go.mod pins",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "hadolint",
-			"id": "DL3013",
-			"where": "nginxions/Dockerfile",
-			"reason": "pip of the image of NPMplus installs certbot and its newest pip and setuptools on purpose (their old versions have known vulnerabilities); the image is scanned before it is published",
 			"until": "2027-05-01"
 		},
 		{
@@ -58,7 +32,7 @@
 			"tool": "trivy-config",
 			"id": "DS-0002",
 			"where": "nginxions/Dockerfile",
-			"reason": "NPMplus starts as root and drops to PUID/PGID itself; the container runs with cap_drop ALL, two capabilities and no-new-privileges (see the KICS finding Missing User Instruction)",
+			"reason": "NPMplus starts as root and drops to PUID/PGID itself; the container runs with cap_drop ALL, one capability (SETGID) and no-new-privileges (see the KICS finding Missing User Instruction)",
 			"until": "2027-05-01"
 		},
 		{
@@ -76,55 +50,11 @@
 			"until": "2027-05-01"
 		},
 		{
-			"tool": "trivy-config",
-			"id": "DS-0026",
-			"where": "deploy/dev/Dockerfile",
-			"reason": "the development image (compose.dev.yaml), never published",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "trivy-config",
-			"id": "DS-0013",
-			"where": "nginxions/Dockerfile",
-			"reason": "style of the Dockerfile of NPMplus (cd inside one RUN that builds from source), no security effect",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "zap-api",
-			"id": "10035",
-			"reason": "the interface (port 81) has the self-signed certificate NPMplus makes at the first start; a browser ignores Strict-Transport-Security on a connection with a certificate error (RFC 6797, 8.1), and it would bind every port of the name. The interface is meant to be opened through a proxy host with a certificate of its own (panel by domain), which sets HSTS",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "zap-ui",
-			"id": "10035",
-			"reason": "the interface (port 81) has the self-signed certificate NPMplus makes at the first start; a browser ignores Strict-Transport-Security on a connection with a certificate error (RFC 6797, 8.1), and it would bind every port of the name. The interface is meant to be opened through a proxy host with a certificate of its own (panel by domain), which sets HSTS",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "testssl-ui",
-			"id": "HSTS",
-			"reason": "the interface (port 81) has the self-signed certificate NPMplus makes at the first start; a browser ignores Strict-Transport-Security on a connection with a certificate error (RFC 6797, 8.1), and it would bind every port of the name. The interface is meant to be opened through a proxy host with a certificate of its own (panel by domain), which sets HSTS",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "nuclei",
-			"id": "self-signed-ssl",
-			"where": "nginxions:81",
-			"reason": "the certificate of the interface (port 81) is the self-signed one NPMplus makes at the first start, see testssl.sh cert_chain_of_trust",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "testssl-ui",
-			"id": "cert_trust_wildcard",
-			"reason": "the self-signed certificate of the interface (port 81), see cert_chain_of_trust",
-			"until": "2027-05-01"
-		},
-		{
 			"tool": "testssl-ui",
 			"id": "DNS_CAArecord",
-			"reason": "a CAA record is a matter of the DNS of the administrator; the test has none (a closed network)",
-			"until": "2027-05-01"
+			"reason": "a CAA record is a record of the DNS of the domain of the administrator, not of NginxionS; the test stack has no DNS (a closed network) and its names have no zone",
+			"until": "2027-05-01",
+			"kind": "false-positive"
 		},
 		{
 			"kind": "false-positive",
@@ -183,19 +113,6 @@
 			"until": "2027-05-01"
 		},
 		{
-			"tool": "zap-ui",
-			"id": "10110",
-			"reason": "the bundle of the interface (React and its libraries) holds eval-like functions of libraries; the Content-Security-Policy of the interface forbids unsafe-eval",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "gixy",
-			"id": "hsts_header",
-			"where": "conf.d/default.conf",
-			"reason": "the default site answers names that have no host of their own and no certificate of their own; HSTS for such names would bind names the administrator does not serve",
-			"until": "2027-05-01"
-		},
-		{
 			"kind": "false-positive",
 			"tool": "gixy",
 			"id": "try_files_is_evil_too",
@@ -220,13 +137,6 @@
 			"until": "2027-05-01"
 		},
 		{
-			"tool": "codeql-js",
-			"id": "js/regex-injection",
-			"where": "nginxions/backend/nginxions/pki/mtls.js",
-			"reason": "a regular expression for the certificate fields of mTLS rules is a feature the administrator writes (Hosts → mTLS); it is validated (one expression, at most 200 characters, no quotes or line breaks) and only the administrator can save it",
-			"until": "2027-05-01"
-		},
-		{
 			"kind": "false-positive",
 			"tool": "codeql-js",
 			"id": "js/insufficient-password-hash",
@@ -240,42 +150,6 @@
 			"id": "CVE-2025-47273",
 			"where": "setuptools",
 			"reason": "not installed: pip ships an SBOM of its vendored code (pip/_vendor/bom.cdx.json) that names setuptools 70.3.0 as the source of its pkg_resources; the setuptools of the image is 84.2.1, and the flaw is in a part pkg_resources does not have (PackageIndex)",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "testssl-ui",
-			"id": "cert_chain_of_trust",
-			"reason": "the certificate of the interface (port 81) is the self-signed one NPMplus makes at the first start; testssl judges its trust, not the TLS setup. The interface is meant to be opened through a proxy host with a certificate of its own (panel by domain). Protocols and ciphers of :81 pass",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "testssl-ui",
-			"id": "overall_grade",
-			"reason": "the certificate of the interface (port 81) is the self-signed one NPMplus makes at the first start; testssl judges its trust, not the TLS setup. The interface is meant to be opened through a proxy host with a certificate of its own (panel by domain). Protocols and ciphers of :81 pass",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "testssl-ui",
-			"id": "cert_subjectAltName",
-			"reason": "the certificate of the interface (port 81) is the self-signed one NPMplus makes at the first start; testssl judges its trust, not the TLS setup. The interface is meant to be opened through a proxy host with a certificate of its own (panel by domain). Protocols and ciphers of :81 pass",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "testssl-ui",
-			"id": "cert_trust",
-			"reason": "the certificate of the interface (port 81) is the self-signed one NPMplus makes at the first start; testssl judges its trust, not the TLS setup. The interface is meant to be opened through a proxy host with a certificate of its own (panel by domain). Protocols and ciphers of :81 pass",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "testssl-ui",
-			"id": "cert_extlifeSpan",
-			"reason": "the certificate of the interface (port 81) is the self-signed one NPMplus makes at the first start; testssl judges its trust, not the TLS setup. The interface is meant to be opened through a proxy host with a certificate of its own (panel by domain). Protocols and ciphers of :81 pass",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "testssl-ui",
-			"id": "cert_revocation",
-			"reason": "the certificate of the interface (port 81) is the self-signed one NPMplus makes at the first start; testssl judges its trust, not the TLS setup. The interface is meant to be opened through a proxy host with a certificate of its own (panel by domain). Protocols and ciphers of :81 pass",
 			"until": "2027-05-01"
 		},
 		{
@@ -437,7 +311,7 @@
 			"tool": "kics",
 			"id": "fd54f200-402c-4333-a5a4-36ef6709af2f",
 			"where": "nginxions/Dockerfile",
-			"reason": "NPMplus starts as root and drops to PUID/PGID itself; NginxionS keeps PUID 0 for now (docs/ENV-INVENTORY.md) but runs the container with cap_drop ALL, two capabilities and no-new-privileges. A non-root PUID needs the start script to work without CHOWN/SETUID: open work, see docs/DEVSECOPS.md",
+			"reason": "NPMplus starts as root and drops to PUID/PGID itself; NginxionS keeps PUID 0 for now (docs/ENV-INVENTORY.md) but runs the container with cap_drop ALL, one capability (SETGID) and no-new-privileges. A non-root PUID needs the start script to work without CHOWN/SETUID: open work, see docs/DEVSECOPS.md",
 			"until": "2027-05-01"
 		},
 		{
@@ -451,95 +325,37 @@
 			"tool": "kics",
 			"id": "ce76b7d0-9e77-464d-b86f-c5c48e03e22d",
 			"where": "deploy/compose.yaml",
-			"reason": "nginxions (nginx and the backend, the code that faces the internet) has cap_drop ALL; the others run images whose needs are not measured yet (postgres changes owners at init, the agent runs as root), all with no-new-privileges and the agent and CrowdSec on internal networks only",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "kics",
-			"id": "ce76b7d0-9e77-464d-b86f-c5c48e03e22d",
-			"where": "deploy/compose.dev.yaml",
-			"reason": "development stack, not for production",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "kics",
-			"id": "ce76b7d0-9e77-464d-b86f-c5c48e03e22d",
-			"where": "deploy/test/",
-			"reason": "test stacks of CI (closed network, DAST, training)",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "kics",
-			"id": "610e266e-6c12-4bca-9925-1ed0cd29742b",
-			"where": "deploy/compose.dev.yaml",
-			"reason": "development stack, not for production",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "kics",
-			"id": "610e266e-6c12-4bca-9925-1ed0cd29742b",
-			"where": "deploy/test/",
-			"reason": "test stacks of CI (closed network, DAST, training)",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "kics",
-			"id": "698ed579-b239-4f8f-a388-baa4bcb13ef8",
-			"where": "deploy/compose.yaml",
-			"reason": "nginxions has the HEALTHCHECK of its image, nginxions-init is a one-time job; the agent keeps its processes up itself (nginxions-openappsec.sh) and System -> Services shows their state",
-			"until": "2027-05-01"
+			"reason": "KICS lists every cap_add to be checked: every service drops ALL; nginxions adds SETGID only (nginx, root, sets the groups of its workers; the ports need no capability, sysctls of openappsec), postgres the five its entrypoint needs to give its data directory to the user postgres (CHOWN, DAC_OVERRIDE, FOWNER, SETUID, SETGID)",
+			"until": "2027-05-01",
+			"kind": "false-positive"
 		},
 		{
 			"tool": "kics",
 			"id": "698ed579-b239-4f8f-a388-baa4bcb13ef8",
 			"where": "deploy/compose.dev.yaml",
-			"reason": "development stack, not for production",
-			"until": "2027-05-01"
+			"reason": "test-upstream (traefik/whoami) is an image from scratch without a shell or any program to run a check; every other service of the overlays has its healthcheck",
+			"until": "2027-05-01",
+			"kind": "false-positive"
 		},
 		{
 			"tool": "kics",
 			"id": "698ed579-b239-4f8f-a388-baa4bcb13ef8",
 			"where": "deploy/test/",
-			"reason": "test stacks of CI (closed network, DAST, training)",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "kics",
-			"id": "451d79dc-0588-476a-ad03-3c7f0320abb3",
-			"where": "deploy/compose.yaml",
-			"reason": "a reverse proxy publishes 80 and 443 for every client; the interface of the administrator (81) can be bound to an address with NGINXIONS_ADMIN_PORT",
-			"until": "2027-05-01"
+			"reason": "test-upstream (traefik/whoami) is an image from scratch without a shell or any program to run a check; every other service of the overlays has its healthcheck",
+			"until": "2027-05-01",
+			"kind": "false-positive"
 		},
 		{
 			"tool": "kics",
 			"id": "e36d8880-3f78-4546-b9a1-12f0745ca0d5",
-			"reason": "the global npm tools of the build stages come with the pinned Alpine image; the dependencies of NginxionS are installed with pnpm --frozen-lockfile",
-			"until": "2027-05-01"
+			"reason": "the versions are pinned where KICS does not look: pnpm install --frozen-lockfile installs the lockfile of the frontend and of the backend; the dev image installs the version each dependency has in package.json",
+			"until": "2027-05-01",
+			"kind": "false-positive"
 		},
 		{
 			"tool": "kics",
 			"id": "d3499f6d-1651-41bb-a9a7-de925fea487b",
 			"reason": "Alpine keeps only the current version of a package in its repositories: a pinned apk version breaks the build at the next security update. The base images are pinned by digest and Renovate raises them; the images are scanned (Trivy, Grype) before they are published",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "kics",
-			"id": "02d9c71f-3ee8-4986-9c27-1a20d0d19bfc",
-			"where": "nginxions/Dockerfile",
-			"reason": "the Python packages of certbot in the image of NPMplus; the image is scanned (Trivy, Grype) before it is published",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "kics",
-			"id": "b03a748a-542d-44f4-bb86-9199ab4fd2d5",
-			"reason": "no HEALTHCHECK in the agent image (its processes are kept up by nginxions-openappsec.sh) and in the development image",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "kics",
-			"id": "f4a6bcd3-e231-4acf-993c-aa027be50d2e",
-			"where": "nginxions/Dockerfile",
-			"reason": "style of the Dockerfile of NPMplus (cd inside one RUN), no security effect",
 			"until": "2027-05-01"
 		},
 		{
@@ -570,13 +386,6 @@
 			"id": "zizmor/self-repository",
 			"where": ".github/workflows/ci.yml",
 			"reason": "the reusable workflow security.yml of this repository called by its path, which pins it to the same commit",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "zizmor",
-			"id": "zizmor/adhoc-packages",
-			"where": ".github/workflows/security.yml",
-			"reason": "the coverage provider of vitest, installed in this job only, at the version of VITEST_COVERAGE_VERSION, so the lockfile of the frontend stays as shipped",
 			"until": "2027-05-01"
 		},
 		{
@@ -613,20 +422,6 @@
 			"id": "sendgrid-api-token",
 			"where": "/app/frontend/assets/index-",
 			"reason": "not a token: the list of country codes of the flag icons, joined with dots (…SE.SG.SH.SI.SJ…), matches the SendGrid pattern of Trivy (SG. and 66 characters with dots)",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "codeql-cpp",
-			"id": "cpp/world-writable-file-creation",
-			"where": "shmem_ipc",
-			"reason": "the shared memory queues between nginx (its workers run as their own user in the container nginxions) and the agent (root in the container openappsec): both must write them. The IPC namespace (/dev/shm) is private to these two containers (ipc: service:openappsec), no other user or container sees it",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "codeql-cpp",
-			"id": "cpp/world-writable-file-creation",
-			"where": "socket_is.cc",
-			"reason": "the Unix sockets of the agent under /dev/shm/check-point, written by the nginx attachment of the other container: see shmem_ipc, the namespace is private to the two containers",
 			"until": "2027-05-01"
 		},
 		{
@@ -710,27 +505,11 @@
 			"until": "2027-02-01"
 		},
 		{
-			"tool": "grype-nginxions-openappsec",
-			"id": "*",
-			"where": "sqlite-libs",
-			"unfixed": true,
-			"reason": "no fixed version in Alpine yet (Trivy reports none); sqlite comes with python3, which the agent runs only to convert Snort signatures of a policy",
-			"until": "2027-02-01"
-		},
-		{
 			"tool": "grype-nginxions",
 			"id": "*",
 			"where": "python3",
 			"unfixed": true,
 			"reason": "no fixed version in Alpine yet (Trivy reports none); python3 runs certbot of NPMplus, no request of a client reaches it",
-			"until": "2027-02-01"
-		},
-		{
-			"tool": "grype-nginxions-openappsec",
-			"id": "*",
-			"where": "python3",
-			"unfixed": true,
-			"reason": "no fixed version in Alpine yet (Trivy reports none); the agent runs python3 only to convert the Snort signatures of a policy (scripts/snort_to_ips_local.py)",
 			"until": "2027-02-01"
 		},
 		{
@@ -763,14 +542,6 @@
 			"where": "ssl_client",
 			"unfixed": true,
 			"reason": "part of busybox, see busybox",
-			"until": "2027-02-01"
-		},
-		{
-			"tool": "grype-nginxions",
-			"id": "*",
-			"where": "lua5.1",
-			"unfixed": true,
-			"reason": "no fixed version in Alpine; the Lua of the CrowdSec bouncer of nginx runs its own scripts, no Lua code of a client",
 			"until": "2027-02-01"
 		},
 		{
@@ -886,12 +657,6 @@
 			"tool": "scorecard",
 			"id": "CodeReviewID",
 			"reason": "one maintainer: changes are checked by CI (lint, tests, security report) instead of a second reviewer",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "scorecard",
-			"id": "LicenseID",
-			"reason": "the license of the project is the decision of its owner; the code taken from upstream keeps its license (nginxions/LICENSE.MIT, openappsec/*/LICENSE)",
 			"until": "2027-05-01"
 		},
 		{

@@ -32,3 +32,5 @@ COPY rootfs /
 COPY --from=crowdsec-seed /seed /opt/nginxions/crowdsec-seed
 RUN sed -i "s|placeholder|$(jq -r .version /app/package.json)|g" /usr/local/nginx/conf/conf.d/crowdsec.conf.disabled && \
     chmod +x /usr/local/bin/*.sh
+# the check of the upstream image, stated here (KICS, Trivy DS-0026)
+HEALTHCHECK CMD ["healthcheck.sh"]

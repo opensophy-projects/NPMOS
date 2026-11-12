@@ -155,6 +155,7 @@ flowchart LR
 ### Корень
 
 - `README.md` — что такое NginxionS, установка, ссылки на документацию
+- `LICENSE` — лицензия NginxionS: GNU AGPL-3.0, как у NPMplus, из которого он сделан (`nginxions/COPYING`)
 - `CODE_OF_CONDUCT.md` — этот файл: правила общения, issue, архитектура, дерево файлов
 - `CONTRIBUTING.md` — как вносить изменения: ветки, коммиты, проверки
 - `CLAUDE.md` — правила разработки (для людей и ИИ-агентов): структура, проверки, правки upstream
@@ -216,7 +217,10 @@ flowchart LR
   токена); политика из GUI (`apply-policy`) применяется за секунды, а не на следующей проверке обновлений; лимиты для хостов без схемы и с портом, правила лимитов локальной политики (без `action` и `match`);
   выгрузка признаков модели для обучения (только на стенде обучения, `docs/MODEL.md`); модель
   `components/security_apps/waap/resources/waap.data` — продвинутая модель Check Point («Advanced model, V2.0»,
-  лицензия внутри файла) с заголовками браузеров (`Sec-Fetch-*`, `Priority`…) среди чистых заголовков сигнатур
+  лицензия внутри файла) с заголовками браузеров (`Sec-Fetch-*`, `Priority`…) среди чистых заголовков сигнатур;
+  конвертер сигнатур Snort на JavaScript (`nodes/http_transaction_handler/package/snort_to_ips_local.mjs`: в образе
+  нет Python; питоновский оригинал upstream лежит рядом как эталон для теста `snort_to_ips_local.test.mjs` с
+  правилами `testdata/snort-rules.txt`)
 - **`attachment/`** — модуль nginx для связи с агентом (`libngx_module.so` образа `nginxions`, контекст сборки
   `attachment`; изменения бывшего патча NPMplus `attachment.patch`: только модуль nginx, zlib-ng)
 - **`smartsync-shared-files/`** — shared storage (Go): файлы обучения и `decisions.data`; пути REST API не выходят
@@ -413,7 +417,7 @@ flowchart LR
       - `Roles/` — роли и права
       - `Services/` — сервисы стека
     - **`modals/`** — окна: запрос (`RequestModal.tsx`), событие WAF (`WafEventModal.tsx`), CrowdSec в окнах событий (`BanActions.tsx`), история хоста (`HostHistoryModal.tsx`), логи сервиса (`ServiceLogsModal.tsx`), подтверждение (`ConfirmModal.tsx`), политика только для чтения (`WafPolicyModal.tsx`)
-    - **`components/`** — части форм хостов: WAF (`WafFields.tsx`), страны (`GeoFields.tsx`)
+    - **`components/`** — части форм хостов: WAF (`WafFields.tsx`), страны (`GeoFields.tsx`); редактор кода с подсветкой только нужных языков (`CodeEditor.tsx`, на него указывает `vite.config.ts` вместо пакета `@uiw/react-textarea-code-editor`)
     - **`hosts/panel.tsx`** — защита от отключения хоста, через который открыта панель
     - **`acme/`** — ACME-серверы (`AcmeServers.tsx`), поля сервера и DNS (`AcmeFields.tsx`), API
     - **`certs/`** — выпуск ACME (`AcmeCertificateModal.tsx`), свой CSR (`CsrModal.tsx`), полный лог ошибки (`AcmeLog.tsx`)

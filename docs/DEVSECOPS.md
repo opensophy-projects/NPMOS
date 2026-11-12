@@ -157,14 +157,42 @@ GitHub закрывает такие оповещения при следующ�
 этого шага каждое принятое и подавленное оставалось бы открытым оповещением. Полные результаты остаются в артефактах
 и в отчёте.
 
-Открытые задачи, которые ложными срабатываниями не являются и решаются отдельной работой:
+Как закрыты находки, которые были приняты раньше (их записи удалены из `accepted-risks.json`):
 
-- **контейнер `nginxions` работает от root** (`PUID=0`, как в NPMplus по умолчанию), хотя без привилегий: `cap_drop: ALL`,
-  только `NET_BIND_SERVICE` и `SETGID`, `no-new-privileges`. Для запуска от другого пользователя стартовый скрипт
-  NPMplus должен уметь обойтись без `CHOWN`/`SETUID`;
-- **возможности остальных контейнеров** (`openappsec`, `postgres`, `crowdsec`) не урезаны: нужный каждому набор ещё
-  не измерен; у всех `no-new-privileges`;
-- **настройки репозитория** (Scorecard): защита ветки `work`, обязательный review, лицензия — решает владелец.
+- **возможности контейнеров**: у каждого сервиса `cap_drop: ALL`; `nginxions` добавляет только `SETGID` (порты ниже
+  1024 без `NET_BIND_SERVICE`: `sysctls` `net.ipv4.ip_unprivileged_port_start=0` у `openappsec`, владельца сети),
+  `postgres` — пять, нужных его entrypoint; `openappsec`, `crowdsec`, `nginxions-init` — ни одной. У всех
+  `no-new-privileges` и `healthcheck`; порты публикуются на `NGINXIONS_BIND_IP` / `NGINXIONS_ADMIN_BIND_IP`
+  (по умолчанию `0.0.0.0`). Оверлеи `compose.dev.yaml` и `deploy/test/` повторяют это для своих сервисов;
+- **Python и SQLite в образе агента**: сигнатуры Snort конвертирует `snort_to_ips_local.mjs` (Node.js образа), тест
+  `snort_to_ips_local.test.mjs` сверяет его вывод с питоновским оригиналом upstream;
+- **Lua 5.1 в образе `nginxions`**: `cjson` собирается под LuaJIT, `lua-resty-http`/`lua-resty-openssl` берутся из
+  git по коммиту (без luarocks);
+- **IPC агента**: очереди в `/dev/shm` принадлежат пользователю и группе nginx и имеют права `0660`, сокеты агента —
+  `0660` с группой `NGINXIONS_IPC_GID` (если задан), а не `0666`;
+- **HSTS** на интерфейсе (81) и на сайте по умолчанию; в DAST интерфейс получает сертификат PKI NginxionS через
+  «Настройки → Общие → сертификат по умолчанию», testssl проверяет цепочку от корня теста (`--add-ca`);
+- **регулярное выражение правила mTLS** проверяется без компиляции в backend (`regexProblem`), с запретом вложенных
+  повторений вида `(a+)+` (ReDoS в nginx);
+- **`eval(` в бандле** (ZAP 10110): редактор кода подсвечивает только nginx, YAML, JSON, Bash и PHP
+  (`src/nginxions/components/CodeEditor.tsx`), грамматики остальных ~300 языков Prism в бандл не попадают;
+- **Dockerfile**: без `cd` в `RUN` (`git -C`, `make -C`, `WORKDIR`), версии pip закреплены, `HEALTHCHECK` в dev-образе;
+- **провайдер покрытия vitest** — в `devDependencies` фронтенда (lockfile), а не ставится в задаче CI;
+- **лицензия** — `LICENSE` в корне (AGPL-3.0, как у NPMplus).
+
+Что остаётся принятым риском и почему кодом не закрывается:
+
+- **root в контейнерах** (`DS-0002`, `CIS-DI-0001`, KICS Missing User): NPMplus стартует от root и сам переходит на
+  `PUID`/`PGID`; агенту нужен сокет Docker для `nginxions-control` (System → Services), группа которого на каждом хосте
+  своя. Без привилегий: `cap_drop: ALL`, `no-new-privileges`;
+- **сокет Docker у `openappsec`** — для `nginxions-control` (белый список операций, токен, 127.0.0.1);
+- **пакеты Alpine без исправления** (`busybox`/`ssl_client`, `coreutils`, `python3`/`sqlite-libs` для certbot в
+  `nginxions`, `ada-libs`): записи с `"unfixed": true` перестают действовать, как только в Alpine появится версия с
+  исправлением, — тогда находка снова открыта и обновляется пересборкой;
+- **закреплённые версии apk** (KICS): Alpine хранит только текущую версию пакета, закрепление ломает сборку при каждом
+  исправлении безопасности; базовые образы закреплены по digest;
+- **настройки репозитория** (Scorecard: защита ветки, обязательный review, регистрация в OSS-Fuzz и OpenSSF Best
+  Practices) — решает владелец репозитория.
 
 В коде ложное срабатывание Semgrep помечается на строке выше: `// nosemgrep: <id правила> -- почему`.
 
