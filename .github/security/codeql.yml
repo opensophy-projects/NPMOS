@@ -8,3 +8,4 @@ paths-ignore:
   - "**/*.test.tsx"
   - nginxions/frontend/src/locale
   - deploy/test/fixtures
+  - openappsec

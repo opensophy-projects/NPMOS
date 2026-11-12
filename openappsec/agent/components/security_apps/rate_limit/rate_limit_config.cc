@@ -42,16 +42,28 @@ RateLimitRule::load(cereal::JSONInputArchive &ar)
 {
     dbgTrace(D_RATE_LIMIT) << "Serializing single Rate Limit rule";
     try {
-        string _action;
         ar(cereal::make_nvp("URI", uri));
         ar(cereal::make_nvp("scope", scope));
         ar(cereal::make_nvp("limit", limit));
         ar(cereal::make_nvp("triggers", rate_limit_triggers));
-        ar(cereal::make_nvp("action", _action));
-        action = RateLimitConfig::rate_limit_string_to_action.at(_action);
-        ar(cereal::make_nvp("match", match));
     } catch (const cereal::Exception &e) {
         dbgWarning(D_RATE_LIMIT) << "Failed to load single Rate Limit JSON rule. Error: " << e.what();
+        ar.setNextName(nullptr);
+        return;
+    }
+    // NginxionS: the local policy (local_policy_mgmt_gen) writes neither "action" nor "match" of a rule, and the whole
+    // rule was dropped: no rate limit of a local policy ever applied. Both are optional now, with the defaults of
+    // the rule (rate_limit_config.h): the action of the practice, any request.
+    try {
+        string _action;
+        ar(cereal::make_nvp("action", _action));
+        action = RateLimitConfig::rate_limit_string_to_action.at(_action);
+    } catch (const cereal::Exception &) {
+        ar.setNextName(nullptr);
+    }
+    try {
+        ar(cereal::make_nvp("match", match));
+    } catch (const cereal::Exception &) {
         ar.setNextName(nullptr);
     }
 }

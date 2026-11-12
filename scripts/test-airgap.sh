@@ -75,7 +75,7 @@ fi
 
 if [[ " ${services[*]} " == *" openappsec "* ]]; then
   # smoke sent attacks: the agent sends its logs to the local tuning service, which creates its events database
-  # with the first one. Without a Fog there is no access token: the agent refused to send them (patch 0007).
+  # with the first one. Without a Fog there is no access token: the agent refused to send them (fixed in openappsec/agent).
   echo "==> the agent's logs reach the local tuning service (its events database exists)"
   for i in $(seq 1 30); do
     db=$("${compose[@]}" exec -T postgres psql -U postgres -tAc \

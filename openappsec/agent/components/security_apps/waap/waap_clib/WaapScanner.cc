@@ -19,6 +19,10 @@
 #include "debug.h"
 #include "reputation_features_events.h"
 #include <boost/algorithm/string.hpp>
+// NginxionS: feature dump for model training (nginxionsDumpFeatures)
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
 
 USE_DEBUG_FLAG(D_WAAP_SCANNER);
 USE_DEBUG_FLAG(D_OA_SCHEMA_UPDATER);
@@ -156,6 +160,76 @@ bool Waap::Scanner::isKeyCspReport(const std::string &key, Waf2ScanResult &res, 
     return false;
 }
 
+// NginxionS: feature dump for training our own model (model/, docs/MODEL.md). When the directory
+// /var/log/nginxions-features exists (only the training stack creates it; never in production), every scanned value
+// with keywords is appended as a JSON line to <pid>.jsonl: the request (X-Nginxions-Sample header, URI), where the
+// value is, the keywords and pairs the model scored and the score. "keywords" are those scored
+// (keywordsAfterFilter: spaces stripped, a keyword contained in another one dropped), "matched" what the
+// signatures found. The features come from the agent itself, so
+// the trained weights mean to the agent exactly what they meant to the trainer.
+static std::string
+nginxionsJson(const std::string &in)
+{
+    std::string out = "\"";
+    for (unsigned char c : in) {
+        if (c == '"' || c == '\\') {
+            out += '\\';
+            out += c;
+        } else if (c < 0x20 || c >= 0x7f) {
+            char buf[8];
+            snprintf(buf, sizeof(buf), "\\u%04x", c);
+            out += buf;
+        } else {
+            out += c;
+        }
+    }
+    return out + "\"";
+}
+
+static std::string
+nginxionsJson(const std::vector<std::string> &in)
+{
+    std::string out = "[";
+    for (size_t i = 0; i < in.size(); ++i) {
+        if (i) out += ",";
+        out += nginxionsJson(in[i]);
+    }
+    return out + "]";
+}
+
+static void
+nginxionsDumpFeatures(IWaf2Transaction *transaction, const Waf2ScanResult &res, const Waf2ScanResult &raw,
+    const std::string &pool)
+{
+    static const char *dir = "/var/log/nginxions-features";
+    static int fd = -2;
+    if (fd == -2) {
+        struct stat st;
+        fd = -1;
+        if (stat(dir, &st) == 0 && S_ISDIR(st.st_mode)) {
+            std::string path = std::string(dir) + "/" + std::to_string(getpid()) + ".jsonl";
+            fd = open(path.c_str(), O_WRONLY | O_CREAT | O_APPEND | O_CLOEXEC, 0644);
+        }
+    }
+    if (fd < 0) return;
+    char score[64];
+    snprintf(score, sizeof(score), "%.6f,\"score_raw\":%.6f", res.score, res.scoreNoFilter);
+    std::string line = "{\"sample\":" + nginxionsJson(transaction->getHdrContent("X-Nginxions-Sample")) +
+        ",\"method\":" + nginxionsJson(transaction->getMethod()) +
+        ",\"uri\":" + nginxionsJson(transaction->getUriStr()) +
+        ",\"location\":" + nginxionsJson(res.location) +
+        ",\"param\":" + nginxionsJson(res.param_name) +
+        ",\"pool\":" + nginxionsJson(pool) +
+        ",\"keywords\":" + nginxionsJson(res.keywordsAfterFilter) +
+        ",\"combinations\":" + nginxionsJson(res.keywordCombinations) +
+        ",\"matched\":" + nginxionsJson(res.keyword_matches) +
+        ",\"keywords_raw\":" + nginxionsJson(raw.keywordsAfterFilter) +
+        ",\"combinations_raw\":" + nginxionsJson(raw.keywordCombinations) +
+        ",\"score\":" + score + "}\n";
+    ssize_t written = write(fd, line.data(), line.size());
+    (void)written;
+}
+
 bool Waap::Scanner::suspiciousHit(Waf2ScanResult& res, DeepParser &dp,
         const std::string& location, const std::string& param_name, const std::string& key)
 {
@@ -180,6 +254,7 @@ bool Waap::Scanner::suspiciousHit(Waf2ScanResult& res, DeepParser &dp,
     // call shouldIgnoreOverride post score calculation and filtering to evaluate ignore override effectivness
     res.score = score;
     m_transaction->shouldIgnoreOverride(res);
+    nginxionsDumpFeatures(m_transaction, res, nonFilterRes, poolName); // NginxionS: feature dump (training only)
 
     dbgTrace(D_WAAP_SCANNER) << "score: " << score << " should ignore: " << ignoreOverride;
     // Add record about scores to the notes[] log (also reported in logs)

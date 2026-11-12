@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Trains the open-appsec model of NginxionS: a sparse logistic regression over the keywords and keyword pairs the
-agent itself found in each value (feature dump, agent patch 0005), in the agent's own format (waap.data, linear
+agent itself found in each value (feature dump, openappsec/agent), in the agent's own format (waap.data, linear
 model: model/waapmodel.py). docs/MODEL.md describes the whole cycle.
 
 Input (from scripts/train-model.sh):

@@ -11,8 +11,6 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-# shellcheck source=../deploy/openappsec/sources.env
-. deploy/openappsec/sources.env
 CROWDSEC_VERSION=$(sed -n 's/^CROWDSEC_VERSION=//p' deploy/.env)
 
 REGISTRY="${REGISTRY:-local}"
@@ -27,11 +25,11 @@ for image in "${images[@]}"; do
     nginxions)
       docker build --build-arg "CROWDSEC_VERSION=$CROWDSEC_VERSION" \
         --build-arg "FLAGS=${FLAGS:--march=x86-64-v2 -mtune=generic -fcf-protection=full}" \
-        -t "$REGISTRY/nginxions:$TAG" nginxions ;;
+        --build-context attachment=openappsec/attachment -t "$REGISTRY/nginxions:$TAG" nginxions ;;
     openappsec)
-      docker buildx build --load --build-context control=nginxions/backend/nginxions/control \
-        --build-arg "OPENAPPSEC_REF=$OPENAPPSEC_REF" --build-arg "SHARED_FILES_REF=$SHARED_FILES_REF" \
-        --build-arg "TUNING_REF=$TUNING_REF" -t "$REGISTRY/nginxions-openappsec:$TAG" deploy/openappsec ;;
+      docker buildx build --load --build-context openappsec=openappsec \
+        --build-context control=nginxions/backend/nginxions/control \
+        -t "$REGISTRY/nginxions-openappsec:$TAG" deploy/openappsec ;;
     *) echo "unknown image: $image" >&2; exit 1 ;;
   esac
 done

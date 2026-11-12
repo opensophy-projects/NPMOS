@@ -77,8 +77,8 @@ workflow) → `scripts/train-model.sh`:
    фильтра эксплойтов nginx, политика `prevent` (без обучения на ходу), источник — заголовок `X-Forwarded-For`.
    CrowdSec не запускается (он забанил бы раннер за атаки набора).
 3. **Прогон модели образа** (`model/replay.py`): каждый запрос набора идёт через nginx и агент со своим
-   `X-Nginxions-Sample` и своим адресом источника. Агент сам записывает, что нашёл в каждом значении (патч
-   `0005-feature-dump-for-training.patch`: ключевые слова, пары, оценка). Патч пишет только в каталог
+   `X-Nginxions-Sample` и своим адресом источника. Агент сам записывает, что нашёл в каждом значении (изменение
+   NginxionS в `openappsec/agent`: ключевые слова, пары, оценка). Выгрузка пишет только в каталог
    `/var/log/nginxions-features`, который есть лишь на стенде обучения; в обычной установке он ничего не делает.
 4. **Обучение** (`model/train.py`): логистическая регрессия по признакам из выгрузки агента. Обучение
    **начинается с модели образа** (Check Point): её веса — начальная точка, и регуляризация тянет к ним, а не к
@@ -134,6 +134,6 @@ python3 -m venv .venv && .venv/bin/pip install -r model/requirements.txt
 .venv/bin/python -m unittest discover -s model          # формат, данные, цикл на синтетике
 curl -sSfLO https://downloads.openappsec.io/waf-comparison-project/malicious.zip
 python3 model/datasets.py --malicious malicious.zip --out samples.jsonl
-# образы с патчем 0005: scripts/build-images.sh (долго: агент из исходников)
+# образы с выгрузкой признаков: scripts/build-images.sh (долго: агент из исходников)
 NGINXIONS_REGISTRY=local NGINXIONS_VERSION=dev SAMPLES=samples.jsonl PYTHON=.venv/bin/python scripts/train-model.sh
 ```

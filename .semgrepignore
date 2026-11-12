@@ -1,5 +1,8 @@
 # Semgrep (.github/workflows/security.yml): what is not code of the product
 node_modules/
+# the sources of open-appsec (agent, attachment, shared storage, tuning, smartsync): C++ and Go of upstream; the images
+# built from them are scanned (Trivy, Grype)
+openappsec/
 dist/
 nginxions/frontend/src/locale/
 deploy/test/fixtures/

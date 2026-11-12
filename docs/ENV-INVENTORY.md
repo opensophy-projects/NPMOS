@@ -57,7 +57,7 @@
 | `user_email` | не задаётся | NginxionS фиксирует | 0 ✅ |
 | `autoPolicyLoad` | `true` (агент сам применяет `local_policy.yaml`, который генерирует NginxionS) | NginxionS фиксирует | 0 ✅ |
 | `nginxproxymanager` | не задаётся (только помечает отчёт агента в облако) | NginxionS фиксирует | 1 ✅ |
-| `SHARED_STORAGE_HOST`, `TUNING_HOST` | `127.0.0.1:7811`, `127.0.0.1:7813` (сервисы в том же контейнере; порт — патч 0004 агента) | Bootstrap | 0 ✅ |
+| `SHARED_STORAGE_HOST`, `TUNING_HOST` | `127.0.0.1:7811`, `127.0.0.1:7813` (сервисы в том же контейнере; порт — изменение NginxionS в агенте) | Bootstrap | 0 ✅ |
 | `https_proxy` | не задаётся | GUI (Система → Внешние сервисы), только если администратор включит онлайн-функции | 4 |
 | `CROWDSEC_ENABLED`, `CROWDSEC_MODE`, `CROWDSEC_API_URL`, `CROWDSEC_AUTH_METHOD`, `CROWDSEC_AUTH_DATA` (встроенная интеграция агента) | выключено; LAPI `crowdsec:8080`, ключ bouncer `appsec` от `nginxions-init` | GUI (Агенты → Агент open-appsec → «Репутация IP из CrowdSec»); `nginxions-entry.sh` образа агента выставляет их из `nginxions-agent.env` | 1 ✅ |
 | Advanced ML-модель | файл `/advanced-model/open-appsec-advanced-model.tgz` (том `appsec-model`) | Загрузка файла в GUI (Агенты → Агент open-appsec) | 1 ✅ |

@@ -1,13 +1,14 @@
 # syntax=docker/dockerfile:1.29
 # NginxionS open-appsec: one image, one container (nginxions-openappsec) with everything of the agent side, built from
-# source at pinned commits (sources.env):
-#   - the agent (github.com/openappsec/openappsec) with the patches of agent/patches;
-#   - its shared storage (smartsync-shared-files) and tuning (smartsync-tuning) services, Go, go-service/patches;
+# the sources of NginxionS in openappsec/ (build context "openappsec"; upstream commits they started from: sources.env):
+#   - the agent (openappsec/agent), the changes of NginxionS marked "NginxionS:" in its code;
+#   - its shared storage (openappsec/smartsync-shared-files) and tuning (openappsec/smartsync-tuning) services, Go;
 #   - nginxions-control (nginxions/backend/nginxions/control, build context "control"): the Docker API for the GUI.
 # nginxions-openappsec.sh starts and keeps them running. The container owns the network namespace nginxions joins, so
 # the services listen on 127.0.0.1 ports there (port 80 is nginx's): shared storage 7811, tuning 7813, control 7080.
 #
-#   docker build --build-context control=nginxions/backend/nginxions/control -t nginxions-openappsec deploy/openappsec
+#   docker build --build-context openappsec=openappsec --build-context control=nginxions/backend/nginxions/control \
+#     -t nginxions-openappsec deploy/openappsec
 #
 # Base images pinned by digest (Renovate raises them). Alpine is the current release for the agent too: its CMake 4
 # rejects the cmake_minimum_required (2.8.4) of the open-appsec sources, -DCMAKE_POLICY_VERSION_MINIMUM=3.5 lets it
@@ -15,9 +16,6 @@
 # vulnerabilities into the image.
 # Go of the shared storage and tuning: their sources ask for 1.18, which has long been out of support (every CVE of
 # its standard library since 2023). They build unchanged on a current release.
-ARG OPENAPPSEC_REF=634f840534e07952b1a449079a0d1b2e885c6aec
-ARG SHARED_FILES_REF=
-ARG TUNING_REF=
 # the runtime base of the final stage: the agent built here, or an image of it (a quick local rebuild)
 ARG AGENT_RUNTIME=agent
 
@@ -26,15 +24,12 @@ FROM docker.io/library/alpine:3.24.4@sha256:f59abe656b692d901e184be3445e08478660
 RUN apk add --no-cache build-base cmake git python3 bash linux-headers \
         boost-dev openssl-dev pcre2-dev libxml2-dev gtest-dev curl-dev hiredis-dev redis \
         libmaxminddb-dev yq brotli-dev zlib-dev
-ARG OPENAPPSEC_REF
-ADD --keep-git-dir=true https://github.com/openappsec/openappsec.git#${OPENAPPSEC_REF} /src
+# changes of NginxionS in the agent (grep "NginxionS:"): local-only hybrid mode without Fog registration and
+# reconnection; rate limits for hosts of the local policy (no scheme) and its rules (no "action" and "match");
+# host:port of services; the feature dump for training; no access token of the Fog for the local tuning and shared
+# storage services in local-only mode
+COPY --from=openappsec agent/ /src/
 WORKDIR /src
-# NginxionS patches (see each file): local-only hybrid mode without Fog registration; rate limits for hosts of the
-# local policy (no scheme); no Fog reconnection after a policy update in local-only mode; host:port of services;
-# the feature dump for training; rate limit rules of the local policy (it writes no "action" and "match"); no access
-# token of the Fog for the local tuning and shared storage services in local-only mode (the logs of the WAF reach tuning)
-COPY agent/patches/ /patches/
-RUN git apply --verbose /patches/*.patch
 # The model of the image: the advanced model of Check Point (agent/waap.data, "Advanced model, V2.0", its license
 # inside the file) in place of the basic model of the sources, as its README says for a build of the agent. A model
 # uploaded in WAF -> Agent replaces it at the start of the agent; removing that one brings this one back.
@@ -67,28 +62,22 @@ RUN chmod +x /entry.sh /nano-service-installers/* && ln -s entry.sh cp-nano-agen
 # ---------------------------------------------------------------- shared storage and tuning (Go)
 # the same binaries and configs as their upstream images; modules are vendored under dependencies/
 FROM docker.io/library/golang:1.27-alpine@sha256:eb61c3873c97416fff0116553fff65d67a3549f72e11d9758849a689cdd8b523 AS go-build
-RUN apk add --no-cache patch
 ENV GOMODCACHE=/vendor CGO_ENABLED=0 GOOS=linux GOTOOLCHAIN=local
-COPY go-service/patches/ /patches/
 # libraries raised over the ones of the sources: those have known vulnerabilities (Trivy, docs/DEVSECOPS.md); the
 # Kubernetes client of tuning (its CRD listener, unused by NginxionS) to the last patch of its 0.17 line
 ARG GO_UPGRADES="golang.org/x/crypto@v0.58.1-0.20261009181718-2f1f834330b2 golang.org/x/net@v0.62.0 golang.org/x/text@v0.43.0 golang.org/x/oauth2@v0.37.0 github.com/sirupsen/logrus@v1.10.2 k8s.io/apimachinery@v0.17.16 k8s.io/client-go@v0.17.16 k8s.io/api@v0.17.16"
 
 FROM go-build AS shared-storage
-ARG SHARED_FILES_REF
-ADD https://github.com/openappsec/smartsync-shared-files.git#${SHARED_FILES_REF} /app
+COPY --from=openappsec smartsync-shared-files/ /app/
 WORKDIR /app
-RUN for p in /patches/smartsync-shared-files/*.patch; do [ -e "$p" ] || continue; patch -p1 < "$p" || exit 1; done && \
-    go get $GO_UPGRADES && go mod tidy && \
+RUN go get $GO_UPGRADES && go mod tidy && \
     go build -ldflags="-w -s" -a -installsuffix cgo -o /out/app ./cmd/server/ && cp -r configs /out/configs
 
 FROM go-build AS tuning
-ARG TUNING_REF
-ADD https://github.com/openappsec/smartsync-tuning.git#${TUNING_REF} /app
+# tuning: no database password in its log (NginxionS: in its code)
+COPY --from=openappsec smartsync-tuning/ /app/
 WORKDIR /app
-# tuning: no database password in its log
-RUN for p in /patches/smartsync-tuning/*.patch; do [ -e "$p" ] || continue; patch -p1 < "$p" || exit 1; done && \
-    go get $GO_UPGRADES && go mod tidy && \
+RUN go get $GO_UPGRADES && go mod tidy && \
     go build -ldflags="-w -s" -a -installsuffix cgo -o /out/app ./cmd/server/ && cp -r configs /out/configs && \
     { [ ! -d api ] || cp -r api /out/api; }
 

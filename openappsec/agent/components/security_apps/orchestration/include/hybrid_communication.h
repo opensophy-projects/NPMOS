@@ -41,6 +41,8 @@ class HybridCommunication : public FogAuthenticator
 {
 public:
     void init() override;
+    // NginxionS: no Fog registration in local-only mode (NGINXIONS_LOCAL_ONLY=true)
+    Maybe<void> authenticateAgent() override;
     Maybe<void> getUpdate(CheckUpdateRequest &request) override;
     Maybe<std::string> downloadAttributeFile(
         const GetResourceFile &resourse_file,

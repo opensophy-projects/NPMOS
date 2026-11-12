@@ -10,7 +10,7 @@ computes it. Reference (open-appsec, components/security_apps/waap/waap_clib):
                     n = number of keywords and combinations of the value; a keyword missing from the model has
                     coef 0.3, a combination 0.8; an adjacent pair of type 3 (special combination) always 0.8; a
                     pair with score 0 and coef 0 counts as missing
-Strings: the feature dump (agent patch 0005) writes every byte >= 0x7f as \\u00XX, so a feature here is the byte
+Strings: the feature dump (openappsec/agent, NginxionS) writes every byte >= 0x7f as \\u00XX, so a feature here is the byte
 string of the agent decoded as latin-1. waap.data holds UTF-8 JSON strings.
 """
 

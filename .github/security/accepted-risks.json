@@ -466,20 +466,6 @@
 		},
 		{
 			"tool": "kics",
-			"id": "9513a694-aa0d-41d8-be61-3271e056f36b",
-			"where": "deploy/openappsec/Dockerfile",
-			"reason": "ADD of a git repository at a full commit hash (sources.env): what KICS wants (curl in a RUN) would check less",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "kics",
-			"id": "4b410d24-1cbe-4430-a632-62c9a931cf1c",
-			"where": "deploy/openappsec/Dockerfile",
-			"reason": "ADD of a git repository at a full commit hash (sources.env), see Add Instead of Copy",
-			"until": "2027-05-01"
-		},
-		{
-			"tool": "kics",
 			"id": "ce76b7d0-9e77-464d-b86f-c5c48e03e22d",
 			"where": "deploy/compose.yaml",
 			"reason": "nginxions (nginx and the backend, the code that faces the internet) has cap_drop ALL; the others run images whose needs are not measured yet (postgres changes owners at init, the agent runs as root), all with no-new-privileges and the agent and CrowdSec on internal networks only",

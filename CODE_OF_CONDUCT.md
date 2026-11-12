@@ -190,16 +190,13 @@ flowchart LR
   - `nginxions-init.sh` — разовый старт: секреты, каталоги томов, офлайн-снимок hub CrowdSec
   - `postgres-init.sh` — базы и пользователи postgres при первом запуске
 - **`openappsec/`** — образ `nginxions-openappsec`
-  - `Dockerfile` — агент open-appsec (C++), shared storage и tuning (Go) из исходников, `nginxions-control`
+  - `Dockerfile` — агент open-appsec (C++), shared storage и tuning (Go) из исходников корневого `openappsec/`, `nginxions-control`
   - `nginxions-openappsec.sh` — запуск процессов контейнера: агент, shared storage, tuning, `nginxions-control`
-  - `sources.env` — коммиты исходников open-appsec, из которых собирается образ
+  - `sources.env` — коммиты upstream open-appsec, от которых взяты исходники в `openappsec/` (для их обновления)
   - `agent/nginxions-entry.sh` — настройки агента из GUI (WAF → Агент) при каждом его старте
   - `agent/merge-headers.py` — добавляет заголовки из `waap-headers.json` в сигнатуры агента при сборке
   - `agent/waap.data` — модель агента в образе: продвинутая модель Check Point («Advanced model, V2.0», лицензия внутри файла)
   - `agent/waap-headers.json` — заголовки браузеров (`Sec-Fetch-*`, `Priority`…) со строгими шаблонами значений, чтобы агент не принимал их за атаку
-  - `agent/patches/` — патчи агента: только локальный режим, без облака; лимиты для хостов без схемы и с портом, правила лимитов локальной политики (без `action` и `match`); без токена облака для локальных tuning и shared storage;
-    выгрузка признаков модели для обучения (только на стенде обучения, `docs/MODEL.md`)
-  - `go-service/patches/` — патч tuning: пароль базы не пишется в лог
 - **`test/`** — закрытый контур, DAST, стенд обучения модели
   - `compose.airgap.yaml` — стек без выхода в интернет
   - `smoke.sh` — сценарии проверки всех функций на этом стеке
@@ -210,6 +207,21 @@ flowchart LR
 - **`dev/`**
   - `Dockerfile` — быстрый dev-образ: upstream-образ NPMplus + наш backend и rootfs
   - `attack.sh` — генератор обычных и вредоносных запросов для проверки WAF
+
+### `openappsec/` — исходники агента NginxionS (open-appsec)
+
+Код open-appsec, взятый через `git subtree` (коммиты upstream — `deploy/openappsec/sources.env`) и развиваемый как
+свой: изменения NginxionS помечены `NginxionS:` в коде. Из него собираются образы; сканеры исходников его не
+проверяют (проверяются собранные образы).
+
+- **`agent/`** — агент (C++): только локальный режим без облака (без регистрации, переподключения и токена облака
+  для локальных tuning и shared storage); лимиты для хостов без схемы и с портом, правила лимитов локальной политики
+  (без `action` и `match`); выгрузка признаков модели для обучения (только на стенде обучения, `docs/MODEL.md`)
+- **`attachment/`** — модуль nginx для связи с агентом (`libngx_module.so` образа `nginxions`, контекст сборки
+  `attachment`; патч NPMplus `nginxions/patches/attachment.patch` накладывается при сборке)
+- **`smartsync-shared-files/`** — shared storage (Go): файлы обучения и `decisions.data`
+- **`smartsync-tuning/`** — tuning (Go): события WAF, статистика и предложения обучения; пароль базы не пишется в лог
+- **`smartsync/`** — централизованное обучение нескольких агентов (Go); в образ не входит
 
 ### `scripts/` — инструменты разработчика
 

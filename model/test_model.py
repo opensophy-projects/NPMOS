@@ -173,7 +173,7 @@ class TrainingCycleTest(unittest.TestCase):
                        if i["key"] == "union select"]
             self.assertEqual(special[0]["value"]["coef"], waapmodel.DEFAULT_COMBI_COEF)
 
-            # the new model's run: the agent scores with the new model (as patch 0005 would dump it)
+            # the new model's run: the agent scores with the new model (as the feature dump of the agent would write it)
             model = Model.from_scores(doc["waap_scores"])
             t = card["threshold"]["max_score"]
             dump2, verdicts2 = [], []

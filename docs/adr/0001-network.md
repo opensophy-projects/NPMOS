@@ -34,7 +34,7 @@ NPMplus рекомендует `network_mode: host`. NginxionS — это сте
   (образ `nginxions-openappsec`). Он владеет сетью и IPC: опубликованные порты — на нём, `nginxions` подключается к нему
   (`network_mode`/`ipc: service:openappsec`), в сетях у него псевдоним `nginxions`. Сервисы слушают на 127.0.0.1:
   агент 7777, `nginxions-control` 7080, shared storage 7811, tuning 7813 (порт 80 занят nginx; агент получил адреса с
-  портом патчем 0004).
+  портом изменением NginxionS в своём коде).
 - `socket-proxy` и сеть `control` убраны: `nginxions-control` обращается к `/var/run/docker.sock` сам и ограничивает
   операции своим белым списком (список, логи, перезапуск, reload контейнеров стека с меткой `nginxions.managed`),
   слушает только 127.0.0.1, требует токен. Сокет смонтирован только в `openappsec`; `nginxions`, принимающий трафик

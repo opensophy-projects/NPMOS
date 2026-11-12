@@ -6,7 +6,7 @@ const TIMEOUT_MS = 3000;
 const none = (value) => (value === undefined || value === "" || value === "None" ? null : value);
 
 /**
- * An agent without the patch 0003 (deploy/openappsec/agent/patches) applies a new policy and then fails to
+ * An agent without the change of NginxionS in its orchestration (openappsec/agent) applies a new policy and then fails to
  * reconnect to the Fog (there is none in local-only mode): it reports the applied policy as failed with this
  * message and keeps no version. The policy is in force, so the status says so.
  */

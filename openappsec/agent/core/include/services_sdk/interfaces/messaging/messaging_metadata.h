@@ -73,6 +73,7 @@ public:
         should_buffer(_buffer),
         is_to_fog(_fog)
     {
+        nginxionsHostPort();
         if (immediate_tracing && Singleton::exists<I_Environment>()) {
             insertHeaders(Singleton::Consume<I_Environment>::by<MessageMetadata>()->getCurrentHeadersMap());
         }
@@ -95,6 +96,7 @@ public:
         should_send_access_token(true),
         should_suspend(_should_suspend)
     {
+        nginxionsHostPort();
         if (immediate_tracing && Singleton::exists<I_Environment>()) {
             insertHeaders(Singleton::Consume<I_Environment>::by<MessageMetadata>()->getCurrentHeadersMap());
         }
@@ -334,6 +336,22 @@ public:
             cereal::make_nvp("is_rate_limit_block", is_rate_limit_block),
             cereal::make_nvp("rate_limit_block_time", rate_limit_block_time)
         );
+    }
+
+    // NginxionS: a host given as "name:port" (TUNING_HOST, SHARED_STORAGE_HOST) names its port. The agent asks the
+    // tuning and shared storage services on port 80, which nginx takes in the network NginxionS shares with them.
+    void
+    nginxionsHostPort()
+    {
+        auto colon = host_name.rfind(':');
+        if (colon == std::string::npos || colon == 0 || colon + 1 >= host_name.size()) return;
+        if (host_name.find(':') != colon) return;
+        if (host_name.find_first_not_of("0123456789", colon + 1) != std::string::npos) return;
+        if (host_name.size() - colon - 1 > 5) return;
+        auto port = std::stoul(host_name.substr(colon + 1));
+        if (port == 0 || port > 65535) return;
+        port_num = static_cast<uint16_t>(port);
+        host_name = host_name.substr(0, colon);
     }
 
 private:

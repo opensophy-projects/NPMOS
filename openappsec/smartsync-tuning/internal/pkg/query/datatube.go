@@ -122,7 +122,9 @@ func NewAdapter(ctx context.Context, c Configuration, g GenQueries, driver drive
 	dbName := fmt.Sprintf("postgres://%s:%s@%s:%v/i2datatubeschemasecurityeventlogsv03?sslmode=%s",
 		dbUser, pass, dbHost, dbPort, sslMode)
 
-	log.WithContext(ctx).Infof("db name: %s", dbName)
+	// NginxionS: the connection string holds the password of the database user: never log it
+	log.WithContext(ctx).Infof("db name: postgres://%s:***@%s:%v/i2datatubeschemasecurityeventlogsv03?sslmode=%s",
+		dbUser, dbHost, dbPort, sslMode)
 
 	a := &Adapter{config: c, tenantsLock: &sync.Mutex{}, genQuery: g, driver: driver, dbName: dbName}
 	return a, nil
@@ -741,7 +743,8 @@ func (qa *Adapter) InsertLog(ctx context.Context, message *models.AgentMessage) 
 	if err != nil {
 		return errors.Wrap(err, "failed to generate insert statement")
 	}
-	log.WithContext(ctx).Infof("insert statement: %v, db name: %s", stmtStr, qa.dbName)
+	// NginxionS: no connection string (password) in the log
+	log.WithContext(ctx).Infof("insert statement: %v", stmtStr)
 	conn, err := qa.driver.Open(qa.dbName)
 	if err != nil {
 		errCreateDB := qa.createDB(ctx)

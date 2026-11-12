@@ -205,7 +205,8 @@ jobs:
           docker run --rm -v "$PWD:/src" -w /src "$HADOLINT_IMAGE" hadolint --config .github/security/hadolint.yaml \
             --no-fail -f json nginxions/Dockerfile deploy/openappsec/Dockerfile deploy/dev/Dockerfile > out/hadolint.json
           docker run --rm -v "$PWD:/src" -w /src "$TRIVY_IMAGE" config --quiet --format json \
-            --output out/trivy-config.json --skip-dirs nginxions/frontend/node_modules --skip-dirs nginxions/backend/node_modules .
+            --output out/trivy-config.json --skip-dirs nginxions/frontend/node_modules --skip-dirs nginxions/backend/node_modules \
+            --skip-dirs openappsec .
           docker run --rm -v "$PWD:/src" "$KICS_IMAGE" scan --no-progress --disable-secrets --ignore-on-exit results \
             -p /src/deploy,/src/nginxions/Dockerfile,/src/.github/workflows -o /src/out/kics --report-formats json,sarif
           # KICS repeats CWE entries in the taxonomies of its SARIF, which code scanning rejects
