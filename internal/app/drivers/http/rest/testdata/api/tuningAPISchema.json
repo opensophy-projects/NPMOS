@@ -1,0 +1,346 @@
+{
+  "type": "object",
+  "definitions": {
+    "LogicNode" : {
+      "type" : "object",
+      "required" : [ "operator", "operands" ],
+      "properties" : {
+        "operator" : {
+          "type" : "string",
+          "enum" : [ "AND", "OR", "and", "or" ]
+        },
+        "operands" : {
+          "type" : "array",
+          "minItems": 1,
+          "items" : {
+            "anyOf" : [ {
+              "$ref" : "#/definitions/EqLeaf"
+            }, {
+              "$ref" : "#/definitions/GtLtLeaf"
+            }, {
+              "$ref" : "#/definitions/GteLteLeaf"
+            }, {
+              "$ref" : "#/definitions/RangeLeaf"
+            }, {
+              "$ref" : "#/definitions/InLeaf"
+            }, {
+              "$ref" : "#/definitions/LogicNode"
+            }, {
+              "$ref" : "#/definitions/ListContainsNode"
+            }, {
+              "$ref" : "#/definitions/Match"
+            } , {
+              "$ref" : "#/definitions/StartsWith"
+            } , {
+              "$ref" : "#/definitions/Contains"
+            }  ]
+          }
+        }
+      }
+    },
+    "ListContainsNode": {
+      "type" : "object",
+      "required" : [ "operator", "key", "value" ],
+      "properties" : {
+        "operator" : {
+          "type" : "string",
+          "enum" : [ "LIST_CONTAINS" ]
+        },
+        "key" : {
+          "type" : "string",
+          "not": {"enum":  ["objectType"]}
+        },
+        "value" : {
+          "oneOf" : [
+            {"$ref" : "#/definitions/LogicNode"},
+            {"$ref" : "#/definitions/EqLeaf"},
+            {"$ref":  "#/definitions/GtLtLeaf"},
+            {"$ref":  "#/definitions/GteLteLeaf"},
+            {"$ref":  "#/definitions/RangeLeaf"},
+            {"$ref" : "#/definitions/InLeaf"},
+            {"$ref" : "#/definitions/ListContainsNode"},
+            {"$ref" : "#/definitions/Match"},
+            {"$ref" : "#/definitions/StartsWith"},
+            {"$ref" : "#/definitions/Contains"}
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "EqLeaf" : {
+      "type" : "object",
+      "required" : [ "operator", "key", "value" ],
+      "properties" : {
+        "operator" : {
+          "type" : "string",
+          "enum" : [ "EQUALS", "NOT_EQUALS", "equals", "notEquals" ]
+        },
+        "key" : {
+          "type" : "string",
+          "not": {"enum":  ["objectType"]}
+        },
+        "value" : {
+          "type" : ["object", "string", "integer", "array", "boolean"]
+        }
+      }
+    },
+    "GtLtLeaf" : {
+      "type" : "object",
+      "required" : [ "operator", "key", "value"],
+      "properties" : {
+        "operator": {
+          "type" : "string",
+          "enum" : ["GREATER_THAN", "greaterThan", "LESS_THAN", "lessThan"]
+        },
+        "key": {
+          "type": "string"
+        },
+        "value": {
+          "type": "number"
+        }
+      }
+    },
+    "GteLteLeaf" : {
+      "type" : "object",
+      "required" : [ "operator", "key", "value"],
+      "properties" : {
+        "operator": {
+          "type" : "string",
+          "enum" : ["GREATER_THAN_EQUALS", "greaterThanEquals", "LESS_THAN_EQUALS", "lessThanEquals"]
+        },
+        "key": {
+          "type": "string"
+        },
+        "value": {
+          "type": ["number", "string"]
+        }
+      }
+    },
+    "RangeLeaf" : {
+      "type" : "object",
+      "required" : [ "operator", "key", "value"],
+      "properties" : {
+        "operator": {
+          "type" : "string",
+          "enum" : ["RANGE", "range"]
+        },
+        "key": {
+          "type": "string"
+        },
+        "value": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": ["string", "integer"]
+          }
+        }
+      }
+    },
+    "InLeaf" : {
+      "type": "object",
+      "required": [
+        "operator",
+        "key",
+        "value"
+      ],
+      "properties": {
+        "operator": {
+          "type": "string",
+          "enum": [ "IN", "NOT_IN", "in", "notIn"]
+        },
+        "key": {
+          "type": "string",
+          "not": {"enum":  ["objectType"]}
+        },
+        "value": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": ["object", "string", "integer", "array"]
+          }
+        }
+      }
+    },
+    "Match" : {
+      "type" : "object",
+      "required" : [ "operator", "key", "value" ],
+      "properties" : {
+        "operator" : {
+          "type" : "string",
+          "enum" : [ "MATCH", "match" ]
+        },
+        "key" : {
+          "type" : "string",
+          "not": {"enum":  ["objectType"]}
+        },
+        "value" : {
+          "type" : "string"
+        }
+      }
+    },
+    "StartsWith" : {
+      "type" : "object",
+      "required" : [ "operator", "key", "value" ],
+      "properties" : {
+        "operator" : {
+          "type" : "string",
+          "enum" : [ "STARTS_WITH", "startsWith" ]
+        },
+        "key" : {
+          "type" : "string",
+          "not": {"enum":  ["objectType"]}
+        },
+        "value" : {
+          "type" : "string"
+        }
+      }
+    },
+    "Contains" : {
+      "type" : "object",
+      "required" : [ "operator", "key", "value" ],
+      "properties" : {
+        "operator" : {
+          "type" : "string",
+          "enum" : [ "CONTAINS", "contains" ]
+        },
+        "key" : {
+          "type" : "string",
+          "not": {"enum":  ["objectType"]}
+        },
+        "value" : {
+          "type" : "string"
+        }
+      }
+    }
+  },
+  "properties": {
+    "limit": {
+      "description": "the wanted limit of items returned",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000,
+      "default": 20
+    },
+    "cursor": {
+      "description": "the wanted pagination cursor",
+      "type": "string"
+    },
+    "sortBy": {
+      "description": "the field that the returned data will be ordered by",
+      "type": "string",
+      "default": "name",
+      "enum": [
+        "schemaVersion",
+        "assetType",
+        "assetTypeSchemaVersion",
+        "permissionType",
+        "class",
+        "category",
+        "family",
+        "group",
+        "order",
+        "kind",
+        "name"
+      ]
+    },
+    "fullResponse": {
+      "description": "if true want full response to the query, else partial response",
+      "type": "boolean"
+    },
+    "responseType": {
+      "description": "the response type the query should return",
+      "type": "string",
+      "enum": [
+        "assets",
+        "assetCollections"
+      ]
+    },
+    "queryFromAgent": {
+      "description": "if true the query came from the agent intelligence",
+      "type": "boolean"
+    },
+    "agentAuxDone": {
+      "description": "if true all auxiliaries of the agent intelligence finished reporting the data to the cloud",
+      "type": "boolean"
+    },
+    "objectType": {
+      "type": "string",
+      "description": "The object type this query refers to. Default is 'asset'",
+      "enum": [
+        "asset",
+        "zone",
+        "policyPackage"
+      ]
+    },
+    "queryTypes": {
+      "type": "object",
+      "description": "The types of the query",
+      "properties": {
+        "multiTenant": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "textQuery": {
+          "const": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "sourcesFromQuery": {
+      "type": "object",
+      "description": "The sources that the user asked about in the query",
+      "properties": {
+        "sourcesToQuery": {
+          "type": "object"
+        },
+        "sourcesNotToQuery": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    "query": {
+      "oneOf" : [
+        {"$ref" : "#/definitions/LogicNode"},
+        {"$ref" : "#/definitions/EqLeaf"},
+        {"$ref":  "#/definitions/GtLtLeaf"},
+        {"$ref":  "#/definitions/GteLteLeaf"},
+        {"$ref":  "#/definitions/RangeLeaf"},
+        {"$ref" : "#/definitions/InLeaf"},
+        {"$ref" : "#/definitions/Match"},
+        {"$ref" : "#/definitions/StartsWith"},
+        {"$ref" : "#/definitions/Contains"},
+        {"$ref" : "#/definitions/ListContainsNode"},
+        {
+          "type": "object",
+          "additionalProperties": false
+        }
+      ]
+    },
+    "requestedAttributes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["key"],
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "minConfidence": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000,
+            "default": 500
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": true,
+  "required": ["query"]
+}

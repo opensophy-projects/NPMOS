@@ -1,0 +1,201 @@
+{
+  "Query": {
+    "Stats": [
+      {
+        "ElapsedTime": 39,
+        "StartupTime": 140500,
+        "TotalRequests": 21000,
+        "SourcesCount": 315,
+        "URLsCount": 130,
+        "Count": 21000
+      }
+    ],
+    "Severity": [
+      {
+        "TotalRequests": 21000,
+        "HighSeverityRequests": 500,
+        "CriticalSeverityRequests": 200
+      }
+    ],
+    "Tuning": [
+    ]
+  },
+  "DB": {
+    "State": {
+      "Statistics": {
+        "status": "ready",
+        "elapsedTime": "1d 14h",
+        "totalRequests": 41000,
+        "criticalRequests": 200,
+        "highRequests": 500,
+        "uniqueUrls": 130,
+        "uniqueSources": 315,
+        "legitimateRequests": 40300,
+        "maliciousRequests": 700,
+        "readiness": 1,
+        "readinessDisplayName": "Kindergarten",
+        "recommendation": 1,
+        "recommendationDisplayName": "Keep Learning",
+        "recommendationToolTip": "The learning mechanism requires more time and HTTP requests",
+        "preLvlReqCount": 21000,
+        "startupTime": 140500
+      },
+      "TuningEvents": [
+        {
+          "decision": "undecided",
+          "eventType": "parameterValue",
+          "eventTitle": "select",
+          "severity": "critical",
+          "logQuery": "severity:critical and e:v",
+          "metrics": [
+            {
+              "metric": "events",
+              "count": 20
+            },
+            {
+              "metric": "sources",
+              "count": 3
+            },
+            {
+              "metric": "urls",
+              "count": 2
+            }
+          ],
+          "attackTypes": []
+        },
+        {
+          "decision": "undecided",
+          "eventType": "url",
+          "eventTitle": "/some/url.php",
+          "severity": "critical",
+          "logQuery": "severity:critical and e:v",
+          "metrics": [
+            {
+              "metric": "events",
+              "count": 50
+            },
+            {
+              "metric": "sources",
+              "count": 6
+            }
+          ],
+          "attackTypes": []
+        },
+        {
+          "decision": "undecided",
+          "eventType": "url",
+          "eventTitle": "/a/b/c.php",
+          "severity": "high",
+          "logQuery": "severity:critical and e:v",
+          "metrics": [
+            {
+              "metric": "events",
+              "count": 90
+            },
+            {
+              "metric": "sources",
+              "count": 5
+            }
+          ],
+          "attackTypes": []
+        },
+        {
+          "decision": "undecided",
+          "eventType": "parameterName",
+          "eventTitle": "q",
+          "severity": "critical",
+          "logQuery": "severity:critical and e:v",
+          "metrics": [
+            {
+              "metric": "events",
+              "count": 120
+            },
+            {
+              "metric": "sources",
+              "count": 8
+            },
+            {
+              "metric": "urls",
+              "count": 2
+            }
+          ],
+          "attackTypes": []
+        }
+      ]
+    },
+    "Expect": {
+      "Statistics": {
+        "status": "ready",
+        "elapsedTime": "1d 15h",
+        "totalRequests": 21000,
+        "criticalRequests": 200,
+        "highRequests": 500,
+        "uniqueUrls": 130,
+        "uniqueSources": 315,
+        "legitimateRequests": 20300,
+        "maliciousRequests": 700,
+        "readiness": 2,
+        "readinessDisplayName": "Primary School",
+        "readinessToolTip": "To advance to the next level, at least 21000 additional HTTP requests are required",
+        "recommendation": 1,
+        "recommendationDisplayName": "Keep Learning",
+        "recommendationToolTip" : "The learning mechanism requires additional HTTP requests",
+        "preLvlReqCount": 21000,
+        "requestsFromStart": 21000,
+        "startupTime": 600
+      },
+      "TuningEvents": []
+    }
+  },
+  "S3": {
+    "Decisions": {
+      "decisions": [
+        {
+          "decision": "benign",
+          "eventType": "source",
+          "eventTitle": "127.0.0.1",
+          "severity": "high",
+          "logQuery": "severity:critical and e:v",
+          "metrics": [
+            {
+              "metric": "events",
+              "count": 90
+            },
+            {
+              "metric": "sources",
+              "count": 5
+            }
+          ],
+          "attackTypes": []
+        }
+      ]
+    },
+    "Confidence" : {
+      "confidence_set": [
+        {
+          "key": "key",
+          "value": {
+            "first": [
+              "2"
+            ],
+            "second": 250000
+          }
+        }
+      ],
+      "confidence_levels" : [
+        {
+          "key": "key",
+          "value":[
+            {
+              "key": "2",
+              "value": 125.5
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "Conf": {
+    "TenantsList": "All"
+  }
+}

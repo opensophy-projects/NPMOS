@@ -1,0 +1,167 @@
+{
+  "Query": {
+    "Stats": [
+      {
+        "ElapsedTime": 39,
+        "SourcesCount": 3,
+        "URLsCount": 13,
+        "Count": 650,
+        "TotalRequests": 650,
+        "StartupTime": 29000
+      }
+    ],
+    "Severity": [
+      {
+        "TotalRequests": 650,
+        "HighSeverityRequests": 600,
+        "CriticalSeverityRequests": 50
+      }
+    ],
+    "Tuning": [
+      {
+        "Severity": "Critical",
+        "ExtraFieldName": "url",
+        "ExtraFieldValue": "/some/url.php",
+        "URLsCount": 1,
+        "SourcesCount": 6,
+        "Count": 10,
+        "AttackTypes": [
+          "LDAP Injection"
+        ],
+        "LogIDs": [1]
+      },
+      {
+        "Severity": "High",
+        "ExtraFieldName": "url",
+        "ExtraFieldValue": "/a/b/c.php",
+        "URLsCount": 1,
+        "SourcesCount": 5,
+        "Count": 90,
+        "AttackTypes": [
+          "LDAP Injection"
+        ],
+        "LogIDs": [2]
+      },
+      {
+        "Severity": "High",
+        "ExtraFieldName": "url",
+        "ExtraFieldValue": "/a/b/c/d.php",
+        "URLsCount": 1,
+        "SourcesCount": 5,
+        "Count": 55,
+        "AttackTypes": [
+          "LDAP Injection"
+        ],
+        "LogIDs": [3]
+      },
+      {
+        "Severity": "High",
+        "ExtraFieldName": "source",
+        "ExtraFieldValue": "127.0.0.1",
+        "URLsCount": 15,
+        "SourcesCount": 1,
+        "Count": 40,
+        "AttackTypes": [
+          "SQL Injection"
+        ],
+        "LogIDs": [4]
+      }
+    ]
+  },
+  "DB": {
+    "State": {},
+    "Expect": {
+      "Statistics": {
+        "status": "ready",
+        "elapsedTime": "1d 15h",
+        "totalRequests": 650,
+        "criticalRequests": 50,
+        "highRequests": 600,
+        "uniqueUrls": 13,
+        "uniqueSources": 3,
+        "totalElapsedTime": 0,
+        "legitimateRequests": 0,
+        "maliciousRequests": 650,
+        "readiness": 1,
+        "readinessDisplayName": "Kindergarten",
+        "readinessToolTip" : "To advance to the next level, at least 350 additional HTTP requests are required",
+        "recommendation": 1,
+        "recommendationDisplayName": "Keep Learning",
+        "recommendationToolTip" : "The learning mechanism requires additional HTTP requests",
+        "preLvlReqCount": 650,
+        "requestsFromStart": 650
+      },
+      "TuningEvents": [
+        {
+          "decision": "undecided",
+          "eventType": "url",
+          "eventTitle": "/some/url.php",
+          "severity": "critical",
+          "logQuery": "severity:critical and e:v",
+          "metrics": [
+            {
+              "metric": "events",
+              "count": 10
+            },
+            {
+              "metric": "sources",
+              "count": 6
+            }
+          ],
+          "attackTypes": [
+            "LDAP Injection"
+          ]
+        },
+        {
+          "decision": "undecided",
+          "eventType": "url",
+          "eventTitle": "/a/b/c/d.php",
+          "severity": "high",
+          "logQuery": "severity:critical and e:v",
+          "metrics": [
+            {
+              "metric": "events",
+              "count": 55
+            },
+            {
+              "metric": "sources",
+              "count": 5
+            }
+          ],
+          "attackTypes": [
+            "LDAP Injection"
+          ]
+        },
+        {
+          "decision": "undecided",
+          "eventType": "url",
+          "eventTitle": "/a/b/c.php",
+          "severity": "high",
+          "logQuery": "severity:critical and e:v",
+          "metrics": [
+            {
+              "metric": "events",
+              "count": 90
+            },
+            {
+              "metric": "sources",
+              "count": 5
+            }
+          ],
+          "attackTypes": [
+            "LDAP Injection"
+          ]
+        }
+      ]
+    }
+  },
+  "S3": {
+    "Decisions": {
+    }
+  },
+  "Conf": {
+    "TenantsList": "All",
+    "MinCount": 50,
+    "MinRatio": 10
+  }
+}

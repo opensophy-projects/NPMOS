@@ -1,0 +1,13 @@
+{
+  "limit": 20,
+  "query": {
+    "operator": "NOT_EQUALS",
+    "key": "mainAttributes.tuningId",
+    "value": "bbbd50b5-5dbc-4881-88f7-0a200fcde16c#18bc110f-120e-a40e-b971-af663292c992"
+  },
+  "requestedAttributes": [
+    "attributes.tuningStatistics",
+    "attributes.tuningSuggestions",
+    "attributes.tuningDecisions"
+  ]
+}

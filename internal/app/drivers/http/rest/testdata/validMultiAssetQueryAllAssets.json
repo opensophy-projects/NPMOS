@@ -1,0 +1,24 @@
+{
+  "limit": 20,
+  "query": {
+    "operator": "AND",
+    "operands": [
+      {
+        "operator": "NOT_EQUALS",
+        "key": "class",
+        "value": "true"
+      },
+      {
+        "operator": "NOT_EQUALS",
+        "key": "sourceId",
+        "value": "11111"
+      },
+      {
+        "operator": "EQUALS",
+        "key": "sourceId",
+        "value": "22222"
+      }
+    ]
+  },
+  "requestedAttributes": []
+}

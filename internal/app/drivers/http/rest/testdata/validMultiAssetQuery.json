@@ -1,0 +1,22 @@
+{
+  "limit": 20,
+  "query": {
+    "operator": "NOT_EQUALS",
+    "key": "attributes.mgmtId",
+    "value": "*"
+  },
+  "requestedAttributes": [
+    {
+      "key": "attributes.tuningStatistics",
+      "minConfidence": 500
+    },
+    {
+      "key": "attributes.tuningSuggestions",
+      "minConfidence": 500
+    },
+    {
+      "key": "attributes.tuningDecisions",
+      "minConfidence": 500
+    }
+  ]
+}

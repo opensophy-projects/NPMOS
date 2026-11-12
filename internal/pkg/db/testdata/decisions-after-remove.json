@@ -1,0 +1,24 @@
+{
+  "decisions": [
+    {
+      "decision": "benign",
+      "eventTitle": "a/non/waap",
+      "eventType": "body",
+      "logQuery": "httpuripath:/a/non/malicious and severity:critical",
+      "severity": "high",
+      "metrics": [
+        {
+          "metric": "events",
+          "count": 50
+        },
+        {
+          "metric": "sources",
+          "count": 60
+        }
+      ],
+      "attackTypes": [],
+      "policyVersion": 5
+    }
+  ]
+}
+

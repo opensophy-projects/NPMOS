@@ -1,0 +1,19 @@
+{
+  "limit": 100,
+  "offset": 0,
+  "query": {
+    "operator": "AND",
+    "operands": [
+      {
+        "operator": "NOT_EQUALS",
+        "key": "class",
+        "value": "true"
+      },
+      {
+        "operator": "NOT_EQUALS",
+        "key": "tenantId",
+        "value": "27278218-0e7f-4cd8-bdfe-2a5897d68fd0"
+      }
+    ]
+  }
+}

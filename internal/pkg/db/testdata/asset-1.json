@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "ttl": 172800,
+  "name": "asset_tuning",
+  "class": "data",
+  "category": "cloud",
+  "family": "Tuning",
+  "confidence": 50,
+  "assetType": "data-cloud-Tuning",
+  "assetTypeSchemaVersion": 1,
+  "permissionType": "tenant",
+  "mainAttributes": {
+    "id": "asset"
+  },
+  "attributes": {
+    "calculated": "true",
+    "data": {
+      "mgmtId" : "asset",
+      "statistics": {
+        "status": "",
+        "totalRequests": 1000,
+        "elapsedTime" : "",
+        "criticalRequests": 0,
+        "highRequests": 0,
+        "uniqueSources": 0,
+        "uniqueUrls": 0,
+        "legitimateRequests" : 0,
+        "maliciousRequests" : 0,
+        "startupTime": 0,
+        "readiness" : 0,
+        "readinessDisplayName": "",
+        "readinessToolTip": "",
+        "recommendation": 0,
+        "recommendationDisplayName": "",
+        "recommendationToolTip": "",
+        "preLvlReqCount": 0
+      },
+      "tuningEvents": [
+      ],
+      "tuningEventsDecided": [
+      ]
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "limit": 20,
+  "query": {
+    "operator": "EQUALS",
+    "key": "attributes.mgmtId",
+    "value": "18bc110f-120e-a40e-b971-af663292c992"
+  },
+  "requestedAttributes": [
+    {
+      "key": "attributes.tuningStatistics",
+      "minConfidence": 500
+    },
+    {
+      "key": "attributes.tuningSuggestions",
+      "minConfidence": 500
+    },
+    {
+      "key": "attributes.tuningDecisions",
+      "minConfidence": 500
+    }
+  ]
+}

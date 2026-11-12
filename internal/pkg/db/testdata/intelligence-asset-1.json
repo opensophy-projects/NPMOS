@@ -1,0 +1,15 @@
+{
+  "ttl": 200000,
+  "name": "asset_tuning",
+  "class": "data",
+  "category": "cloud",
+  "family": "Tuning",
+  "assetId" : "abcd1234",
+  "confidence": 50,
+  "mainAttributes": {
+    "id": "asset"
+  },
+  "attributes": {
+    "id" : "123456"
+  }
+}

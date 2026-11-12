@@ -1,0 +1,142 @@
+{
+  "Query": {
+    "Stats": [
+      {
+        "ElapsedTime": 39,
+        "SourcesCount": 3,
+        "URLsCount": 13,
+        "Count": 5000,
+        "StartupTime": 140500,
+        "TotalRequests": 1500000
+      }
+    ],
+    "Severity": [
+      {
+        "TotalRequests": 5000,
+        "HighSeverityRequests": 500,
+        "CriticalSeverityRequests": 200
+      }
+    ],
+    "Tuning": []
+  },
+  "DB": {
+    "State": {
+      "statistics": {
+        "status": "ready",
+        "elapsedTime": "1d 14h",
+        "totalRequests": 150000,
+        "criticalRequests": 200,
+        "highRequests": 500,
+        "uniqueUrls": 13,
+        "uniqueSources": 3,
+        "startupTime": 140500,
+        "legitimateRequests": 4300,
+        "maliciousRequests": 700,
+        "readiness": 4,
+        "recommendation": 2,
+        "preLvlReqCount": 100000
+      },
+      "trustedSourcesPolicy": {
+        "numOfSources": 3,
+        "sourcesIdentifiers": []
+      }
+    },
+    "Expect": {
+      "Statistics": {
+        "status": "ready",
+        "elapsedTime": "1d 15h",
+        "totalRequests": 5000,
+        "criticalRequests": 200,
+        "highRequests": 500,
+        "uniqueUrls": 13,
+        "uniqueSources": 3,
+        "startupTime": 39,
+        "legitimateRequests": 4300,
+        "maliciousRequests": 700,
+        "readiness": 4,
+        "readinessDisplayName": "Graduate",
+        "readinessToolTip": "To become a master, 129 additional learning hours and configuration of at least 5 additional trusted sources are required",
+        "recommendation": 3,
+        "recommendationDisplayName": "Prevent Critical Severity",
+        "recommendationToolTip": "The system is ready to prevent critical severity events. Please navigate to threat prevention tab and change the web attacks practice settings. We will recommend to prevent high severity events upon getting a PhD",
+        "preLvlReqCount": 100000,
+        "requestsFromStart": 1500000,
+        "mitigationMode": "Detect",
+        "mitigationLevel": "High"
+      },
+      "TuningEvents": []
+    }
+  },
+  "S3": {
+    "Decisions": {
+    },
+    "Confidence": {
+      "confidence_set": [
+        {
+          "key": "key",
+          "value": {
+            "first": [
+              "2"
+            ],
+            "second": 300
+          }
+        }
+      ],
+      "confidence_levels": [
+        {
+          "key": "key",
+          "value": [
+            {
+              "key": "2",
+              "value": 125.5
+            },
+            {
+              "key": "1",
+              "value": 27.5
+            },
+            {
+              "key": "3",
+              "value": 25.5
+            }
+          ]
+        },
+        {
+          "key": "key2",
+          "value": [
+            {
+              "key": "2",
+              "value": 51.5
+            },
+            {
+              "key": "1",
+              "value": 27.5
+            },
+            {
+              "key": "3",
+              "value": 25.5
+            },
+            {
+              "key": "4",
+              "value": 25.5
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "Conf": {
+    "TenantsList": "All"
+  },
+  "GraphQL": {
+    "Times": 1,
+    "Ret": 1
+  },
+  "PolicyFetch": {
+    "Times": 1,
+    "Ret": {
+      "AssetID" : "asset",
+      "Mode": "Detect",
+      "Level": "High"
+    }
+  }
+}
