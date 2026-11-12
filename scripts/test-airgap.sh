@@ -25,7 +25,7 @@ cleanup() {
         cat /ext/appsec/nginxions-agent.env; tail -n 5 /var/log/nano_agent/cp-nano-http-transaction-handler.log*;
         tail -n 20 /var/log/nano_agent/*.err 2> /dev/null;
         echo "--- orchestration: checks of updates, policies applied ---";
-        grep -h "check update\|Check update\|NginxionS\|apply\|Failed" /var/log/nano_agent/cp-nano-orchestration.dbg* \
+        grep -h "check update\|Check update\|NginxionS\|apply\|Failed\|econfiguration" /var/log/nano_agent/cp-nano-orchestration.dbg* \
           2> /dev/null | tail -n 40' || true
     fi
   fi
