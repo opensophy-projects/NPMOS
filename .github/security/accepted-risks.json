@@ -176,6 +176,14 @@
 		{
 			"kind": "false-positive",
 			"tool": "codeql-js",
+			"id": "js/insecure-temporary-file",
+			"where": "nginxions/backend/nginxions/control/server.js",
+			"reason": "nothing is created: the file the agent generated in its own /tmp (/tmp/local_appsec.policy) is opened read only (flag \"r\") and parsed as JSON; a missing file is reported as no policy",
+			"until": "2027-05-01"
+		},
+		{
+			"kind": "false-positive",
+			"tool": "codeql-js",
 			"id": "js/path-injection",
 			"where": "nginxions/backend/internal/nginx.js",
 			"reason": "the path of a host's configuration is built from a host type every caller passes as a constant (proxy_host, redirection_host, dead_host, stream, default) and the integer id of its database row; nothing of a request reaches it",

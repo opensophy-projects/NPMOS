@@ -740,7 +740,11 @@ WaapComponent::Impl::finishTransaction(IWaf2Transaction& waf2Transaction, EventV
             ScopedContext ctx;
             ctx.registerValue<std::set<GenericConfigId>>(TriggerMatcher::ctx_key, {trigger.getId()});
             auto conf = getConfiguration<WebTriggerConf>("rulebase", "webUserResponse");
-            if (conf.ok() && conf.unpack().getResponseCode() >= 100 && conf.unpack().getResponseCode() <= 599) {
+            // a redirect has no code of its own (the attachment answers it with 307)
+            if (conf.ok() && (
+                conf.unpack().getDetailsLevel() == "Redirect" ||
+                (conf.unpack().getResponseCode() >= 100 && conf.unpack().getResponseCode() <= 599)
+            )) {
                 web_user_response = trigger.getId();
             }
             break;
