@@ -255,6 +255,12 @@ WaapAssetState::WaapAssetState(
                         else if (isSpecialUnicode(acc)) {
                             *result++ = convertSpecialUnicode(acc);
                         }
+                        else if (char replacement = nonAsciiReplacement(acc)) {
+                            // NginxionS: a letter of another script separates words, a run of them is one space
+                            if (replacement != ' ' || result == text.begin() || *(result - 1) != ' ') {
+                                *result++ = replacement;
+                            }
+                        }
                         acc = 0;
                     }
                 }

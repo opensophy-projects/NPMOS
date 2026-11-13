@@ -14,6 +14,9 @@
 #include "shell_cmd.h"
 
 #include <fcntl.h>
+#include <poll.h>
+#include <unistd.h>
+#include <cerrno>
 
 #include "singleton.h"
 #include "i_time_get.h"
@@ -83,17 +86,33 @@ public:
         auto timer = Singleton::Consume<I_TimeGet>::by<ShellCmd>();
         chrono::microseconds timeout = timer->getMonotonicTime() + chrono::milliseconds(ms_tmout);
         string result;
-        while (!feof(pipe)) {
+        // NginxionS: read(2) instead of fgets on the non-blocking pipe. musl's fgets drops the part of a line it
+        // already read when the pipe has no more data yet (EAGAIN): the output of yq (the local policy as JSON) lost
+        // bytes when it came in two writes, and a valid policy was refused.
+        int fd = fileno(pipe);
+        while (true) {
             if (timer->getMonotonicTime() >= timeout ) {
                 pclose(pipe);
                 dbgWarning(D_INFRA_API) << "Reached timeout while executing shell command: " << cmd;
                 return genError("Reached timeout while executing shell command: " + cmd);
             }
 
-            char buffer[128];
-            bool did_get = fgets(buffer, sizeof(buffer)-1, pipe) != nullptr;
-            if (did_get) result += buffer;
-            if (do_yield && mainloop != nullptr) mainloop->yield(!did_get);
+            char buffer[4096];
+            ssize_t len = read(fd, buffer, sizeof(buffer));
+            if (len == 0) break;
+            bool did_get = len > 0;
+            if (did_get) {
+                result.append(buffer, len);
+            } else if (errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR) {
+                dbgWarning(D_INFRA_API) << "Failed to read the output of shell command: " << cmd;
+                break;
+            }
+            if (do_yield && mainloop != nullptr) {
+                mainloop->yield(!did_get);
+            } else if (!did_get) {
+                struct pollfd wait_for = {fd, POLLIN, 0};
+                poll(&wait_for, 1, 10);
+            }
         }
 
         auto code = pclose(pipe) / 256;

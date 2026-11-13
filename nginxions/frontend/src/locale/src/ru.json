@@ -5735,9 +5735,6 @@
 	"nginxions.policy.view": {
 		"defaultMessage": "Открыть"
 	},
-	"nginxions.policy.warning.exceptions": {
-		"defaultMessage": "У правила {rule} несколько исключений: в v1beta2 агент применяет только первое. Объедините их в одно исключение."
-	},
 	"nginxions.policy.warning.missing": {
 		"defaultMessage": "Правило {rule} ссылается на несуществующий {name} (экспертный фрагмент?): агент его пропустит."
 	},

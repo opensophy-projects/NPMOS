@@ -99,6 +99,27 @@ if [[ " ${services[*]} " == *" openappsec "* ]]; then
   fi
 fi
 
+echo "==> nginx reloads under traffic: the old workers exit (open-appsec attachment, issue of stuck workers)"
+# NginxionS reloads nginx at every change made in the GUI; a worker of the attachment that never left "shutting down"
+# would pile up with every reload
+"${compose[@]}" exec -T nginxions sh -c '
+  (for i in $(seq 1 300); do curl -s -o /dev/null --max-time 2 http://127.0.0.1/ || true; done) &
+  for i in 1 2 3; do nginx -s reload; sleep 3; done
+  wait'
+stuck=0
+for i in $(seq 1 20); do
+  stuck=$("${compose[@]}" exec -T nginxions sh -c 'ps -o args 2> /dev/null || ps' | grep -c "shutting down" || true)
+  [ "$stuck" = 0 ] && break
+  sleep 3
+done
+[ "$stuck" = 0 ] || { echo "FAIL: $stuck nginx workers are still shutting down a minute after the reloads"; exit 1; }
+
+echo "==> no nginx worker crashed (signal, failed allocation)"
+if "${compose[@]}" logs --no-color nginxions 2>&1 | grep -E "worker process [0-9]+ exited on signal|malloc\([0-9]+\) failed"; then
+  echo "FAIL: an nginx worker crashed"
+  exit 1
+fi
+
 echo "==> no phone-home attempts in logs"
 # Messages that only appear when a component tries to reach a cloud service by default
 if "${compose[@]}" logs --no-color "${services[@]}" 2>&1 \

@@ -37,7 +37,7 @@ NginxionS — форк NPMplus с встроенными open-appsec (ML-WAF) и
 git subtree pull --prefix=nginxions https://github.com/ZoeyVid/NPMplus <tag> --squash
 ```
 
-Берём только релизные теги NPMplus (`YYYY-MM-DD-rN`): они ставятся не на `develop`, а `develop` может содержать незавершённые изменения. После обновления: разрешить конфликты по меткам `NginxionS:`, поменять `NPMPLUS_BASE` в `deploy/dev/Dockerfile` на тот же тег, прогнать проверки и закрытый контур. Текущий тег: **2026-10-22-r1**.
+Берём только релизные теги NPMplus (`YYYY-MM-DD-rN`): они ставятся не на `develop`, а `develop` может содержать незавершённые изменения. После обновления: разрешить конфликты по меткам `NginxionS:`, поменять образ NPMplus в последнем `FROM` `deploy/dev/Dockerfile` на тот же тег (с его дайджестом), прогнать проверки и закрытый контур. Текущий тег: **2026-10-22-r1**.
 
 ## Команды проверки
 
@@ -97,6 +97,7 @@ cd nginxions/frontend && pnpm install && pnpm vite                              
 - Проверки безопасности в CI (SAST, секреты, SCA, SBOM, IaC, образы, DAST) и их политика — `docs/DEVSECOPS.md`; итог —
   в Summary прогона и в артефакте `security-report`. Находку исправляют; если нельзя — вносят в
   `.github/security/accepted-risks.json` с причиной и сроком. Ложное срабатывание Semgrep — `// nosemgrep: <правило> -- почему`.
-  На обычных ветках CI быстрый (без образов и DAST); полный прогон — `work`, теги, PR, ветки `security/**` или
-  `[full]` в сообщении коммита.
+  На обычных ветках CI быстрый (без образов и DAST); полный прогон — `work`, теги, PR или `[full]` в сообщении
+  коммита; расширенный (тяжёлые сканеры) — ветки `security/**`, PR с меткой `security-scan`, Run workflow с уровнем
+  `extended`.
 - Доступ к Docker — только у `nginxions-control` (в контейнере `openappsec`, сокет `/var/run/docker.sock`): белый список операций (список, логи, перезапуск, reload контейнеров стека с меткой `nginxions.managed`), токен, аудит, слушает только 127.0.0.1. Контейнер `nginxions`, принимающий трафик из интернета, сокета не получает.

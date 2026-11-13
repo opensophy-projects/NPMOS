@@ -407,12 +407,6 @@ export const needsV2 = (doc) => {
 	return reasons;
 };
 
-/** rules whose exceptions after the first are ignored by the agent in v1beta2 */
-export const v2ExceptionLimits = (doc) =>
-	[doc.policies?.default, ...list(doc.policies?.specificRules)]
-		.filter((r) => r && list(r.exceptions).length > 1)
-		.map((r) => r.name || r.host || "default");
-
 /** fields of a rule → the section its names are in */
 const RULE_REFS = {
 	threatPreventionPractices: "threatPreventionPractices",

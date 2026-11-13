@@ -187,6 +187,13 @@ AppSecPracticeWebAttacks::getMinimumConfidence() const
     return minimum_confidence;
 }
 
+// NginxionS: declared by upstream but never defined (unused there); WebAppSection and PracticeAdvancedConfig read it
+const AppSecWebAttackProtections &
+AppSecPracticeWebAttacks::getprotections() const
+{
+    return protections;
+}
+
 const string &
 AppSecPracticeWebAttacks::getMode(const string &default_mode) const
 {
@@ -410,6 +417,16 @@ AppsecPracticeAntiBotSection::save(cereal::JSONOutputArchive &out_ar) const
 }
 
 // LCOV_EXCL_START Reason: no test exist
+// NginxionS: the mode of a protection of a v1beta1 practice (csrf-enabled, open-redirect-enabled,
+// error-disclosure-enabled) as the agent takes it: "as-top-level" (or "inherited") is the mode of the web attacks
+static string
+v1ProtectionMode(const string &value, const string &web_attack_mode)
+{
+    if (value == "inherited" || value == "as-top-level") return web_attack_mode;
+    auto mode = key_to_practices_val2.find(value);
+    return mode == key_to_practices_val2.end() ? "Disabled" : mode->second;
+}
+
 // Used for V1Beta1
 WebAppSection::WebAppSection(
     const string &_application_urls,
@@ -435,6 +452,8 @@ WebAppSection::WebAppSection(
     practice_name(_practice_name),
     context(_context),
     web_attack_mitigation_mode(parsed_appsec_spec.getWebAttacks().getMode(default_mode)),
+    // NginxionS: set from the policy below (they were always "Disabled": CSRF, open redirect and error disclosure
+    // of a v1beta1 policy had no effect)
     csrf_protection_mode("Disabled"),
     open_redirect_mode("Disabled"),
     error_disclosure_mode("Disabled"),
@@ -453,6 +472,12 @@ WebAppSection::WebAppSection(
     } else {
         web_attack_mitigation_severity = key_to_mitigation_severity.at(mitigation_sevirity);
     }
+    // NginxionS: the protections of the practice, as in the constructor of v1beta2 ("as-top-level": the mode of the
+    // web attacks)
+    const AppSecWebAttackProtections &protections = parsed_appsec_spec.getWebAttacks().getprotections();
+    csrf_protection_mode = v1ProtectionMode(protections.getCsrfProtectionValue(), web_attack_mitigation_mode);
+    open_redirect_mode = v1ProtectionMode(protections.getOpenRedirectValue(), web_attack_mitigation_mode);
+    error_disclosure_mode = v1ProtectionMode(protections.getErrorDisclosureMode(), web_attack_mitigation_mode);
     web_attack_mitigation = web_attack_mitigation_mode != "Disabled";
     web_attack_mitigation_severity =
         web_attack_mitigation_mode != "Prevent" ? "Transparent" :

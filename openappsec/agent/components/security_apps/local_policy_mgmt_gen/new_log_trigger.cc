@@ -13,6 +13,8 @@
 
 #include "new_log_trigger.h"
 
+#include <cereal/types/vector.hpp>
+
 using namespace std;
 
 USE_DEBUG_FLAG(D_LOCAL_POLICY);
@@ -170,6 +172,20 @@ NewStdoutLogging::getFormat() const
     return format;
 }
 
+// NginxionS: a logging service of a log trigger is a list in the schema of the policy (syslogService: [{address,
+// port}]) but the agent read an object only: a list left the address empty and the events never went to syslog.
+// Both are read; of a list, the first service.
+template <typename Service>
+static void
+parseLoggingService(const std::string &key, Service &service, cereal::JSONInputArchive &archive_in)
+{
+    parseAppsecJSONKey<Service>(key, service, archive_in);
+    if (!service.getAddress().empty()) return;
+    std::vector<Service> services;
+    parseAppsecJSONKey<std::vector<Service>>(key, services, archive_in);
+    if (!services.empty()) service = services.front();
+}
+
 void
 NewAppsecTriggerLogDestination::load(cereal::JSONInputArchive &archive_in)
 {
@@ -195,8 +211,8 @@ NewAppsecTriggerLogDestination::load(cereal::JSONInputArchive &archive_in)
     parseAppsecJSONKey<NewStdoutLogging>("stdout", stdout_log, archive_in);
     parseAppsecJSONKey<bool>("logToAgent", agent_local, archive_in, true);
     beautify_logs = stdout_log.getFormat() == "json-formatted";
-    parseAppsecJSONKey<NewLoggingService>("syslogService", syslog_service, archive_in);
-    parseAppsecJSONKey<NewLoggingService>("cefService", cef_service, archive_in);
+    parseLoggingService<NewLoggingService>("syslogService", syslog_service, archive_in);
+    parseLoggingService<NewLoggingService>("cefService", cef_service, archive_in);
 }
 
 int

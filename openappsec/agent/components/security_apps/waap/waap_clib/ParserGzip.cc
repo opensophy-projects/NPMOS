@@ -13,6 +13,7 @@
 
 #include "ParserGzip.h"
 #include "debug.h"
+#include <cstdlib>
 
 USE_DEBUG_FLAG(D_WAAP_PARSER_GZIP);
 
@@ -68,14 +69,21 @@ size_t ParserGzip::push(const char *buf, size_t len) {
             << ", is last: " << res.is_last_chunk;
 
         if (!res.ok) {
+            free(res.output); // NginxionS: the buffer of decompressDataSafe is ours to free (it leaked)
             m_state = s_error;
             break;
         }
 
-        if (res.num_output_bytes != 0 &&
-                m_receiver.onValue(reinterpret_cast<const char *>(res.output), res.num_output_bytes) != 0) {
-            m_state = s_error;
-            break;
+        {
+            // NginxionS: the decompressed body was never freed: every gzip request leaked its size in the
+            // transaction handler (openappsec/openappsec#470). onValue copies what it keeps.
+            bool failed = res.num_output_bytes != 0 &&
+                m_receiver.onValue(reinterpret_cast<const char *>(res.output), res.num_output_bytes) != 0;
+            free(res.output);
+            if (failed) {
+                m_state = s_error;
+                break;
+            }
         }
 
         if (res.is_last_chunk) {

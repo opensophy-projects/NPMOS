@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import { readFileSync } from "node:fs";
 import cookieParser from "cookie-parser";
 import express from "express";
+import { DBError } from "objection";
 import fileUpload from "express-fileupload";
 import { debug, express as logger } from "./logger.js";
 import mainRoutes from "./routes/main.js";
@@ -21,9 +22,10 @@ app.disable("x-powered-by");
 app.set("json spaces", 2);
 
 // NginxionS: answers of the API (tokens, settings, keys) are not stored by browsers or proxies; a route that may be
-// cached (CRL, OCSP of the PKI) sets its own Cache-Control (DAST: ZAP 10015, 10049)
+// cached (CRL, OCSP of the PKI) sets its own Cache-Control (DAST: ZAP 10015, 10049; ZAP wants no-cache and
+// must-revalidate next to no-store, for caches that do not know no-store)
 app.use((_req, res, next) => {
-	res.set("Cache-Control", "no-store");
+	res.set("Cache-Control", "no-cache, no-store, must-revalidate");
 	next();
 });
 
@@ -78,6 +80,12 @@ app.use((err, req, res, _) => {
 	if (!err.status && err.name === "ValidationError" && err.statusCode === 400) {
 		err.status = 400;
 		err.public = true;
+	}
+	// NginxionS: the database refusing the data of a request (an id of a certificate or access list that does not exist,
+	// a value of a wrong type, a duplicate) is a bad request too, not an internal error (DAST: ZAP got 500 on POST and PUT
+	// of hosts); the message of the database is not shown
+	if (!err.status && err instanceof DBError) {
+		err.status = 400;
 	}
 	const payload = {
 		error: {

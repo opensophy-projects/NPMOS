@@ -39,3 +39,19 @@ func TestGenerateLogQueryQuotesTheTitle(t *testing.T) {
 		t.Errorf("unbalanced quotes: %s", q)
 	}
 }
+
+// NginxionS: a partition is named by the day it holds, under its own prefix, and is created once by several writers
+func TestCreateTablePartition(t *testing.T) {
+	qg := &QueriesGen{}
+	stmt, err := qg.CreateTablePartition("", "2026-09-16T00:00:05.875")
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "CREATE TABLE IF NOT EXISTS appsec_p_2026_09_16 PARTITION OF appsec FOR VALUES FROM ('2026-09-16') TO ('2026-09-17')"
+	if stmt != want {
+		t.Fatalf("got %q, want %q", stmt, want)
+	}
+	if stmt, _ = qg.CreateTablePartition("", "2026-12-31T23:59:59.999"); !strings.Contains(stmt, "FROM ('2026-12-31') TO ('2027-01-01')") {
+		t.Fatalf("end of the year: %q", stmt)
+	}
+}

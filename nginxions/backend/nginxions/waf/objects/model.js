@@ -113,7 +113,9 @@ const practice = ({ confidence = "high", strictProtections = false, methods = fa
 
 /** name → {kind, spec}; created at start, updated with NginxionS, read-only in the GUI */
 export const BUILTIN = {
-	"nginxions-recommended": { kind: "threat_prevention", spec: practice() },
+	// non-standard methods blocked: the agent blocked them always until it read the setting (openappsec/agent,
+	// PracticeAdvancedConfig), the recommended practice keeps that
+	"nginxions-recommended": { kind: "threat_prevention", spec: practice({ methods: true }) },
 	"nginxions-strict": {
 		kind: "threat_prevention",
 		spec: practice({ confidence: "medium", strictProtections: true, methods: true }),

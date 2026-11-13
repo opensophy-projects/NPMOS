@@ -5,15 +5,29 @@
 #   called by CI (ci.yml) on every push and pull request: SAST, secrets, SCA and SBOM of the sources, IaC, the
 #     workflows, code quality. ci.yml checks the images (vulnerabilities, SBOM, CIS), attacks the running stack
 #     (DAST) and writes the summary report (job "report").
-#   weekly through CI on the branch security/<date> (security-weekly.yml) and by hand (Actions → Security → Run
-#     workflow): the same, plus the images published on Docker Hub (new CVEs in what is already released).
+#   the extended run of CI (level "extended": branches security/**, the weekly security/<date> of
+#     security-weekly.yml, a pull request with the label security-scan, Run workflow with level "extended") and by
+#     hand here (Actions → Security → Run workflow): the same with the heavy checks, CodeQL security-and-quality, more
+#     Semgrep rulesets, the secrets of every branch, and the images published on Docker Hub (every release, develop,
+#     latest: new CVEs in what is already released).
 #
 # What fails the run is decided in one place, scripts/security-report.mjs (the policy at its top); accepted risks
 # are listed with their reason and an end date in .github/security/accepted-risks.json. See docs/DEVSECOPS.md.
 name: Security
 on:
   workflow_call:
+    inputs:
+      level:
+        description: "fast, full or extended (ci.yml, job level)"
+        type: string
+        default: full
   workflow_dispatch:
+    inputs:
+      level:
+        description: "extended: also the heavy checks and the images of Docker Hub"
+        type: choice
+        options: [extended, full]
+        default: extended
 
 permissions:
   contents: read
@@ -33,13 +47,19 @@ jobs:
         with:
           persist-credentials: false
       - name: scan
+        env:
+          LEVEL: ${{ inputs.level }}
         run: |
           . .github/security/tools.env
           mkdir -p out
+          # the extended run: the broad rulesets too (OWASP Top 10, CWE Top 25, security audit, nginx)
+          extra=()
+          [ "$LEVEL" = extended ] && extra=(--config p/owasp-top-ten --config p/cwe-top-25 --config p/security-audit \
+            --config p/nginx)
           # community rulesets (downloaded without an account) and the rules of NginxionS; Go and C/C++ for the agent
           # of NginxionS (openappsec/)
           docker run --rm -v "$PWD:/src" -w /src "$SEMGREP_IMAGE" semgrep scan --metrics=off --disable-version-check \
-            --config p/javascript --config p/typescript --config p/nodejs --config p/react --config p/expressjs \
+            "${extra[@]}" --config p/javascript --config p/typescript --config p/nodejs --config p/react --config p/expressjs \
             --config p/jwt --config p/sql-injection --config p/command-injection --config p/xss \
             --config p/insecure-transport --config p/secrets --config p/dockerfile --config p/github-actions \
             --config p/golang --config p/c \
@@ -90,7 +110,8 @@ jobs:
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
-          queries: security-extended
+          # the extended run: the quality queries too (reported, they do not block: scripts/security-report.mjs)
+          queries: ${{ inputs.level == 'extended' && 'security-and-quality' || 'security-extended' }}
           config-file: .github/security/codeql.yml
       - uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
@@ -137,12 +158,16 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
       - name: scan
+        env:
+          LEVEL: ${{ inputs.level }}
         run: |
           . .github/security/tools.env
           mkdir -p out
-          # the files of the checkout and every commit of the history
+          # the files of the checkout and every commit of the history; the extended run: of every branch and tag
+          all=()
+          [ "$LEVEL" = extended ] && all=(--log-opts=--all)
           docker run --rm -v "$PWD:/repo" -w /repo -e GIT_CONFIG_COUNT=1 -e GIT_CONFIG_KEY_0=safe.directory \
-            -e GIT_CONFIG_VALUE_0='*' "$GITLEAKS_IMAGE" git --config .github/security/gitleaks.toml --redact \
+            -e GIT_CONFIG_VALUE_0='*' "$GITLEAKS_IMAGE" git "${all[@]}" --config .github/security/gitleaks.toml --redact \
             --report-format sarif --report-path out/gitleaks.sarif --exit-code 0 --log-level warn .
           docker run --rm -v "$PWD:/repo" -w /repo "$GITLEAKS_IMAGE" dir --config .github/security/gitleaks.toml \
             --redact --report-format sarif --report-path out/gitleaks-files.sarif --exit-code 0 --log-level warn .
@@ -370,7 +395,7 @@ jobs:
   # ---------------------------------------------------------------- the weekly run and runs by hand
   published:
     name: Published images (Trivy, Grype)
-    if: github.workflow == 'Security' || startsWith(github.ref, 'refs/heads/security/')
+    if: inputs.level == 'extended'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -383,8 +408,13 @@ jobs:
         run: |
           . .github/security/tools.env
           mkdir -p out
+          scanned=0
           for img in nginxions nginxions-openappsec; do
-            for tag in develop latest; do
+            # develop, latest and the three newest releases X.Y.Z (the tags of Docker Hub, no account needed)
+            releases=$(curl -fsS --max-time 30 \
+              "https://hub.docker.com/v2/namespaces/$NAMESPACE/repositories/$img/tags?page_size=100" |
+              jq -r '.results[].name' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 3 || true)
+            for tag in develop latest $releases; do
               ref="docker.io/$NAMESPACE/$img:$tag"
               docker pull -q "$ref" > /dev/null 2>&1 || { echo "::notice::$ref is not published"; continue; }
               name="published-$img-$tag"
@@ -394,8 +424,12 @@ jobs:
                 "docker:$ref" -q -o "cyclonedx-json=/out/sbom-$name.cdx.json"
               docker run --rm -v "$PWD/out:/out" "$GRYPE_IMAGE" "sbom:/out/sbom-$name.cdx.json" -q -o json \
                 --file "/out/grype-$name.json"
+              docker rmi -f "$ref" > /dev/null
+              scanned=$((scanned + 1))
             done
           done
+          # nothing on Docker Hub is not a pass: the check did not run
+          [ "$scanned" -gt 0 ] || { echo "::error::no image of docker.io/$NAMESPACE was found"; exit 1; }
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
@@ -418,7 +452,9 @@ jobs:
           path: reports
           merge-multiple: true
       - name: summary
-        run: node scripts/security-report.mjs --in reports --out security-report --summary "$GITHUB_STEP_SUMMARY"
+        env:
+          EXPECT: ${{ inputs.level == 'extended' && 'source,published' || 'source' }}
+        run: node scripts/security-report.mjs --in reports --out security-report --summary "$GITHUB_STEP_SUMMARY" --expect "$EXPECT"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:

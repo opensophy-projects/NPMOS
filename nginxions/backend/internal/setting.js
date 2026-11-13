@@ -35,6 +35,10 @@ const internalSetting = {
 				if (row.id === "default-site") {
 					// write the html if we need to
 					if (row.value === "html") {
+						// NginxionS: a page without its html (meta.html) is a bad request, not a TypeError of writeFile (500)
+						if (typeof row.meta?.html !== "string") {
+							throw new errs.ValidationError("meta.html: the page of the default site is missing");
+						}
 						await writeFile("/data/html/index.html", row.meta.html, { encoding: "utf8" });
 					}
 

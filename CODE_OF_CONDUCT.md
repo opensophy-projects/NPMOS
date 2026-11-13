@@ -243,7 +243,10 @@ flowchart LR
 - `gen-world-map.mjs` — генерация `worldMap.json` (контуры стран для карты Аналитики)
 - `check-tree.mjs` — проверка CI: каждый файл кода NginxionS упомянут в этом дереве
 - `scan-images.sh` — скан образов: уязвимости и секреты (Trivy), SBOM (Syft), второе мнение (Grype), CIS (Dockle)
-- `test-dast.sh` — DAST: поднимает стек и атакует его (OWASP ZAP, Nuclei, testssl.sh), проверяет nginx (gixy)
+- `test-dast.sh` — DAST: поднимает стек и атакует его (OWASP ZAP, Nuclei, testssl.sh), проверяет nginx (gixy);
+  в расширенном прогоне ещё фаззинг API (Schemathesis) и проверка контейнеров
+- `check-runtime.sh` — проверка работающих контейнеров стека (расширенный прогон): привилегии, capabilities,
+  пространства имён хоста, сокет Docker, root, запись в корень
 - `security-report.mjs` — сводный отчёт безопасности, политика блокировки, читаемые страницы SBOM
 - `sarif-accepted.mjs` — убирает из SARIF принятые риски и подавленные в коде находки перед загрузкой в Code scanning
 - `upgrade-from-npmos.sh` — перенос томов стека времён названия NPMOS (`npmos_*`) в NginxionS: копия томов, имена секретов, роль и база Postgres
@@ -258,7 +261,8 @@ flowchart LR
 - `waapmodel.py` — формат модели агента (`waap.data`) и её оценка, вычисленная так же, как в агенте
 - `train.py` — обучение: разреженная логистическая регрессия по признакам агента, порог, `waap.data` и `.tgz`
 - `evaluate.py` — сравнение со штатной моделью по решениям агента, проверка совпадения оценок, решение о выпуске
-- `requirements.txt` — numpy и scipy для обучения
+- `requirements.txt` — numpy и scipy для обучения, с хешами (`pip --require-hashes`)
+- `requirements.in` — их версии, из которых `uv pip compile --generate-hashes` делает `requirements.txt`
 - `test_model.py` — тесты: формат, данные, полный цикл на синтетике
 
 ### `docs/` — документация
@@ -280,6 +284,7 @@ flowchart LR
 
 - `Dockerfile` — образ nginxions: nginx, attachment open-appsec и модули из исходников, lego, офлайн-сид CrowdSec
 - `README.md` — что лежит в каталоге
+- `certbot-requirements.txt` — certbot образа и его зависимости с версиями и хешами (`pip --require-hashes`)
 - `crowdsec-seed/` — сборка офлайн-снимка hub CrowdSec, который кладётся в образ
 - `patches/` — патчи nginx и его модулей
 - **`rootfs/`** — файлы, которые копируются в образ как есть

@@ -827,6 +827,26 @@ inline char convertSpecialUnicode(uint32_t code) {
     }
 }
 
+// NginxionS: what a code point above 127 that is not special (isSpecialUnicode) becomes before keyword matching.
+// It was dropped, so the ASCII letters around it joined into new words: Swedish "läs" became "ls" (Remote Code
+// Execution), and letters of other scripts next to Latin ones did the same (openappsec/openappsec, issue on WAAP
+// normalization). Now:
+//   0      invisible and format characters, combining marks: still dropped, a keyword split by them is still found
+//   letter a Latin letter with a diacritic: its base letter ("läs" -> "las")
+//   ' '    any other character (Cyrillic, Greek, CJK...): it separates the ASCII around it
+inline char nonAsciiReplacement(uint32_t code) {
+    static const char *latin =
+        "AAAAAAACEEEEIIIIDNOOOOO OUUUUY saaaaaaaceeeeiiiidnooooo ouuuuy yAaAaAaCcCcCcCcDdDdEeEeEeEeEeGgGgGgGgHhHhIiIiIiIiIiIiJjKkkLlLlLlLlLlNnNnNnnNnOoOoOoOoRrRrRrSsSsSsSsTtTtTtUuUuUuUuUuUuWwYyYZzZzZzs";
+    if (code >= 0xC0 && code < 0x180) return latin[code - 0xC0];
+    if (code == 0xAD || code == 0x34F || code == 0x61C || code == 0x180E || code == 0xFEFF ||
+        (code >= 0x300 && code <= 0x36F) || (code >= 0x200B && code <= 0x200F) ||
+        (code >= 0x202A && code <= 0x202E) || (code >= 0x2060 && code <= 0x2069) ||
+        (code >= 0xFE00 && code <= 0xFE0F) || (code >= 0xE0000 && code <= 0xE007F)) {
+        return 0;
+    }
+    return ' ';
+}
+
 inline void stripSpaces(std::string &text) {
     std::string::iterator it = text.begin();
     std::string::iterator result = it;

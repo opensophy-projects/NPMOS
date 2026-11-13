@@ -23,7 +23,7 @@ ARG AGENT_RUNTIME=agent
 FROM docker.io/library/alpine:3.24.4@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf AS agent-build
 RUN apk add --no-cache build-base cmake git python3 bash linux-headers \
         boost-dev openssl-dev pcre2-dev libxml2-dev gtest-dev curl-dev hiredis-dev redis \
-        libmaxminddb-dev yq brotli-dev zlib-dev
+        libmaxminddb-dev yq brotli-dev zlib-dev pax-utils
 # changes of NginxionS in the agent (grep "NginxionS:"): no cloud at all (no registration, no Fog, no message or
 # download to a host of open-appsec, no token for the local services); rate limits for hosts of the local policy (no
 # scheme) and its rules (no "action" and "match"); host:port of services; the feature dump for training. Its model
@@ -38,16 +38,25 @@ RUN cmake -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_INSTALL_PREFIX=build_out . 
     mkdir -p /out/nano-service-installers && \
     cp build_out/install-*.sh /out/nano-service-installers/ && \
     cp build_out/entry.sh build_out/self_managed_openappsec_manifest.json /out/ && \
+    scanelf -RBn --nobanner -F '%n' build_out | tr ',' '\n' | grep '^libboost_' | sort -u | sed 's/^/so:/' \
+        > /out/boost.deps && \
+    test -s /out/boost.deps && cat /out/boost.deps && \
     ls -la /out /out/nano-service-installers
 
 # the runtime of the agent (as the upstream image: /entry.sh and /nano-service-installers/*.sh)
 FROM docker.io/library/alpine:3.24.4@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf AS agent
 ENV OPENAPPSEC_NANO_AGENT=TRUE
 # no gdb (upstream: crash dumps by hand) and no brotli-dev (headers): the agent runs neither. No Python: the agent
-# converts the Snort signatures of a policy with scripts/snort_to_ips_local.mjs (Node.js of the image below)
+# converts the Snort signatures of a policy with scripts/snort_to_ips_local.mjs (Node.js of the image below).
+# Boost: only the libraries the binaries of the agent link (boost.deps, from scanelf in agent-build), not the package
+# "boost", which installs every Boost library and with boost-python3 Python and SQLite
+COPY --from=agent-build /out/boost.deps /tmp/boost.deps
+# hadolint ignore=SC2046
 RUN apk upgrade --no-cache -a && \
-    apk add --no-cache busybox zlib brotli bash libstdc++ boost icu-libs curl \
-        libunwind libxml2 pcre2 ca-certificates coreutils
+    apk add --no-cache busybox zlib brotli bash libstdc++ icu-libs curl \
+        libunwind libxml2 pcre2 ca-certificates coreutils $(cat /tmp/boost.deps) && \
+    rm /tmp/boost.deps && \
+    if apk info -e python3 sqlite-libs; then echo "python3 or sqlite-libs in the agent image" >&2; exit 1; fi
 COPY --from=agent-build /out/self_managed_openappsec_manifest.json /tmp/self_managed_openappsec_manifest.json
 COPY --from=agent-build /out/nano-service-installers/ /nano-service-installers/
 COPY --from=agent-build /out/entry.sh /entry.sh

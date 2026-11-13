@@ -33,7 +33,7 @@ const reasonText = (reason: string) => {
 	return intl.formatMessage({ id: `nginxions.policy.reason.${kind}` }, { name: name.join(":") });
 };
 
-/** "exceptions:<rule>", "missing:<rule>:<name>" → a sentence */
+/** "missing:<rule>:<name>" → a sentence */
 const warningText = (warning: string) => {
 	const [kind, rule, ...name] = warning.split(":");
 	return intl.formatMessage({ id: `nginxions.policy.warning.${kind}` }, { rule, name: name.join(":") });

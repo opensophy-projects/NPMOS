@@ -51,7 +51,7 @@ jobs:
       - name: trainer (Python) and its tests
         run: |
           python3 -m venv .venv
-          .venv/bin/pip install --quiet -r model/requirements.txt
+          .venv/bin/pip install --quiet --require-hashes -r model/requirements.txt
           .venv/bin/python -m unittest discover -s model
       - name: data
         env:

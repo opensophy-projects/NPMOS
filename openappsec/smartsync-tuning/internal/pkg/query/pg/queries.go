@@ -553,19 +553,31 @@ func (qg *QueriesGen) genTableName(_ string) string {
 }
 
 //CreateTablePartition generate create partition statement
+// NginxionS: named by the day it holds, zero-padded, under a prefix of its own ("appsec_p_2026_09_16"): it was named
+// by the day after ("appsec_2026_9_17" held the 16th), the new names cannot meet the old ones. IF NOT EXISTS: several
+// writers create the partition of a new day at the same time. The day of eventTime is the day of UTC.
 func (qg *QueriesGen) CreateTablePartition(id string, eventTime string) (string, error) {
 	t, err := time.Parse(timeLayout, eventTime)
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to parse event time: %v", eventTime)
 	}
-	year, month, day := t.Date()
-	dateFmt := "%04d-%02d-%02d"
-	startDate := fmt.Sprintf(dateFmt, year, month, day)
-	year, month, day = t.Add(time.Hour * 24).Date()
-	endDate := fmt.Sprintf(dateFmt, year, month, day)
-	stmt := fmt.Sprintf("CREATE TABLE %v_%d_%d_%d PARTITION OF %v FOR VALUES FROM ('%v') TO ('%v')",
-		qg.genTableName(id), year, month, day, qg.genTableName(id), startDate, endDate)
+	start := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, time.UTC)
+	end := start.AddDate(0, 0, 1)
+	table := qg.genTableName(id)
+	stmt := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %v_p_%v PARTITION OF %v FOR VALUES FROM ('%v') TO ('%v')",
+		table, start.Format("2006_01_02"), table, start.Format("2006-01-02"), end.Format("2006-01-02"))
 	return stmt, nil
+}
+
+// CreateIndexes NginxionS: indexes for the statistics of the tuning service (the learning page of the GUI): they read
+// the logs of one asset over 7 to 120 days, and without an index every request of the page scanned the whole table for
+// minutes (openappsec/openappsec, "HTTP 500 on /api/v2/process-table and 100% CPU"). An index of the partitioned table is
+// created on every partition, present and future.
+func (qg *QueriesGen) CreateIndexes(id string) []string {
+	table := qg.genTableName(id)
+	return []string{
+		fmt.Sprintf("CREATE INDEX IF NOT EXISTS %v_assetid_eventtime ON %v (assetid, eventtime)", table, table),
+	}
 }
 
 // ParseError return the appropriate class for driver specific error

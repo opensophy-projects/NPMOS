@@ -20,6 +20,9 @@
 
 using namespace std;
 
+// NginxionS: separates the exceptions of a rule in its exception annotation (a character no name of the policy holds)
+static const char EXCEPTIONS_SEPARATOR = '\n';
+
 USE_DEBUG_FLAG(D_NGINX_POLICY);
 USE_DEBUG_FLAG(D_LOCAL_POLICY);
 
@@ -328,16 +331,20 @@ extractAnnotationsNames<NewParsedRule>(
         rule_annotation[AnnotationTypes::TRIGGER] = policy_name + "/" + trigger_annotation_name;
     }
 
-    string exception_annotation_name;
-    // TBD: support multiple exceptions
-    if (!parsed_rule.getExceptions().empty() && !parsed_rule.getExceptions()[0].empty()) {
-        exception_annotation_name = parsed_rule.getExceptions()[0];
-    } else if (!default_rule.getExceptions().empty() && !default_rule.getExceptions()[0].empty()) {
-        exception_annotation_name = default_rule.getExceptions()[0];
+    // NginxionS: every exception of the rule (it took the first one only, "TBD: support multiple exceptions"). The
+    // annotation holds them all, "<policy>/<name>" joined by EXCEPTIONS_SEPARATOR; createExceptionSection of each
+    // goes into one list (setInnerExceptions)
+    const vector<string> &rule_exceptions =
+        !parsed_rule.getExceptions().empty() ? parsed_rule.getExceptions() : default_rule.getExceptions();
+    string exception_annotations;
+    for (const string &exception_name : rule_exceptions) {
+        if (exception_name.empty()) continue;
+        if (!exception_annotations.empty()) exception_annotations += EXCEPTIONS_SEPARATOR;
+        exception_annotations += policy_name + "/" + exception_name;
     }
 
-    if (!exception_annotation_name.empty()) {
-        rule_annotation[AnnotationTypes::EXCEPTION] = policy_name + "/" + exception_annotation_name;
+    if (!exception_annotations.empty()) {
+        rule_annotation[AnnotationTypes::EXCEPTION] = exception_annotations;
     }
 
     string web_user_res_annotation_name =
@@ -980,8 +987,13 @@ createMultiRulesSections(
     const string &exception_name,
     const vector<InnerException> &exceptions)
 {
-    string behaviorId = exceptions.empty() ? "" : exceptions[0].getBehaviorId();
-    ParametersSection exception_param = ParametersSection(behaviorId, exception_name);
+    // NginxionS: every exception of the rule, not only the first (exceptions[0]): the others were left out of the
+    // rule and had no effect (v1beta2)
+    vector<ParametersSection> exception_params;
+    for (const InnerException &exception : exceptions) {
+        exception_params.push_back(ParametersSection(exception.getBehaviorId(), exception_name));
+    }
+    if (exception_params.empty()) exception_params.push_back(ParametersSection("", exception_name));
 
     vector<PracticeSection> practices;
     if (!practice_id.empty()) {
@@ -1011,7 +1023,7 @@ createMultiRulesSections(
         port,
         uri,
         practices,
-        {exception_param},
+        exception_params,
         triggers
     );
 
@@ -1234,7 +1246,8 @@ PolicyMakerUtils::createWebAppSection(
         apssec_practice.getWebAttacks().getMaxHeaderSizeBytes(),
         apssec_practice.getWebAttacks().getMaxBodySizeKb(),
         apssec_practice.getWebAttacks().getMaxObjectDepth(),
-        apssec_practice.getWebAttacks().getMaxUrlSizeBytes()
+        apssec_practice.getWebAttacks().getMaxUrlSizeBytes(),
+        apssec_practice.getWebAttacks().getProtections().getNonValidHttpMethods() // NginxionS: was ignored
     );
 
     WebAppSection web_app = WebAppSection(
@@ -1609,11 +1622,23 @@ PolicyMakerUtils::createPolicyElementsByRule<V1beta2AppsecLinuxPolicy, NewParsed
         !rule_annotations[AnnotationTypes::EXCEPTION].empty() &&
         !inner_exceptions.count(rule_annotations[AnnotationTypes::EXCEPTION])
     ) {
-        inner_exceptions[rule_annotations[AnnotationTypes::EXCEPTION]] =
-            createExceptionSection<V1beta2AppsecLinuxPolicy>(
-                rule_annotations[AnnotationTypes::EXCEPTION],
-                policy
-            );
+        // NginxionS: the exceptions of the rule, each one of the annotation (see EXCEPTIONS_SEPARATOR)
+        vector<InnerException> rule_inner_exceptions;
+        const string &annotations = rule_annotations[AnnotationTypes::EXCEPTION];
+        size_t start = 0;
+        while (start <= annotations.size()) {
+            size_t end = annotations.find(EXCEPTIONS_SEPARATOR, start);
+            if (end == string::npos) end = annotations.size();
+            if (end > start) {
+                for (const InnerException &exception :
+                    createExceptionSection<V1beta2AppsecLinuxPolicy>(annotations.substr(start, end - start), policy)
+                ) {
+                    rule_inner_exceptions.push_back(exception);
+                }
+            }
+            start = end + 1;
+        }
+        inner_exceptions[annotations] = rule_inner_exceptions;
     }
 
     if (
