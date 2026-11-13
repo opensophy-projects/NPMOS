@@ -416,6 +416,22 @@ if $CURL "$ADMIN/api/nginxions/waf" | grep -q '"reachable": *true'; then
   host_objects null
   wait_status "$SQLI" 403 "SQLi is not answered with 403 again"
 
+  step "WAF -> Policy: a custom response «block page» shows its own title and text, nothing of a vendor"
+  page406=$(post_json POST /objects '{"kind": "custom_response", "name": "smoke-page",
+    "spec": {"mode": "block-page", "httpResponseCode": 406, "messageTitle": "Smoke title",
+    "messageBody": "Smoke text of the page"}}' | new_id)
+  [ -n "$page406" ] || fail "the custom response with a page was not created"
+  host_objects "{\"customResponse\": $page406}"
+  wait_status "$SQLI" 406 "the attack is not answered with the page of the custom response"
+  body=$(curl -s --max-time 10 -H 'Host: test.local' "$HTTP$SQLI")
+  echo "$body" | grep -q "Smoke title" || fail "the title of the custom response is not on the page: $(echo "$body" | head -c 300)"
+  echo "$body" | grep -q "Smoke text of the page" || fail "the text of the custom response is not on the page"
+  echo "$body" | grep -q "Incident Id" || fail "the incident ID is not on the page"
+  echo "$body" | grep -qi "check point\|openappsec" && fail "the page names a vendor: $(echo "$body" | head -c 300)"
+  [ "${#body}" -lt 4000 ] || fail "the page of the WAF is ${#body} bytes (the page of Check Point was 278 KB)"
+  host_objects null
+  wait_status "$SQLI" 403 "SQLi is not answered with 403 again"
+
   step "WAF -> Policy: the v1beta2 example of open-appsec is imported and applied by the agent"
   applied_at() { $CURL "$ADMIN/api/nginxions/waf" | json | grep -o '"lastPolicyUpdate":"[^"]*"'; }
   before=$(last_version)

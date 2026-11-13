@@ -1199,7 +1199,7 @@ PolicyMakerUtils::createRateLimitSection(
     string practice_id = "";
     try {
         practice_id = to_string(boost::uuids::random_generator()());
-    } catch (const boost::uuids::entropy_error &e) {
+    } catch (const std::exception &e) { // NginxionS: entropy_error is gone from Boost 1.86+ (#113)
         dbgFlow(D_LOCAL_POLICY) << "Couldn't generate random id for rate limit practice";
     }
     auto access_control_practice = getAccessControlPracticeSpec(
@@ -1293,7 +1293,7 @@ PolicyMakerUtils::createThreatPreventionPracticeSections(
     string practice_id = "";
     try {
         practice_id = to_string(boost::uuids::random_generator()());
-    } catch (const boost::uuids::entropy_error &e) {
+    } catch (const std::exception &e) { // NginxionS: entropy_error is gone from Boost 1.86+ (#113)
         dbgFlow(D_LOCAL_POLICY) << "Couldn't generate random id for threat prevention practice";
     }
 
@@ -1526,7 +1526,7 @@ PolicyMakerUtils::createPolicyElementsByRule(
         string practice_id = "";
         try {
             practice_id = to_string(boost::uuids::random_generator()());
-        } catch (const boost::uuids::entropy_error &e) {
+        } catch (const std::exception &e) { // NginxionS: entropy_error is gone from Boost 1.86+ (#113)
             //TBD: return Maybe as part of future error handling
         }
 

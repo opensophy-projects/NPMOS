@@ -189,7 +189,7 @@ RulesConfigRulebase::RulesConfigRulebase(
             context += "All(" + host_check + "EqualListeningPort(" + port + ")" + uri_check + check_last;
         }
         context += ")";
-    } catch (const boost::uuids::entropy_error &e) {
+    } catch (const std::exception &e) { // NginxionS: entropy_error is gone from Boost 1.86+ (#113)
         dbgWarning(D_LOCAL_POLICY) << "Failed to generate rule UUID. Error: " << e.what();
     }
 }

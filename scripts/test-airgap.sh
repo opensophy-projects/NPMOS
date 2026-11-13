@@ -99,6 +99,24 @@ if [[ " ${services[*]} " == *" openappsec "* ]]; then
   fi
 fi
 
+nginx_timeouts() {
+  "${compose[@]}" logs --no-color nginxions 2>&1 | grep -c "Reached timeout during attempt to signal nano service" || true
+}
+
+echo "==> sustained traffic through the WAF: the attachment reaches the agent (open-appsec issue 110)"
+# open-appsec issue 110: "Reached timeout during attempt to signal nano service" at a few requests per second, each
+# one a request let through unchecked (fail-open). 20 clients, 100 requests each.
+before=$(nginx_timeouts)
+"${compose[@]}" exec -T nginxions sh -c '
+  for c in $(seq 1 20); do
+    (for i in $(seq 1 100); do curl -s -o /dev/null --max-time 5 -H "Host: test.local" http://127.0.0.1/load-$c-$i || true; done) &
+  done
+  wait'
+timeouts=$(( $(nginx_timeouts) - before ))
+echo "nano service timeouts during 2000 requests: $timeouts"
+# fail-open's timeout is short in the test (smoke sets 50 ms): a few under the load of CI are timing, a share is not
+[ "$timeouts" -le 20 ] || { echo "FAIL: $timeouts of 2000 requests could not reach the agent (over 1%)"; exit 1; }
+
 echo "==> nginx reloads under traffic: the old workers exit (open-appsec attachment, issue of stuck workers)"
 # NginxionS reloads nginx at every change made in the GUI; a worker of the attachment that never left "shutting down"
 # would pile up with every reload
@@ -113,6 +131,29 @@ for i in $(seq 1 20); do
   sleep 3
 done
 [ "$stuck" = 0 ] || { echo "FAIL: $stuck nginx workers are still shutting down a minute after the reloads"; exit 1; }
+
+echo "==> nginx reloads while the agent does not answer: the old workers exit all the same (issue 105)"
+# the worst case of issue 105: requests waiting for an agent that is stopped (SIGSTOP) when the workers are told to quit
+"${compose[@]}" exec -T openappsec sh -c 'pkill -STOP -f cp-nano-http-transaction-handler'
+"${compose[@]}" exec -T nginxions sh -c '
+  (for i in $(seq 1 60); do curl -s -o /dev/null --max-time 3 http://127.0.0.1/ || true; done) &
+  sleep 2; nginx -s reload; sleep 2; nginx -s reload
+  wait'
+stuck=0
+for i in $(seq 1 20); do
+  stuck=$("${compose[@]}" exec -T nginxions sh -c 'ps -o args 2> /dev/null || ps' | grep -c "shutting down" || true)
+  [ "$stuck" = 0 ] && break
+  sleep 3
+done
+"${compose[@]}" exec -T openappsec sh -c 'pkill -CONT -f cp-nano-http-transaction-handler'
+[ "$stuck" = 0 ] || { echo "FAIL: $stuck nginx workers stay shutting down while the agent does not answer"; exit 1; }
+echo "==> requests are answered again after the agent is resumed"
+for i in $(seq 1 30); do
+  code=$("${compose[@]}" exec -T nginxions curl -s -o /dev/null -w '%{http_code}' --max-time 5 http://127.0.0.1/ || true)
+  [ "$code" != 000 ] && [ -n "$code" ] && break
+  [ "$i" = 30 ] && { echo "FAIL: nginx does not answer after the agent is resumed"; exit 1; }
+  sleep 2
+done
 
 echo "==> no nginx worker crashed (signal, failed allocation)"
 if "${compose[@]}" logs --no-color nginxions 2>&1 | grep -E "worker process [0-9]+ exited on signal|malloc\([0-9]+\) failed"; then

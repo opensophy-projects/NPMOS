@@ -30,8 +30,9 @@ WebTriggerConf::WebTriggerConf(const string &title, const string &body, uint cod
 {}
 
 WebTriggerConf WebTriggerConf::default_trigger_conf = WebTriggerConf(
-    "Attack blocked by web application protection",                                     // title
-    "Check Point's <b>Application Security</b> has detected an attack and blocked it.", // body
+    // NginxionS: neutral default texts of the block page, without the name of a vendor
+    "Request blocked",                                     // title
+    "The protection system has detected an attack and blocked the request.", // body
     403
 );
 

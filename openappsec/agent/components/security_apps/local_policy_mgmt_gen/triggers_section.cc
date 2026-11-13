@@ -78,7 +78,7 @@ LogTriggerSection::LogTriggerSection(
     try {
         id = to_string(boost::uuids::random_generator()());
         context = "triggerId(" + id + ")";
-    } catch (const boost::uuids::entropy_error &e) {
+    } catch (const std::exception &e) { // NginxionS: entropy_error is gone from Boost 1.86+ (#113)
         dbgWarning(D_LOCAL_POLICY) << "Failed to generate log trigger UUID. Error: " << e.what();
     }
 }
@@ -149,7 +149,7 @@ WebUserResponseTriggerSection::WebUserResponseTriggerSection(
     try {
         id = to_string(boost::uuids::random_generator()());
         context = "triggerId(" + id + ")";
-    } catch (const boost::uuids::entropy_error &e) {
+    } catch (const std::exception &e) { // NginxionS: entropy_error is gone from Boost 1.86+ (#113)
         dbgWarning(D_LOCAL_POLICY) << "Failed to generate webUserResponse trigger UUID. Error: " << e.what();
     }
 }
@@ -183,18 +183,19 @@ AppSecCustomResponseSpec::load(cereal::JSONInputArchive &archive_in)
         dbgWarning(D_LOCAL_POLICY) << "AppSec web user response mode invalid: " << mode;
     }
     parseAppsecJSONKey<string>("name", name, archive_in);
+    // NginxionS: neutral default texts of the block page, without the name of a vendor
     if (mode == "block-page") {
         parseAppsecJSONKey<string>(
             "message-body",
             messageBody,
             archive_in,
-            "Openappsec's <b>Application Security</b> has detected an attack and blocked it."
+            "The protection system has detected an attack and blocked the request."
         );
         parseAppsecJSONKey<string>(
             "message-title",
             messageTitle,
             archive_in,
-            "Attack blocked by web application protection"
+            "Request blocked"
         );
     }
 }

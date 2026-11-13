@@ -146,6 +146,12 @@ ngx_http_cp_wait_for_service(uint32_t cur_session_id, AttachmentDataType chunk_t
         if (!is_fail_open_disabled) {
             retry++;
         }
+        // NginxionS: a worker nginx shuts down (reload, stop) stops waiting for the agent: with fail-open off this loop
+        // never ended while the agent did not answer, the old worker stayed "shutting down" (openappsec issue 105)
+        if (ngx_exiting || ngx_quit || ngx_terminate) {
+            write_dbg(DBG_LEVEL_INFO, "Worker is exiting, stop waiting for the nano service");
+            return NGX_ERROR;
+        }
         struct pollfd s_poll;
         s_poll.fd = socket;
         s_poll.events = POLLIN;
@@ -650,9 +656,12 @@ ngx_http_cp_reply_receiver(
     if (processed_body_size > body_size_trigger)
         tout_retries = max_retries_for_verdict;
 
+    // NginxionS: replies of previous sessions are skipped, but not forever and not by a worker that exits (issue 105)
+    ngx_int_t stale_replies = 0;
     do {
         res = ngx_http_cp_wait_for_service(cur_session_id, chunk_type, tout_retries, filter_mode);
-    } while (res == NGX_AGAIN);
+    } while (res == NGX_AGAIN && ++stale_replies < 1000 && !(ngx_exiting || ngx_quit || ngx_terminate));
+    if (res == NGX_AGAIN) res = NGX_ERROR;
 
     if (res != NGX_OK) return NGX_ERROR;
 

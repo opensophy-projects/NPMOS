@@ -61,6 +61,9 @@ function M.wanted()
   if status < 400 or status == 403 or status == 444 or status == 499 or status > 599 then return false end
   local uri = ngx.var.uri or ""
   if OWN[uri] or string.sub(uri, 1, 12) == "/.nginxions/" then return false end
+  -- a page of the WAF (a custom response of the policy with its own code, title and text): the attachment of the agent
+  -- marks it with the incident ID; a 403 of the WAF is still the block page (Agents -> Block page)
+  if ngx.header["X-Event-ID"] ~= nil then return false end
   local ctype = ngx.header["Content-Type"]
   if type(ctype) == "table" then ctype = ctype[1] end
   if ctype ~= nil and not string.find(ctype, "^text/html") then return false end

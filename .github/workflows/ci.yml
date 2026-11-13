@@ -140,6 +140,13 @@ jobs:
           if grep -nE 'image: .*:latest|:-latest' deploy/*.yaml deploy/test/*.yaml; then
             echo "::error::unpinned image version"; exit 1
           fi
+      - name: agent sources build with newer Boost (issue 113)
+        run: |
+          # boost::uuids::entropy_error is gone from Boost 1.86+: the agent catches std::exception instead. A subtree
+          # pull of open-appsec brings the old catches back; this fails before the image build does.
+          if grep -rn --include='*.cc' --include='*.h' 'catch *( *const boost::uuids::entropy_error' openappsec/; then
+            echo "::error::catch std::exception, not boost::uuids::entropy_error (removed from Boost 1.86+)"; exit 1
+          fi
       - name: version consistency
         run: |
           env_cs=$(sed -n 's/^CROWDSEC_VERSION=//p' deploy/.env)
