@@ -119,6 +119,8 @@ public:
     void save(cereal::JSONOutputArchive &out_ar) const;
 
     const std::string & getTriggerId() const;
+    // NginxionS: the policy has the response (a response it names but does not have is written empty)
+    bool isResolved() const { return !details_level.empty() && (details_level == "Redirect" || response_code > 0); }
 
 private:
     std::string id;

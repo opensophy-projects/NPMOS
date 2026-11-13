@@ -1263,7 +1263,11 @@ PolicyMakerUtils::createRateLimitSection(
     // the last one was limited), answered with the custom response of the rule (it was the default of the engine)
     string web_user_response_id;
     const string &web_user_response = rule_annotations[AnnotationTypes::WEB_USER_RES];
-    if (!web_user_response.empty() && web_user_res_triggers.count(web_user_response)) {
+    if (
+        !web_user_response.empty() &&
+        web_user_res_triggers.count(web_user_response) &&
+        web_user_res_triggers[web_user_response].isResolved()
+    ) {
         web_user_response_id = web_user_res_triggers[web_user_response].getTriggerId();
     }
     rate_limit[asset_name] = RateLimitSection(
