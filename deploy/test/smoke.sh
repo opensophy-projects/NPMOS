@@ -411,9 +411,9 @@ if $CURL "$ADMIN/api/nginxions/waf" | grep -q '"reachable": *true'; then
   # (403) for a while, so the page and its code are waited for together, from one request, three times in a row
   hits=0
   for i in $(seq 1 60); do
-    body=$(curl -s --max-time 10 -w '@@%{http_code}' -H 'Host: test.local' "$HTTP$SQLI")
-    code=${body##*@@}
-    body=${body%@@*}
+    body=$(curl -s --max-time 10 -w ' HTTPCODE=%{http_code}' -H 'Host: test.local' "$HTTP$SQLI")
+    code=${body##* HTTPCODE=}
+    body=${body% HTTPCODE=*}
     if [ "$code" = 406 ] && echo "$body" | grep -q "Smoke title"; then hits=$((hits + 1)); else hits=0; fi
     [ "$hits" = 3 ] && break
     [ "$i" = 60 ] && fail "the custom response is not a page with its code 406 (status $code): $(echo "$body" | head -c 300)"
