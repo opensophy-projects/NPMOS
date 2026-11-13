@@ -969,8 +969,7 @@
 						"items": {
 							"type": "object",
 							"required": [
-								"key",
-								"value"
+								"key"
 							],
 							"properties": {
 								"key": {
@@ -978,6 +977,18 @@
 								},
 								"value": {
 									"type": "string"
+								},
+								"op": {
+									"type": "string",
+									"enum": [
+										"equals",
+										"not-equals",
+										"in",
+										"not-in",
+										"exist"
+									],
+									"x-nginxions": true,
+									"description": "NginxionS extension (docs/WAF-POLICY.md 5.2): the operator of the condition; equals when absent. exist has no value."
 								}
 							}
 						}

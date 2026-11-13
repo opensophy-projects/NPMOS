@@ -57,24 +57,65 @@ const CONDITION = {
 	countryName: (v, e) => (e.source_country ? v.toLowerCase() === e.source_country.toLowerCase() : null),
 	// the events keep the name of the country only
 	countryCode: () => null,
+	// x-nginxions (docs/WAF-POLICY.md 5.2)
+	method: (v, e) => (e.method ? textMatches(v, e.method) : null),
+	paramLocation: (v, e) => (e.location ? textMatches(v, e.location) : false),
+	indicator: (v, e) => indicatorsOf(e).some((i) => textMatches(v, i)),
+	// the events do not keep the headers
+	headerName: () => null,
+	headerValue: () => null,
 };
+
+/** indicators of an event ("a, b" or "[a, b]", as the agent logs them) */
+const indicatorsOf = (e) =>
+	String(e.indicators || "")
+		.replace(/^\[|\]$/g, "")
+		.split(", ")
+		.filter(Boolean);
+
+/** does the event have a value for the key (op exist); null: the event does not tell */
+const HAS = {
+	url: (e) => !!e.uri,
+	sourceIp: (e) => !!e.source_ip,
+	sourceIdentifier: (e) => !!e.source_ip,
+	hostName: (e) => !!e.host,
+	method: (e) => (e.method ? true : null),
+	paramName: (e) => !!e.parameter,
+	paramValue: (e) => !!e.sample,
+	paramLocation: (e) => !!e.location,
+	indicator: (e) => indicatorsOf(e).length > 0,
+	protectionName: (e) => !!e.incident_type,
+};
+
+/** equals and in: any of the values; not-equals and not-in: none of them (as MatchQuery of the agent) */
+const OP_GROUP = { equals: "equals", in: "equals", "not-equals": "not-in", "not-in": "not-in", exist: "exist" };
 
 /** true, false, or null when the event does not tell */
 export const exceptionMatches = (exception, event) => {
-	const byKey = new Map();
+	// a key with an operator: its values (the agent groups them so, objects/format.js)
+	const groups = new Map();
 	for (const c of list(exception.condition)) {
-		if (!byKey.has(c.key)) byKey.set(c.key, []);
-		byKey.get(c.key).push(String(c.value ?? ""));
+		const op = OP_GROUP[c.op ?? "equals"];
+		if (!op) return null;
+		const id = `${c.key}\u0000${op}`;
+		if (!groups.has(id)) groups.set(id, { key: c.key, op, values: [] });
+		groups.get(id).values.push(String(c.value ?? ""));
 	}
-	if (!byKey.size) return false;
+	if (!groups.size) return false;
 	let unknown = false;
-	for (const [key, values] of byKey) {
-		const test = CONDITION[key];
-		if (!test) return null;
-		const results = values.map((v) => test(v, event));
-		if (results.includes(true)) continue;
-		if (results.includes(null)) unknown = true;
-		else return false;
+	for (const { key, op, values } of groups.values()) {
+		let result;
+		if (op === "exist") {
+			result = HAS[key] ? HAS[key](event) : null;
+		} else {
+			const test = CONDITION[key];
+			if (!test) return null;
+			const results = values.map((v) => test(v, event));
+			const any = results.includes(true) ? true : results.includes(null) ? null : false;
+			result = op === "not-in" && any !== null ? !any : any;
+		}
+		if (result === null) unknown = true;
+		else if (!result) return false;
 	}
 	return unknown ? null : true;
 };

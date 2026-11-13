@@ -151,7 +151,7 @@ test("no silent fields: what the agent does not apply is an error, or dropped an
 	assert.ok(normalize("custom_response", { mode: "redirect", redirectUrl: "/blocked" }).spec);
 
 	assert.match(
-		normalize("exception", { action: "accept", condition: [{ key: "method", value: "GET" }] }).errors.join(),
+		normalize("exception", { action: "accept", condition: [{ key: "cookie", value: "a" }] }).errors.join(),
 		/condition\/0\/key/,
 	);
 
@@ -352,4 +352,73 @@ test("dry run of switching a host to blocking changes its rules only", async () 
 	const modes = withHostMode(doc, 3, "prevent-learn").policies.specificRules.map((r) => r.mode);
 	assert.deepEqual(modes, ["prevent-learn", "prevent-learn", "detect-learn", "detect-learn"]);
 	assert.equal(doc.policies.specificRules[0].mode, "detect-learn");
+});
+
+test("x-nginxions: keys and operators of the WAF beyond v1beta2 are checked, kept out of v1beta1, simulated", async () => {
+	const { exceptionMatches } = await import("./simulate.js");
+	const { usesExtension } = await import("./format.js");
+	const ok = normalize("exception", {
+		action: "drop",
+		condition: [
+			{ key: "countryName", op: "not-in", value: "Russia" },
+			{ key: "method", value: "POST" },
+			{ key: "headerName", op: "exist", value: "ignored" },
+		],
+	});
+	assert.deepEqual(ok.errors, undefined);
+	// exist has no value
+	assert.equal(ok.spec.condition[2].value, undefined);
+	assert.ok(usesExtension(ok.spec));
+	assert.ok(
+		!usesExtension({
+			condition: [
+				{ key: "url", value: "/a" },
+				{ key: "url", op: "in", value: "/b" },
+			],
+		}),
+	);
+	assert.match(
+		normalize("exception", {
+			action: "accept",
+			condition: [{ key: "url", op: "contains", value: "a" }],
+		}).errors.join(),
+		/condition\/0\/op/,
+	);
+	assert.match(normalize("exception", { action: "accept", condition: [{ key: "url" }] }).errors.join(), /value/);
+	assert.match(
+		normalize("exception", { action: "accept", condition: [{ key: "cookie", value: "a" }] }).errors.join(),
+		/key/,
+	);
+
+	// v1beta1 cannot hold them: left out
+	const v1 = toV1({
+		policies: { default: { mode: "detect-learn" }, specificRules: [] },
+		exceptions: [ok.spec, { name: "plain", action: "accept", condition: [{ key: "url", value: "/a" }] }],
+	});
+	assert.deepEqual(
+		v1.exceptions.map((e) => e.name),
+		["plain"],
+	);
+
+	// the dry run: none of the values (not-in), the method, a key the events do not keep
+	const event = {
+		host: "a.example",
+		uri: "/x",
+		source_ip: "203.0.113.9",
+		source_country: "Netherlands",
+		method: "POST",
+	};
+	const notRu = { condition: [{ key: "countryName", op: "not-in", value: "Russia" }] };
+	assert.equal(exceptionMatches(notRu, event), true);
+	assert.equal(exceptionMatches(notRu, { ...event, source_country: "Russia" }), false);
+	assert.equal(exceptionMatches({ condition: [{ key: "method", value: "GET" }] }, event), false);
+	assert.equal(exceptionMatches({ condition: [{ key: "url", op: "exist" }] }, event), true);
+	assert.equal(exceptionMatches({ condition: [{ key: "headerName", value: "x-a" }] }, event), null);
+	assert.equal(
+		exceptionMatches(
+			{ condition: [{ key: "indicator", value: "probing" }] },
+			{ ...event, indicators: "[.env, probing]" },
+		),
+		true,
+	);
 });

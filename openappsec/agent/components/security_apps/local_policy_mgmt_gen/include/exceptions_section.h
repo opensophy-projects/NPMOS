@@ -86,6 +86,8 @@ public:
     ExceptionMatch() {}
     ExceptionMatch(const AppsecExceptionSpec &parsed_exception);
     ExceptionMatch(const std::string &_key, const std::vector<std::string> &_value);
+    // NginxionS: a key with an operator other than equals (not-equals, not-in, exist)
+    ExceptionMatch(const std::string &_key, const std::string &_op, const std::vector<std::string> &_value);
     ExceptionMatch(const NewAppsecException &parsed_exception);
 
     void save(cereal::JSONOutputArchive &out_ar) const;

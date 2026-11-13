@@ -18,7 +18,16 @@ import {
 	setDefaultPolicy,
 	updateObject,
 } from "./api";
-import { EXCEPTION_KEYS, FIELDS, type Field, getPath, NEW_SPEC, RATE_LIMIT_KEYS, setPath } from "./fields";
+import {
+	EXCEPTION_KEYS,
+	EXCEPTION_OPS,
+	FIELDS,
+	type Field,
+	getPath,
+	NEW_SPEC,
+	RATE_LIMIT_KEYS,
+	setPath,
+} from "./fields";
 import { Review } from "./Review";
 
 const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id }, values);
@@ -212,33 +221,60 @@ function FieldInput({
 						onChange={(rows) => set(field.path, rows)}
 						empty={() => ({ key: "sourceIp", value: "" })}
 						add="nginxions.policy.condition.add"
-						render={(row: any, setRow) => (
-							<>
-								<div className="col-5">
-									<select
-										className="form-select"
-										aria-label={t("nginxions.policy.condition.key")}
-										value={row.key}
-										onChange={(e) => setRow({ ...row, key: e.target.value })}
-									>
-										{EXCEPTION_KEYS.map((k) => (
-											<option key={k} value={k}>
-												{t(`nginxions.policy.key.${k}`)}
-											</option>
-										))}
-									</select>
-								</div>
-								<div className="col">
-									<input
-										className="form-control"
-										aria-label={t("nginxions.policy.condition.value")}
-										placeholder={row.key === "sourceIp" ? EXAMPLE.ip : ""}
-										value={row.value}
-										onChange={(e) => setRow({ ...row, value: e.target.value })}
-									/>
-								</div>
-							</>
-						)}
+						render={(row: any, setRow) => {
+							// in and not-in of an imported policy are shown as equals and not-equals: the same match
+							const op =
+								row.op === "in" ? "equals" : row.op === "not-in" ? "not-equals" : row.op || "equals";
+							return (
+								<>
+									<div className="col-4">
+										<select
+											className="form-select"
+											aria-label={t("nginxions.policy.condition.key")}
+											value={row.key}
+											onChange={(e) => setRow({ ...row, key: e.target.value })}
+										>
+											{EXCEPTION_KEYS.map((k) => (
+												<option key={k} value={k}>
+													{t(`nginxions.policy.key.${k}`)}
+												</option>
+											))}
+										</select>
+									</div>
+									<div className="col-3">
+										<select
+											className="form-select"
+											aria-label={t("nginxions.policy.condition.op")}
+											value={op}
+											onChange={(e) => {
+												const next = e.target.value;
+												const { op: _op, value: _value, ...rest } = row;
+												if (next === "exist") setRow({ ...rest, op: next });
+												else if (next === "equals") setRow({ ...rest, value: row.value ?? "" });
+												else setRow({ ...rest, op: next, value: row.value ?? "" });
+											}}
+										>
+											{EXCEPTION_OPS.map((o) => (
+												<option key={o} value={o}>
+													{t(`nginxions.policy.op.${o}`)}
+												</option>
+											))}
+										</select>
+									</div>
+									<div className="col">
+										{op !== "exist" && (
+											<input
+												className="form-control"
+												aria-label={t("nginxions.policy.condition.value")}
+												placeholder={row.key === "sourceIp" ? EXAMPLE.ip : ""}
+												value={row.value ?? ""}
+												onChange={(e) => setRow({ ...row, value: e.target.value })}
+											/>
+										)}
+									</div>
+								</>
+							);
+						}}
 					/>
 					<div className="form-hint">
 						<T id="nginxions.policy.condition.hint" />

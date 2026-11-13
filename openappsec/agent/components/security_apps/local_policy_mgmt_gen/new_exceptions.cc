@@ -20,12 +20,34 @@ USE_DEBUG_FLAG(D_LOCAL_POLICY);
 // LCOV_EXCL_START Reason: no test exist
 static const set<string> valid_actions = {"skip", "accept", "drop", "suppressLog"};
 
+// NginxionS: the keys the WAF matches exceptions on (Waf2Transaction::getExceptionsDict and the override of a
+// parameter, Waf2Engine.cc): those of v1beta2 and, as the extension x-nginxions (docs/WAF-POLICY.md 5.2), method,
+// headerName, headerValue (lower case), paramLocation, indicator. A key the WAF does not match was dropped.
+static const set<string> valid_condition_keys = {
+    "countryCode", "countryName", "hostName", "paramName", "paramValue", "protectionName", "sourceIdentifier",
+    "sourceIp", "url", "method", "headerName", "headerValue", "paramLocation", "indicator"
+};
+// NginxionS: the conditions of MatchQuery (generic_rulebase/match_query.cc)
+static const set<string> valid_condition_ops = {"equals", "not-equals", "in", "not-in", "exist"};
+
 void
 NewAppsecExceptionCondition::load(cereal::JSONInputArchive &archive_in)
 {
     parseMandatoryAppsecJSONKey<string>("key", key, archive_in);
-    parseMandatoryAppsecJSONKey<string>("value", value, archive_in);
-    dbgTrace(D_LOCAL_POLICY) << "Parsed exception condition: Key: " << key << " Value: " << value;
+    // NginxionS: the operator (x-nginxions); "exist" has no value
+    parseAppsecJSONKey<string>("op", op, archive_in, "equals");
+    if (valid_condition_ops.count(op) == 0) {
+        throw PolicyGenException("AppSec exception condition operator invalid: " + op);
+    }
+    if (valid_condition_keys.count(key) == 0) {
+        throw PolicyGenException("AppSec exception condition key invalid: " + key);
+    }
+    if (op == "exist") {
+        parseAppsecJSONKey<string>("value", value, archive_in);
+    } else {
+        parseMandatoryAppsecJSONKey<string>("value", value, archive_in);
+    }
+    dbgTrace(D_LOCAL_POLICY) << "Parsed exception condition: Key: " << key << " Op: " << op << " Value: " << value;
 }
 
 const string &

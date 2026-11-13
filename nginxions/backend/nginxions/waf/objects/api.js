@@ -9,7 +9,7 @@ import { setSetting } from "../../settings.js";
 import { diffLines } from "../expert.js";
 import { checkApplied } from "../applied.js";
 import { buildPolicy, getPolicyState, readPolicyFile, regenerateNow, render } from "../policy.js";
-import { asV2, fromV1, toV1 } from "./format.js";
+import { asV2, fromV1, toV1, usesExtension } from "./format.js";
 import { BUILTIN_PREFIX, KINDS, NAME, normalize, POLICY_MODES, RULE_FIELDS, TEMPLATES } from "./model.js";
 import { simulate, withHostMode } from "./simulate.js";
 import { getDefaultPolicy, idsOf, listObjects, snapshot } from "./store.js";
@@ -44,6 +44,9 @@ const simulateChange = async (candidateDoc, period = "24h", { current, hosts, si
 				"sample",
 				"incident_type",
 				"confidence",
+				"method",
+				"location",
+				"indicators",
 			)
 			.orderBy("time", "desc")
 			.limit(SIMULATE_EVENTS);
@@ -626,7 +629,16 @@ const internalWafObjects = {
 			const head = `# NginxionS: ${name} of WAF -> Policy (v1beta2)${builtin.length ? `\n# built in, read only: ${builtin.join(", ")}` : ""}\n`;
 			return `${head}${YAML.stringify({ [name]: doc[name] ?? [] }, { lineWidth: 0, aliasDuplicateObjects: false })}`;
 		}
-		return `# NginxionS: objects and default policy of WAF -> Policy (${format})\n${YAML.stringify(await exportDoc(format), { lineWidth: 0, aliasDuplicateObjects: false })}`;
+		// exceptions of the extension x-nginxions: v1beta1 cannot hold them, another agent reads them otherwise
+		const extension = (await listObjects())
+			.filter((o) => o.kind === "exception" && usesExtension(o.spec))
+			.map((o) => o.name);
+		const note = extension.length
+			? format === "v1beta1"
+				? `\n# left out (operators or keys of NginxionS, x-nginxions): ${extension.join(", ")}`
+				: `\n# x-nginxions (operators or keys of NginxionS; the agent of open-appsec reads them otherwise): ${extension.join(", ")}`
+			: "";
+		return `# NginxionS: objects and default policy of WAF -> Policy (${format})${note}\n${YAML.stringify(await exportDoc(format), { lineWidth: 0, aliasDuplicateObjects: false })}`;
 	},
 
 	/**

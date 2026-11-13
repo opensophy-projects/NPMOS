@@ -28,14 +28,22 @@
 class NewAppsecExceptionCondition
 {
 public:
+    NewAppsecExceptionCondition() {}
+    NewAppsecExceptionCondition(const std::string &_key, const std::string &_value, const std::string &_op = "equals")
+        : key(_key), value(_value), op(_op) {}
+
     void load(cereal::JSONInputArchive &archive_in);
 
     const std::string & getKey() const;
     const std::string & getvalue() const;
+    // NginxionS: the operator of the condition (x-nginxions, docs/WAF-POLICY.md 5.2): equals (by default), not-equals,
+    // in, not-in, exist
+    const std::string & getOp() const { return op; }
 
 private:
     std::string key;
     std::string value;
+    std::string op = "equals"; // NginxionS: see getOp
 };
 
 class NewAppsecException
@@ -55,6 +63,8 @@ public:
     const std::vector<std::string> getSourceIdentifier() const;
     const std::vector<std::string> getSourceIp() const;
     const std::vector<std::string> getUrl() const;
+    // NginxionS: every condition, with its operator (the getters above know the keys of v1beta2 only)
+    const std::vector<NewAppsecExceptionCondition> & getConditions() const { return conditions; }
     void setName(const std::string &_name);
 
 private:

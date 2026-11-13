@@ -332,6 +332,8 @@ MatchQuery::matchAttributes(
         set<string> &matched_override_keywords) const
 {
     auto &type = condition_type;
+    // NginxionS: "exist" has no value to compare: it matches when the key has a value (it never matched)
+    if (type == MatchQuery::Conditions::Exist) return !values.empty();
     bool negate = type == MatchQuery::Conditions::NotEquals || type == MatchQuery::Conditions::NotIn;
     bool match = false;
 

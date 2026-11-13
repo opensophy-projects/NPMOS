@@ -2,7 +2,7 @@
 // what each kind is, how its specification is completed and checked (the schema of open-appsec),
 // the built-in objects and the templates made of them. Pure functions, no database.
 import Ajv from "ajv/dist/2020.js";
-import { EXCEPTION_KEYS } from "./format.js";
+import { EXCEPTION_KEYS, EXCEPTION_OPS } from "./format.js";
 import schema from "./schema-v1beta2.json" with { type: "json" };
 
 /** kind → section of local_policy.yaml (v1beta2) */
@@ -125,6 +125,11 @@ const unsupported = (kind, spec, lenient) => {
 		spec.condition.forEach((c, j) => {
 			if (!EXCEPTION_KEYS.includes(c?.key))
 				errors.push(`/condition/${j}/key: one of ${EXCEPTION_KEYS.join(", ")}`);
+			if (c?.op !== undefined && !EXCEPTION_OPS.includes(c.op))
+				errors.push(`/condition/${j}/op: one of ${EXCEPTION_OPS.join(", ")}`);
+			// exist has no value; every other operator compares one
+			if (c?.op === "exist") delete c.value;
+			else if (typeof c?.value !== "string") errors.push(`/condition/${j}/value: a value is needed`);
 		});
 	}
 	if (kind === "log_trigger") {

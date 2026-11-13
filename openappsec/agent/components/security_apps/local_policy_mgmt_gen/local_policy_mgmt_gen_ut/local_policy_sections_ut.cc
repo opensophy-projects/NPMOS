@@ -6,6 +6,8 @@
 
 #include "cptest.h"
 #include "access_control_practice.h"
+#include "exceptions_section.h"
+#include "new_exceptions.h"
 #include "new_custom_response.h"
 #include "new_log_trigger.h"
 #include "triggers_section.h"
@@ -170,4 +172,68 @@ TEST(LocalPolicySections, logTriggerWritesResponseCodeAndProtocols)
     EXPECT_THAT(json, HasSubstr("\"responseCode\": true"));
     EXPECT_THAT(json, HasSubstr("\"syslogProtocol\": \"TCP\""));
     EXPECT_THAT(json, HasSubstr("\"cefProtocol\": \"UDP\""));
+}
+
+// NginxionS: the conditions of an exception (x-nginxions, docs/WAF-POLICY.md 5.2), read by MatchQuery as the WAF
+// does (Waf2Transaction::getExceptionsDict)
+static MatchQuery
+exceptionQueryOf(const string &conditions)
+{
+    auto exception = loadFrom<NewAppsecException>(
+        "{\"name\": \"e\", \"action\": \"accept\", \"condition\": " + conditions + "}"
+    );
+    return MatchQuery(saveOf(ExceptionMatch(exception)));
+}
+
+TEST(LocalPolicySections, exceptionKeysOfTheWafBeyondV1beta2)
+{
+    auto query = exceptionQueryOf(
+        "[{\"key\": \"method\", \"value\": \"POST\"}, {\"key\": \"headerName\", \"value\": \"x-internal\"}]"
+    );
+    EXPECT_TRUE(query.matchAttributes({{"method", {"POST"}}, {"headerName", {"x-internal", "host"}}}));
+    EXPECT_FALSE(query.matchAttributes({{"method", {"GET"}}, {"headerName", {"x-internal"}}}));
+    EXPECT_FALSE(query.matchAttributes({{"method", {"POST"}}, {"headerName", {"host"}}}));
+}
+
+TEST(LocalPolicySections, exceptionNotInMatchesNoneOfTheValues)
+{
+    // drop for every country but RU and BY
+    auto query = exceptionQueryOf(
+        "[{\"key\": \"countryCode\", \"op\": \"not-in\", \"value\": \"RU\"},"
+        " {\"key\": \"countryCode\", \"op\": \"not-equals\", \"value\": \"BY\"}]"
+    );
+    EXPECT_TRUE(query.matchAttributes({{"countryCode", {"US"}}}));
+    EXPECT_FALSE(query.matchAttributes({{"countryCode", {"RU"}}}));
+    EXPECT_FALSE(query.matchAttributes({{"countryCode", {"BY"}}}));
+
+    auto ip = exceptionQueryOf("[{\"key\": \"sourceIp\", \"op\": \"not-in\", \"value\": \"10.0.0.0/8\"}]");
+    EXPECT_TRUE(ip.matchAttributes({{"sourceIP", {"192.0.2.1"}}}));
+    EXPECT_FALSE(ip.matchAttributes({{"sourceIP", {"10.1.2.3"}}}));
+}
+
+TEST(LocalPolicySections, exceptionExistMatchesAnyValueOfTheKey)
+{
+    auto query = exceptionQueryOf(
+        "[{\"key\": \"headerName\", \"value\": \"x-debug\"}, {\"key\": \"url\", \"op\": \"exist\"}]"
+    );
+    EXPECT_TRUE(query.matchAttributes({{"headerName", {"x-debug"}}, {"url", {"/any"}}}));
+    EXPECT_FALSE(query.matchAttributes({{"headerName", {"x-debug"}}}));
+}
+
+TEST(LocalPolicySections, exceptionKeepsTheMatchOfV1beta2)
+{
+    // values of a key: any of them; keys: all of them (as before the extension)
+    auto query = exceptionQueryOf(
+        "[{\"key\": \"sourceIp\", \"value\": \"10.0.0.1\"}, {\"key\": \"url\", \"value\": \"/login\"},"
+        " {\"key\": \"sourceIp\", \"value\": \"10.0.0.2\"}]"
+    );
+    EXPECT_TRUE(query.matchAttributes({{"sourceIP", {"10.0.0.2"}}, {"url", {"/login"}}}));
+    EXPECT_FALSE(query.matchAttributes({{"sourceIP", {"10.0.0.3"}}, {"url", {"/login"}}}));
+}
+
+TEST(LocalPolicySections, exceptionRejectsWhatTheWafDoesNotMatch)
+{
+    EXPECT_THROW(exceptionQueryOf("[{\"key\": \"cookie\", \"value\": \"a\"}]"), PolicyGenException);
+    EXPECT_THROW(exceptionQueryOf("[{\"key\": \"url\", \"op\": \"contains\", \"value\": \"a\"}]"), PolicyGenException);
+    EXPECT_THROW(exceptionQueryOf("[{\"key\": \"url\", \"op\": \"equals\"}]"), PolicyGenException);
 }

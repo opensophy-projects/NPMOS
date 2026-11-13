@@ -5319,10 +5319,13 @@
 		"defaultMessage": "Добавить условие"
 	},
 	"nginxions.policy.condition.hint": {
-		"defaultMessage": "Условия с одним полем срабатывают при любом из значений; условия с разными полями должны выполняться одновременно."
+		"defaultMessage": "Значения одного поля с «равно» срабатывают при любом из них, с «не равно» — если не совпало ни одно; разные поля должны выполняться одновременно. Имена и значения заголовков сравниваются в нижнем регистре. Метод, заголовки, место параметра, индикатор и операторы — расширение NginxionS (x-nginxions): у агента open-appsec их нет."
 	},
 	"nginxions.policy.condition.key": {
 		"defaultMessage": "Поле"
+	},
+	"nginxions.policy.condition.op": {
+		"defaultMessage": "Оператор"
 	},
 	"nginxions.policy.condition.value": {
 		"defaultMessage": "Значение"
@@ -5564,8 +5567,23 @@
 	"nginxions.policy.key.countryName": {
 		"defaultMessage": "Страна"
 	},
+	"nginxions.policy.key.headerName": {
+		"defaultMessage": "Имя заголовка"
+	},
+	"nginxions.policy.key.headerValue": {
+		"defaultMessage": "Значение заголовка"
+	},
 	"nginxions.policy.key.hostName": {
 		"defaultMessage": "Имя хоста"
+	},
+	"nginxions.policy.key.indicator": {
+		"defaultMessage": "Индикатор атаки"
+	},
+	"nginxions.policy.key.method": {
+		"defaultMessage": "Метод"
+	},
+	"nginxions.policy.key.paramLocation": {
+		"defaultMessage": "Место параметра"
 	},
 	"nginxions.policy.key.paramName": {
 		"defaultMessage": "Имя параметра"
@@ -5704,6 +5722,15 @@
 	},
 	"nginxions.policy.none": {
 		"defaultMessage": "Нет"
+	},
+	"nginxions.policy.op.equals": {
+		"defaultMessage": "равно"
+	},
+	"nginxions.policy.op.exist": {
+		"defaultMessage": "есть"
+	},
+	"nginxions.policy.op.not-equals": {
+		"defaultMessage": "не равно"
 	},
 	"nginxions.policy.previewing": {
 		"defaultMessage": "Собираем политику…"

@@ -13,6 +13,8 @@
 
 #include "exceptions_section.h"
 
+#include <algorithm>
+
 using namespace std;
 
 USE_DEBUG_FLAG(D_LOCAL_POLICY);
@@ -216,42 +218,55 @@ ExceptionMatch::ExceptionMatch(const std::string &_key, const std::vector<std::s
     }
 }
 
+// NginxionS: a key with an operator other than equals: not-equals and not-in are one "not-in" of all the values
+// (none of them), exist has no value
+ExceptionMatch::ExceptionMatch(const string &_key, const string &_op, const vector<string> &values)
+        :
+    match_type(MatchType::Condition),
+    key(_key),
+    op(_op == "not-equals" ? "not-in" : _op),
+    value(_op == "exist" ? vector<string>() : values)
+{
+}
+
 ExceptionMatch::ExceptionMatch(const NewAppsecException &parsed_exception)
         :
     match_type(MatchType::Operator),
     op("and")
 {
-    if (!parsed_exception.getCountryCode().empty()) {
-        items.push_back(ExceptionMatch("countryCode", parsed_exception.getCountryCode()));
+    // NginxionS: every condition, not only the keys of v1beta2 (the others were dropped) and with its operator: the
+    // values of a key and operator are any of them (equals, in) or none of them (not-equals, not-in); the keys and
+    // operators are all of them. The order of the keys is the order they first appear in.
+    vector<pair<pair<string, string>, vector<string>>> groups;
+    for (const NewAppsecExceptionCondition &condition : parsed_exception.getConditions()) {
+        string key_name = condition.getKey() == "sourceIp" ? "sourceIP" : condition.getKey();
+        string group_op = condition.getOp() == "in" ? "equals" : condition.getOp();
+        if (group_op == "not-equals") group_op = "not-in";
+        auto it = find_if(
+            groups.begin(),
+            groups.end(),
+            [&](const pair<pair<string, string>, vector<string>> &g) {
+                return g.first.first == key_name && g.first.second == group_op;
+            }
+        );
+        if (it == groups.end()) {
+            groups.push_back({{key_name, group_op}, {condition.getvalue()}});
+        } else {
+            it->second.push_back(condition.getvalue());
+        }
     }
-    if (!parsed_exception.getCountryName().empty()) {
-        items.push_back(ExceptionMatch("countryName", parsed_exception.getCountryName()));
-    }
-    if (!parsed_exception.getHostName().empty()) {
-        items.push_back(ExceptionMatch("hostName", parsed_exception.getHostName()));
-    }
-    if (!parsed_exception.getParamName().empty()) {
-        items.push_back(ExceptionMatch("paramName", parsed_exception.getParamName()));
-    }
-    if (!parsed_exception.getParamValue().empty()) {
-        items.push_back(ExceptionMatch("paramValue", parsed_exception.getParamValue()));
-    }
-    if (!parsed_exception.getProtectionName().empty()) {
-        items.push_back(ExceptionMatch("protectionName", parsed_exception.getProtectionName()));
-    }
-    if (!parsed_exception.getSourceIdentifier().empty()) {
-        items.push_back(ExceptionMatch("sourceIdentifier", parsed_exception.getSourceIdentifier()));
-    }
-    if (!parsed_exception.getSourceIp().empty()) {
-        items.push_back(ExceptionMatch("sourceIP", parsed_exception.getSourceIp()));
-    }
-    if (!parsed_exception.getUrl().empty()) {
-        items.push_back(ExceptionMatch("url", parsed_exception.getUrl()));
+    for (const auto &group : groups) {
+        if (group.first.second == "equals") {
+            items.push_back(ExceptionMatch(group.first.first, group.second));
+        } else {
+            items.push_back(ExceptionMatch(group.first.first, group.first.second, group.second));
+        }
     }
 
     // when there is only one operand, there's no need for an additional 'and'/'or' condition enclosing it
     if (items.size() == 1) {
-        auto & other = items[0];
+        // NginxionS: a copy: the members are assigned from an element of items, which the assignment frees
+        ExceptionMatch other = items[0];
         match_type = other.match_type;
         op = other.op;
         key = other.key;

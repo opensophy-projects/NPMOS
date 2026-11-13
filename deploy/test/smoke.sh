@@ -392,6 +392,27 @@ if $CURL "$ADMIN/api/nginxions/waf" | grep -q '"reachable": *true'; then
   host_objects null
   wait_status "$SQLI" 403 "SQLi is not blocked once the exceptions are gone"
 
+  step "WAF -> Policy: x-nginxions conditions of an exception: not-in and a header name"
+  # every source but 192.0.2.7: the tester's attack passes
+  not_in=$(post_json POST /objects '{"kind": "exception", "name": "smoke-not-in",
+    "spec": {"action": "accept", "condition": [{"key": "sourceIp", "op": "not-in", "value": "192.0.2.7"}]}}' | new_id)
+  # a request with the header is dropped, even a normal one
+  by_header=$(post_json POST /objects '{"kind": "exception", "name": "smoke-header",
+    "spec": {"action": "drop", "condition": [{"key": "headerName", "value": "x-smoke-drop"}]}}' | new_id)
+  [ -n "$not_in" ] && [ -n "$by_header" ] || fail "the exceptions of x-nginxions were not created"
+  host_objects "{\"exceptions\": [$not_in]}"
+  wait_status "$SQLI" 200 "an exception for every source but another one does not let the attack through"
+  host_objects "{\"exceptions\": [$by_header]}"
+  for i in $(seq 1 60); do
+    [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 -H 'Host: test.local' -H 'X-Smoke-Drop: 1' "$HTTP/")" = 403 ] \
+      && break
+    [ "$i" = 60 ] && fail "a request with the header of a drop exception is not dropped"
+    sleep 2
+  done
+  [ "$(status /)" = 200 ] || fail "a request without the header of a drop exception is dropped"
+  host_objects null
+  wait_status "$SQLI" 403 "SQLi is not blocked once the exceptions of x-nginxions are gone"
+
   step "WAF -> Policy: a custom response «response code only» answers with its own code"
   code406=$(post_json POST /objects '{"kind": "custom_response", "name": "smoke-406",
     "spec": {"mode": "response-code-only", "httpResponseCode": 406}}' | new_id)

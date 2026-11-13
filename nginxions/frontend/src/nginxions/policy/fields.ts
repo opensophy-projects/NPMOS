@@ -16,7 +16,16 @@ export const EXCEPTION_KEYS = [
 	"countryCode",
 	"countryName",
 	"sourceIdentifier",
+	// x-nginxions: keys the WAF of the agent matches beyond v1beta2 (docs/WAF-POLICY.md 5.2)
+	"method",
+	"headerName",
+	"headerValue",
+	"paramLocation",
+	"indicator",
 ];
+
+/** operators of a condition of an exception (x-nginxions); exist has no value */
+export const EXCEPTION_OPS = ["equals", "not-equals", "exist"];
 
 /** keys of a condition of a rate limit rule: what the rate limit engine of the agent matches */
 export const RATE_LIMIT_KEYS = ["sourceIp", "url", "sourceIdentifier", "countryCode", "countryName"];
@@ -161,7 +170,14 @@ export const summary = (kind: Kind, spec: Record<string, any>): string[] => {
 		case "custom_response":
 			return [spec.mode, spec.mode === "redirect" ? spec.redirectUrl : spec.httpResponseCode].filter(Boolean);
 		case "exception":
-			return [spec.action, ...(spec.condition || []).map((c: any) => `${c.key}=${c.value}`)];
+			return [
+				spec.action,
+				...(spec.condition || []).map((c: any) =>
+					c.op === "exist"
+						? `${c.key}?`
+						: `${c.key}${c.op === "not-equals" || c.op === "not-in" ? "≠" : "="}${c.value}`,
+				),
+			];
 		case "trusted_sources":
 			return [`≥${spec.minNumOfSources}`, ...(spec.sourcesIdentifiers || [])];
 		case "source_identifiers":

@@ -221,7 +221,8 @@ const responseFromV1 = (r) =>
 		redirectAddXEventId: r.redirectAddXEventId,
 	});
 
-export const EXCEPTION_KEYS = [
+/** keys of a condition of an exception in v1beta2 (and v1beta1) */
+export const V2_EXCEPTION_KEYS = [
 	"countryCode",
 	"countryName",
 	"hostName",
@@ -233,11 +234,34 @@ export const EXCEPTION_KEYS = [
 	"url",
 ];
 
+/**
+ * Keys the WAF of the agent matches an exception on (Waf2Transaction::getExceptionsDict): those of v1beta2 and the
+ * extension x-nginxions (docs/WAF-POLICY.md 5.2). Header names and values are compared in lower case.
+ */
+export const EXCEPTION_KEYS = [
+	...V2_EXCEPTION_KEYS,
+	"method",
+	"headerName",
+	"headerValue",
+	"paramLocation",
+	"indicator",
+];
+
+/** operators of a condition (x-nginxions): equals when absent; exist has no value */
+export const EXCEPTION_OPS = ["equals", "not-equals", "in", "not-in", "exist"];
+
+/**
+ * An exception that uses the extension x-nginxions: a key or an operator of NginxionS. The agent of open-appsec
+ * reads its operators as equals and drops the keys, so such an exception means something else there.
+ */
+export const usesExtension = (e) =>
+	list(e?.condition).some((c) => !V2_EXCEPTION_KEYS.includes(c?.key) || !["equals", "in", undefined].includes(c?.op));
+
 /** v1beta2 conditions [{key, value}] → v1beta1 lists per key (values of a key: any; keys: all) */
 const exceptionToV1 = (e) => {
 	const out = { name: e.name, action: e.action };
 	for (const { key, value } of list(e.condition)) {
-		if (!EXCEPTION_KEYS.includes(key)) continue;
+		if (!V2_EXCEPTION_KEYS.includes(key)) continue;
 		out[key] = [...(out[key] || []), String(value)];
 	}
 	return out;
@@ -246,7 +270,7 @@ const exceptionToV1 = (e) => {
 /** accepts both forms: v1beta1 lists per key and v1beta2 conditions */
 const exceptionFromV1 = (e) => {
 	const condition = list(e.condition).filter((c) => isObject(c) && c.key !== undefined);
-	for (const key of EXCEPTION_KEYS) {
+	for (const key of V2_EXCEPTION_KEYS) {
 		for (const value of list(e[key])) condition.push({ key, value: String(value) });
 	}
 	return defined({ name: e.name, action: e.action ?? "accept", condition });
@@ -333,7 +357,10 @@ export const toV1 = (input) => {
 		practices: list(doc.threatPreventionPractices).map(practiceToV1),
 		"log-triggers": list(doc.logTriggers).map(triggerToV1),
 		"custom-responses": list(doc.customResponses).map(responseToV1),
-		exceptions: list(doc.exceptions).map(exceptionToV1),
+		// v1beta1 has no operators and fewer keys: an exception of the extension is left out (export names it)
+		exceptions: list(doc.exceptions)
+			.filter((e) => !usesExtension(e))
+			.map(exceptionToV1),
 		"trusted-sources": list(doc.trustedSources).map(trustedToV1),
 		"source-identifiers": list(doc.sourcesIdentifiers).map(identifiersToV1),
 	});

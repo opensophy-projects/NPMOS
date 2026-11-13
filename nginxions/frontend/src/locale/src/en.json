@@ -5319,10 +5319,13 @@
 		"defaultMessage": "Add condition"
 	},
 	"nginxions.policy.condition.hint": {
-		"defaultMessage": "Conditions with the same field match any of their values; different fields must all match."
+		"defaultMessage": "Values of one field with «is» match any of them, with «is not» none of them; different fields must all match. Header names and values are compared in lower case. Method, headers, place of the parameter, indicator and the operators are of NginxionS (x-nginxions): the agent of open-appsec does not have them."
 	},
 	"nginxions.policy.condition.key": {
 		"defaultMessage": "Field"
+	},
+	"nginxions.policy.condition.op": {
+		"defaultMessage": "Operator"
 	},
 	"nginxions.policy.condition.value": {
 		"defaultMessage": "Value"
@@ -5564,8 +5567,23 @@
 	"nginxions.policy.key.countryName": {
 		"defaultMessage": "Country"
 	},
+	"nginxions.policy.key.headerName": {
+		"defaultMessage": "Header name"
+	},
+	"nginxions.policy.key.headerValue": {
+		"defaultMessage": "Header value"
+	},
 	"nginxions.policy.key.hostName": {
 		"defaultMessage": "Host name"
+	},
+	"nginxions.policy.key.indicator": {
+		"defaultMessage": "Indicator of the attack"
+	},
+	"nginxions.policy.key.method": {
+		"defaultMessage": "Method"
+	},
+	"nginxions.policy.key.paramLocation": {
+		"defaultMessage": "Place of the parameter"
 	},
 	"nginxions.policy.key.paramName": {
 		"defaultMessage": "Parameter name"
@@ -5704,6 +5722,15 @@
 	},
 	"nginxions.policy.none": {
 		"defaultMessage": "None"
+	},
+	"nginxions.policy.op.equals": {
+		"defaultMessage": "is"
+	},
+	"nginxions.policy.op.exist": {
+		"defaultMessage": "is present"
+	},
+	"nginxions.policy.op.not-equals": {
+		"defaultMessage": "is not"
 	},
 	"nginxions.policy.previewing": {
 		"defaultMessage": "Building the policy…"
