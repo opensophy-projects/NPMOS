@@ -407,15 +407,18 @@ if $CURL "$ADMIN/api/nginxions/waf" | grep -q '"reachable": *true'; then
     "messageBody": "Smoke text of the page"}}' | new_id)
   [ -n "$page406" ] || fail "the custom response with a page was not created"
   host_objects "{\"customResponse\": $page406}"
-  # the handlers of the agent take a new policy one after another: a request may still meet the previous custom
-  # response (406 without a page) for a while, so the page itself is waited for
+  # the handlers of the agent take a new policy one after another: a request may still meet the previous response
+  # (403) for a while, so the page and its code are waited for together, from one request, three times in a row
+  hits=0
   for i in $(seq 1 60); do
-    body=$(curl -s --max-time 10 -H 'Host: test.local' "$HTTP$SQLI")
-    echo "$body" | grep -q "Smoke title" && break
-    [ "$i" = 60 ] && fail "the title of the custom response is not on the page (status $(status "$SQLI")): $(echo "$body" | head -c 300)"
-    sleep 2
+    body=$(curl -s --max-time 10 -w '@@%{http_code}' -H 'Host: test.local' "$HTTP$SQLI")
+    code=${body##*@@}
+    body=${body%@@*}
+    if [ "$code" = 406 ] && echo "$body" | grep -q "Smoke title"; then hits=$((hits + 1)); else hits=0; fi
+    [ "$hits" = 3 ] && break
+    [ "$i" = 60 ] && fail "the custom response is not a page with its code 406 (status $code): $(echo "$body" | head -c 300)"
+    sleep 1
   done
-  [ "$(status "$SQLI")" = 406 ] || fail "the page of the custom response is not answered with its code 406"
   echo "$body" | grep -q "Smoke text of the page" || fail "the text of the custom response is not on the page"
   echo "$body" | grep -q "Incident Id" || fail "the incident ID is not on the page"
   echo "$body" | grep -qi "check point\|openappsec" && fail "the page names a vendor: $(echo "$body" | head -c 300)"
