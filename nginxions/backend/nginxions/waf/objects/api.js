@@ -22,14 +22,16 @@ const SIMULATE_EVENTS = 20000;
  * Dry run of a change on the WAF events of a recent period (objects/simulate.js): how many would pass, be blocked
  * or only logged under the candidate policy instead of the current one. null when it cannot run.
  */
-const simulateChange = async (candidateDoc, period = "24h", { current, hosts } = {}) => {
+const simulateChange = async (candidateDoc, period = "24h", { current, hosts, since, until } = {}) => {
 	try {
 		const currentDoc = current ?? (await buildPolicy()).doc;
-		const since = new Date(Date.now() - (SIMULATE_PERIODS[period] ?? SIMULATE_PERIODS["24h"]));
+		// a period by name (the last hour, day, week), or the hours of a trial (since, until)
+		const from = since ?? new Date(Date.now() - (SIMULATE_PERIODS[period] ?? SIMULATE_PERIODS["24h"]));
 		const query = db()("nginxions_security_event")
 			.where("kind", "security")
 			.whereNot("practice", "")
-			.where("time", ">=", since);
+			.where("time", ">=", from);
+		if (until) query.where("time", "<", until);
 		if (hosts) query.whereIn("host", hosts);
 		const events = await query
 			.select(
@@ -443,13 +445,23 @@ export const simulateHostMode = async (access, hostId, mode, period = "7d") => {
 	await access.can("proxy_hosts:get", hostId);
 	await access.can("waf_policy:view");
 	if (!POLICY_MODES.includes(mode)) throw new errs.ValidationError(`mode: one of ${POLICY_MODES.join(", ")}`);
+	return hostSimulation(hostId, mode, { period });
+};
+
+/**
+ * The dry run of a mode of a host, without a check of rights (the trials of waf/trial.js): a period by name, or the
+ * hours since..until with the period "trial".
+ */
+export const hostSimulation = async (hostId, mode, { period = "7d", since, until } = {}) => {
 	const host = await db()("proxy_host").select("domain_names").where({ id: hostId, is_deleted: 0 }).first();
 	if (!host) throw new errs.ItemNotFoundError(hostId);
 	const domains = (typeof host.domain_names === "string" ? JSON.parse(host.domain_names) : host.domain_names) || [];
 	const { doc } = await buildPolicy();
-	return simulateChange(withHostMode(doc, hostId, mode), period, {
+	return simulateChange(withHostMode(doc, hostId, mode), since ? "trial" : period, {
 		current: doc,
 		hosts: domains.map((d) => String(d).toLowerCase()),
+		since,
+		until,
 	});
 };
 

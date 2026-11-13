@@ -100,7 +100,8 @@ export interface DiffLine {
 
 /** dry run of a change on recent WAF events (backend waf/objects/simulate.js) */
 export interface Simulation {
-	period: "1h" | "24h" | "7d";
+	/** trial: the hours of a trial of blocking on a host */
+	period: "1h" | "24h" | "7d" | "trial";
 	error?: string;
 	limited?: boolean;
 	events?: number;

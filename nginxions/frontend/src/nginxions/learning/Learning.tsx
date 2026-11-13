@@ -29,6 +29,7 @@ import {
 	undoLabel,
 } from "./api";
 import { showLabelModal } from "./LabelModal";
+import { showStartTrialModal, showTrialReportModal } from "./TrialModal";
 import styles from "./Learning.module.css";
 
 const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id }, values);
@@ -203,22 +204,63 @@ function Hosts({ manage }: { manage: boolean }) {
 												)}
 											</td>
 											<td className="text-end">
-												{h.readyToPrevent ? (
-													manage ? (
+												{h.trial ? (
+													// a trial of blocking: running, or over and waiting for a decision
+													<div className={styles.trial}>
+														<span className={styles.muted}>
+															<T
+																id={`nginxions.learning.trial.${h.trial.state === "running" ? "until" : "over"}`}
+																data={{ time: dateTime(h.trial.endsOn) }}
+															/>
+														</span>
 														<button
 															type="button"
-															className="btn btn-sm btn-primary"
-															disabled={busy === h.id}
-															onClick={() => prevent(h)}
+															className={cn(
+																"btn btn-sm",
+																h.trial.state !== "running" && "btn-primary",
+															)}
+															onClick={() =>
+																showTrialReportModal({
+																	host: h,
+																	manage,
+																	onDone: refresh,
+																})
+															}
 														>
-															<T id="nginxions.learning.prevent" />
+															<T id="nginxions.learning.trial.report" />
 														</button>
-													) : (
-														<span className={styles.ready}>
-															<T id="nginxions.learning.ready" />
-														</span>
-													)
-												) : null}
+													</div>
+												) : (
+													<div className={styles.trial}>
+														{h.readyToPrevent &&
+															(manage ? (
+																<button
+																	type="button"
+																	className="btn btn-sm btn-primary"
+																	disabled={busy === h.id}
+																	onClick={() => prevent(h)}
+																>
+																	<T id="nginxions.learning.prevent" />
+																</button>
+															) : (
+																<span className={styles.ready}>
+																	<T id="nginxions.learning.ready" />
+																</span>
+															))}
+														{manage && !String(h.mode).startsWith("prevent") && (
+															<button
+																type="button"
+																className="btn btn-sm"
+																title={t("nginxions.learning.trial.start.text")}
+																onClick={() =>
+																	showStartTrialModal({ host: h, onDone: refresh })
+																}
+															>
+																<T id="nginxions.learning.trial.start" />
+															</button>
+														)}
+													</div>
+												)}
 											</td>
 										</tr>
 									))

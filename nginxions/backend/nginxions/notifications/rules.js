@@ -29,6 +29,8 @@ export const RULE_TYPES = {
 	host_problem: { params: {}, severity: "warning" },
 	// groups of events in the queue of learning (Agents → open-appsec → Learning), last 24 h
 	learning_queue: { params: { threshold: int(1, 100000, 1) }, severity: "warning" },
+	// trials of blocking on hosts (Agents → open-appsec → Learning) that ended and wait for a decision
+	waf_trial: { params: {}, severity: "info" },
 	// short-lived client certificates renewed by NginxionS (auto renewal by link): the one-time link of the new .p12
 	pki_reissued: { params: {}, severity: "info" },
 };
@@ -116,6 +118,16 @@ const TEXT = {
 		ru: (v) => ({
 			title: `Обучение: ${v.count} групп(ы) событий на разметку`,
 			text: `Агент WAF не уверен в ${v.count} групп(ах) запросов за последние 24 ч (заблокированы или со средней оценкой). Разметьте их в «Агенты → open-appsec → Обучение»: легитимное перестанет блокироваться, атаки не попадут в обучение.`,
+		}),
+	},
+	waf_trial: {
+		en: (v) => ({
+			title: `Trial of blocking on ${v.name} is over`,
+			text: `In ${v.hours} h of the trial the WAF saw ${v.events} event(s) of ${v.name}: blocking would have blocked ${v.toBlock} more, ${v.toPass} would pass. Agents → open-appsec → Learning shows the report and switches the host to blocking.`,
+		}),
+		ru: (v) => ({
+			title: `Пробный режим блокировки на ${v.name} завершён`,
+			text: `За ${v.hours} ч пробного режима WAF записал ${v.events} событий хоста ${v.name}: блокировка дополнительно заблокировала бы ${v.toBlock}, пропустила бы ${v.toPass}. Отчёт и переключение хоста в блокировку — в «Агенты → open-appsec → Обучение».`,
 		}),
 	},
 };
@@ -333,6 +345,27 @@ const CHECKS = {
 				})(),
 			},
 		}));
+	},
+	waf_trial: async () => {
+		const rows = await db()("nginxions_waf_trial as t")
+			.join("proxy_host as h", "h.id", "t.proxy_host_id")
+			.where("t.outcome", "")
+			.whereNotNull("t.finished_on")
+			.select("t.id", "t.started_on", "t.ends_on", "t.report", "h.domain_names");
+		return rows.map((r) => {
+			const report = parseJson(r.report || "{}");
+			const domains = parseJson(r.domain_names);
+			return {
+				key: `waf-trial:${r.id}`,
+				values: {
+					name: domains[0] || `#${r.id}`,
+					hours: Math.round((new Date(r.ends_on) - new Date(r.started_on)) / 3600e3),
+					events: report.events ?? 0,
+					toBlock: report.toBlock ?? 0,
+					toPass: report.toPass ?? 0,
+				},
+			};
+		});
 	},
 	learning_queue: async (p) => {
 		const { queueSize } = await import("../learning/index.js");

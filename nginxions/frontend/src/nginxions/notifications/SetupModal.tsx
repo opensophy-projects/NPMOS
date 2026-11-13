@@ -31,13 +31,14 @@ const RULES: RuleType[] = [
 	"cert_expiry",
 	"attack_spike",
 	"learning_queue",
+	"waf_trial",
 ];
 
 /** presets: the rules each one ticks */
 const PRESETS: Record<string, RuleType[]> = {
 	recommended: RULES,
 	failures: ["service_down", "agent_down", "policy_error", "host_problem"],
-	attacks: ["attack_spike", "agent_down", "learning_queue"],
+	attacks: ["attack_spike", "agent_down", "learning_queue", "waf_trial"],
 	certificates: ["cert_expiry"],
 };
 

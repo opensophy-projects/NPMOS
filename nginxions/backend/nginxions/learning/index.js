@@ -12,6 +12,7 @@ import internalAuditLog from "../../internal/audit-log.js";
 import { isPostgres } from "../../lib/config.js";
 import errs from "../../lib/error.js";
 import { global as logger } from "../../logger.js";
+import { openTrials } from "../waf/trial.js";
 import { EVENT_TABLE } from "../events/store.js";
 import { scheduleRegenerate } from "../waf/policy.js";
 import * as appsec from "./appsec.js";
@@ -613,6 +614,7 @@ const internalLearning = {
 		const hosts = (await wafHosts()).filter((h) => h.enabled);
 		const tenant = await getTenant();
 		const labels = await activeLabels();
+		const trials = await openTrials();
 		const now = Date.now();
 		let error = null;
 		const result = [];
@@ -666,6 +668,8 @@ const internalLearning = {
 				enforced,
 				falsePositives: { before, after },
 				queue: (await queueGroups("7d", host.id, hosts)).length,
+				// the open trial of blocking (waf/trial.js)
+				trial: trials.get(host.id) ?? null,
 				// ready to block: the tuning service says so (prevent critical or high) while the host only detects
 				readyToPrevent:
 					!!best &&

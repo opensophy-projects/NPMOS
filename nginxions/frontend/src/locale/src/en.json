@@ -3359,6 +3359,66 @@
 	"nginxions.learning.suggestions.text": {
 		"defaultMessage": "open-appsec finds them itself on busy hosts (many different sources)."
 	},
+	"nginxions.learning.trial.cancel": {
+		"defaultMessage": "Stop the trial"
+	},
+	"nginxions.learning.trial.closed": {
+		"defaultMessage": "{name}: trial closed, the mode is unchanged"
+	},
+	"nginxions.learning.trial.dismiss": {
+		"defaultMessage": "Do not switch"
+	},
+	"nginxions.learning.trial.finished.text": {
+		"defaultMessage": "The trial ran from {from} to {to}. What blocking would have done with the WAF events of the host:"
+	},
+	"nginxions.learning.trial.hours": {
+		"defaultMessage": "Duration"
+	},
+	"nginxions.learning.trial.hours.1": {
+		"defaultMessage": "1 hour"
+	},
+	"nginxions.learning.trial.hours.168": {
+		"defaultMessage": "7 days"
+	},
+	"nginxions.learning.trial.hours.24": {
+		"defaultMessage": "24 hours"
+	},
+	"nginxions.learning.trial.hours.6": {
+		"defaultMessage": "6 hours"
+	},
+	"nginxions.learning.trial.hours.72": {
+		"defaultMessage": "3 days"
+	},
+	"nginxions.learning.trial.none": {
+		"defaultMessage": "The host has no trial of blocking."
+	},
+	"nginxions.learning.trial.over": {
+		"defaultMessage": "Trial over {time}"
+	},
+	"nginxions.learning.trial.report": {
+		"defaultMessage": "Report"
+	},
+	"nginxions.learning.trial.report.title": {
+		"defaultMessage": "Trial of blocking on {name}: report"
+	},
+	"nginxions.learning.trial.running.text": {
+		"defaultMessage": "The trial runs from {from} to {to}. What blocking would have done with the WAF events of the host so far:"
+	},
+	"nginxions.learning.trial.start": {
+		"defaultMessage": "Trial of blocking"
+	},
+	"nginxions.learning.trial.start.text": {
+		"defaultMessage": "Nothing is blocked: the host keeps its mode, and for the hours you choose NginxionS judges its WAF events as blocking would. Then you get a report and decide whether to switch."
+	},
+	"nginxions.learning.trial.start.title": {
+		"defaultMessage": "Trial of blocking on {name}"
+	},
+	"nginxions.learning.trial.started": {
+		"defaultMessage": "{name}: trial of blocking started"
+	},
+	"nginxions.learning.trial.until": {
+		"defaultMessage": "Trial until {time}"
+	},
 	"nginxions.learning.ttl": {
 		"defaultMessage": "Remove the exception after"
 	},
@@ -4283,6 +4343,15 @@
 	"nginxions.notifications.rule.type": {
 		"defaultMessage": "What to watch"
 	},
+	"nginxions.notifications.rule.waf_trial": {
+		"defaultMessage": "Trial of blocking is over"
+	},
+	"nginxions.notifications.rule.waf_trial.hint": {
+		"defaultMessage": "A trial of blocking on a host ended: its report waits in Agents → open-appsec → Learning."
+	},
+	"nginxions.notifications.rule.waf_trial.params": {
+		"defaultMessage": "when a trial ends"
+	},
 	"nginxions.notifications.rules": {
 		"defaultMessage": "Rules"
 	},
@@ -4363,6 +4432,9 @@
 	},
 	"nginxions.notifications.setup.why.service_down": {
 		"defaultMessage": "A container of NginxionS stopped or keeps restarting."
+	},
+	"nginxions.notifications.setup.why.waf_trial": {
+		"defaultMessage": "A trial of blocking ended: decide whether the host should block."
 	},
 	"nginxions.notifications.status.firing": {
 		"defaultMessage": "Problem"
@@ -5743,6 +5815,9 @@
 	},
 	"nginxions.policy.simulation.period.7d": {
 		"defaultMessage": "the last 7 days"
+	},
+	"nginxions.policy.simulation.period.trial": {
+		"defaultMessage": "the hours of the trial"
 	},
 	"nginxions.policy.simulation.request": {
 		"defaultMessage": "Request"

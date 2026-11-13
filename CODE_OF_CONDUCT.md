@@ -382,6 +382,7 @@ flowchart LR
       - `applied.js` — что агент применяет на самом деле: его конфигурация (через nginxions-control) против сгенерированной политики
       - `hosts.js` — режимы WAF хостов и их location
       - `hosts-code.js` — политика хоста как код (YAML)
+      - `trial.js` — пробный режим хоста: блокировка на N часов только в журнале, отчёт и решение
       - `custom.js`, `expert.js` — свои YAML-фрагменты поверх политики (режим эксперта)
       - **`objects/`** — `model.js` (объекты политики в терминах v1beta2 и проверка «нет молчаливых полей»), `store.js` (хранение и сборка политики), `api.js` (объекты, политика по умолчанию, предпросмотр, импорт), `format.js` (v1beta2 для агента, v1beta1 для импорта и экспорта), `compare.js` (сравнение применённой агентом конфигурации с политикой), `simulate.js` (пробный прогон изменения на недавних событиях WAF), `schema-v1beta2.json` (схема политики), `examples/` (примеры политик open-appsec для тестов)
     - **`migrations/`** — миграции таблиц `nginxions_*` (по одной на изменение схемы, имя начинается с даты)
@@ -432,7 +433,7 @@ flowchart LR
     - **`acme/`** — ACME-серверы (`AcmeServers.tsx`), поля сервера и DNS (`AcmeFields.tsx`), API
     - **`certs/`** — выпуск ACME (`AcmeCertificateModal.tsx`), свой CSR (`CsrModal.tsx`), полный лог ошибки (`AcmeLog.tsx`)
     - **`crowdsec/`** — окна бана (`BanModal.tsx`), заблокированного адреса (`DecisionModal.tsx`), блок-листа (`BlocklistModal.tsx`), профиля (`ProfileModal.tsx`); подписи (`labels.ts`), API
-    - **`learning/`** — обучение: страница (`Learning.tsx`), разметка (`LabelModal.tsx`), API
+    - **`learning/`** — обучение: страница (`Learning.tsx`), разметка (`LabelModal.tsx`), пробный режим хоста (`TrialModal.tsx`), API
     - **`notifications/`** — канал (`ChannelModal.tsx`), правило (`RuleModal.tsx`), быстрая настройка (`SetupModal.tsx`), API
     - **`pki/`** — CA (`CaModal.tsx`), выпуск (`IssueModal.tsx`), сертификат (`CertModal.tsx`), доступ к хосту (`AccessModal.tsx`, `HostCertsModal.tsx`), mTLS хоста (`MtlsModal.tsx`), отзыв (`RevokeModal.tsx`), ключи (`SecretModal.tsx`), шаблоны (`TemplateModal.tsx`), выдача файлов (`Delivery.tsx`), API
     - **`policy/`** — редактор политики: объект (`ObjectModal.tsx`, поля в `fields.ts`), ссылки на объекты (`RefsEditor.tsx`), просмотр изменения (`Review.tsx`, `ReviewModal.tsx`), код (`CodePane.tsx`), импорт (`ImportModal.tsx`), имена встроенных объектов (`names.ts`), API

@@ -3359,6 +3359,66 @@
 	"nginxions.learning.suggestions.text": {
 		"defaultMessage": "open-appsec находит их сам на нагруженных хостах (много разных источников)."
 	},
+	"nginxions.learning.trial.cancel": {
+		"defaultMessage": "Прервать пробный режим"
+	},
+	"nginxions.learning.trial.closed": {
+		"defaultMessage": "{name}: пробный режим закрыт, режим хоста не изменился"
+	},
+	"nginxions.learning.trial.dismiss": {
+		"defaultMessage": "Не переключать"
+	},
+	"nginxions.learning.trial.finished.text": {
+		"defaultMessage": "Пробный режим шёл с {from} до {to}. Что блокировка сделала бы с событиями WAF хоста:"
+	},
+	"nginxions.learning.trial.hours": {
+		"defaultMessage": "Длительность"
+	},
+	"nginxions.learning.trial.hours.1": {
+		"defaultMessage": "1 час"
+	},
+	"nginxions.learning.trial.hours.168": {
+		"defaultMessage": "7 дней"
+	},
+	"nginxions.learning.trial.hours.24": {
+		"defaultMessage": "24 часа"
+	},
+	"nginxions.learning.trial.hours.6": {
+		"defaultMessage": "6 часов"
+	},
+	"nginxions.learning.trial.hours.72": {
+		"defaultMessage": "3 дня"
+	},
+	"nginxions.learning.trial.none": {
+		"defaultMessage": "У хоста нет пробного режима блокировки."
+	},
+	"nginxions.learning.trial.over": {
+		"defaultMessage": "Пробный режим завершён {time}"
+	},
+	"nginxions.learning.trial.report": {
+		"defaultMessage": "Отчёт"
+	},
+	"nginxions.learning.trial.report.title": {
+		"defaultMessage": "Пробный режим блокировки на {name}: отчёт"
+	},
+	"nginxions.learning.trial.running.text": {
+		"defaultMessage": "Пробный режим идёт с {from} до {to}. Что блокировка сделала бы с событиями WAF хоста к этому моменту:"
+	},
+	"nginxions.learning.trial.start": {
+		"defaultMessage": "Пробный режим"
+	},
+	"nginxions.learning.trial.start.text": {
+		"defaultMessage": "Ничего не блокируется: хост остаётся в своём режиме, а NginxionS выбранное время оценивает события WAF хоста так, как их обработала бы блокировка. Потом — отчёт и решение, переключать ли хост."
+	},
+	"nginxions.learning.trial.start.title": {
+		"defaultMessage": "Пробный режим блокировки: {name}"
+	},
+	"nginxions.learning.trial.started": {
+		"defaultMessage": "{name}: пробный режим блокировки запущен"
+	},
+	"nginxions.learning.trial.until": {
+		"defaultMessage": "Пробный режим до {time}"
+	},
 	"nginxions.learning.ttl": {
 		"defaultMessage": "Убрать исключение через"
 	},
@@ -4283,6 +4343,15 @@
 	"nginxions.notifications.rule.type": {
 		"defaultMessage": "Что отслеживать"
 	},
+	"nginxions.notifications.rule.waf_trial": {
+		"defaultMessage": "Пробный режим блокировки завершён"
+	},
+	"nginxions.notifications.rule.waf_trial.hint": {
+		"defaultMessage": "Пробный режим блокировки на хосте закончился: отчёт ждёт в «Агенты → open-appsec → Обучение»."
+	},
+	"nginxions.notifications.rule.waf_trial.params": {
+		"defaultMessage": "когда пробный режим закончится"
+	},
 	"nginxions.notifications.rules": {
 		"defaultMessage": "Правила"
 	},
@@ -4363,6 +4432,9 @@
 	},
 	"nginxions.notifications.setup.why.service_down": {
 		"defaultMessage": "Контейнер NginxionS остановился или постоянно перезапускается."
+	},
+	"nginxions.notifications.setup.why.waf_trial": {
+		"defaultMessage": "Пробный режим блокировки закончился: решите, переводить ли хост в блокировку."
 	},
 	"nginxions.notifications.status.firing": {
 		"defaultMessage": "Проблема"
@@ -5743,6 +5815,9 @@
 	},
 	"nginxions.policy.simulation.period.7d": {
 		"defaultMessage": "последние 7 дней"
+	},
+	"nginxions.policy.simulation.period.trial": {
+		"defaultMessage": "время пробного режима"
 	},
 	"nginxions.policy.simulation.request": {
 		"defaultMessage": "Запрос"

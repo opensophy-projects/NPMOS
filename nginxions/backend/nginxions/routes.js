@@ -35,6 +35,7 @@ import internalWafHosts from "./waf/hosts.js";
 import internalWafHostCode from "./waf/hosts-code.js";
 import internalWaf from "./waf/index.js";
 import internalWafObjects, { simulateHostMode } from "./waf/objects/api.js";
+import internalWafTrial from "./waf/trial.js";
 
 const router = express.Router({
 	caseSensitive: true,
@@ -504,6 +505,45 @@ router
 	);
 
 /**
+ * GET  /api/nginxions/waf/hosts/:host_id/trial — the open trial of blocking of the host and its report
+ * POST /api/nginxions/waf/hosts/:host_id/trial — {hours}: blocking is tried on the log only for that long
+ * PUT  /api/nginxions/waf/hosts/:host_id/trial — {enable}: closes it, switching the host to blocking or not
+ */
+router
+	.route("/waf/hosts/:host_id/trial")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((req, res) => internalWafTrial.get(res.locals.access, Number(req.params.host_id))))
+	.post(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["hours"],
+					properties: { hours: { type: "integer", minimum: 1, maximum: 168 } },
+				},
+				req.body,
+			);
+			return internalWafTrial.start(res.locals.access, Number(req.params.host_id), data);
+		}),
+	)
+	.put(
+		handle(async (req, res) => {
+			const data = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["enable"],
+					properties: { enable: { type: "boolean" } },
+				},
+				req.body,
+			);
+			return internalWafTrial.finish(res.locals.access, Number(req.params.host_id), data);
+		}),
+	);
+
+/**
  * GET /api/nginxions/waf/hosts/:host_id/code — the WAF policy of a host as YAML (objects by name)
  * PUT /api/nginxions/waf/hosts/:host_id/code — {content, dry_run?}: checked, or applied as the GUI does
  */
@@ -691,6 +731,7 @@ const ruleSchema = (create) => ({
 				"cert_expiry",
 				"host_problem",
 				"learning_queue",
+				"waf_trial",
 			],
 		},
 		enabled: { type: "boolean" },

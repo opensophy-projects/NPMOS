@@ -110,7 +110,22 @@ export interface LearningHost {
 	falsePositives: { before: number; after: number };
 	queue: number;
 	readyToPrevent: boolean;
+	/** the open trial of blocking (running, or finished and waiting for a decision) */
+	trial: WafTrial | null;
 }
+
+/** trial mode of a host: blocking tried on the log only, then a report (waf/trial.js) */
+export interface WafTrial {
+	id: number;
+	hostId: number;
+	mode: string;
+	startedOn: string;
+	endsOn: string;
+	state: "running" | "finished" | "closed";
+	outcome: "enabled" | "dismissed" | "cancelled" | null;
+}
+
+export const TRIAL_HOURS = [1, 6, 24, 72, 168] as const;
 
 interface LabelInput {
 	key?: string;
@@ -148,3 +163,14 @@ export const undoLabel = (id: number): Promise<{ ok: boolean }> => api.del({ url
 
 export const getLearningHosts = (): Promise<{ hosts: LearningHost[]; tenant: string | null; error: string | null }> =>
 	api.get({ url: "/nginxions/learning/hosts" });
+
+export const getWafTrial = (
+	hostId: number,
+): Promise<{ trial: WafTrial | null; report: import("../policy/api").Simulation | null }> =>
+	api.get({ url: `/nginxions/waf/hosts/${hostId}/trial` });
+
+export const startWafTrial = (hostId: number, hours: number) =>
+	api.post({ url: `/nginxions/waf/hosts/${hostId}/trial`, data: { hours } });
+
+export const finishWafTrial = (hostId: number, enable: boolean) =>
+	api.put({ url: `/nginxions/waf/hosts/${hostId}/trial`, data: { enable } });

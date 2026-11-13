@@ -467,6 +467,29 @@ if $CURL "$ADMIN/api/nginxions/waf" | grep -q '"reachable": *true'; then
   host_objects null
   wait_status "$SQLI" 403 "SQLi is not answered with 403 again"
 
+  step "WAF -> Learning: a trial of blocking on a detecting host reports what it would block, then switches it"
+  trial() { $CURL -X "$1" -H 'Content-Type: application/json' "$ADMIN/api/nginxions/waf/hosts/1/trial" ${2:+-d "$2"}; }
+  [ "$($CURL -o /dev/null -w "%{http_code}" -X POST -H 'Content-Type: application/json' \
+    "$ADMIN/api/nginxions/waf/hosts/1/trial" -d '{"hours": 1}' 2>/dev/null || true)" = 400 ] \
+    || fail "a trial was started on a host that blocks already"
+  $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/nginxions/waf/hosts/1" \
+    -d '{"enabled": true, "mode": "detect-learn", "minimum_confidence": "high"}' > /dev/null
+  wait_status "$SQLI" 200 "SQLi is still blocked in detect mode"
+  trial POST '{"hours": 1}' | json | grep -q '"state":"running"' || fail "the trial did not start"
+  report=""
+  for i in $(seq 1 30); do
+    status "$SQLI" > /dev/null
+    report=$(trial GET | json)
+    echo "$report" | grep -q '"toBlock":[1-9]' && break
+    [ "$i" = 30 ] && fail "the trial does not report the attacks blocking would block: $(echo "$report" | head -c 400)"
+    sleep 4
+  done
+  $CURL "$ADMIN/api/nginxions/learning/hosts" | json | grep -q '"trial":{"id"' || fail "Learning does not show the trial"
+  trial PUT '{"enable": true}' | json | grep -q '"outcome":"enabled"' || fail "the trial was not closed by switching"
+  $CURL "$ADMIN/api/nginxions/waf/hosts/1" | json | grep -q '"mode":"prevent-learn"' \
+    || fail "the host was not switched to blocking by the trial"
+  wait_status "$SQLI" 403 "SQLi is not blocked after the trial switched the host"
+
   step "WAF -> Policy: the v1beta2 example of open-appsec is imported and applied by the agent"
   applied_at() { $CURL "$ADMIN/api/nginxions/waf" | json | grep -o '"lastPolicyUpdate":"[^"]*"'; }
   before=$(last_version)
