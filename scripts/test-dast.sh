@@ -96,8 +96,12 @@ else
   zap_api_minutes=20
   zap_pages=(zap-baseline.py -m 3)
 fi
+# the port of the proxy of ZAP is fixed (each scan has a container of its own): the random free port its scripts take
+# is in the range of the outgoing ports, and an add-on download at its start took it ("Address already in use", the
+# scan never started)
+zap_pages+=(-P 8090)
 scan zap-api zap -e ZAP_AUTH_HEADER=Cookie -e "ZAP_AUTH_HEADER_VALUE=__Host-Http-token=$cookie" \
-  -e ZAP_AUTH_HEADER_SITE=nginxions "$ZAP_IMAGE" zap-api-scan.py -t https://nginxions:81/api/schema -f openapi \
+  -e ZAP_AUTH_HEADER_SITE=nginxions "$ZAP_IMAGE" zap-api-scan.py -P 8090 -t https://nginxions:81/api/schema -f openapi \
   -J zap-api.json -r zap-api.html -I -z "-config scanner.maxScanDurationInMins=$zap_api_minutes -config scanner.threadPerHost=4"
 scan zap-ui zap "$ZAP_IMAGE" "${zap_pages[@]}" -t https://nginxions:81/ -J zap-ui.json -r zap-ui.html -I
 scan zap-host zap "$ZAP_IMAGE" "${zap_pages[@]}" -t https://dast.local/ -J zap-host.json -r zap-host.html -I
