@@ -5219,6 +5219,27 @@
 	"nginxions.policy.builtin.nginxions-strict.hint": {
 		"defaultMessage": "Blocks from a lower confidence and checks more: fewer missed attacks, more false positives"
 	},
+	"nginxions.policy.check.asset": {
+		"defaultMessage": "host {name} is not protected"
+	},
+	"nginxions.policy.check.drift": {
+		"defaultMessage": "The agent applies the policy differently from what NginxionS wrote:"
+	},
+	"nginxions.policy.check.ok": {
+		"defaultMessage": "The agent applies the policy as NginxionS wrote it."
+	},
+	"nginxions.policy.check.pending": {
+		"defaultMessage": "The agent has not applied the last change yet."
+	},
+	"nginxions.policy.check.rate-limit": {
+		"defaultMessage": "rate limit {name}"
+	},
+	"nginxions.policy.check.response": {
+		"defaultMessage": "custom response {name}"
+	},
+	"nginxions.policy.check.unknown": {
+		"defaultMessage": "What the agent applies could not be read."
+	},
 	"nginxions.policy.condition.add": {
 		"defaultMessage": "Add condition"
 	},
@@ -5318,6 +5339,12 @@
 	"nginxions.policy.f.httpResponseCode": {
 		"defaultMessage": "HTTP code"
 	},
+	"nginxions.policy.f.logDestination.cefService": {
+		"defaultMessage": "CEF"
+	},
+	"nginxions.policy.f.logDestination.syslogService": {
+		"defaultMessage": "Syslog"
+	},
 	"nginxions.policy.f.messageBody": {
 		"defaultMessage": "Text of the page"
 	},
@@ -5381,11 +5408,8 @@
 	"nginxions.policy.f.webAttacks.protections.openRedirect": {
 		"defaultMessage": "Open redirect"
 	},
-	"nginxions.policy.format.v1": {
-		"defaultMessage": "The agent gets the policy in v1beta1 (as open-appsec-npm): every exception of a rule applies."
-	},
 	"nginxions.policy.format.v2": {
-		"defaultMessage": "The policy uses features of v1beta2 only, so the agent gets v1beta2:"
+		"defaultMessage": "The agent gets the policy in v1beta2 and applies every field of it."
 	},
 	"nginxions.policy.from-template": {
 		"defaultMessage": "Fill from template"
@@ -5398,6 +5422,9 @@
 	},
 	"nginxions.policy.h.extendedLogging": {
 		"defaultMessage": "Details"
+	},
+	"nginxions.policy.h.logDestination": {
+		"defaultMessage": "Send to a log server"
 	},
 	"nginxions.policy.h.snortSignatures": {
 		"defaultMessage": "Snort signatures"
@@ -5431,6 +5458,9 @@
 	},
 	"nginxions.policy.import.create": {
 		"defaultMessage": "New objects: {count}"
+	},
+	"nginxions.policy.import.dropped": {
+		"defaultMessage": "Left out (Kubernetes, the Check Point cloud, engines of the Premium edition, extra practices of a rule):"
 	},
 	"nginxions.policy.import.file": {
 		"defaultMessage": "File local_policy.yaml"
@@ -5609,6 +5639,9 @@
 	"nginxions.policy.rate.add": {
 		"defaultMessage": "Add rule"
 	},
+	"nginxions.policy.rate.condition-add": {
+		"defaultMessage": "Add condition"
+	},
 	"nginxions.policy.rate.limit": {
 		"defaultMessage": "Limit"
 	},
@@ -5623,18 +5656,6 @@
 	},
 	"nginxions.policy.rate.uri": {
 		"defaultMessage": "URI"
-	},
-	"nginxions.policy.reason.file-security": {
-		"defaultMessage": "file security of practice {name}"
-	},
-	"nginxions.policy.reason.ips": {
-		"defaultMessage": "IPS of practice {name}"
-	},
-	"nginxions.policy.reason.rate-limit": {
-		"defaultMessage": "rate limits of {name}"
-	},
-	"nginxions.policy.reason.redirect": {
-		"defaultMessage": "redirect of response {name}"
 	},
 	"nginxions.policy.remove": {
 		"defaultMessage": "Remove"
@@ -5684,6 +5705,21 @@
 	"nginxions.policy.saved": {
 		"defaultMessage": "Policy applied"
 	},
+	"nginxions.policy.service.add": {
+		"defaultMessage": "Add server"
+	},
+	"nginxions.policy.service.address": {
+		"defaultMessage": "IPv4 address"
+	},
+	"nginxions.policy.service.hint": {
+		"defaultMessage": "One server of each kind, by IPv4 address: the agent opens a socket to an address, not a name."
+	},
+	"nginxions.policy.service.port": {
+		"defaultMessage": "Port"
+	},
+	"nginxions.policy.service.proto": {
+		"defaultMessage": "Protocol"
+	},
 	"nginxions.policy.subtitle": {
 		"defaultMessage": "The open-appsec policy made of objects: practices, rate limits, log triggers, responses, exceptions. Hosts use the default policy, a template or their own objects."
 	},
@@ -5704,9 +5740,6 @@
 	},
 	"nginxions.policy.template.strict": {
 		"defaultMessage": "Strict"
-	},
-	"nginxions.policy.v2-hint": {
-		"defaultMessage": "Needs local_policy.yaml v1beta2"
 	},
 	"nginxions.policy.version.created": {
 		"defaultMessage": "Created: {kind} {name}"
@@ -5735,8 +5768,14 @@
 	"nginxions.policy.view": {
 		"defaultMessage": "View"
 	},
+	"nginxions.policy.warning.extra": {
+		"defaultMessage": "Rule {rule}: the agent applies the first object of {name} only."
+	},
 	"nginxions.policy.warning.missing": {
 		"defaultMessage": "Rule {rule} refers to {name}, which does not exist (expert fragment?): the agent ignores it."
+	},
+	"nginxions.policy.warning.unsupported": {
+		"defaultMessage": "Object {rule}: {name} is not in the agent of NginxionS and does nothing. Turn it off."
 	},
 	"nginxions.rbac.action.apply": {
 		"defaultMessage": "Apply"
@@ -7576,6 +7615,9 @@
 	},
 	"nginxions.waf.policy-apply": {
 		"defaultMessage": "Apply now"
+	},
+	"nginxions.waf.policy-check": {
+		"defaultMessage": "In the agent"
 	},
 	"nginxions.waf.policy-generated": {
 		"defaultMessage": "Generated"

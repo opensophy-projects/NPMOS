@@ -8,6 +8,7 @@ import { formatDateTime, intl, T } from "src/locale";
 import { MANAGE, VIEW } from "src/modules/Permissions";
 import { showSuccess } from "src/notifications";
 import { type AgentStatus, applyWafPolicy, setWafEnabled, type WafPolicyState, type WafStatus } from "../../api";
+import { AppliedCheckNote } from "../../policy/Review";
 import { useWafStatus } from "../../hooks";
 import { showConfirmModal } from "../../modals/ConfirmModal";
 import { showWafPolicyModal } from "../../modals/WafPolicyModal";
@@ -104,6 +105,9 @@ function PolicyCard({ policy }: { policy?: WafPolicyState }) {
 								<T id="nginxions.waf.policy-not-sent" /> ({policy.applied.error})
 							</span>
 						)}
+					</Row>
+					<Row label="nginxions.waf.policy-check">
+						{policy?.check ? <AppliedCheckNote check={policy.check} /> : "—"}
 					</Row>
 				</div>
 			</div>

@@ -13,6 +13,7 @@ import { timingSafeEqual } from "node:crypto";
 //
 // No dependencies besides Node.js (the image copies this directory as is).
 import { readFileSync } from "node:fs";
+import { readFile, stat } from "node:fs/promises";
 import http from "node:http";
 import { hostname } from "node:os";
 import { repairNamespaces } from "./watchdog.js";
@@ -25,6 +26,9 @@ const DOCKER_SOCKET = process.env.NGINXIONS_DOCKER_SOCKET || "/var/run/docker.so
 const OWN_SERVICE = process.env.NGINXIONS_CONTROL_SERVICE || "openappsec";
 const AGENT_PID_FILE = process.env.NGINXIONS_AGENT_PID_FILE || "/run/nginxions-agent.pid";
 const TOKEN_FILE = process.env.NGINXIONS_CONTROL_TOKEN_FILE || "/run/secrets/control_token";
+// the configuration the agent made of local_policy.yaml (local_policy_mgmt_gen.cc): what it applies
+const AGENT_POLICY_FILE = process.env.NGINXIONS_AGENT_POLICY_FILE || "/tmp/local_appsec.policy";
+const AGENT_POLICY_MAX_BYTES = 32 * 1024 * 1024;
 const DOCKER_TIMEOUT_MS = 15000;
 const MAX_LOG_LINES = 5000;
 // nginxions is restarted this long after nginxions-control has answered (see the restart route)
@@ -141,6 +145,22 @@ const listManaged = async () => {
 		addresses: addressesOf(c),
 		ports: portsOf(c),
 	}));
+};
+
+/**
+ * The configuration the agent generated from local_policy.yaml, read only: NginxionS checks that the agent applies
+ * what it wrote (WAF -> Policy). null before the agent applied a policy.
+ */
+const agentPolicy = async () => {
+	let info;
+	try {
+		info = await stat(AGENT_POLICY_FILE);
+	} catch (err) {
+		if (err.code === "ENOENT") return { modifiedAt: null, policy: null };
+		throw err;
+	}
+	if (info.size > AGENT_POLICY_MAX_BYTES) throw new HttpError(413, "the policy of the agent is too large");
+	return { modifiedAt: info.mtime.toISOString(), policy: JSON.parse(await readFile(AGENT_POLICY_FILE, "utf8")) };
 };
 
 /**
@@ -293,6 +313,8 @@ const server = http.createServer(async (req, res) => {
 			result = await listManaged();
 		} else if (req.method === "GET" && url.pathname === "/v1/apps") {
 			result = await listApps();
+		} else if (req.method === "GET" && url.pathname === "/v1/agent/policy") {
+			result = await agentPolicy();
 		} else if (parts[0] === "v1" && parts[1] === "services" && parts.length >= 3) {
 			const service = decodeURIComponent(parts[2]);
 			const action = parts[3];

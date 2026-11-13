@@ -1,10 +1,7 @@
 // local_policy.yaml of open-appsec in its two syntaxes. NginxionS keeps the policy in the terms of
-// v1beta2 (camelCase, the objects of the policy editor); the agent gets v1beta1 unless the policy
-// uses what only v1beta2 has (docs/adr/0008-waf-policy.md):
-//   - v1beta1 applies every exception of a rule, v1beta2 only the first (policy_maker_utils.cc);
-//   - v1beta2 adds rate limits (access control practices), redirect responses, IPS and file
-//     security (the last two need the Premium edition of the agent).
-// Pure functions, no database.
+// v1beta2 (camelCase, the objects of the policy editor) and the agent always gets v1beta2: the agent of NginxionS
+// applies every field of it (docs/WAF-POLICY.md). v1beta1 is read (open-appsec-npm, old expert fragments) and
+// written for an export only. Pure functions, no database.
 
 const SECTIONS_V2 = [
 	"threatPreventionPractices",
@@ -284,7 +281,7 @@ const identifiersFromV1 = (s) => ({
 // ---------------------------------------------------------------- documents
 
 /**
- * A v1beta2 document as v1beta1 (what v1beta1 lacks is left out: check needsV2 first).
+ * A v1beta2 document as v1beta1, for an export (what v1beta1 lacks is left out).
  * @param {object} doc
  */
 const PROTECTIONS = ["csrfProtection", "errorDisclosure", "openRedirect"];
@@ -377,34 +374,22 @@ export const fromV1 = (doc) => {
 	return out;
 };
 
-/** the active ("not inactive") state of a mode of v1beta2 */
-const active = (mode) => mode !== undefined && mode !== "inactive";
+/** fields of a rule that name one object each for the agent: it takes the first of a list (policy_maker_utils.cc) */
+const SINGLE_IN_AGENT = ["threatPreventionPractices", "accessControlPractices", "triggers"];
 
 /**
- * Why a v1beta2 document can't be written as v1beta1 (empty: it can).
- * @returns {string[]} reasons
+ * Lists of a rule the agent reads the first item of only: "<rule>:<field>". The GUI keeps one; an expert fragment
+ * or an old version may hold more.
  */
-export const needsV2 = (doc) => {
-	const reasons = [];
-	const rules = [doc.policies?.default, ...list(doc.policies?.specificRules)].filter(Boolean);
-	const used = (field) => new Set(rules.flatMap((r) => (Array.isArray(r[field]) ? r[field] : [r[field]])));
-	const accessUsed = used("accessControlPractices");
-	for (const p of list(doc.accessControlPractices)) {
-		if (accessUsed.has(p.name) && active(p.rateLimit?.overrideMode) && list(p.rateLimit?.rules).length) {
-			reasons.push(`rate-limit:${p.name}`);
+export const extraRefs = (doc) => {
+	const out = [];
+	for (const rule of [doc.policies?.default, ...list(doc.policies?.specificRules)]) {
+		if (!rule) continue;
+		for (const field of SINGLE_IN_AGENT) {
+			if (Array.isArray(rule[field]) && rule[field].length > 1) out.push(`${rule.name || "default"}:${field}`);
 		}
 	}
-	const responses = used("customResponse");
-	for (const r of list(doc.customResponses)) {
-		if (responses.has(r.name) && r.mode === "redirect") reasons.push(`redirect:${r.name}`);
-	}
-	const practices = used("threatPreventionPractices");
-	for (const p of list(doc.threatPreventionPractices)) {
-		if (!practices.has(p.name)) continue;
-		if (active(p.intrusionPrevention?.overrideMode)) reasons.push(`ips:${p.name}`);
-		if (active(p.fileSecurity?.overrideMode)) reasons.push(`file-security:${p.name}`);
-	}
-	return reasons;
+	return out;
 };
 
 /** fields of a rule → the section its names are in */
@@ -443,53 +428,25 @@ export const danglingRefs = (doc) => {
 };
 
 /**
- * A v1beta2 document ready to write: apiVersion first; every rule names its practices (the agent
- * requires both keys, new_appsec_policy_crd_parser.cc; an empty list takes those of the default rule).
- * The agent keeps the rate limit of an access control practice once, for the last rule that uses it
- * (policy_maker_utils.cc, keyed by the name): every further rule gets a copy "<practice>.<n>".
- * The default rule names no practice that limits nothing (no rules, or inactive): the agent takes the first
- * rate limit whose context matches the asset (config.cc), and the one of the default rule, context All(), is
- * written first, so an inactive one there turned off the rate limits of every host.
+ * A v1beta2 document ready to write: apiVersion first; every rule names its practices (the agent requires both
+ * keys, new_appsec_policy_crd_parser.cc; an empty list takes those of the default rule). The agent of NginxionS keeps
+ * a rate limit per asset and writes the one of the default rule last: no copies of practices are needed.
  */
 export const asV2 = (doc) => {
 	if (!isObject(doc.policies)) return { apiVersion: "v1beta2", ...doc };
-	const practices = new Map(list(doc.accessControlPractices).map((p) => [p.name, p]));
-	const limits = (name) => list(practices.get(name)?.rateLimit?.rules).length > 0;
-	const inert = (name) => !limits(name) || practices.get(name)?.rateLimit?.overrideMode === "inactive";
-	const defaults = doc.policies.default || {};
-	const used = new Map();
-	const copies = [];
-	const mandatory = (rule, isDefault) => {
-		let access = rule.accessControlPractices ?? [];
-		if (isDefault) access = access.filter((name) => !inert(name));
-		// inherited rate limits made explicit, so that the copies below apply to them too
-		if (!isDefault && !access.length && list(defaults.accessControlPractices).some(limits)) {
-			access = defaults.accessControlPractices;
-		}
-		access = access.map((name) => {
-			if (!limits(name)) return name;
-			const n = used.get(name) ?? 0;
-			used.set(name, n + 1);
-			if (n === 0) return name;
-			const copy = { ...structuredClone(practices.get(name)), name: `${name}.${n}` };
-			copies.push(copy);
-			return copy.name;
-		});
-		return {
-			...rule,
-			threatPreventionPractices: rule.threatPreventionPractices ?? [],
-			accessControlPractices: access,
-		};
-	};
+	const mandatory = (rule) => ({
+		...rule,
+		threatPreventionPractices: rule.threatPreventionPractices ?? [],
+		accessControlPractices: rule.accessControlPractices ?? [],
+	});
 	return {
 		apiVersion: "v1beta2",
 		...doc,
 		policies: {
 			...doc.policies,
-			default: mandatory(defaults, true),
-			specificRules: list(doc.policies.specificRules).map((rule) => mandatory(rule, false)),
+			default: mandatory(doc.policies.default || {}),
+			specificRules: list(doc.policies.specificRules).map(mandatory),
 		},
-		accessControlPractices: [...list(doc.accessControlPractices), ...copies],
 	};
 };
 

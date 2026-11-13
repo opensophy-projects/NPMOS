@@ -338,24 +338,21 @@ if $CURL "$ADMIN/api/nginxions/waf" | grep -q '"reachable": *true'; then
   post_json POST /preview "{\"policy\": $default_policy, \"exceptions\": [$exception]}}" | json \
     | grep -q '"valid":true,"changed":true' || fail "the preview of the default policy is not valid"
   post_json PUT /default "$default_policy, \"exceptions\": [$exception]}" > /dev/null
-  $CURL "$ADMIN/api/nginxions/waf/policy" | grep -q -- "- $client_ip" || fail "the exception is not in local_policy.yaml (v1beta1 lists)"
+  $CURL "$ADMIN/api/nginxions/waf/policy" | grep -q -- "value: $client_ip" || fail "the exception is not in local_policy.yaml"
   wait_status "$SQLI" 200 "SQLi from an IP of the exception is still blocked"
   [ "$($CURL -o /dev/null -w "%{http_code}" -X DELETE "$ADMIN/api/nginxions/waf/policy/objects/$exception" 2>/dev/null || true)" = 400 ] \
     || fail "an object in use was deleted"
   post_json POST "/versions/$before/rollback" "" > /dev/null
   wait_status "$SQLI" 403 "SQLi is not blocked after the rollback"
 
-  step "WAF -> Policy: a rate limit of the host switches local_policy.yaml to v1beta2 and limits requests"
+  step "WAF -> Policy: local_policy.yaml is v1beta2; a rate limit of the host limits requests"
   limit=$(post_json POST /objects '{"kind": "access_control", "name": "smoke-limit",
     "spec": {"rateLimit": {"overrideMode": "prevent", "rules": [{"uri": "/smoke-rate", "limit": 3, "unit": "minute"}]}}}' \
     | new_id)
   $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/nginxions/waf/hosts/1" -d "{\"enabled\": true,
     \"mode\": \"prevent-learn\", \"minimum_confidence\": \"high\", \"objects\": {\"accessControlPractices\": [$limit]}}" > /dev/null
-  for i in $(seq 1 30); do
-    $CURL "$ADMIN/api/nginxions/waf/policy" | grep -q '"format": *"v1beta2"' && break
-    [ "$i" = 30 ] && fail "the policy is not v1beta2: $($CURL "$ADMIN/api/nginxions/waf/policy" | head -c 400)"
-    sleep 1
-  done
+  $CURL "$ADMIN/api/nginxions/waf/policy" | grep -q '"format": *"v1beta2"' \
+    || fail "the policy is not v1beta2: $($CURL "$ADMIN/api/nginxions/waf/policy" | head -c 400)"
   # the path holds no word the model reads as an attack ("limit" is an SQL keyword): a 403 here is the rate limit's
   limited=""
   for i in $(seq 1 60); do
@@ -371,29 +368,15 @@ if $CURL "$ADMIN/api/nginxions/waf" | grep -q '"reachable": *true'; then
   # renews the block); a refusal of the path itself would not
   sleep 65
   [ "$(status /smoke-rate)" = 200 ] || fail "the path stays blocked after the minute of the rate limit"
-  wait_status "$SQLI" 403 "SQLi is not blocked with the v1beta2 policy"
+  wait_status "$SQLI" 403 "SQLi is not blocked with the rate limit of the host"
   $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/nginxions/waf/hosts/1" \
     -d '{"enabled": true, "mode": "prevent-learn", "minimum_confidence": "high", "objects": null}' > /dev/null
-  # the policy is generated again a moment after the host changes
-  for i in $(seq 1 30); do
-    $CURL "$ADMIN/api/nginxions/waf/policy" | grep -q '"format": *"v1beta1"' && break
-    [ "$i" = 30 ] && fail "the policy is not back to v1beta1: $($CURL "$ADMIN/api/nginxions/waf/policy" | head -c 400)"
-    sleep 1
-  done
 
   host_objects() {
     $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/nginxions/waf/hosts/1" -d "{\"enabled\": true,
       \"mode\": \"prevent-learn\", \"minimum_confidence\": \"high\", \"objects\": $1}" > /dev/null
   }
-  wait_format() {
-    for i in $(seq 1 30); do
-      $CURL "$ADMIN/api/nginxions/waf/policy" | grep -q "\"format\": *\"$1\"" && return 0
-      sleep 1
-    done
-    fail "the policy is not $1: $($CURL "$ADMIN/api/nginxions/waf/policy" | head -c 400)"
-  }
-
-  step "WAF -> Policy: v1beta2 applies every exception of a rule, not only the first"
+  step "WAF -> Policy: every exception of a rule applies, not only the first"
   # the agent took the first exception of a rule only: the second one, for the tester's IP, had no effect
   other=$(post_json POST /objects '{"kind": "exception", "name": "smoke-other",
     "spec": {"action": "accept", "condition": [{"key": "sourceIp", "value": "192.0.2.7"}]}}' | new_id)
@@ -401,10 +384,8 @@ if $CURL "$ADMIN/api/nginxions/waf" | grep -q '"reachable": *true'; then
     \"spec\": {\"action\": \"accept\", \"condition\": [{\"key\": \"sourceIp\", \"value\": \"$client_ip\"}]}}" | new_id)
   [ -n "$other" ] && [ -n "$mine" ] || fail "the exceptions were not created"
   host_objects "{\"accessControlPractices\": [$limit], \"exceptions\": [$other, $mine]}"
-  wait_format v1beta2
-  wait_status "$SQLI" 200 "the second exception of a rule (v1beta2) does not let the attack through"
+  wait_status "$SQLI" 200 "the second exception of a rule does not let the attack through"
   host_objects null
-  wait_format v1beta1
   wait_status "$SQLI" 403 "SQLi is not blocked once the exceptions are gone"
 
   step "WAF -> Policy: a custom response «response code only» answers with its own code"
@@ -435,6 +416,50 @@ if $CURL "$ADMIN/api/nginxions/waf" | grep -q '"reachable": *true'; then
   echo "$body" | grep -q "Incident Id" || fail "the incident ID is not on the page"
   echo "$body" | grep -qi "check point\|openappsec" && fail "the page names a vendor: $(echo "$body" | head -c 300)"
   [ "${#body}" -lt 4000 ] || fail "the page of the WAF is ${#body} bytes (the page of Check Point was 278 KB)"
+  host_objects null
+  wait_status "$SQLI" 403 "SQLi is not answered with 403 again"
+
+  step "WAF -> Policy: a rate limit rule has its own conditions and action, answered with the response of the rule"
+  # one practice, three rules: the tester's IP is limited on /smoke-mine; another IP only on /smoke-other; detect on
+  # /smoke-detect logs and lets through (the action and the conditions of a rule were not read by the agent)
+  rules=$(post_json POST /objects "{\"kind\": \"access_control\", \"name\": \"smoke-rules\",
+    \"spec\": {\"rateLimit\": {\"overrideMode\": \"prevent\", \"rules\": [
+      {\"uri\": \"/smoke-mine\", \"limit\": 2, \"unit\": \"minute\",
+       \"condition\": [{\"key\": \"sourceIp\", \"value\": \"$client_ip\"}]},
+      {\"uri\": \"/smoke-other\", \"limit\": 2, \"unit\": \"minute\",
+       \"condition\": [{\"key\": \"sourceIp\", \"value\": \"192.0.2.99\"}]},
+      {\"uri\": \"/smoke-detect\", \"limit\": 2, \"unit\": \"minute\", \"action\": \"detect\"}]}}}" | new_id)
+  [ -n "$rules" ] || fail "the practice with rate limit rules was not created"
+  host_objects "{\"accessControlPractices\": [$rules], \"customResponse\": $code406}"
+  limited=""
+  for i in $(seq 1 60); do
+    for _ in 1 2 3 4 5; do
+      [ "$(status /smoke-mine)" = 406 ] && limited=1
+    done
+    [ -n "$limited" ] && break
+    [ "$i" = 60 ] && fail "the rule for the tester's IP does not limit, or not with the response of the rule (406)"
+    sleep 2
+  done
+  for _ in 1 2 3 4 5 6; do
+    [ "$(status /smoke-other)" = 200 ] || fail "a rule for another IP limits the tester"
+    [ "$(status /smoke-detect)" = 200 ] || fail "a rule with the action detect blocks"
+  done
+  host_objects null
+  wait_status "$SQLI" 403 "SQLi is not answered with 403 again"
+
+  step "WAF -> Policy: a custom response «redirect» sends the attack to its URL with the ID of the event"
+  redirect=$(post_json POST /objects '{"kind": "custom_response", "name": "smoke-redirect",
+    "spec": {"mode": "redirect", "redirectUrl": "https://help.example.com/blocked?from=waf", "redirectAddXEventId": true}}' | new_id)
+  [ -n "$redirect" ] || fail "the redirect response was not created"
+  host_objects "{\"customResponse\": $redirect}"
+  location=""
+  for i in $(seq 1 60); do
+    location=$(curl -s -o /dev/null -D - --max-time 10 -H 'Host: test.local' "$HTTP$SQLI" | tr -d '\r' \
+      | sed -n 's/^[Ll]ocation: //p')
+    case "$location" in https://help.example.com/blocked\?from=waf\&event-id=*) break ;; esac
+    [ "$i" = 60 ] && fail "the attack is not redirected with the ID of the event (status $(status "$SQLI"), location '$location')"
+    sleep 2
+  done
   host_objects null
   wait_status "$SQLI" 403 "SQLi is not answered with 403 again"
 

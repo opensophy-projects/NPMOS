@@ -18,7 +18,7 @@ import {
 	setDefaultPolicy,
 	updateObject,
 } from "./api";
-import { EXCEPTION_KEYS, FIELDS, type Field, getPath, NEW_SPEC, setPath } from "./fields";
+import { EXCEPTION_KEYS, FIELDS, type Field, getPath, NEW_SPEC, RATE_LIMIT_KEYS, setPath } from "./fields";
 import { Review } from "./Review";
 
 const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id }, values);
@@ -298,10 +298,109 @@ function FieldInput({
 									))}
 								</select>
 							</div>
+							<div className="col-12 ps-4">
+								<Rows
+									rows={row.condition || []}
+									onChange={(condition) => setRow({ ...row, condition })}
+									empty={() => ({ key: "sourceIp", value: "" })}
+									add="nginxions.policy.rate.condition-add"
+									render={(c: any, setC) => (
+										<>
+											<div className="col-5">
+												<select
+													className="form-select form-select-sm"
+													aria-label={t("nginxions.policy.condition.key")}
+													value={c.key}
+													onChange={(e) => setC({ ...c, key: e.target.value })}
+												>
+													{RATE_LIMIT_KEYS.map((k) => (
+														<option key={k} value={k}>
+															{t(`nginxions.policy.key.${k}`)}
+														</option>
+													))}
+												</select>
+											</div>
+											<div className="col">
+												<input
+													className="form-control form-control-sm"
+													aria-label={t("nginxions.policy.condition.value")}
+													placeholder={c.key === "sourceIp" ? EXAMPLE.ip : ""}
+													value={c.value}
+													onChange={(e) => setC({ ...c, value: e.target.value })}
+												/>
+											</div>
+										</>
+									)}
+								/>
+							</div>
 						</>
 					)}
 				/>
 			);
+		case "service": {
+			// a list in the schema, one server in the agent (it keeps one stream of each kind)
+			const service = (value || [])[0];
+			const setService = (next: Record<string, any> | null) => set(field.path, next ? [next] : []);
+			if (!service) {
+				return (
+					<div>
+						<Button size="sm" onClick={() => setService({ address: "", port: 514, proto: "udp" })}>
+							<IconPlus size={14} className="me-1" />
+							<T id="nginxions.policy.service.add" />
+						</Button>
+					</div>
+				);
+			}
+			return (
+				<div className="row g-2 align-items-center">
+					<div className="col-5">
+						<input
+							id={id}
+							className="form-control"
+							aria-label={t("nginxions.policy.service.address")}
+							placeholder={EXAMPLE.ip}
+							value={service.address ?? ""}
+							onChange={(e) => setService({ ...service, address: e.target.value.trim() })}
+						/>
+					</div>
+					<div className="col-3">
+						<input
+							type="number"
+							min={1}
+							max={65535}
+							className="form-control"
+							aria-label={t("nginxions.policy.service.port")}
+							value={service.port ?? 514}
+							onChange={(e) => setService({ ...service, port: Number(e.target.value) })}
+						/>
+					</div>
+					<div className="col">
+						<select
+							className="form-select"
+							aria-label={t("nginxions.policy.service.proto")}
+							value={service.proto ?? "udp"}
+							onChange={(e) => setService({ ...service, proto: e.target.value })}
+						>
+							<option value="udp">UDP</option>
+							<option value="tcp">TCP</option>
+						</select>
+					</div>
+					<div className="col-auto">
+						<button
+							type="button"
+							className="btn btn-icon btn-sm btn-ghost-danger"
+							aria-label={t("nginxions.policy.remove")}
+							onClick={() => setService(null)}
+						>
+							<IconTrash size={16} />
+						</button>
+					</div>
+					<div className="form-hint">
+						<T id="nginxions.policy.service.hint" />
+					</div>
+				</div>
+			);
+		}
 		case "identifiers":
 			return (
 				<Rows
@@ -378,11 +477,6 @@ function ObjectForm({
 						<div key={field.path} className="mb-3">
 							<label className="form-label" htmlFor={`policy-${field.path}`}>
 								<T id={`nginxions.policy.f.${field.path}`} />
-								{field.v2 && (
-									<span className="badge bg-purple-lt ms-2" title={t("nginxions.policy.v2-hint")}>
-										v1beta2
-									</span>
-								)}
 							</label>
 							<FieldInput field={field} spec={spec} set={set} objects={objects} />
 						</div>

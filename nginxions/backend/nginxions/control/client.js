@@ -50,6 +50,8 @@ const call = async (method, path, actor) => {
 const control = {
 	listServices: () => call("GET", "/v1/services"),
 	listApps: () => call("GET", "/v1/apps"),
+	/** the configuration the agent generated from local_policy.yaml: {modifiedAt, policy} */
+	getAgentPolicy: () => call("GET", "/v1/agent/policy"),
 	getService: (service) => call("GET", `/v1/services/${encodeURIComponent(service)}`),
 	/**
 	 * @param {string} service

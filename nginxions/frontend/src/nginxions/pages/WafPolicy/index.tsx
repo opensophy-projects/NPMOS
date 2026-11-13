@@ -34,7 +34,7 @@ import { objectHint, objectTitle } from "../../policy/names";
 import { showImportModal } from "../../policy/ImportModal";
 import { showObjectModal } from "../../policy/ObjectModal";
 import { RefsEditor } from "../../policy/RefsEditor";
-import { FormatNote } from "../../policy/Review";
+import { AppliedCheckNote, FormatNote } from "../../policy/Review";
 import { showReviewModal } from "../../policy/ReviewModal";
 import { useCan } from "../../rbac/hooks";
 import { Dropdown } from "../../ui/Dropdown";
@@ -447,7 +447,8 @@ function WafPolicyPage() {
 			</div>
 
 			<section className={cn("card", styles.card)}>
-				<FormatNote format={data.state.format} reasons={data.state.reasons} warnings={data.state.warnings} />
+				<FormatNote format={data.state.format} warnings={data.state.warnings} />
+				<AppliedCheckNote check={data.state.check} />
 				<p className="text-secondary small mb-0">
 					<T id="nginxions.policy.hosts" data={{ count: data.state.hosts }} />
 					{applied && !applied.ok && (

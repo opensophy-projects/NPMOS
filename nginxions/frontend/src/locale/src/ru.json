@@ -5219,6 +5219,27 @@
 	"nginxions.policy.builtin.nginxions-strict.hint": {
 		"defaultMessage": "Блокирует с меньшей уверенности и проверяет больше: меньше пропусков, больше ложных срабатываний"
 	},
+	"nginxions.policy.check.asset": {
+		"defaultMessage": "хост {name} не защищён"
+	},
+	"nginxions.policy.check.drift": {
+		"defaultMessage": "Агент применяет политику не так, как её записал NginxionS:"
+	},
+	"nginxions.policy.check.ok": {
+		"defaultMessage": "Агент применяет политику так, как её записал NginxionS."
+	},
+	"nginxions.policy.check.pending": {
+		"defaultMessage": "Агент ещё не применил последнее изменение."
+	},
+	"nginxions.policy.check.rate-limit": {
+		"defaultMessage": "ограничение частоты {name}"
+	},
+	"nginxions.policy.check.response": {
+		"defaultMessage": "ответ {name}"
+	},
+	"nginxions.policy.check.unknown": {
+		"defaultMessage": "Не удалось прочитать, что применяет агент."
+	},
 	"nginxions.policy.condition.add": {
 		"defaultMessage": "Добавить условие"
 	},
@@ -5318,6 +5339,12 @@
 	"nginxions.policy.f.httpResponseCode": {
 		"defaultMessage": "HTTP-код"
 	},
+	"nginxions.policy.f.logDestination.cefService": {
+		"defaultMessage": "CEF"
+	},
+	"nginxions.policy.f.logDestination.syslogService": {
+		"defaultMessage": "Syslog"
+	},
 	"nginxions.policy.f.messageBody": {
 		"defaultMessage": "Текст страницы"
 	},
@@ -5381,11 +5408,8 @@
 	"nginxions.policy.f.webAttacks.protections.openRedirect": {
 		"defaultMessage": "Открытое перенаправление"
 	},
-	"nginxions.policy.format.v1": {
-		"defaultMessage": "Агент получает политику в формате v1beta1 (как open-appsec-npm): действуют все исключения правила."
-	},
 	"nginxions.policy.format.v2": {
-		"defaultMessage": "Политика использует возможности только v1beta2, поэтому агент получает v1beta2:"
+		"defaultMessage": "Агент получает политику в v1beta2 и применяет каждое её поле."
 	},
 	"nginxions.policy.from-template": {
 		"defaultMessage": "Заполнить из шаблона"
@@ -5398,6 +5422,9 @@
 	},
 	"nginxions.policy.h.extendedLogging": {
 		"defaultMessage": "Подробности"
+	},
+	"nginxions.policy.h.logDestination": {
+		"defaultMessage": "Отправка на сервер журналов"
 	},
 	"nginxions.policy.h.snortSignatures": {
 		"defaultMessage": "Сигнатуры Snort"
@@ -5431,6 +5458,9 @@
 	},
 	"nginxions.policy.import.create": {
 		"defaultMessage": "Новых объектов: {count}"
+	},
+	"nginxions.policy.import.dropped": {
+		"defaultMessage": "Не импортируется (Kubernetes, облако Check Point, движки Premium-версии, лишние практики правила):"
 	},
 	"nginxions.policy.import.file": {
 		"defaultMessage": "Файл local_policy.yaml"
@@ -5609,6 +5639,9 @@
 	"nginxions.policy.rate.add": {
 		"defaultMessage": "Добавить правило"
 	},
+	"nginxions.policy.rate.condition-add": {
+		"defaultMessage": "Добавить условие"
+	},
 	"nginxions.policy.rate.limit": {
 		"defaultMessage": "Лимит"
 	},
@@ -5623,18 +5656,6 @@
 	},
 	"nginxions.policy.rate.uri": {
 		"defaultMessage": "URI"
-	},
-	"nginxions.policy.reason.file-security": {
-		"defaultMessage": "проверка файлов в практике {name}"
-	},
-	"nginxions.policy.reason.ips": {
-		"defaultMessage": "IPS в практике {name}"
-	},
-	"nginxions.policy.reason.rate-limit": {
-		"defaultMessage": "ограничения частоты {name}"
-	},
-	"nginxions.policy.reason.redirect": {
-		"defaultMessage": "перенаправление в ответе {name}"
 	},
 	"nginxions.policy.remove": {
 		"defaultMessage": "Убрать"
@@ -5684,6 +5705,21 @@
 	"nginxions.policy.saved": {
 		"defaultMessage": "Политика применена"
 	},
+	"nginxions.policy.service.add": {
+		"defaultMessage": "Добавить сервер"
+	},
+	"nginxions.policy.service.address": {
+		"defaultMessage": "IPv4-адрес"
+	},
+	"nginxions.policy.service.hint": {
+		"defaultMessage": "Один сервер каждого вида, по IPv4-адресу: агент открывает соединение с адресом, а не с именем."
+	},
+	"nginxions.policy.service.port": {
+		"defaultMessage": "Порт"
+	},
+	"nginxions.policy.service.proto": {
+		"defaultMessage": "Протокол"
+	},
 	"nginxions.policy.subtitle": {
 		"defaultMessage": "Политика open-appsec из объектов: практики, ограничения частоты, журналирование, ответы, исключения. Хосты используют политику по умолчанию, шаблон или свои объекты."
 	},
@@ -5704,9 +5740,6 @@
 	},
 	"nginxions.policy.template.strict": {
 		"defaultMessage": "Строгий"
-	},
-	"nginxions.policy.v2-hint": {
-		"defaultMessage": "Требует local_policy.yaml v1beta2"
 	},
 	"nginxions.policy.version.created": {
 		"defaultMessage": "Создан: {kind} {name}"
@@ -5735,8 +5768,14 @@
 	"nginxions.policy.view": {
 		"defaultMessage": "Открыть"
 	},
+	"nginxions.policy.warning.extra": {
+		"defaultMessage": "Правило {rule}: агент применяет только первый объект из {name}."
+	},
 	"nginxions.policy.warning.missing": {
 		"defaultMessage": "Правило {rule} ссылается на несуществующий {name} (экспертный фрагмент?): агент его пропустит."
+	},
+	"nginxions.policy.warning.unsupported": {
+		"defaultMessage": "Объект {rule}: {name} нет в агенте NginxionS, настройка ничего не делает. Выключите её."
 	},
 	"nginxions.rbac.action.apply": {
 		"defaultMessage": "Применение"
@@ -7576,6 +7615,9 @@
 	},
 	"nginxions.waf.policy-apply": {
 		"defaultMessage": "Применить сейчас"
+	},
+	"nginxions.waf.policy-check": {
+		"defaultMessage": "В агенте"
 	},
 	"nginxions.waf.policy-generated": {
 		"defaultMessage": "Сгенерирована"

@@ -7,6 +7,7 @@ import internalAuditLog from "../../../internal/audit-log.js";
 import errs from "../../../lib/error.js";
 import { setSetting } from "../../settings.js";
 import { diffLines } from "../expert.js";
+import { checkApplied } from "../applied.js";
 import { buildPolicy, getPolicyState, readPolicyFile, regenerateNow, render } from "../policy.js";
 import { asV2, fromV1, toV1 } from "./format.js";
 import { BUILTIN_PREFIX, KINDS, NAME, normalize, POLICY_MODES, RULE_FIELDS, TEMPLATES } from "./model.js";
@@ -16,6 +17,9 @@ const VERSIONS_SHOWN = 50;
 const SECTION_KIND = Object.fromEntries(Object.entries(KINDS).map(([kind, section]) => [section, kind]));
 
 const parse = (value) => (typeof value === "string" ? JSON.parse(value) : value);
+
+/** lists of a rule the agent applies one item of (it takes the first): one practice of each kind, one log trigger */
+const ONE_PER_RULE = ["threatPreventionPractices", "accessControlPractices", "triggers"];
 
 /**
  * Checks the references of a rule (default policy, host): every id is an object of the right kind.
@@ -29,6 +33,9 @@ const checkRefs = (refs, objects, what) => {
 		if (value === undefined) continue;
 		const ids = many ? value : value === null ? [] : [value];
 		if (many && !Array.isArray(value)) throw new errs.ValidationError(`${what}: ${field} must be a list`);
+		if (ONE_PER_RULE.includes(field) && new Set(value).size > 1) {
+			throw new errs.ValidationError(`${what}: ${field}: one object (the agent applies the first of a list)`);
+		}
 		for (const id of ids) {
 			if (byId.get(id)?.kind !== kind) {
 				throw new errs.ValidationError(`${what}: ${field}: no ${kind} object with id ${id}`);
@@ -66,8 +73,12 @@ export const hostObjects = (raw, objects) => {
 	return checkRefs(input, objects, "WAF objects of the host");
 };
 
-/** an object to save: name and specification checked, the specification completed */
-const checkObject = (input, objects, id) => {
+/**
+ * An object to save: name and specification checked, the specification completed.
+ * @param {(path: string) => void} [onDropped]  told each part left out on purpose (Kubernetes, the cloud)
+ */
+const checkObject = (input, objects, id, onDropped) => {
+	// an import (onDropped): what the agent does not have is turned off and named, not refused
 	const kind = input.kind;
 	if (!KINDS[kind]) throw new errs.ValidationError(`unknown kind ${kind}`);
 	if (!NAME.test(input.name || "")) {
@@ -79,7 +90,7 @@ const checkObject = (input, objects, id) => {
 	if (objects.some((o) => o.kind === kind && o.name === input.name && o.id !== id)) {
 		throw new errs.ValidationError(`name: ${input.name} is taken`);
 	}
-	const { spec, errors } = normalize(kind, input.spec);
+	const { spec, errors, dropped } = normalize(kind, input.spec, { lenient: Boolean(onDropped) });
 	if (errors) throw new errs.ValidationError(`${input.name}: ${errors.join("; ")}`);
 	if (kind === "trusted_sources") {
 		const missing = (spec.sourcesIdentifiers || []).filter(
@@ -88,6 +99,7 @@ const checkObject = (input, objects, id) => {
 		if (missing.length)
 			throw new errs.ValidationError(`${input.name}: no source identifiers ${missing.join(", ")}`);
 	}
+	for (const path of dropped || []) onDropped?.(path);
 	return { kind, name: input.name, description: (input.description || "").slice(0, 500), spec };
 };
 
@@ -299,7 +311,8 @@ const importPlan = (content, objects) => {
 		throw new errs.ValidationError("YAML: expected a local_policy.yaml document");
 	}
 	const doc = parsed.apiVersion === "v1beta2" ? parsed : fromV1(parsed);
-	const plan = { create: [], update: [], skipped: [], errors: [], policy: null, rules: 0 };
+	// dropped: what the file has and NginxionS leaves out on purpose (Kubernetes, the cloud, extra practices)
+	const plan = { create: [], update: [], skipped: [], errors: [], dropped: [], policy: null, rules: 0 };
 	const names = new Map(objects.map((o) => [`${o.kind}/${o.name}`, o]));
 	const incoming = [];
 	for (const [section, kind] of Object.entries(SECTION_KIND)) {
@@ -327,6 +340,7 @@ const importPlan = (content, objects) => {
 				o,
 				withIncoming,
 				o.id ?? withIncoming.find((w) => w.name === o.name && w.kind === o.kind).id,
+				(path) => plan.dropped.push(`${o.kind}/${o.name}${path}`),
 			);
 			if (!o.id) plan.create.push({ ...checked, id: o.id });
 			// an object the document leaves as it is is not an update
@@ -357,6 +371,10 @@ const importPlan = (content, objects) => {
 				return found?.name;
 			});
 			policy[field] = many ? [...new Set(list.filter(Boolean))] : (list[0] ?? null);
+			if (ONE_PER_RULE.includes(field) && policy[field].length > 1) {
+				plan.dropped.push(`policies.default.${field}: ${policy[field].slice(1).join(", ")}`);
+				policy[field] = policy[field].slice(0, 1);
+			}
 		}
 		plan.policy = policy;
 	}
@@ -369,6 +387,7 @@ const planSummary = (plan) => ({
 	update: plan.update.map((o) => `${o.kind}/${o.name}`),
 	skipped: plan.skipped,
 	errors: plan.errors,
+	dropped: plan.dropped,
 	policy: plan.policy,
 	rules: plan.rules,
 });
@@ -389,7 +408,7 @@ const internalWafObjects = {
 			templates: Object.fromEntries(
 				Object.entries(TEMPLATES).map(([name, t]) => [name, { mode: t.mode, ...idsOf(t, objects) }]),
 			),
-			state: getPolicyState(),
+			state: { ...getPolicyState(), check: await checkApplied() },
 		};
 	},
 

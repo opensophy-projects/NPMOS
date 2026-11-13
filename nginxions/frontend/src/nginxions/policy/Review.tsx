@@ -3,7 +3,7 @@
 import cn from "classnames";
 import Alert from "react-bootstrap/Alert";
 import { intl, T } from "src/locale";
-import type { DiffLine, Preview } from "./api";
+import type { AppliedCheck, DiffLine, Preview } from "./api";
 
 /** lines around a change shown in the diff */
 const CONTEXT = 3;
@@ -27,41 +27,20 @@ export function Diff({ diff }: { diff: DiffLine[] }) {
 	);
 }
 
-/** "rate-limit:login" → a sentence */
-const reasonText = (reason: string) => {
-	const [kind, ...name] = reason.split(":");
-	return intl.formatMessage({ id: `nginxions.policy.reason.${kind}` }, { name: name.join(":") });
-};
-
 /** "missing:<rule>:<name>" → a sentence */
 const warningText = (warning: string) => {
 	const [kind, rule, ...name] = warning.split(":");
 	return intl.formatMessage({ id: `nginxions.policy.warning.${kind}` }, { rule, name: name.join(":") });
 };
 
-export function FormatNote({
-	format,
-	reasons = [],
-	warnings = [],
-}: {
-	format?: string | null;
-	reasons?: string[];
-	warnings?: string[];
-}) {
+export function FormatNote({ format, warnings = [] }: { format?: string | null; warnings?: string[] }) {
 	if (!format) return null;
 	return (
 		<>
 			<p className="small mb-2">
-				<span className={cn("badge me-2", format === "v1beta2" ? "bg-purple-lt" : "bg-blue-lt")}>{format}</span>
-				<T id={format === "v1beta2" ? "nginxions.policy.format.v2" : "nginxions.policy.format.v1"} />
+				<span className="badge me-2 bg-purple-lt">{format}</span>
+				<T id="nginxions.policy.format.v2" />
 			</p>
-			{reasons.length > 0 && (
-				<ul className="small text-secondary mb-2">
-					{reasons.map((r) => (
-						<li key={r}>{reasonText(r)}</li>
-					))}
-				</ul>
-			)}
 			{warnings.length > 0 && (
 				<Alert variant="warning" className="small py-2">
 					<ul className="mb-0 ps-3">
@@ -72,6 +51,34 @@ export function FormatNote({
 				</Alert>
 			)}
 		</>
+	);
+}
+
+/** does the agent apply the policy as NginxionS wrote it (backend waf/applied.js) */
+export function AppliedCheckNote({ check }: { check?: AppliedCheck }) {
+	if (!check) return null;
+	if (check.status !== "drift") {
+		const tone = { ok: "text-success", pending: "text-secondary", unknown: "text-secondary" }[check.status];
+		return (
+			<span className={cn("small", tone)} title={check.error || ""}>
+				<T id={`nginxions.policy.check.${check.status}`} />
+			</span>
+		);
+	}
+	return (
+		<Alert variant="warning" className="small py-2 mb-2">
+			<T id="nginxions.policy.check.drift" />
+			<ul className="mb-0 ps-3">
+				{(check.drift || []).map((d) => {
+					const [kind, ...name] = d.split(":");
+					return (
+						<li key={d}>
+							{intl.formatMessage({ id: `nginxions.policy.check.${kind}` }, { name: name.join(":") })}
+						</li>
+					);
+				})}
+			</ul>
+		</Alert>
 	);
 }
 
@@ -87,7 +94,7 @@ export function Review({ preview }: { preview: Preview }) {
 	}
 	return (
 		<>
-			<FormatNote format={preview.format} reasons={preview.reasons} warnings={preview.warnings} />
+			<FormatNote format={preview.format} warnings={preview.warnings} />
 			<h4>
 				<T id={preview.changed ? "nginxions.policy.diff" : "nginxions.policy.no-diff"} />
 			</h4>

@@ -244,6 +244,14 @@
 										},
 										"port": {
 											"type": "integer"
+										},
+										"proto": {
+											"type": "string",
+											"enum": [
+												"tcp",
+												"udp"
+											],
+											"description": "NginxionS: the agent reads it for syslog too (new_log_trigger.cc); udp without it"
 										}
 									}
 								}

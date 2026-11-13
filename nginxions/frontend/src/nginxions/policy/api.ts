@@ -65,16 +65,25 @@ export interface DefaultPolicy extends RuleRefs {
 	mode: PolicyMode;
 }
 
+/** what the agent applies compared with the generated policy (backend waf/applied.js) */
+export interface AppliedCheck {
+	status: "ok" | "drift" | "pending" | "unknown";
+	/** "asset:<host>", "response:<name>", "rate-limit:<practice>" */
+	drift?: string[];
+	modifiedAt?: string | null;
+	error?: string;
+}
+
 interface PolicyState {
 	file: string;
 	generatedAt: string | null;
 	hosts: number;
-	format: "v1beta1" | "v1beta2" | null;
-	/** what needs v1beta2: "rate-limit:<name>", "redirect:<name>", "ips:<name>", "file-security:<name>" */
-	reasons: string[];
-	/** "exceptions:<rule>" (v1beta2 applies the first one), "missing:<rule>:<name>" */
+	/** always v1beta2: the agent of NginxionS applies every field of it (docs/WAF-POLICY.md) */
+	format: "v1beta2" | null;
+	/** "missing:<rule>:<name>", "extra:<rule>:<field>" (the agent takes the first), "unsupported:<object>:<engine>" */
 	warnings: string[];
 	applied: { ok: boolean; at: string; error: string | null } | null;
+	check?: AppliedCheck;
 }
 
 export interface PolicyObjects {
@@ -94,8 +103,7 @@ export interface Preview {
 	error?: string;
 	changed?: boolean;
 	diff?: DiffLine[];
-	format?: "v1beta1" | "v1beta2";
-	reasons?: string[];
+	format?: "v1beta2";
 	warnings?: string[];
 }
 
@@ -128,6 +136,8 @@ export interface ImportResult {
 	update: string[];
 	skipped: string[];
 	errors: string[];
+	/** left out on purpose: Kubernetes, the cloud, engines of the Premium edition, extra practices of a rule */
+	dropped: string[];
 	policy: Record<string, any> | null;
 	rules: number;
 	state?: PolicyState;

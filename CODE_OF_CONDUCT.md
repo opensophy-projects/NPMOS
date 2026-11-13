@@ -215,6 +215,9 @@ flowchart LR
 - **`agent/`** — агент (C++): без облака вовсе (не регистрируется, не подключается к Fog, отказывается слать
   сообщения и скачивать файлы с хостов open-appsec/Check Point, ходит к локальным tuning и shared storage без
   токена); политика из GUI (`apply-policy`) применяется за секунды, а не на следующей проверке обновлений; лимиты для хостов без схемы и с портом, правила лимитов локальной политики (без `action` и `match`);
+  локальная политика v1beta2 применяется полностью (`docs/WAF-POLICY.md`: перенаправление, действие, условия и
+  ответ правил лимитов, лимит на ассет, доверенные источники без идентификатора, все файлы Snort, протокол
+  syslog/CEF), unit-тесты секций — `components/security_apps/local_policy_mgmt_gen/local_policy_mgmt_gen_ut/`;
   выгрузка признаков модели для обучения (только на стенде обучения, `docs/MODEL.md`); модель
   `components/security_apps/waap/resources/waap.data` — продвинутая модель Check Point («Advanced model, V2.0»,
   лицензия внутри файла) с заголовками браузеров (`Sec-Fetch-*`, `Priority`…) среди чистых заголовков сигнатур;
@@ -375,11 +378,12 @@ flowchart LR
       - `index.js` — включение attachment в nginx
       - `agent.js` — состояние агента
       - `agent-settings.js` — настройки агента и ML-модели
-      - `policy.js` — сборка `local_policy.yaml` и его запись
+      - `policy.js` — сборка `local_policy.yaml` (всегда v1beta2) и его запись
+      - `applied.js` — что агент применяет на самом деле: его конфигурация (через nginxions-control) против сгенерированной политики
       - `hosts.js` — режимы WAF хостов и их location
       - `hosts-code.js` — политика хоста как код (YAML)
       - `custom.js`, `expert.js` — свои YAML-фрагменты поверх политики (режим эксперта)
-      - **`objects/`** — `model.js` (объекты политики в терминах v1beta2), `store.js` (хранение и сборка политики), `api.js` (объекты, политика по умолчанию, предпросмотр), `format.js` (запись в v1beta1 или v1beta2), `schema-v1beta2.json` (схема политики), `examples/` (примеры политик open-appsec для тестов)
+      - **`objects/`** — `model.js` (объекты политики в терминах v1beta2 и проверка «нет молчаливых полей»), `store.js` (хранение и сборка политики), `api.js` (объекты, политика по умолчанию, предпросмотр, импорт), `format.js` (v1beta2 для агента, v1beta1 для импорта и экспорта), `compare.js` (сравнение применённой агентом конфигурации с политикой), `schema-v1beta2.json` (схема политики), `examples/` (примеры политик open-appsec для тестов)
     - **`migrations/`** — миграции таблиц `nginxions_*` (по одной на изменение схемы, имя начинается с даты)
 - **`frontend/`** — интерфейс на React + Vite
   - `src/App.tsx`, `src/Router.tsx`, `src/pages/`, `src/modals/`, `src/components/`, `src/hooks/` — код NPMplus; наши правки помечены `NginxionS:`

@@ -6,6 +6,7 @@ import internalAuditLog from "../../internal/audit-log.js";
 import control from "../control/client.js";
 import { getRunningValue, getSetting, setSetting } from "../settings.js";
 import { getAgentStatus } from "./agent.js";
+import { checkApplied } from "./applied.js";
 import { getPolicyState, readPolicyFile, regenerateNow } from "./policy.js";
 
 const internalWaf = {
@@ -21,7 +22,7 @@ const internalWaf = {
 			active,
 			restartRequired: enabled !== active,
 			agent: await getAgentStatus(),
-			policy: getPolicyState(),
+			policy: { ...getPolicyState(), check: await checkApplied() },
 		};
 	},
 

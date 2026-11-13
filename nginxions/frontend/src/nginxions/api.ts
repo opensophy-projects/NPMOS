@@ -74,6 +74,8 @@ export interface WafPolicyState {
 	generatedAt: string | null;
 	hosts: number;
 	applied: { ok: boolean; at: string; error: string | null } | null;
+	/** what the agent applies compared with the generated policy */
+	check?: import("./policy/api").AppliedCheck;
 }
 
 export interface WafStatus {

@@ -2,6 +2,7 @@
 // what each kind is, how its specification is completed and checked (the schema of open-appsec),
 // the built-in objects and the templates made of them. Pure functions, no database.
 import Ajv from "ajv/dist/2020.js";
+import { EXCEPTION_KEYS } from "./format.js";
 import schema from "./schema-v1beta2.json" with { type: "json" };
 
 /** kind → section of local_policy.yaml (v1beta2) */
@@ -70,11 +71,89 @@ const fixups = {
 	exception: (s) => ({ ...s, condition: Array.isArray(s.condition) ? s.condition : [] }),
 };
 
+// ---------------------------------------------------------------- what the agent applies (docs/WAF-POLICY.md)
+
 /**
- * A complete specification of an object of a kind, or the problems found.
- * @returns {{spec?: object, errors?: string[]}}
+ * Engines of a threat prevention practice the agent of NginxionS does not have: IPS signatures of Check Point come
+ * from its cloud, File Security, OpenAPI schema validation and Anti-Bot are of the Premium edition.
  */
-export const normalize = (kind, input) => {
+export const UNSUPPORTED_ENGINES = ["intrusionPrevention", "fileSecurity", "schemaValidation", "antiBot"];
+/** keys of a condition of a rate limit rule: what the rate limit engine matches (rate_limit.cc) */
+export const RATE_LIMIT_KEYS = ["sourceIp", "sourceIdentifier", "countryCode", "countryName", "url"];
+const IPV4 = /^(25[0-5]|2[0-4]\d|1?\d?\d)(\.(25[0-5]|2[0-4]\d|1?\d?\d)){3}$/;
+
+/**
+ * What a specification asks of the agent that it does not do: errors (it would be silently left out) and
+ * parts dropped on purpose (Kubernetes: configmaps; the cloud).
+ */
+const unsupported = (kind, spec, lenient) => {
+	const errors = [];
+	const dropped = [];
+	if (kind === "threat_prevention") {
+		for (const engine of UNSUPPORTED_ENGINES) {
+			const mode = spec[engine]?.overrideMode;
+			if (!mode || mode === "inactive") continue;
+			if (lenient) {
+				// an imported file (the examples of open-appsec leave them "inherited"): turned off and named
+				spec[engine].overrideMode = "inactive";
+				dropped.push(`/${engine}`);
+			} else {
+				errors.push(`/${engine}: not in the agent of NginxionS (Premium edition or the Check Point cloud)`);
+			}
+		}
+		for (const engine of ["snortSignatures", "schemaValidation"]) {
+			if (Array.isArray(spec[engine]?.configmap) && spec[engine].configmap.length)
+				dropped.push(`/${engine}/configmap`);
+			if (spec[engine]) delete spec[engine].configmap;
+		}
+	}
+	if (kind === "access_control") {
+		(spec.rateLimit?.rules || []).forEach((rule, i) => {
+			(rule.condition || []).forEach((c, j) => {
+				if (!RATE_LIMIT_KEYS.includes(c?.key)) {
+					errors.push(`/rateLimit/rules/${i}/condition/${j}/key: one of ${RATE_LIMIT_KEYS.join(", ")}`);
+				}
+			});
+		});
+	}
+	if (kind === "custom_response" && spec.mode === "redirect") {
+		if (!/^(https?:\/\/[^\s]+|\/[^\s]*)$/.test(spec.redirectUrl || "")) {
+			errors.push("/redirectUrl: a redirect needs a URL (http://, https:// or a path)");
+		}
+	}
+	if (kind === "exception") {
+		spec.condition.forEach((c, j) => {
+			if (!EXCEPTION_KEYS.includes(c?.key))
+				errors.push(`/condition/${j}/key: one of ${EXCEPTION_KEYS.join(", ")}`);
+		});
+	}
+	if (kind === "log_trigger") {
+		const dest = spec.logDestination || {};
+		for (const service of ["syslogService", "cefService"]) {
+			const list = Array.isArray(dest[service]) ? dest[service] : dest[service] ? [dest[service]] : [];
+			// the agent keeps one stream of each kind (logging.cc) and opens sockets to IPv4 addresses only
+			if (list.length > 1) errors.push(`/logDestination/${service}: the agent sends to one server`);
+			list.forEach((s, i) => {
+				if (!IPV4.test(s?.address || ""))
+					errors.push(`/logDestination/${service}/${i}/address: an IPv4 address`);
+			});
+		}
+		if (dest["k8s-service"] !== undefined) {
+			dropped.push("/logDestination/k8s-service");
+			delete dest["k8s-service"];
+		}
+	}
+	return { errors, dropped };
+};
+
+/**
+ * A complete specification of an object of a kind, or the problems found. Every field either works in the agent
+ * of NginxionS or is an error; what only Kubernetes or the cloud has is dropped and named.
+ * @param {{lenient?: boolean}} [options]  lenient (an import): engines the agent does not have are turned off and
+ *   named in dropped instead of being errors
+ * @returns {{spec?: object, errors?: string[], dropped?: string[]}}
+ */
+export const normalize = (kind, input, { lenient = false } = {}) => {
 	if (typeof kind !== "string" || !Object.hasOwn(KINDS, kind)) return { errors: [`unknown kind ${kind}`] };
 	const { name, appsecClassName, ...rest } = isObject(input) ? input : {};
 	let spec = withDefaults(itemSchema(kind), rest);
@@ -86,7 +165,12 @@ export const normalize = (kind, input) => {
 	if (kind === "exception" && !spec.condition.length) {
 		return { errors: ["/condition: an exception needs at least one condition"] };
 	}
-	return { spec };
+	const { errors, dropped } = unsupported(kind, spec, lenient);
+	if (errors.length) return { errors };
+	if (appsecClassName !== undefined) dropped.push("/appsecClassName");
+	// NginxionS reads the logs of the agent: never to the Check Point cloud (fixups)
+	if (kind === "log_trigger" && rest.logDestination?.cloud === true) dropped.push("/logDestination/cloud");
+	return dropped.length ? { spec, dropped } : { spec };
 };
 
 // ---------------------------------------------------------------- built-in objects

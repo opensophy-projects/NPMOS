@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { asV2, danglingRefs, fromV1, isV1, needsV2, toV1 } from "./format.js";
+import { asV2, danglingRefs, extraRefs, fromV1, isV1, toV1 } from "./format.js";
 import { BUILTIN, builtinSpec, KINDS, normalize, TEMPLATES } from "./model.js";
 
 test("built-in objects are complete and valid", () => {
@@ -90,56 +90,81 @@ test("v1beta2 → v1beta1 → v1beta2 keeps the meaning", () => {
 	assert.equal(back.policies.default.customResponse, "r");
 });
 
-test("fragments in either syntax, v1beta2 only when needed", () => {
+test("fragments in either syntax; the agent always gets v1beta2, without copies of practices", () => {
 	// the expert fragment of the closed-network test: v1beta2 conditions in a v1beta1 file
 	const fragment = fromV1({
 		exceptions: [{ name: "x", action: "accept", condition: [{ key: "sourceIp", value: "1.2.3.4" }] }],
 		policies: { default: { exceptions: ["x"] } },
 	});
 	assert.deepEqual(toV1(fragment).exceptions[0], { name: "x", action: "accept", sourceIp: ["1.2.3.4"] });
-	assert.deepEqual(needsV2(example), []);
 	const limited = structuredClone(example);
 	limited.accessControlPractices[0].rateLimit = {
 		overrideMode: "prevent",
 		rules: [{ uri: "/login", limit: 10, unit: "minute" }],
 	};
-	limited.customResponses[0] = { name: "r", mode: "redirect", redirectUrl: "https://x" };
-	assert.deepEqual(needsV2(limited), ["rate-limit:ac", "redirect:r"]);
+	limited.policies.specificRules.push({ name: "two", host: "b.example.com", accessControlPractices: ["ac"] });
 	const v2 = asV2(limited);
 	assert.equal(v2.apiVersion, "v1beta2");
-	// the rate limit of the default rule, made explicit and copied for the second rule using it
+	// the agent of NginxionS keeps a rate limit per asset: the same practice in two rules, no copies
 	assert.deepEqual(v2.policies.default.accessControlPractices, ["ac"]);
-	assert.deepEqual(v2.policies.specificRules[0].accessControlPractices, ["ac.1"]);
-	assert.equal(v2.accessControlPractices[1].rateLimit.rules[0].uri, "/login");
-	assert.deepEqual(asV2(example).policies.specificRules[0].accessControlPractices, []);
+	assert.deepEqual(v2.policies.specificRules[0].accessControlPractices, []);
+	assert.deepEqual(v2.policies.specificRules[1].accessControlPractices, ["ac"]);
+	assert.equal(v2.accessControlPractices.length, 1);
+	// both keys of practices are in every rule (the agent requires them)
+	assert.deepEqual(v2.policies.specificRules[1].threatPreventionPractices, []);
 
-	// the default rule names no practice that limits nothing: as the first rate limit of the agent (context All())
-	// it would turn off the rate limits of every host
-	const inactive = asV2({
-		policies: {
-			default: { accessControlPractices: ["none", "off"] },
-			specificRules: [
-				{ host: "a", accessControlPractices: ["none"] },
-				{ host: "b", accessControlPractices: ["rl"] },
-			],
-		},
-		accessControlPractices: [
-			{ name: "none", rateLimit: { overrideMode: "inactive", rules: [] } },
-			{ name: "off", rateLimit: { overrideMode: "inactive", rules: [{ uri: "/x", limit: 1, unit: "minute" }] } },
-			{ name: "rl", rateLimit: { overrideMode: "prevent", rules: [{ uri: "/x", limit: 1, unit: "minute" }] } },
-		],
-	});
-	assert.deepEqual(inactive.policies.default.accessControlPractices, []);
-	assert.deepEqual(
-		inactive.policies.specificRules.map((r) => r.accessControlPractices),
-		[["none"], ["rl"]],
-	);
 	assert.deepEqual(danglingRefs(example), []);
 	const dangling = structuredClone(example);
 	dangling.policies.specificRules[0].exceptions = ["gone"];
 	dangling.trustedSources[0].sourcesIdentifiers = ["si", "nope"];
 	assert.deepEqual(danglingRefs(dangling), ["one:gone", "ts:nope"]);
+	assert.deepEqual(extraRefs(example), []);
+	const extra = structuredClone(example);
+	extra.policies.default.triggers = ["t", "t2"];
+	assert.deepEqual(extraRefs(extra), ["default:triggers"]);
 	assert.equal(Object.keys(KINDS).length, 7);
+});
+
+test("no silent fields: what the agent does not apply is an error, or dropped and named", () => {
+	const ips = { webAttacks: { overrideMode: "inherited" }, intrusionPrevention: { overrideMode: "inherited" } };
+	assert.match(normalize("threat_prevention", ips).errors.join(), /intrusionPrevention: not in the agent/);
+	const imported = normalize("threat_prevention", ips, { lenient: true });
+	assert.equal(imported.spec.intrusionPrevention.overrideMode, "inactive");
+	assert.deepEqual(imported.dropped, ["/intrusionPrevention"]);
+	assert.deepEqual(
+		normalize("threat_prevention", {
+			webAttacks: { overrideMode: "inherited" },
+			snortSignatures: { overrideMode: "inherited", configmap: ["k8s"], files: ["/etc/snort.rules"] },
+		}).dropped,
+		["/snortSignatures/configmap"],
+	);
+	assert.deepEqual(normalize("log_trigger", { logDestination: { cloud: true } }).dropped, ["/logDestination/cloud"]);
+
+	const rule = (condition) => ({
+		rateLimit: { overrideMode: "prevent", rules: [{ uri: "/", limit: 5, action: "detect", condition }] },
+	});
+	assert.ok(normalize("access_control", rule([{ key: "sourceIp", value: "10.0.0.1" }])).spec);
+	assert.match(normalize("access_control", rule([{ key: "method", value: "POST" }])).errors.join(), /key: one of/);
+
+	assert.match(normalize("custom_response", { mode: "redirect" }).errors.join(), /redirectUrl/);
+	assert.ok(normalize("custom_response", { mode: "redirect", redirectUrl: "https://help.example.com/x" }).spec);
+	assert.ok(normalize("custom_response", { mode: "redirect", redirectUrl: "/blocked" }).spec);
+
+	assert.match(
+		normalize("exception", { action: "accept", condition: [{ key: "method", value: "GET" }] }).errors.join(),
+		/condition\/0\/key/,
+	);
+
+	const syslog = (services) => normalize("log_trigger", { logDestination: { syslogService: services } });
+	assert.ok(syslog([{ address: "10.0.0.5", port: 514 }]).spec);
+	assert.match(syslog([{ address: "logs.example.com", port: 514 }]).errors.join(), /IPv4/);
+	assert.match(
+		syslog([
+			{ address: "10.0.0.5", port: 514 },
+			{ address: "10.0.0.6", port: 514 },
+		]).errors.join(),
+		/one server/,
+	);
 });
 
 test("objects of the examples of open-appsec pass the schema", async () => {
@@ -150,7 +175,8 @@ test("objects of the examples of open-appsec pass the schema", async () => {
 		const doc = YAML.parse(await readFile(file, "utf8"));
 		for (const [kind, section] of Object.entries(KINDS)) {
 			for (const item of doc[section] || []) {
-				const result = normalize(kind, item);
+				// as an import: engines of the Premium edition are turned off and named
+				const result = normalize(kind, item, { lenient: true });
 				assert.ok(result.spec, `${name}/${section}/${item.name}: ${result.errors}`);
 			}
 		}
@@ -170,4 +196,70 @@ test("objects of a location replace those of its host, exceptions add up", async
 	assert.deepEqual(locationRule({ threatPreventionPractices: ["p"] }, { threatPreventionPractices: [] }), {
 		threatPreventionPractices: ["p"],
 	});
+});
+
+test("the configuration the agent applies is compared with the generated policy", async () => {
+	const { compareApplied } = await import("./compare.js");
+	const doc = {
+		policies: {
+			default: {
+				threatPreventionPractices: ["p"],
+				accessControlPractices: [],
+				customResponse: "r403",
+			},
+			specificRules: [
+				{
+					host: "shop.example.com",
+					threatPreventionPractices: [],
+					accessControlPractices: ["limit"],
+					customResponse: "away",
+				},
+			],
+		},
+		customResponses: [
+			{ name: "r403", mode: "response-code-only", httpResponseCode: 403 },
+			{ name: "away", mode: "redirect", redirectUrl: "https://help.example.com/x" },
+		],
+		accessControlPractices: [
+			{ name: "limit", rateLimit: { overrideMode: "prevent", rules: [{ uri: "/a" }, { uri: "/b" }] } },
+		],
+	};
+	// as policy_maker_utils.cc writes it (only the keys compared)
+	const applied = {
+		"security apps": {
+			rules: {
+				rulebase: {
+					rulesConfig: [
+						{ assetName: "Any", practices: [] },
+						{ assetName: "shop.example.com", practices: [] },
+					],
+				},
+			},
+			triggers: {
+				rulebase: {
+					webUserResponse: [
+						{ triggerName: "local_policy/r403", "details level": "Response Code", "response code": 403 },
+						{
+							triggerName: "local_policy/away",
+							"details level": "Redirect",
+							"redirect URL": "https://help.example.com/x",
+						},
+					],
+				},
+			},
+			accessControlV2: { rulebase: { rateLimit: [{ name: "local_policy/limit", rules: [{}, {}] }] } },
+		},
+	};
+	assert.deepEqual(compareApplied(doc, applied), []);
+
+	// the agent dropped the redirect (as before phase 11), lost a rule of the rate limit and the asset of the host
+	const old = structuredClone(applied);
+	old["security apps"].triggers.rulebase.webUserResponse[1] = {
+		triggerName: "local_policy/away",
+		"details level": "Redirect",
+		"response code": 403,
+	};
+	old["security apps"].accessControlV2.rulebase.rateLimit[0].rules.pop();
+	old["security apps"].rules.rulebase.rulesConfig.pop();
+	assert.deepEqual(compareApplied(doc, old).sort(), ["asset:shop.example.com", "rate-limit:limit", "response:away"]);
 });

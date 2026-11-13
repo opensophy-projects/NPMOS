@@ -18,12 +18,13 @@ export const EXCEPTION_KEYS = [
 	"sourceIdentifier",
 ];
 
+/** keys of a condition of a rate limit rule: what the rate limit engine of the agent matches */
+export const RATE_LIMIT_KEYS = ["sourceIp", "url", "sourceIdentifier", "countryCode", "countryName"];
+
 export type Field = {
 	path: string;
 	/** shown only for these values of the specification */
 	showIf?: (spec: Record<string, any>) => boolean;
-	/** needs local_policy.yaml v1beta2 (see the warning of the format) */
-	v2?: boolean;
 } & (
 	| { type: "select"; options: string[]; modes?: boolean /** locale prefix of the options */; labels?: string }
 	| { type: "bool" }
@@ -33,6 +34,8 @@ export type Field = {
 	| { type: "conditions" }
 	| { type: "rateRules" }
 	| { type: "identifiers" }
+	/** one log server of a list (the agent sends to one): address, port, protocol */
+	| { type: "service" }
 	| { type: "names"; kind: Kind }
 	| { type: "heading" }
 );
@@ -60,7 +63,7 @@ export const FIELDS: Record<Kind, Field[]> = {
 		{ path: "snortSignatures.files", type: "strings" },
 	],
 	access_control: [
-		{ path: "rateLimit.overrideMode", type: "select", options: ACTIONS, modes: true, v2: true },
+		{ path: "rateLimit.overrideMode", type: "select", options: ACTIONS, modes: true },
 		{ path: "rateLimit.rules", type: "rateRules" },
 	],
 	log_trigger: [
@@ -86,6 +89,9 @@ export const FIELDS: Record<Kind, Field[]> = {
 		{ path: "extendedLogging.urlQuery", type: "bool" },
 		{ path: "extendedLogging.httpHeaders", type: "bool" },
 		{ path: "extendedLogging.requestBody", type: "bool" },
+		{ path: "logDestination", type: "heading" },
+		{ path: "logDestination.syslogService", type: "service" },
+		{ path: "logDestination.cefService", type: "service" },
 	],
 	custom_response: [
 		{
@@ -97,7 +103,7 @@ export const FIELDS: Record<Kind, Field[]> = {
 		{ path: "httpResponseCode", type: "number", min: 100, max: 599, showIf: (s) => s.mode !== "redirect" },
 		{ path: "messageTitle", type: "text", showIf: (s) => s.mode === "block-page" },
 		{ path: "messageBody", type: "textarea", showIf: (s) => s.mode === "block-page" },
-		{ path: "redirectUrl", type: "text", showIf: (s) => s.mode === "redirect", v2: true },
+		{ path: "redirectUrl", type: "text", showIf: (s) => s.mode === "redirect" },
 		{ path: "redirectAddXEventId", type: "bool", showIf: (s) => s.mode === "redirect" },
 	],
 	exception: [

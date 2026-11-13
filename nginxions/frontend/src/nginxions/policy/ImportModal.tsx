@@ -95,6 +95,12 @@ const ImportModal = EasyModal.create(({ visible, remove, onImported }: Props) =>
 								<T id="nginxions.policy.import.policy" />
 							</p>
 						)}
+						{plan.dropped.length > 0 && (
+							<Alert variant="warning" className="small py-2 mb-2">
+								<T id="nginxions.policy.import.dropped" />
+								<div className="font-monospace">{plan.dropped.join(", ")}</div>
+							</Alert>
+						)}
 						{plan.rules > 0 && (
 							<p className="text-secondary small mb-2">
 								<T id="nginxions.policy.import.rules" data={{ count: plan.rules }} />
