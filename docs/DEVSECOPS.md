@@ -42,7 +42,8 @@
 деплоя, плагины других шлюзов, их Dockerfile), удалены, а не исключены из сканов.
 
 К ним добавляются проверки, которые были и раньше: biome, tsc, тесты (backend, frontend, Go-сервисы агента —
-`scripts/test-go.sh`), shellcheck, `compose config`, закрытый контур.
+`scripts/test-go.sh`, C++ unit-тесты агента — `ctest` при сборке образа `nginxions-openappsec`, образ не собирается,
+если тест упал), shellcheck, `compose config`, закрытый контур.
 
 DAST (`scripts/test-dast.sh`) поднимает прод-стек, настраивает его как администратор в GUI (`deploy/test/dast-setup.sh`:
 первый админ, корневой CA и серверный сертификат PKI NginxionS, прокси-хост `dast.local` с TLS, HTTP/2, HSTS и фильтром
