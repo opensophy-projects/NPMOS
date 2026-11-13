@@ -261,7 +261,7 @@ Environment::Impl::getCurrentHeadersMap()
         try {
             boost::uuids::random_generator uuid_random_gen;
             correlation_id_string = boost::uuids::to_string(uuid_random_gen());
-        } catch (const boost::uuids::entropy_error &e) {
+        } catch (const std::exception &e) { // NginxionS: entropy_error is gone from Boost 1.86+ (#113)
             dbgTrace(D_ENVIRONMENT)
                 << "Failed to generate random correlation id - entropy exception. Exception: "
                 << e.what();
@@ -301,7 +301,7 @@ Environment::Impl::startNewTrace(bool new_span, const string &_trace_id)
         trace_event.setTraceAmount(active_traces.size());
         trace_event.notify();
 
-    } catch (const boost::uuids::entropy_error &e) {
+    } catch (const std::exception &e) { // NginxionS: entropy_error is gone from Boost 1.86+ (#113)
         tracing_status = TracingStatus::DISABLED;
         dbgWarning(D_TRACE)
             << "Failed to generate random id - entropy exception. Exception: "
@@ -320,7 +320,7 @@ Environment::Impl::startNewSpan(Span::ContextType context_type, const string &pr
     try {
         SpanWrapper span(selected_trace, context_type, selected_span);
         active_spans.emplace(span.getSpanId(), span);
-    } catch (const boost::uuids::entropy_error &e) {
+    } catch (const std::exception &e) { // NginxionS: entropy_error is gone from Boost 1.86+ (#113)
         tracing_status = TracingStatus::DISABLED;
         dbgWarning(D_TRACE)
             << "Failed to generate random id - entropy exception. Exception: "

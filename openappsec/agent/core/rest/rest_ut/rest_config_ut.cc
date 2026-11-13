@@ -15,6 +15,8 @@
 #include "mock/mock_messaging.h"
 #include "tenant_manager.h"
 #include <netdb.h>
+#include <ifaddrs.h> // NginxionS: getLocalIPAddress
+#include <net/if.h>
 #include <arpa/inet.h>
 
 using namespace std;
@@ -259,46 +261,25 @@ TEST_F(RestConfigTest, basic_flow)
     );
 }
 
+// NginxionS: the first IPv4 address of an interface that is not the loopback. The test resolved the host name, which
+// resolves to 127.0.0.1 alone on many machines (containers, CI): the address was empty, the connection failed and the
+// write after it killed the test with SIGPIPE (open-appsec issue: "Unit-test are broken", rest_server_ut).
 string
 getLocalIPAddress() {
-    char hostname[1024];
-    hostname[1024 - 1] = '\0';
-
-    // Get the hostname
-    if (gethostname(hostname, sizeof(hostname)) == -1) {
-        return "";
-    }
-
-    struct addrinfo hints, *info, *p;
-    int gai_result;
-
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_INET; // Use AF_INET for IPv4
-    hints.ai_socktype = SOCK_STREAM;
-
-    // Get the address info
-    if ((gai_result = getaddrinfo(hostname, nullptr, &hints, &info)) != 0) {
-        return "";
-    }
+    struct ifaddrs *interfaces = nullptr;
+    if (getifaddrs(&interfaces) == -1) return "";
 
     std::string ip_address;
-    for (p = info; p != nullptr; p = p->ai_next) {
-        void *addr;
+    for (struct ifaddrs *i = interfaces; i != nullptr; i = i->ifa_next) {
+        if (i->ifa_addr == nullptr || i->ifa_addr->sa_family != AF_INET) continue;
+        if (i->ifa_flags & IFF_LOOPBACK) continue;
         char ipstr[INET_ADDRSTRLEN];
-
-        struct sockaddr_in *ipv4 = (struct sockaddr_in *)p->ai_addr;
-        addr = &(ipv4->sin_addr);
-
-        // Convert the IP to a string and print it
-        inet_ntop(p->ai_family, addr, ipstr, sizeof(ipstr));
-        if (std::string(ipstr) != "127.0.0.1") {
-            ip_address = ipstr;
-            break;
-        }
+        inet_ntop(AF_INET, &((struct sockaddr_in *)i->ifa_addr)->sin_addr, ipstr, sizeof(ipstr));
+        ip_address = ipstr;
+        break;
     }
 
-    freeaddrinfo(info); // Free the linked list
-
+    freeifaddrs(interfaces);
     return ip_address;
 }
 
@@ -331,6 +312,8 @@ TEST_F(RestConfigTest, not_loopback_flow)
     auto primary_port = getConfiguration<uint>("connection", "Nano service API Port Primary");
     auto second_port = getConfiguration<uint>("connection", "Nano service API Port Alternative");
     auto local_ip = getLocalIPAddress();
+    // NginxionS: a machine with the loopback only cannot test a connection from outside it
+    if (local_ip.empty()) GTEST_SKIP() << "no IPv4 address but the loopback";
     struct sockaddr_in sa_primary;
     sa_primary.sin_family = AF_INET;
     sa_primary.sin_port = htons(primary_port.unpack());

@@ -170,7 +170,7 @@ AccessControlRateLimiteRules::createRateLimitRulesSection(const RateLimitRulesTr
     string id = "";
     try {
         id = to_string(boost::uuids::random_generator()());
-    } catch (const boost::uuids::entropy_error &e) {
+    } catch (const std::exception &e) { // NginxionS: entropy_error is gone from Boost 1.86+ (#113)
         dbgWarning(D_LOCAL_POLICY) << "Failed to create random id";
     }
     vector<RateLimitRulesTriggerSection> triggers_section;

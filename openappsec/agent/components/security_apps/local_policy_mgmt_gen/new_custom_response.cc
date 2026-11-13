@@ -41,18 +41,19 @@ NewAppSecCustomResponse::load(cereal::JSONInputArchive &archive_in)
     parseAppsecJSONKey<string>("name", name, archive_in);
     parseAppsecJSONKey<string>("redirectUrl", redirect_url, archive_in);
     parseAppsecJSONKey<bool>("redirectAddXEventId", redirect_add_x_event_id, archive_in, false);
+    // NginxionS: neutral default texts of the block page, without the name of a vendor
     if (mode == "block-page") {
         parseAppsecJSONKey<string>(
             "messageBody",
             message_body,
             archive_in,
-            "Openappsec's <b>Application Security</b> has detected an attack and blocked it."
+            "The protection system has detected an attack and blocked the request."
         );
         parseAppsecJSONKey<string>(
             "messageTitle",
             message_title,
             archive_in,
-            "Attack blocked by web application protection"
+            "Request blocked"
         );
     }
     if (mode_to_appsec_mode_val.find(mode) == mode_to_appsec_mode_val.end()) {

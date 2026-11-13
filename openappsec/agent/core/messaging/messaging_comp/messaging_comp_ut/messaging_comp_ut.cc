@@ -136,10 +136,10 @@ TEST_F(TestMessagingComp, testSendSyncMessage)
     MessageConnectionKey conn_key(fog_addr, fog_port, MessageCategory::GENERIC);
     Flags<MessageConnectionConfig> conn_flags;
     conn_flags.setFlag(MessageConnectionConfig::UNSECURE_CONN);
-    MessageMetadata conn_metadata(fog_addr, fog_port, conn_flags, false, true);
+    MessageMetadata conn_metadata(fog_addr, fog_port, conn_flags, false, false); // NginxionS: a local service, not the Fog
     Connection conn(conn_key, conn_metadata);
 
-    EXPECT_CALL(mock_messaging_connection, getFogConnectionByCategory(MessageCategory::GENERIC))
+    EXPECT_CALL(mock_messaging_connection, getPersistentConnection(fog_addr, fog_port, MessageCategory::GENERIC))
         .WillOnce(Return(conn));
 
     HTTPResponse res(HTTPStatusCode::HTTP_OK, "response!!");
@@ -158,7 +158,7 @@ TEST_F(TestMessagingComp, testSendAsyncMessage)
     HTTPMethod method = HTTPMethod::POST;
     string uri = "/test-uri";
     MessageCategory category = MessageCategory::GENERIC;
-    MessageMetadata message_metadata;
+    MessageMetadata message_metadata(fog_addr, fog_port); // NginxionS: a local service, not the Fog
 
     EXPECT_CALL(mock_messaging_buffer, pushNewBufferedMessage(body, method, uri, category, _, _)).Times(1);
     messaging_comp.sendAsyncMessage(method, uri, body, category, message_metadata, true);
@@ -171,7 +171,7 @@ TEST_F(TestMessagingComp, testSendSyncMessageOnSuspendedConn)
     HTTPMethod method = HTTPMethod::POST;
     string uri = "/test-uri";
     MessageCategory category = MessageCategory::GENERIC;
-    MessageMetadata message_metadata;
+    MessageMetadata message_metadata(fog_addr, fog_port); // NginxionS: a local service, not the Fog
 
     MessageConnectionKey conn_key(fog_addr, fog_port, MessageCategory::GENERIC);
     Connection conn(conn_key, message_metadata);
@@ -181,7 +181,7 @@ TEST_F(TestMessagingComp, testSendSyncMessageOnSuspendedConn)
     for (int i = 0; i < 20; i++) {
         conn.sendRequest(".", HTTPMethod::POST);
     }
-    EXPECT_CALL(mock_messaging_connection, getFogConnectionByCategory(MessageCategory::GENERIC))
+    EXPECT_CALL(mock_messaging_connection, getPersistentConnection(fog_addr, fog_port, MessageCategory::GENERIC))
         .WillOnce(Return(conn));
 
     auto sending_res = messaging_comp.sendSyncMessage(method, uri, body, category, message_metadata);
@@ -202,9 +202,9 @@ TEST_F(TestMessagingComp, testUploadFile)
     MessageConnectionKey conn_key(fog_addr, fog_port, MessageCategory::GENERIC);
     Flags<MessageConnectionConfig> conn_flags;
     conn_flags.setFlag(MessageConnectionConfig::UNSECURE_CONN);
-    MessageMetadata conn_metadata(fog_addr, fog_port, conn_flags, false, true);
+    MessageMetadata conn_metadata(fog_addr, fog_port, conn_flags, false, false); // NginxionS: a local service, not the Fog
     Connection conn(conn_key, conn_metadata);
-    EXPECT_CALL(mock_messaging_connection, getFogConnectionByCategory(MessageCategory::GENERIC))
+    EXPECT_CALL(mock_messaging_connection, getPersistentConnection(fog_addr, fog_port, MessageCategory::GENERIC))
         .WillOnce(Return(conn));
 
     HTTPResponse res(HTTPStatusCode::HTTP_OK, "");
@@ -225,9 +225,9 @@ TEST_F(TestMessagingComp, testDownloadFile)
     MessageConnectionKey conn_key(fog_addr, fog_port, MessageCategory::GENERIC);
     Flags<MessageConnectionConfig> conn_flags;
     conn_flags.setFlag(MessageConnectionConfig::UNSECURE_CONN);
-    MessageMetadata conn_metadata(fog_addr, fog_port, conn_flags, false, true);
+    MessageMetadata conn_metadata(fog_addr, fog_port, conn_flags, false, false); // NginxionS: a local service, not the Fog
     Connection conn(conn_key, conn_metadata);
-    EXPECT_CALL(mock_messaging_connection, getFogConnectionByCategory(MessageCategory::GENERIC))
+    EXPECT_CALL(mock_messaging_connection, getPersistentConnection(fog_addr, fog_port, MessageCategory::GENERIC))
         .WillOnce(Return(conn));
 
     HTTPResponse res(HTTPStatusCode::HTTP_OK, "");
@@ -263,25 +263,20 @@ operator==(const MessageMetadata &one, const MessageMetadata &two)
         one.isDualAuth() == two.isDualAuth();
 }
 
+// NginxionS: the agent of NginxionS has no cloud: a Fog connection is never established (the two tests of upstream
+// expected one), clearing the connections still clears them.
 TEST_F(TestMessagingComp, testClearConnections)
 {
     setAgentDetails();
 
     MessageCategory category = MessageCategory::GENERIC;
-    MessageConnectionKey conn_key(fog_addr, fog_port, category);
-    MessageMetadata metadata(fog_addr, fog_port, true);
-    MessageProxySettings proxy_settings("7.7.7.7", "cred", 8080);
-    metadata.setProxySettings(proxy_settings);
-    Connection conn(conn_key, metadata);
-
-    EXPECT_CALL(mock_messaging_connection, establishConnection(metadata, category)).WillOnce(Return(conn));
-    EXPECT_TRUE(messaging_comp.setFogConnection(category));
+    EXPECT_CALL(mock_messaging_connection, establishConnection(_, _)).Times(0);
+    EXPECT_FALSE(messaging_comp.setFogConnection(category));
 
     EXPECT_CALL(mock_messaging_connection, clearConnections()).Times(1);
     messaging_comp.clearConnections();
 
-    EXPECT_CALL(mock_messaging_connection, establishConnection(metadata, category)).WillOnce(Return(conn));
-    EXPECT_TRUE(messaging_comp.setFogConnection(category));
+    EXPECT_FALSE(messaging_comp.setFogConnection(category));
 }
 
 
@@ -289,15 +284,34 @@ TEST_F(TestMessagingComp, testSetFogConnection)
 {
     setAgentDetails();
 
-    MessageCategory category = MessageCategory::GENERIC;
-    MessageConnectionKey conn_key(fog_addr, fog_port, category);
-    MessageMetadata metadata(fog_addr, fog_port, true);
-    MessageProxySettings proxy_settings("7.7.7.7", "cred", 8080);
-    metadata.setProxySettings(proxy_settings);
-    Connection conn(conn_key, metadata);
+    EXPECT_CALL(mock_messaging_connection, establishConnection(_, _)).Times(0);
+    EXPECT_FALSE(messaging_comp.setFogConnection(MessageCategory::GENERIC));
+    EXPECT_FALSE(messaging_comp.setFogConnection(fog_addr, fog_port, true, MessageCategory::GENERIC));
+}
 
-    EXPECT_CALL(mock_messaging_connection, establishConnection(metadata, category)).WillOnce(Return(conn));
-    EXPECT_TRUE(messaging_comp.setFogConnection(category));
+// NginxionS: nothing reaches the cloud of open-appsec, whatever the configuration asks: a message to the Fog or to a
+// host of checkpoint.com / openappsec.io is refused before any connection, and never buffered for later
+TEST_F(TestMessagingComp, testNoCloud)
+{
+    setAgentDetails();
+    EXPECT_CALL(mock_messaging_connection, getFogConnectionByCategory(_)).Times(0);
+    EXPECT_CALL(mock_messaging_connection, getPersistentConnection(_, _, _)).Times(0);
+    EXPECT_CALL(mock_messaging_connection, establishConnection(_, _)).Times(0);
+    EXPECT_CALL(mock_messaging_connection, mockSendRequest(_, _, _)).Times(0);
+    EXPECT_CALL(mock_messaging_buffer, pushNewBufferedMessage(_, _, _, _, _, _)).Times(0);
+
+    Flags<MessageConnectionConfig> conn_flags;
+    MessageMetadata to_fog(fog_addr, fog_port, conn_flags, false, true);
+    for (const string &host : {"inext-agents.cloud.ngen.checkpoint.com", "CHECKPOINT.COM", "x.openappsec.io"}) {
+        MessageMetadata to_cloud_host(host, 443, conn_flags, false, false);
+        auto res = messaging_comp.sendSyncMessage(HTTPMethod::POST, "/", "body", MessageCategory::LOG, to_cloud_host);
+        ASSERT_FALSE(res.ok()) << host;
+        EXPECT_EQ(res.getErr().getBody(), "NginxionS: the agent has no cloud");
+    }
+    auto res = messaging_comp.sendSyncMessage(HTTPMethod::POST, "/", "body", MessageCategory::GENERIC, to_fog);
+    ASSERT_FALSE(res.ok());
+    EXPECT_EQ(res.getErr().getBody(), "NginxionS: the agent has no cloud");
+    messaging_comp.sendAsyncMessage(HTTPMethod::POST, "/", "body", MessageCategory::LOG, to_fog, true);
 }
 
 TEST_F(TestMessagingComp, testRateLimitBlock)
@@ -311,10 +325,10 @@ TEST_F(TestMessagingComp, testRateLimitBlock)
     MessageConnectionKey conn_key(fog_addr, fog_port, MessageCategory::GENERIC);
     Flags<MessageConnectionConfig> conn_flags;
     conn_flags.setFlag(MessageConnectionConfig::UNSECURE_CONN);
-    MessageMetadata conn_metadata(fog_addr, fog_port, conn_flags, false, true);
+    MessageMetadata conn_metadata(fog_addr, fog_port, conn_flags, false, false); // NginxionS: a local service, not the Fog
     Connection conn(conn_key, conn_metadata);
 
-    EXPECT_CALL(mock_messaging_connection, getFogConnectionByCategory(MessageCategory::GENERIC))
+    EXPECT_CALL(mock_messaging_connection, getPersistentConnection(fog_addr, fog_port, MessageCategory::GENERIC))
         .WillOnce(Return(conn));
 
     unordered_map<string, string> res_headers = {{"Retry-After", "10"}};

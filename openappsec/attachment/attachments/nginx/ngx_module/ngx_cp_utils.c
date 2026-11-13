@@ -983,8 +983,9 @@ initialize_web_response_data()
     char *uuid_pos = NULL;
 
     // Sets Check Point's attack detection string.
-    static char default_title[] = "Attack blocked by web application protection";
-    static char default_body[] = "Check Point's <b>Application Security</b> has detected an attack and blocked it.";
+    // NginxionS: neutral default texts of the block page, without the name of a vendor
+    static char default_title[] = "Request blocked";
+    static char default_body[] = "The protection system has detected an attack and blocked the request.";
     static char default_uuid[] = "";
 
     title_pos = strstr(web_response_page_format, USERCHECK_TITLE_START);

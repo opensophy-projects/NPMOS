@@ -32,8 +32,11 @@ RUN apk add --no-cache build-base cmake git python3 bash linux-headers \
 # clean headers of its signatures; a model uploaded in WAF -> Agent replaces it at the start of the agent.
 COPY --from=openappsec agent/ /src/
 WORKDIR /src
+# the unit tests of the agent (C++, gtest) run here, one after another (in parallel two of them compete for the
+# same sockets): the image is not built when one fails (issue 112)
 RUN cmake -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_INSTALL_PREFIX=build_out . && \
     make -j"$(nproc)" install && \
+    ctest --output-on-failure --timeout 300 && \
     make package && \
     mkdir -p /out/nano-service-installers && \
     cp build_out/install-*.sh /out/nano-service-installers/ && \
