@@ -147,7 +147,10 @@ WebUserResponseTriggerSection::WebUserResponseTriggerSection(
     response_code(_response_code)
 {
     try {
-        id = to_string(boost::uuids::random_generator()());
+        // NginxionS: the ID comes from the name of the response (it is unique in the policy), not at random: a
+        // policy is generated again at every apply, and a handler that met the rules of one generation and the
+        // responses of another found no response by its ID and answered with the default 403 without a page
+        id = to_string(boost::uuids::name_generator_sha1(boost::uuids::ns::url())("webUserResponse/" + _name));
         context = "triggerId(" + id + ")";
     } catch (const std::exception &e) { // NginxionS: entropy_error is gone from Boost 1.86+ (#113)
         dbgWarning(D_LOCAL_POLICY) << "Failed to generate webUserResponse trigger UUID. Error: " << e.what();

@@ -24,6 +24,9 @@ cleanup() {
       "${compose[@]}" exec -T openappsec sh -c 'ls -la /var/log/nano_agent; cat /etc/cp/conf/settings.json;
         cat /ext/appsec/nginxions-agent.env; tail -n 5 /var/log/nano_agent/cp-nano-http-transaction-handler.log*;
         tail -n 20 /var/log/nano_agent/*.err 2> /dev/null;
+        echo "--- policy of the agent: web user responses, triggers of the rules ---";
+        grep -ho "\"webUserResponse\": *\[[^]]*\]" /etc/cp/conf/*/*.policy 2> /dev/null | sort -u | head -c 3000; echo;
+        grep -ho "\"triggers\": *\[[^]]*\]" /etc/cp/conf/*/*.policy 2> /dev/null | sort -u | head -c 3000; echo;
         echo "--- orchestration: checks of updates, policies applied ---";
         grep -h "check update\|Check update\|NginxionS\|apply\|Failed\|econfiguration" /var/log/nano_agent/cp-nano-orchestration.dbg* \
           2> /dev/null | tail -n 40' || true
