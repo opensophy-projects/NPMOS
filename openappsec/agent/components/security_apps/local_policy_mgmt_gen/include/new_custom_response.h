@@ -35,6 +35,9 @@ public:
     const std::string & getAppSecClassName() const;
     const std::string & getMode() const;
     const std::string & getName() const;
+    // NginxionS: the redirect of the response (they were read and never passed on)
+    const std::string & getRedirectUrl() const;
+    bool getRedirectAddXEventId() const;
     void setName(const std::string &_name);
 
 private:

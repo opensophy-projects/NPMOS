@@ -48,7 +48,10 @@ LogTriggerSection::LogTriggerSection(
     const string &_cefIpAddress,
     int _syslogPortNum,
     const string &_syslogIpAddress,
-    bool _beautify_logs)
+    bool _beautify_logs,
+    bool _responseCode,
+    const string &_syslogProtocol,
+    const string &_cefProtocol)
         :
     name(_name),
     verbosity(_verbosity),
@@ -73,7 +76,10 @@ LogTriggerSection::LogTriggerSection(
     cefIpAddress (_cefIpAddress),
     syslogPortNum (_syslogPortNum),
     syslogIpAddress (_syslogIpAddress),
-    beautify_logs(_beautify_logs)
+    beautify_logs(_beautify_logs),
+    responseCode(_responseCode),
+    syslogProtocol(_syslogProtocol),
+    cefProtocol(_cefProtocol)
 {
     try {
         id = to_string(boost::uuids::random_generator()());
@@ -106,7 +112,7 @@ LogTriggerSection::save(cereal::JSONOutputArchive &out_ar) const
         cereal::make_nvp("logTolocalTuning",    logTolocalTuning),
         cereal::make_nvp("logToSyslog",              logToSyslog),
         cereal::make_nvp("responseBody",             responseBody),
-        cereal::make_nvp("responseCode",             false),
+        cereal::make_nvp("responseCode",             responseCode), // NginxionS: it was always false
         cereal::make_nvp("tpDetect",                 tpDetect),
         cereal::make_nvp("tpPrevent",                tpPrevent),
         cereal::make_nvp("webBody",                  webBody),
@@ -116,7 +122,10 @@ LogTriggerSection::save(cereal::JSONOutputArchive &out_ar) const
         cereal::make_nvp("webUrlQuery",              webUrlQuery),
         cereal::make_nvp("urlForSyslog",             urlForSyslog),
         cereal::make_nvp("urlForCef",                urlForCef),
-        cereal::make_nvp("formatLoggingOutput",      beautify_logs)
+        cereal::make_nvp("formatLoggingOutput",      beautify_logs),
+        // NginxionS: read by LogTriggerConf (utils/generic_rulebase/triggers_config.cc)
+        cereal::make_nvp("syslogProtocol",           syslogProtocol),
+        cereal::make_nvp("cefProtocol",              cefProtocol)
     );
 }
 
@@ -137,14 +146,18 @@ WebUserResponseTriggerSection::WebUserResponseTriggerSection(
     const string &_details_level,
     const string &_response_body,
     int _response_code,
-    const string &_response_title)
+    const string &_response_title,
+    const string &_redirect_url,
+    bool _redirect_add_event_id)
         :
     name(_name),
     context(),
     details_level(_details_level),
     response_body(_response_body),
     response_title(_response_title),
-    response_code(_response_code)
+    response_code(_response_code),
+    redirect_url(_redirect_url),
+    redirect_add_event_id(_redirect_add_event_id)
 {
     try {
         // NginxionS: the ID comes from the name of the response (it is unique in the policy), not at random: a
@@ -168,6 +181,13 @@ WebUserResponseTriggerSection::save(cereal::JSONOutputArchive &out_ar) const
         cereal::make_nvp("response code", response_code),
         cereal::make_nvp("response title", response_title)
     );
+    // NginxionS: the keys of a redirect that WebTriggerConf reads (utils/generic_rulebase/triggers_config.cc)
+    if (details_level == "Redirect") {
+        out_ar(
+            cereal::make_nvp("redirect URL", redirect_url),
+            cereal::make_nvp("xEventId", redirect_add_event_id)
+        );
+    }
 }
 
 const string &

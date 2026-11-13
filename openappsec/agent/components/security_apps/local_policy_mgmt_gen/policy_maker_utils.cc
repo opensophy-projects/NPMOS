@@ -13,6 +13,7 @@
 
 #include "policy_maker_utils.h"
 
+#include <algorithm>
 #include <regex>
 
 #include "local_policy_mgmt_gen.h"
@@ -554,6 +555,30 @@ getAppsecTrustedSourceSpecs(const string &trusted_sources_annotation_name, const
     return *trusted_sources_it;
 }
 
+// NginxionS: what only a v1beta2 log trigger has (the response code in the logs, the protocols of syslog and CEF);
+// a v1beta1 one keeps what the agent wrote before
+template<class T>
+static bool triggerResponseCode(const T &) { return false; }
+static bool
+triggerResponseCode(const NewAppsecLogTrigger &trigger)
+{
+    return trigger.getAppsecTriggerAdditionalSuspiciousEventsLogging().isResponseCode();
+}
+template<class T>
+static string triggerSyslogProtocol(const T &) { return "UDP"; }
+static string
+triggerSyslogProtocol(const NewAppsecLogTrigger &trigger)
+{
+    return trigger.getAppsecTriggerLogDestination().getSyslogProtocol();
+}
+template<class T>
+static string triggerCefProtocol(const T &) { return "UDP"; }
+static string
+triggerCefProtocol(const NewAppsecLogTrigger &trigger)
+{
+    return trigger.getAppsecTriggerLogDestination().getCefProtocol();
+}
+
 template<class T>
 LogTriggerSection
 extractLogTriggerData(const string &trigger_annotation_name, const T &trigger_spec){
@@ -613,7 +638,10 @@ extractLogTriggerData(const string &trigger_annotation_name, const T &trigger_sp
         cefIpAddress,
         syslogPortNum,
         syslogIpAddress,
-        beautify_logs
+        beautify_logs,
+        triggerResponseCode(trigger_spec),
+        triggerSyslogProtocol(trigger_spec),
+        triggerCefProtocol(trigger_spec)
     );
     return log;
 }
@@ -699,10 +727,16 @@ createWebUserResponseTriggerSection<V1beta2AppsecLinuxPolicy>(
             web_user_res_annotation_name,
             policy
         );
-    return extractWebUserResponseTriggerSectionrData<NewAppSecCustomResponse>(
-                web_user_res_annotation_name,
-                web_user_res_spec
-            );
+    // NginxionS: with the redirect of the response (redirectUrl, redirectAddXEventId were dropped here)
+    return WebUserResponseTriggerSection(
+        web_user_res_annotation_name,
+        web_user_res_spec.getMode(),
+        web_user_res_spec.getMessageBody(),
+        web_user_res_spec.getHttpResponseCode(),
+        web_user_res_spec.getMessageTitle(),
+        web_user_res_spec.getRedirectUrl(),
+        web_user_res_spec.getRedirectAddXEventId()
+    );
 }
 
 vector<SourcesIdentifiers>
@@ -789,6 +823,15 @@ createTrustedSourcesSection<V1beta2AppsecLinuxPolicy>(
                 src_ident.getValues(),
                 src_ident.getIdentifier()
             );
+            generated_trusted_json.insert(generated_trusted_json.end(), tmp_trusted.begin(), tmp_trusted.end());
+        }
+    }
+    // NginxionS: a rule without source identifiers tells sources apart by IP (as the agent does): its trusted sources are
+    // IP addresses. They were left out, and the trusted sources of such a rule were an empty list.
+    if (source_identifiers_spec.getSourcesIdentifiers().empty()) {
+        for (const string &source_identifeir_from_trust : treusted_sources_spec.getSourcesIdentifiers()) {
+            vector<SourcesIdentifiers> tmp_trusted =
+                addSourceIdentifiersToTrustedSource(source_identifeir_from_trust, {}, "sourceip");
             generated_trusted_json.insert(generated_trusted_json.end(), tmp_trusted.begin(), tmp_trusted.end());
         }
     }
@@ -1133,10 +1176,12 @@ PolicyMakerUtils::createSnortSections(
 
     if (apssec_practice.getSnortSignatures().isTemporary()) {
         createSnortProtecionsSection("snort_k8s_" + apssec_practice.getName(), true);
-    } else if (apssec_practice.getSnortSignatures().getFiles().size() > 0) {
-        // when support for multiple files is ready, will iterate over the files array
-        auto file = apssec_practice.getSnortSignatures().getFiles()[0];
-        createSnortProtecionsSection(file, false);
+    } else {
+        // NginxionS: every file (it took the first one only); the IPS selects the signatures of each file the asset
+        // names (SnortRuleSelector::selectSignatures), so each one needs its protections
+        for (const string &file : apssec_practice.getSnortSignatures().getFiles()) {
+            createSnortProtecionsSection(file, false);
+        }
     }
 
     SnortProtectionsSection snort_section = SnortProtectionsSection(
@@ -1214,14 +1259,22 @@ PolicyMakerUtils::createRateLimitSection(
 
     auto rules = access_control_practice.getRateLimit().createRateLimitRulesSection(trigger);
 
-    rate_limit[rule_annotations[AnnotationTypes::ACCESS_CONTROL_PRACTICE]] = RateLimitSection(
+    // NginxionS: one rate limit per asset (it was per name of practice: of the rules that use the same practice, only
+    // the last one was limited), answered with the custom response of the rule (it was the default of the engine)
+    string web_user_response_id;
+    const string &web_user_response = rule_annotations[AnnotationTypes::WEB_USER_RES];
+    if (!web_user_response.empty() && web_user_res_triggers.count(web_user_response)) {
+        web_user_response_id = web_user_res_triggers[web_user_response].getTriggerId();
+    }
+    rate_limit[asset_name] = RateLimitSection(
         asset_name,
         url,
         uri,
         access_control_practice.getRateLimit().getMode(access_control_practice.getMode(default_mode)),
         practice_id,
         rule_annotations[AnnotationTypes::ACCESS_CONTROL_PRACTICE],
-        rules
+        rules,
+        web_user_response_id
     );
 }
 
@@ -1297,6 +1350,11 @@ PolicyMakerUtils::createThreatPreventionPracticeSections(
         dbgFlow(D_LOCAL_POLICY) << "Couldn't generate random id for threat prevention practice";
     }
 
+    // NginxionS: the rate limit of the asset (see createRateLimitSection); find, not [], which would add an empty one
+    auto asset_rate_limit = rate_limit.find(asset_name);
+    const RateLimitSection no_rate_limit;
+    const RateLimitSection &rule_rate_limit =
+        asset_rate_limit == rate_limit.end() ? no_rate_limit : asset_rate_limit->second;
     RulesConfigRulebase rule_config = createMultiRulesSections(
         url,
         port,
@@ -1304,8 +1362,8 @@ PolicyMakerUtils::createThreatPreventionPracticeSections(
         practice_id,
         rule_annotations[AnnotationTypes::PRACTICE],
         "WebApplication",
-        rate_limit[rule_annotations[AnnotationTypes::ACCESS_CONTROL_PRACTICE]].getId(),
-        rate_limit[rule_annotations[AnnotationTypes::ACCESS_CONTROL_PRACTICE]].getName(),
+        rule_rate_limit.getId(),
+        rule_rate_limit.getName(),
         "RateLimit",
         rule_annotations[AnnotationTypes::TRIGGER],
         log_triggers[rule_annotations[AnnotationTypes::TRIGGER]].getTriggerId(),
@@ -1416,7 +1474,15 @@ PolicyMakerUtils::combineElementsToPolicy(const string &policy_version)
     IntrusionPreventionWrapper ips_section(convertMapToVector(ips));
     SnortSectionWrapper snort_section(convertMapToVector(snort), convertMapToVector(snort_protections));
     FileSecurityWrapper file_security_section(convertMapToVector(file_security));
-    AccessControlRulebaseWrapper rate_limit_section(convertMapToVector(rate_limit));
+    // NginxionS: the rate limit of the default rule (context All()) last: the engine takes the first one whose context
+    // matches the asset, and All() first made the default one the rate limit of every host
+    vector<RateLimitSection> rate_limits = convertMapToVector(rate_limit);
+    stable_partition(
+        rate_limits.begin(),
+        rate_limits.end(),
+        [](const RateLimitSection &section) { return !section.isAnyAsset(); }
+    );
+    AccessControlRulebaseWrapper rate_limit_section(rate_limits);
     SecurityAppsWrapper security_app_section = SecurityAppsWrapper(
         appses_section,
         triggers_section,
@@ -1669,6 +1735,10 @@ PolicyMakerUtils::createPolicyElementsByRule<V1beta2AppsecLinuxPolicy, NewParsed
             );
     }
 
+    // NginxionS: a rule without a mode takes the one of the default rule (the default of the policy: detect-learn)
+    const string rule_mode = !rule.getMode().empty() ? rule.getMode() :
+        (!default_rule.getMode().empty() ? default_rule.getMode() : string("detect-learn"));
+
     string full_url = rule.getHost() == "*" || rule.getHost() == "*:*"
         ? "Any"
         : rule.getHost();
@@ -1679,7 +1749,7 @@ PolicyMakerUtils::createPolicyElementsByRule<V1beta2AppsecLinuxPolicy, NewParsed
         std::get<0>(splited_host_name),
         std::get<2>(splited_host_name),
         log_triggers[rule_annotations[AnnotationTypes::TRIGGER]].getTriggerId(),
-        rule.getMode(),
+        rule_mode,
         policy,
         rule_annotations
     );
@@ -1689,7 +1759,7 @@ PolicyMakerUtils::createPolicyElementsByRule<V1beta2AppsecLinuxPolicy, NewParsed
         std::get<0>(splited_host_name),
         std::get<1>(splited_host_name),
         std::get<2>(splited_host_name),
-        rule.getMode(),
+        rule_mode,
         policy,
         rule_annotations
     );

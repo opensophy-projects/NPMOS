@@ -1308,7 +1308,8 @@ private:
         if (details_level == "Redirect") {
             redirectUrl = web_trigger_conf.getRedirectURL();
             if (!remove_event_id_param && web_trigger_conf.getAddEventId()) {
-                redirectUrl += "?event-id=" + uuid;
+                // NginxionS: "&" when the URL already has a query ("?" made it "a?b=1?event-id=..."); same length
+                redirectUrl += (redirectUrl.find('?') == string::npos ? "?event-id=" : "&event-id=") + uuid;
             }
 
             verdict_data.push_back(reinterpret_cast<const char *>(redirectUrl.data()));

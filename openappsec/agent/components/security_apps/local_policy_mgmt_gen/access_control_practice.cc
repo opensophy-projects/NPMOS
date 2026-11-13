@@ -12,6 +12,9 @@
 // limitations under the License.
 
 #include "access_control_practice.h"
+
+#include <algorithm>
+#include <unordered_map>
 #include "new_practice.h"
 
 using namespace std;
@@ -60,6 +63,93 @@ RateLimitRulesTriggerSection::getName() const
     return name;
 }
 
+// NginxionS: the action of a rate limit rule in the policy → the action of the rate limit engine
+static const unordered_map<string, string> rule_action_to_key = {
+    {"inherited", "AccordingToPractice"},
+    {"prevent", "Prevent"},
+    {"detect", "Detect"}
+};
+
+// NginxionS: the keys of a condition of a rate limit rule → the keys of the rate limit engine (createConditionMap)
+static const unordered_map<string, string> rule_condition_keys = {
+    {"sourceIp", "sourceIP"},
+    {"sourceIP", "sourceIP"},
+    {"sourceIdentifier", "sourceIdentifier"},
+    {"countryCode", "countryCode"},
+    {"countryName", "countryName"},
+    {"url", "url"}
+};
+
+void
+RateLimitRuleCondition::load(cereal::JSONInputArchive &archive_in)
+{
+    parseMandatoryAppsecJSONKey<string>("key", key, archive_in);
+    parseMandatoryAppsecJSONKey<string>("value", value, archive_in);
+    if (rule_condition_keys.count(key) == 0) {
+        throw PolicyGenException("Access control rate limit rule condition key invalid: " + key);
+    }
+    key = rule_condition_keys.at(key);
+}
+
+RateLimitRuleMatch::RateLimitRuleMatch(const string &_key, const vector<string> &values)
+{
+    if (values.size() == 1) {
+        is_condition = true;
+        op = "equals";
+        key = _key;
+        value = values;
+        return;
+    }
+    op = "or";
+    for (const string &val : values) items.push_back(RateLimitRuleMatch(_key, {val}));
+}
+
+RateLimitRuleMatch::RateLimitRuleMatch(const vector<RateLimitRuleCondition> &conditions)
+{
+    // the keys in the order they first appear, each with its values
+    vector<pair<string, vector<string>>> by_key;
+    for (const RateLimitRuleCondition &condition : conditions) {
+        auto it = find_if(
+            by_key.begin(),
+            by_key.end(),
+            [&](const pair<string, vector<string>> &k) { return k.first == condition.getKey(); }
+        );
+        if (it == by_key.end()) {
+            by_key.push_back({condition.getKey(), {condition.getValue()}});
+        } else {
+            it->second.push_back(condition.getValue());
+        }
+    }
+    if (by_key.empty()) return;
+    if (by_key.size() == 1) {
+        *this = RateLimitRuleMatch(by_key[0].first, by_key[0].second);
+        return;
+    }
+    op = "and";
+    for (const auto &k : by_key) items.push_back(RateLimitRuleMatch(k.first, k.second));
+}
+
+void
+RateLimitRuleMatch::save(cereal::JSONOutputArchive &out_ar) const
+{
+    if (is_condition) {
+        string type = "condition";
+        out_ar(
+            cereal::make_nvp("key",     key),
+            cereal::make_nvp("op",      op),
+            cereal::make_nvp("type",    type),
+            cereal::make_nvp("value",   value)
+        );
+        return;
+    }
+    string type = "operator";
+    out_ar(
+        cereal::make_nvp("op",      op),
+        cereal::make_nvp("type",    type),
+        cereal::make_nvp("items",   items)
+    );
+}
+
 void
 RateLimitRulesSection::save(cereal::JSONOutputArchive &out_ar) const
 {
@@ -68,8 +158,11 @@ RateLimitRulesSection::save(cereal::JSONOutputArchive &out_ar) const
         cereal::make_nvp("URI",             uri),
         cereal::make_nvp("scope",           key_to_units_val.at(scope)),
         cereal::make_nvp("triggers",        triggers),
-        cereal::make_nvp("limit",           limit)
+        cereal::make_nvp("limit",           limit),
+        cereal::make_nvp("action",          action) // NginxionS: read by RateLimitRule (rate_limit_config.cc)
     );
+    // NginxionS: no match is any request (RateLimitRule::default_match)
+    if (!match.empty()) out_ar(cereal::make_nvp("match", match));
 }
 
 RateLimitSection::RateLimitSection(
@@ -79,8 +172,10 @@ RateLimitSection::RateLimitSection(
     const std::string &_mode,
     const std::string &_practice_id,
     const std::string &_name,
-    const std::vector<RateLimitRulesSection> &_rules)
+    const std::vector<RateLimitRulesSection> &_rules,
+    const std::string &_web_user_response_id)
         :
+    web_user_response_id(_web_user_response_id),
     mode(_mode),
     practice_id(_practice_id),
     name(_name),
@@ -101,6 +196,8 @@ RateLimitSection::save(cereal::JSONOutputArchive &out_ar) const
         cereal::make_nvp("name",            name),
         cereal::make_nvp("rules",           rules)
     );
+    // NginxionS: read by RateLimitConfig (rate_limit_config.cc); without it the engine answers with its default
+    if (!web_user_response_id.empty()) out_ar(cereal::make_nvp("webUserResponseId", web_user_response_id));
 }
 
 const string &
@@ -156,6 +253,12 @@ AccessControlRateLimiteRules::load(cereal::JSONInputArchive &archive_in)
     }
     parseAppsecJSONKey<string>("comment", comment, archive_in);
     parseAppsecJSONKey<vector<string>>("triggers", triggers, archive_in);
+    // NginxionS: the action and the conditions of the rule (they were not read)
+    parseAppsecJSONKey<string>("action", action, archive_in, "inherited");
+    if (rule_action_to_key.count(action) == 0) {
+        throw PolicyGenException("Access control rate limit rule action invalid: " + action);
+    }
+    parseAppsecJSONKey<vector<RateLimitRuleCondition>>("condition", conditions, archive_in);
 }
 
 const vector<string>
@@ -183,7 +286,9 @@ AccessControlRateLimiteRules::createRateLimitRulesSection(const RateLimitRulesTr
         id,
         uri,
         unit,
-        triggers_section
+        triggers_section,
+        rule_action_to_key.at(action),
+        RateLimitRuleMatch(conditions)
     );
 }
 

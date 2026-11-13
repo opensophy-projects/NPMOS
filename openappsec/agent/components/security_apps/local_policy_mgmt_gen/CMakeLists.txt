@@ -24,3 +24,5 @@ add_library(local_policy_mgmt_gen
     reverse_proxy_section.cc
     policy_activation_data.cc
 )
+
+add_subdirectory(local_policy_mgmt_gen_ut)

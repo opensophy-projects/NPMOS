@@ -63,6 +63,12 @@ NewAppsecTriggerAdditionalSuspiciousEventsLogging::isResponseBody() const
     return response_body;
 }
 
+bool
+NewAppsecTriggerAdditionalSuspiciousEventsLogging::isResponseCode() const
+{
+    return response_code;
+}
+
 const string &
 NewAppsecTriggerAdditionalSuspiciousEventsLogging::getMinimumSeverity() const
 {
@@ -134,7 +140,8 @@ void
 NewLoggingService::load(cereal::JSONInputArchive &archive_in)
 {
     parseAppsecJSONKey<string>("address", address, archive_in);
-    parseAppsecJSONKey<string>("proto", proto, archive_in, "tcp");
+    // NginxionS: no default "tcp" here: without "proto" the agent sends over UDP (LogTriggerConf), as before
+    parseAppsecJSONKey<string>("proto", proto, archive_in, "udp");
     if (valid_protocols.count(proto) == 0) {
         dbgWarning(D_LOCAL_POLICY) << "AppSec Logging Service - proto invalid: " << proto;
         throw PolicyGenException("AppSec Logging Service - proto invalid: " + proto);
@@ -153,6 +160,13 @@ int
 NewLoggingService::getPort() const
 {
     return port;
+}
+
+// NginxionS: see new_log_trigger.h
+string
+NewLoggingService::getProtocol() const
+{
+    return proto == "tcp" ? "TCP" : "UDP";
 }
 
 

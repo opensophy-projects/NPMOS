@@ -44,6 +44,7 @@ public:
 
     bool isEnabled() const;
     bool isResponseBody() const;
+    bool isResponseCode() const; // NginxionS: it was read and never passed on
     const std::string & getMinimumSeverity() const;
 
 private:
@@ -93,6 +94,8 @@ public:
 
     const std::string & getAddress() const;
     int getPort() const;
+    // NginxionS: the protocol as the logging of the agent names it ("TCP", "UDP"); it was read and never passed on
+    std::string getProtocol() const;
 
 private:
     std::string address;
@@ -134,6 +137,8 @@ public:
     bool isSyslogNeeded() const;
     const std::string & getSyslogServerIpv4Address() const;
     const std::string & getCefServerIpv4Address() const;
+    std::string getSyslogProtocol() const { return getSyslogServiceData().getProtocol(); } // NginxionS
+    std::string getCefProtocol() const { return getCefServiceData().getProtocol(); } // NginxionS
 
 private:
     const NewLoggingService & getSyslogServiceData() const;

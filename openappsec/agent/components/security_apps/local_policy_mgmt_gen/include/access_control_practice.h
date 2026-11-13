@@ -51,6 +51,45 @@ private:
     std::string                 type;;
 };
 
+// NginxionS: a condition of a rate limit rule of the policy ({key, value}); the keys are those the rate limit
+// engine matches (rate_limit.cc, createConditionMap): sourceIP (sourceIp), sourceIdentifier, countryCode, countryName,
+// url. They were not read: a rule limited every request of its URI.
+class RateLimitRuleCondition
+{
+public:
+    RateLimitRuleCondition() {}
+    RateLimitRuleCondition(const std::string &_key, const std::string &_value) : key(_key), value(_value) {}
+
+    void load(cereal::JSONInputArchive &archive_in);
+
+    const std::string & getKey() const { return key; }
+    const std::string & getValue() const { return value; }
+
+private:
+    std::string key;
+    std::string value;
+};
+
+// NginxionS: the "match" of a rate limit rule (MatchQuery of generic_rulebase): the values of a key are any of them,
+// the keys are all of them
+class RateLimitRuleMatch
+{
+public:
+    RateLimitRuleMatch() {}
+    RateLimitRuleMatch(const std::string &_key, const std::vector<std::string> &values);
+    explicit RateLimitRuleMatch(const std::vector<RateLimitRuleCondition> &conditions);
+
+    void save(cereal::JSONOutputArchive &out_ar) const;
+    bool empty() const { return !is_condition && items.empty(); }
+
+private:
+    bool                            is_condition = false;
+    std::string                     key;
+    std::string                     op;
+    std::vector<std::string>        value;
+    std::vector<RateLimitRuleMatch> items;
+};
+
 class RateLimitRulesSection
 {
 public:
@@ -62,14 +101,19 @@ public:
     const std::string &_id,
     const std::string &_uri,
     const std::string &_scope,
-    const std::vector<RateLimitRulesTriggerSection> &_triggers
+    const std::vector<RateLimitRulesTriggerSection> &_triggers,
+    // NginxionS: the action of the rule (AccordingToPractice, Prevent, Detect) and its conditions
+    const std::string &_action = "AccordingToPractice",
+    const RateLimitRuleMatch &_match = RateLimitRuleMatch()
     )
         :
     limit(_limit),
     id(_id),
     uri(_uri),
     scope(_scope),
-    triggers(_triggers)
+    triggers(_triggers),
+    action(_action),
+    match(_match)
     {};
     // LCOV_EXCL_STOP
 
@@ -81,6 +125,8 @@ private:
     std::string                                 uri;
     std::string                                 scope;
     std::vector<RateLimitRulesTriggerSection>   triggers;
+    std::string                                 action; // NginxionS: see the constructor
+    RateLimitRuleMatch                          match;
 };
 
 class RateLimitSection
@@ -97,14 +143,18 @@ public:
     const std::string &_mode,
     const std::string &_practice_id,
     const std::string &_name,
-    const std::vector<RateLimitRulesSection> &_rules);
+    const std::vector<RateLimitRulesSection> &_rules,
+    // NginxionS: the WebUserResponse trigger of the rule answers a request over the limit (it was the default)
+    const std::string &_web_user_response_id = "");
 
     void save(cereal::JSONOutputArchive &out_ar) const;
     const std::string & getId() const;
     const std::string & getName() const;
     const std::string & getMode() const;
+    bool isAnyAsset() const { return context == "All()"; } // NginxionS: the rate limit of the default rule
 
 private:
+    std::string                                 web_user_response_id; // NginxionS: see the constructor
     std::string                                 context;
     std::string                                 mode;
     std::string                                 practice_id;
@@ -157,6 +207,8 @@ private:
     std::string                 unit;
     std::string                 comment;
     std::vector<std::string>    triggers;
+    std::string                 action = "inherited"; // NginxionS: inherited, prevent, detect (it was not read)
+    std::vector<RateLimitRuleCondition> conditions; // NginxionS: condition (it was not read)
 };
 
 class AccessControlRateLimit

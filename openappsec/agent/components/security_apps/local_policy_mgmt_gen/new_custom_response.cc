@@ -22,7 +22,7 @@ USE_DEBUG_FLAG(D_LOCAL_POLICY);
 // LCOV_EXCL_START Reason: no test exist
 
 static const map<string, string> mode_to_appsec_mode_val = {
-    // NginxionS: was "Redirect" (without a URL: the trigger section carries none); a block page with its code
+    // NginxionS: was "Redirect" (a redirect without a URL); a block page with its code
     {"block-page", "Block Page"},
     {"response-code-only", "Response Code"},
     {"redirect", "Redirect"}
@@ -104,5 +104,18 @@ const string &
 NewAppSecCustomResponse::getName() const
 {
     return name;
+}
+
+// NginxionS: see new_custom_response.h
+const string &
+NewAppSecCustomResponse::getRedirectUrl() const
+{
+    return redirect_url;
+}
+
+bool
+NewAppSecCustomResponse::getRedirectAddXEventId() const
+{
+    return redirect_add_x_event_id;
 }
 // LCOV_EXCL_STOP
