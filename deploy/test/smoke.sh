@@ -1143,7 +1143,10 @@ wait_page / 200 "test.local after the unban"
 
 step "CrowdSec: AppSec blocks a probe of /.env, its alert becomes a security event"
 wait_page /.env 403 "a probe of /.env with AppSec"
+# the probe is sent again while waiting: AppSec of CrowdSec starts again with the settings above, and until it
+# answers the bouncer lets the probe on to open-appsec, whose 403 makes no CrowdSec alert
 for i in $(seq 1 45); do
+  page /.env > /dev/null
   $CURL "$ADMIN/api/nginxions/events?kind=crowdsec&limit=5" | grep -q '"kind": *"crowdsec"' && break
   [ "$i" = 45 ] && fail "no CrowdSec alert in the events: $($CURL "$ADMIN/api/nginxions/events?kind=crowdsec&limit=5")"
   sleep 2
