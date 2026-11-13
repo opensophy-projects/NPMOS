@@ -431,20 +431,26 @@ export const danglingRefs = (doc) => {
  * A v1beta2 document ready to write: apiVersion first; every rule names its practices (the agent requires both
  * keys, new_appsec_policy_crd_parser.cc; an empty list takes those of the default rule). The agent of NginxionS keeps
  * a rate limit per asset and writes the one of the default rule last: no copies of practices are needed.
+ * The default rule names no practice that limits nothing (no rules, or inactive): it would only add an inactive
+ * rate limit for every host (context All()) to the configuration of the agent.
  */
 export const asV2 = (doc) => {
 	if (!isObject(doc.policies)) return { apiVersion: "v1beta2", ...doc };
-	const mandatory = (rule) => ({
+	const practices = new Map(list(doc.accessControlPractices).map((p) => [p.name, p]));
+	const inert = (name) =>
+		!list(practices.get(name)?.rateLimit?.rules).length ||
+		practices.get(name)?.rateLimit?.overrideMode === "inactive";
+	const mandatory = (rule, isDefault = false) => ({
 		...rule,
 		threatPreventionPractices: rule.threatPreventionPractices ?? [],
-		accessControlPractices: rule.accessControlPractices ?? [],
+		accessControlPractices: (rule.accessControlPractices ?? []).filter((name) => !isDefault || !inert(name)),
 	});
 	return {
 		apiVersion: "v1beta2",
 		...doc,
 		policies: {
 			...doc.policies,
-			default: mandatory(doc.policies.default || {}),
+			default: mandatory(doc.policies.default || {}, true),
 			specificRules: list(doc.policies.specificRules).map(mandatory),
 		},
 	};

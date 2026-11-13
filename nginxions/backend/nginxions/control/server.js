@@ -13,7 +13,7 @@ import { timingSafeEqual } from "node:crypto";
 //
 // No dependencies besides Node.js (the image copies this directory as is).
 import { readFileSync } from "node:fs";
-import { readFile, stat } from "node:fs/promises";
+import { open } from "node:fs/promises";
 import http from "node:http";
 import { hostname } from "node:os";
 import { repairNamespaces } from "./watchdog.js";
@@ -152,15 +152,21 @@ const listManaged = async () => {
  * what it wrote (WAF -> Policy). null before the agent applied a policy.
  */
 const agentPolicy = async () => {
-	let info;
+	let file;
 	try {
-		info = await stat(AGENT_POLICY_FILE);
+		file = await open(AGENT_POLICY_FILE, "r");
 	} catch (err) {
 		if (err.code === "ENOENT") return { modifiedAt: null, policy: null };
 		throw err;
 	}
-	if (info.size > AGENT_POLICY_MAX_BYTES) throw new HttpError(413, "the policy of the agent is too large");
-	return { modifiedAt: info.mtime.toISOString(), policy: JSON.parse(await readFile(AGENT_POLICY_FILE, "utf8")) };
+	// size, time and content of the same open file: the agent may replace the file in between
+	try {
+		const info = await file.stat();
+		if (info.size > AGENT_POLICY_MAX_BYTES) throw new HttpError(413, "the policy of the agent is too large");
+		return { modifiedAt: info.mtime.toISOString(), policy: JSON.parse(await file.readFile("utf8")) };
+	} finally {
+		await file.close();
+	}
 };
 
 /**

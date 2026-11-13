@@ -364,7 +364,7 @@ if $CURL "$ADMIN/api/nginxions/waf" | grep -q '"reachable": *true'; then
       [ "$(status /smoke-rate)" = 403 ] && limited=1
     done
     [ -n "$limited" ] && break
-    [ "$i" = 60 ] && fail "requests over the rate limit are not blocked"
+    [ "$i" = 60 ] && fail "requests over the rate limit are not blocked (statuses: $(for _ in 1 2 3 4 5 6; do printf '%s ' "$(status /smoke-rate)"; done))"
     sleep 2
   done
   [ "$(status /)" = 200 ] || fail "a path without a rate limit is blocked"

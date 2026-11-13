@@ -27,6 +27,8 @@ cleanup() {
         echo "--- policy of the agent: web user responses, triggers of the rules ---";
         grep -ho "\"webUserResponse\": *\[[^]]*\]" /etc/cp/conf/*/*.policy 2> /dev/null | sort -u | head -c 3000; echo;
         grep -ho "\"triggers\": *\[[^]]*\]" /etc/cp/conf/*/*.policy 2> /dev/null | sort -u | head -c 3000; echo;
+        echo "--- configuration the agent made of the policy: rate limits ---";
+        grep -o "\"accessControlV2\".\{0,3000\}" /tmp/local_appsec.policy 2> /dev/null | head -c 3000; echo;
         echo "--- orchestration: checks of updates, policies applied ---";
         grep -h "check update\|Check update\|NginxionS\|apply\|Failed\|econfiguration" /var/log/nano_agent/cp-nano-orchestration.dbg* \
           2> /dev/null | tail -n 40' || true
