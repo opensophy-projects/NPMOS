@@ -34,7 +34,7 @@ import internalWafExpert from "./waf/expert.js";
 import internalWafHosts from "./waf/hosts.js";
 import internalWafHostCode from "./waf/hosts-code.js";
 import internalWaf from "./waf/index.js";
-import internalWafObjects from "./waf/objects/api.js";
+import internalWafObjects, { simulateHostMode } from "./waf/objects/api.js";
 
 const router = express.Router({
 	caseSensitive: true,
@@ -471,6 +471,35 @@ router
 				req.body,
 			);
 			return internalWafHosts.set(res.locals.access, req.params.host_id, data);
+		}),
+	);
+
+/**
+ * GET /api/nginxions/waf/hosts/:host_id/simulate?mode=prevent-learn&period=7d — what the WAF events of the host of
+ * the period would have become in that mode (dry run, nothing is saved)
+ */
+router
+	.route("/waf/hosts/:host_id/simulate")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(
+		handle(async (req, res) => {
+			const query = await validator(
+				{
+					type: "object",
+					additionalProperties: false,
+					required: ["mode"],
+					properties: {
+						mode: {
+							type: "string",
+							enum: ["prevent-learn", "detect-learn", "prevent", "detect", "inactive"],
+						},
+						period: { type: "string", enum: ["1h", "24h", "7d"] },
+					},
+				},
+				req.query,
+			);
+			return simulateHostMode(res.locals.access, Number(req.params.host_id), query.mode, query.period);
 		}),
 	);
 
@@ -1495,6 +1524,8 @@ router
 							required: ["id", "objects"],
 							properties: { id: { type: "integer", minimum: 1 }, objects: wafHostObjects },
 						},
+						// the period of the dry run on recent events
+						simulate: { type: "string", enum: ["1h", "24h", "7d"] },
 					},
 				},
 				req.body,

@@ -9,7 +9,9 @@ import { useSearchParams } from "react-router-dom";
 import { LoadingPage } from "src/components";
 import { intl, T } from "src/locale";
 import { showError, showSuccess } from "src/notifications";
-import { setWafHost } from "../api";
+import { setWafHost, simulateWafHost } from "../api";
+import { showConfirmModal } from "../modals/ConfirmModal";
+import { SimulationNote } from "../policy/Review";
 import eventStyles from "../pages/WafEvents/Events.module.css";
 import hostStyles from "../pages/Hosts/Hosts.module.css";
 import { useCan } from "../rbac/hooks";
@@ -69,16 +71,27 @@ function Hosts({ manage }: { manage: boolean }) {
 	});
 	const [busy, setBusy] = useState<number | null>(null);
 
+	const switchToPrevent = async (host: LearningHost) => {
+		await setWafHost(host.id, {
+			enabled: true,
+			mode: "prevent-learn",
+			minimumConfidence: host.minimumConfidence as any,
+		});
+		showSuccess(t("nginxions.learning.prevent.done", { name: host.name }));
+		refresh();
+	};
+
+	// first what blocking would have done with the events of the last 7 days (dry run), then the switch
 	const prevent = async (host: LearningHost) => {
 		setBusy(host.id);
 		try {
-			await setWafHost(host.id, {
-				enabled: true,
-				mode: "prevent-learn",
-				minimumConfidence: host.minimumConfidence as any,
+			const simulation = await simulateWafHost(host.id, "prevent-learn", "7d");
+			showConfirmModal({
+				tTitle: "nginxions.learning.prevent.check",
+				tConfirm: "nginxions.learning.prevent",
+				onConfirm: () => switchToPrevent(host),
+				children: <SimulationNote simulation={simulation} />,
 			});
-			showSuccess(t("nginxions.learning.prevent.done", { name: host.name }));
-			refresh();
 		} catch (err: any) {
 			showError(err.message);
 		}

@@ -263,3 +263,93 @@ test("the configuration the agent applies is compared with the generated policy"
 	old["security apps"].rules.rulebase.rulesConfig.pop();
 	assert.deepEqual(compareApplied(doc, old).sort(), ["asset:shop.example.com", "rate-limit:limit", "response:away"]);
 });
+
+test("dry run: a change of the policy changes the verdicts of recent events as the agent would", async () => {
+	const { exceptionMatches, simulate, verdictOf } = await import("./simulate.js");
+	const practice = (minimumConfidence) => ({
+		name: "p",
+		practiceMode: "inherited",
+		webAttacks: { overrideMode: "inherited", minimumConfidence },
+	});
+	const doc = (over = {}) => ({
+		policies: {
+			default: { mode: "inactive", threatPreventionPractices: ["p"], exceptions: [] },
+			specificRules: [
+				{ host: "shop.example.com", mode: "prevent-learn", threatPreventionPractices: [], exceptions: [] },
+				{ host: "shop.example.com/api", mode: "detect-learn", threatPreventionPractices: [], exceptions: [] },
+				...(over.rules || []),
+			],
+		},
+		threatPreventionPractices: [practice(over.confidence || "high")],
+		exceptions: over.exceptions || [],
+	});
+	const event = (e) => ({
+		host: "shop.example.com",
+		uri: "/search",
+		source_ip: "203.0.113.9",
+		confidence: "High",
+		parameter: "query.q",
+		sample: "' or 1=1",
+		incident_type: "SQL Injection",
+		source_country: "Netherlands",
+		...e,
+	});
+
+	// the rule of the longest host/path, its mode, the minimum confidence of the practice
+	assert.equal(verdictOf(doc(), event()), "block");
+	assert.equal(verdictOf(doc(), event({ uri: "/api/items" })), "detect");
+	assert.equal(verdictOf(doc(), event({ confidence: "Medium" })), "detect");
+	assert.equal(verdictOf(doc({ confidence: "medium" }), event({ confidence: "Medium" })), "block");
+	assert.equal(verdictOf(doc(), event({ host: "other.example.com" })), "pass");
+
+	// conditions: values of a key any, keys all; networks; regular expressions of the agent
+	const office = { name: "office", action: "accept", condition: [{ key: "sourceIp", value: "203.0.113.0/24" }] };
+	assert.equal(exceptionMatches(office, event()), true);
+	assert.equal(exceptionMatches(office, event({ source_ip: "198.51.100.1" })), false);
+	const both = {
+		action: "accept",
+		condition: [
+			{ key: "url", value: "/search" },
+			{ key: "url", value: "/find" },
+			{ key: "paramName", value: "q" },
+		],
+	};
+	assert.equal(exceptionMatches(both, event()), true);
+	assert.equal(exceptionMatches(both, event({ uri: "/login" })), false);
+	assert.equal(exceptionMatches({ condition: [{ key: "url", value: "/api/.*" }] }, event({ uri: "/api/x" })), true);
+	// the events keep no country code: the dry run cannot tell
+	assert.equal(exceptionMatches({ condition: [{ key: "countryCode", value: "NL" }] }, event()), null);
+
+	const withOffice = doc({ exceptions: [office] });
+	withOffice.policies.default.exceptions = ["office"];
+	const events = [event(), event(), event({ confidence: "Medium" }), event({ source_ip: "198.51.100.1" })];
+	const result = simulate(doc(), withOffice, events);
+	// the two blocked and the one logged from the office pass; the other source is not touched
+	assert.deepEqual(
+		{ changed: result.changed, toPass: result.toPass, toBlock: result.toBlock, unknown: result.unknown },
+		{ changed: 3, toPass: 3, toBlock: 0, unknown: 0 },
+	);
+	assert.equal(result.samples[0].count, 2);
+	assert.deepEqual([result.samples[0].before, result.samples[0].after], ["block", "pass"]);
+
+	const stricter = simulate(doc(), doc({ confidence: "medium" }), events);
+	assert.deepEqual([stricter.changed, stricter.toBlock], [1, 1]);
+});
+
+test("dry run of switching a host to blocking changes its rules only", async () => {
+	const { withHostMode } = await import("./simulate.js");
+	const doc = {
+		policies: {
+			default: { mode: "inactive" },
+			specificRules: [
+				{ name: "npm-managed-specific-rule-proxyhost-3", host: "a.example.com", mode: "detect-learn" },
+				{ name: "npm-managed-specific-rule-proxyhost-3.1", host: "www.a.example.com", mode: "detect-learn" },
+				{ name: "npm-managed-specific-rule-proxyhost-3-0", host: "a.example.com/api", mode: "detect-learn" },
+				{ name: "npm-managed-specific-rule-proxyhost-31", host: "b.example.com", mode: "detect-learn" },
+			],
+		},
+	};
+	const modes = withHostMode(doc, 3, "prevent-learn").policies.specificRules.map((r) => r.mode);
+	assert.deepEqual(modes, ["prevent-learn", "prevent-learn", "detect-learn", "detect-learn"]);
+	assert.equal(doc.policies.specificRules[0].mode, "detect-learn");
+});

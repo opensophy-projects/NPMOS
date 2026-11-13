@@ -11,9 +11,46 @@ import { checkApplied } from "../applied.js";
 import { buildPolicy, getPolicyState, readPolicyFile, regenerateNow, render } from "../policy.js";
 import { asV2, fromV1, toV1 } from "./format.js";
 import { BUILTIN_PREFIX, KINDS, NAME, normalize, POLICY_MODES, RULE_FIELDS, TEMPLATES } from "./model.js";
+import { simulate, withHostMode } from "./simulate.js";
 import { getDefaultPolicy, idsOf, listObjects, snapshot } from "./store.js";
 
 const VERSIONS_SHOWN = 50;
+const SIMULATE_PERIODS = { "1h": 3600e3, "24h": 86400e3, "7d": 7 * 86400e3 };
+const SIMULATE_EVENTS = 20000;
+
+/**
+ * Dry run of a change on the WAF events of a recent period (objects/simulate.js): how many would pass, be blocked
+ * or only logged under the candidate policy instead of the current one. null when it cannot run.
+ */
+const simulateChange = async (candidateDoc, period = "24h", { current, hosts } = {}) => {
+	try {
+		const currentDoc = current ?? (await buildPolicy()).doc;
+		const since = new Date(Date.now() - (SIMULATE_PERIODS[period] ?? SIMULATE_PERIODS["24h"]));
+		const query = db()("nginxions_security_event")
+			.where("kind", "security")
+			.whereNot("practice", "")
+			.where("time", ">=", since);
+		if (hosts) query.whereIn("host", hosts);
+		const events = await query
+			.select(
+				"time",
+				"host",
+				"uri",
+				"source_ip",
+				"source_country",
+				"parameter",
+				"sample",
+				"incident_type",
+				"confidence",
+			)
+			.orderBy("time", "desc")
+			.limit(SIMULATE_EVENTS);
+		return { period, limited: events.length === SIMULATE_EVENTS, ...simulate(currentDoc, candidateDoc, events) };
+	} catch (err) {
+		// the preview stays useful without it
+		return { period, error: err.message };
+	}
+};
 const SECTION_KIND = Object.fromEntries(Object.entries(KINDS).map(([kind, section]) => [section, kind]));
 
 const parse = (value) => (typeof value === "string" ? JSON.parse(value) : value);
@@ -394,6 +431,28 @@ const planSummary = (plan) => ({
 
 // ---------------------------------------------------------------- API
 
+/**
+ * Dry run of a new mode of a proxy host (Learning: "switch to blocking"): what its WAF events of the period would
+ * have become.
+ * @param {Access} access
+ * @param {number} hostId
+ * @param {string} mode
+ * @param {string} [period]
+ */
+export const simulateHostMode = async (access, hostId, mode, period = "7d") => {
+	await access.can("proxy_hosts:get", hostId);
+	await access.can("waf_policy:view");
+	if (!POLICY_MODES.includes(mode)) throw new errs.ValidationError(`mode: one of ${POLICY_MODES.join(", ")}`);
+	const host = await db()("proxy_host").select("domain_names").where({ id: hostId, is_deleted: 0 }).first();
+	if (!host) throw new errs.ItemNotFoundError(hostId);
+	const domains = (typeof host.domain_names === "string" ? JSON.parse(host.domain_names) : host.domain_names) || [];
+	const { doc } = await buildPolicy();
+	return simulateChange(withHostMode(doc, hostId, mode), period, {
+		current: doc,
+		hosts: domains.map((d) => String(d).toLowerCase()),
+	});
+};
+
 const internalWafObjects = {
 	/**
 	 * Objects, the default policy, templates.
@@ -500,10 +559,12 @@ const internalWafObjects = {
 			}
 			throw err;
 		}
-		const { policy, customId, format, reasons, warnings } = await buildPolicy({ candidate });
+		const { policy, doc, customId, format, reasons, warnings } = await buildPolicy({ candidate });
 		const next = render(policy, customId !== null);
 		const diff = diffLines((await readPolicyFile()) ?? "", next);
-		return { valid: true, changed: diff.some((d) => d.op !== " "), diff, format, reasons, warnings };
+		const changed = diff.some((d) => d.op !== " ");
+		const simulation = changed ? await simulateChange(doc, change.simulate) : null;
+		return { valid: true, changed, diff, format, reasons, warnings, simulation };
 	},
 
 	/**

@@ -3227,6 +3227,9 @@
 	"nginxions.learning.prevent": {
 		"defaultMessage": "Switch to prevention"
 	},
+	"nginxions.learning.prevent.check": {
+		"defaultMessage": "Switch to blocking: what it would have done"
+	},
 	"nginxions.learning.prevent.done": {
 		"defaultMessage": "{name}: prevention on"
 	},
@@ -5720,6 +5723,45 @@
 	"nginxions.policy.service.proto": {
 		"defaultMessage": "Protocol"
 	},
+	"nginxions.policy.simulation.count": {
+		"defaultMessage": "Events"
+	},
+	"nginxions.policy.simulation.error": {
+		"defaultMessage": "The dry run on recent events is not available."
+	},
+	"nginxions.policy.simulation.limited": {
+		"defaultMessage": "Only the latest events were checked."
+	},
+	"nginxions.policy.simulation.none": {
+		"defaultMessage": "Dry run: none of the {events} WAF events of {period} would be treated differently."
+	},
+	"nginxions.policy.simulation.period.1h": {
+		"defaultMessage": "the last hour"
+	},
+	"nginxions.policy.simulation.period.24h": {
+		"defaultMessage": "the last 24 hours"
+	},
+	"nginxions.policy.simulation.period.7d": {
+		"defaultMessage": "the last 7 days"
+	},
+	"nginxions.policy.simulation.request": {
+		"defaultMessage": "Request"
+	},
+	"nginxions.policy.simulation.source": {
+		"defaultMessage": "Source"
+	},
+	"nginxions.policy.simulation.summary": {
+		"defaultMessage": "Of {events} events, {changed} would be treated differently: {pass} let through, {block} blocked, {detect} only logged."
+	},
+	"nginxions.policy.simulation.title": {
+		"defaultMessage": "Dry run on the WAF events of {period}"
+	},
+	"nginxions.policy.simulation.unknown": {
+		"defaultMessage": "{count} events could not be judged (a condition the events do not record, such as the country code)."
+	},
+	"nginxions.policy.simulation.verdict": {
+		"defaultMessage": "Now → after the change"
+	},
 	"nginxions.policy.subtitle": {
 		"defaultMessage": "The open-appsec policy made of objects: practices, rate limits, log triggers, responses, exceptions. Hosts use the default policy, a template or their own objects."
 	},
@@ -5740,6 +5782,15 @@
 	},
 	"nginxions.policy.template.strict": {
 		"defaultMessage": "Strict"
+	},
+	"nginxions.policy.verdict.block": {
+		"defaultMessage": "blocked"
+	},
+	"nginxions.policy.verdict.detect": {
+		"defaultMessage": "logged"
+	},
+	"nginxions.policy.verdict.pass": {
+		"defaultMessage": "passes"
 	},
 	"nginxions.policy.version.created": {
 		"defaultMessage": "Created: {kind} {name}"

@@ -3227,6 +3227,9 @@
 	"nginxions.learning.prevent": {
 		"defaultMessage": "Перевести в блокировку"
 	},
+	"nginxions.learning.prevent.check": {
+		"defaultMessage": "Перевод в блокировку: что было бы"
+	},
 	"nginxions.learning.prevent.done": {
 		"defaultMessage": "{name}: включена блокировка"
 	},
@@ -5720,6 +5723,45 @@
 	"nginxions.policy.service.proto": {
 		"defaultMessage": "Протокол"
 	},
+	"nginxions.policy.simulation.count": {
+		"defaultMessage": "Событий"
+	},
+	"nginxions.policy.simulation.error": {
+		"defaultMessage": "Пробный прогон на недавних событиях недоступен."
+	},
+	"nginxions.policy.simulation.limited": {
+		"defaultMessage": "Проверены только последние события."
+	},
+	"nginxions.policy.simulation.none": {
+		"defaultMessage": "Пробный прогон: ни одно из {events} событий WAF за {period} не было бы обработано по-другому."
+	},
+	"nginxions.policy.simulation.period.1h": {
+		"defaultMessage": "последний час"
+	},
+	"nginxions.policy.simulation.period.24h": {
+		"defaultMessage": "последние 24 часа"
+	},
+	"nginxions.policy.simulation.period.7d": {
+		"defaultMessage": "последние 7 дней"
+	},
+	"nginxions.policy.simulation.request": {
+		"defaultMessage": "Запрос"
+	},
+	"nginxions.policy.simulation.source": {
+		"defaultMessage": "Источник"
+	},
+	"nginxions.policy.simulation.summary": {
+		"defaultMessage": "Из {events} событий по-другому обработано было бы {changed}: пропущено {pass}, заблокировано {block}, только записано в журнал {detect}."
+	},
+	"nginxions.policy.simulation.title": {
+		"defaultMessage": "Пробный прогон на событиях WAF за {period}"
+	},
+	"nginxions.policy.simulation.unknown": {
+		"defaultMessage": "Событий, которые нельзя оценить: {count} (условие, которого нет в событиях, например код страны)."
+	},
+	"nginxions.policy.simulation.verdict": {
+		"defaultMessage": "Сейчас → после изменения"
+	},
 	"nginxions.policy.subtitle": {
 		"defaultMessage": "Политика open-appsec из объектов: практики, ограничения частоты, журналирование, ответы, исключения. Хосты используют политику по умолчанию, шаблон или свои объекты."
 	},
@@ -5740,6 +5782,15 @@
 	},
 	"nginxions.policy.template.strict": {
 		"defaultMessage": "Строгий"
+	},
+	"nginxions.policy.verdict.block": {
+		"defaultMessage": "блокировка"
+	},
+	"nginxions.policy.verdict.detect": {
+		"defaultMessage": "журнал"
+	},
+	"nginxions.policy.verdict.pass": {
+		"defaultMessage": "пропуск"
 	},
 	"nginxions.policy.version.created": {
 		"defaultMessage": "Создан: {kind} {name}"

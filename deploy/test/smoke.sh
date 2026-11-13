@@ -337,6 +337,10 @@ if $CURL "$ADMIN/api/nginxions/waf" | grep -q '"reachable": *true'; then
     \"customResponse\": $response"
   post_json POST /preview "{\"policy\": $default_policy, \"exceptions\": [$exception]}}" | json \
     | grep -q '"valid":true,"changed":true' || fail "the preview of the default policy is not valid"
+  # the dry run on recent events: the attacks of the tester blocked so far would pass with the exception
+  preview=$(post_json POST /preview "{\"policy\": $default_policy, \"exceptions\": [$exception]}, \"simulate\": \"24h\"}" | json)
+  echo "$preview" | grep -q '"toPass":[1-9]' \
+    || fail "the dry run does not let the blocked attacks of the tester through: $(echo "$preview" | grep -o '"simulation":{[^]]*' | head -c 400)"
   post_json PUT /default "$default_policy, \"exceptions\": [$exception]}" > /dev/null
   $CURL "$ADMIN/api/nginxions/waf/policy" | grep -q -- "value: $client_ip" || fail "the exception is not in local_policy.yaml"
   wait_status "$SQLI" 200 "SQLi from an IP of the exception is still blocked"

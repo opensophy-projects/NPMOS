@@ -98,6 +98,31 @@ export interface DiffLine {
 	line: string;
 }
 
+/** dry run of a change on recent WAF events (backend waf/objects/simulate.js) */
+export interface Simulation {
+	period: "1h" | "24h" | "7d";
+	error?: string;
+	limited?: boolean;
+	events?: number;
+	changed?: number;
+	toPass?: number;
+	toBlock?: number;
+	toDetect?: number;
+	/** events the dry run cannot judge (a condition the events do not record, e.g. the country code) */
+	unknown?: number;
+	samples?: {
+		host: string;
+		uri: string;
+		source_ip: string;
+		time: string;
+		confidence: string;
+		before: Verdict;
+		after: Verdict;
+		count: number;
+	}[];
+}
+export type Verdict = "pass" | "detect" | "block";
+
 export interface Preview {
 	valid: boolean;
 	error?: string;
@@ -105,6 +130,7 @@ export interface Preview {
 	diff?: DiffLine[];
 	format?: "v1beta2";
 	warnings?: string[];
+	simulation?: Simulation | null;
 }
 
 export type Change =

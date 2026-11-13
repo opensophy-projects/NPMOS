@@ -129,6 +129,14 @@ export const setWafHost = (
 	data: WafSettings & { locations?: WafLocationSettings[]; objects?: HostObjects },
 ): Promise<WafHost> => api.put({ url: `/nginxions/waf/hosts/${id}`, data });
 
+/** dry run of another mode of a host on its WAF events of the period (nothing is saved) */
+export const simulateWafHost = (
+	id: number,
+	mode: string,
+	period: "1h" | "24h" | "7d" = "7d",
+): Promise<import("./policy/api").Simulation> =>
+	api.get({ url: `/nginxions/waf/hosts/${id}/simulate?mode=${encodeURIComponent(mode)}&period=${period}` });
+
 export const getWafPolicy = (): Promise<WafPolicyState & { content: string | null }> =>
 	api.get({ url: "/nginxions/waf/policy" });
 
