@@ -10,16 +10,12 @@ import { global as logger } from "../../logger.js";
 import internalWafHosts from "./hosts.js";
 import { hostSimulation } from "./objects/api.js";
 
+import { MAX_HOURS, TRIAL_MODE, trialState } from "./trial-model.js";
+
 export const TRIAL_TABLE = "nginxions_waf_trial";
-export const TRIAL_MODE = "prevent-learn";
-export const MAX_HOURS = 7 * 24;
 const CHECK_MS = 60 * 1000;
 
 const parse = (value) => (typeof value === "string" ? JSON.parse(value || "null") : value) ?? null;
-
-/** the state of a trial at a time: running before its end, finished after it, closed once decided */
-export const trialState = (row, now = new Date()) =>
-	row.outcome ? "closed" : new Date(row.ends_on) > now ? "running" : "finished";
 
 const toApi = (row, now = new Date()) => ({
 	id: row.id,

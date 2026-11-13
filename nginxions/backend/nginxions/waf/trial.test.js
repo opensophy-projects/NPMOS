@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { render } from "../notifications/rules.js";
-import { MAX_HOURS, TRIAL_MODE, trialState } from "./trial.js";
+import { MAX_HOURS, TRIAL_MODE, trialState } from "./trial-model.js";
 
 test("a trial runs until its end, then waits for a decision, closed once decided", () => {
 	const now = new Date("2026-11-13T12:00:00Z");
