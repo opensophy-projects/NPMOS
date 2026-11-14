@@ -4,7 +4,7 @@
 # pinned by digest (OpenSSF Scorecard); CI checks the tag of CrowdSec against deploy/.env.
 FROM docker.io/crowdsecurity/crowdsec:v1.8.2@sha256:65b74942f7e7ed5c60fde4ac15fc4ba715904c398c8b16dd451f4907d90347d4 AS crowdsec-seed
 ARG HUB_BRANCH=master
-ARG HUB_ITEMS="parsers crowdsecurity/docker-logs crowdsecurity/cri-logs; collections ZoeyVid/npmplus crowdsecurity/appsec-virtual-patching crowdsecurity/appsec-generic-rules"
+ARG HUB_ITEMS="parsers crowdsecurity/docker-logs crowdsecurity/cri-logs; collections ZoeyVid/npmplus crowdsecurity/appsec-virtual-patching crowdsecurity/appsec-generic-rules crowdsecurity/appsec-bot-challenge-good-bots"
 ARG HUB_URL_TEMPLATE=
 COPY crowdsec-seed/seed.sh /seed.sh
 RUN --mount=type=secret,id=ca_bundle,required=false sh /seed.sh

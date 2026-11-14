@@ -1258,6 +1258,73 @@ $CURL "$ADMIN/api/nginxions/events?agent=crowdsec&limit=5" | grep -q '"kind": *"
 api_json "$ADMIN/api/nginxions/crowdsec/decisions/delete" -d "{\"values\": [\"$client_ip\"]}" > /dev/null || true
 
 if $CURL "$ADMIN/api/nginxions/waf" | grep -q '"reachable": *true'; then
+  # antiBot and schemaValidation of a practice run in AppSec of CrowdSec (waf/engines.js): an appsec-config of the
+  # policy, applied with a reload of CrowdSec
+  browser_page() { curl -s --max-time 10 -H 'Host: test.local' -H 'Accept: text/html,application/xhtml+xml' "$HTTP$1"; }
+  step "WAF -> Policy: Anti-Bot of a practice: a browser gets the challenge, a request without it is refused"
+  bot_spec() {
+    printf '{"kind": "threat_prevention", "name": "smoke-bot", "spec": {"practiceMode": "inherited",
+      "webAttacks": {"overrideMode": "inherited", "minimumConfidence": "high"}, "antiBot": {"overrideMode": "%s",
+      "injectedUris": [{"uri": "/smoke-page"}], "validatedUris": [{"uri": "/smoke-login"}]}}}' "$1"
+  }
+  bot=$(post_json POST /objects "$(bot_spec prevent)" | new_id)
+  [ -n "$bot" ] || fail "the practice with Anti-Bot was not created"
+  host_objects "{\"threatPreventionPractices\": [$bot]}"
+  for i in $(seq 1 60); do
+    body=$(browser_page /smoke-page)
+    # the challenge page, not the upstream (whoami answers "Hostname: ...")
+    echo "$body" | grep -qi '<script' && ! echo "$body" | grep -q 'Hostname:' && break
+    [ "$i" = 60 ] && fail "a browser gets no challenge on an injected page: $(echo "$body" | head -c 300)"
+    sleep 2
+  done
+  wait_page /smoke-login 403 "a request without the challenge cookie to a validated path"
+  browser_page /smoke-other | grep -q 'Hostname:' || fail "a page outside the paths of Anti-Bot is challenged"
+  [ "$(page /smoke-other)" = 200 ] || fail "a request outside the paths of Anti-Bot is refused"
+
+  step "WAF -> Policy: Anti-Bot in detect: no challenge, a request without it passes and is logged"
+  post_json PUT "/objects/$bot" "$(bot_spec detect)" > /dev/null
+  for i in $(seq 1 60); do
+    [ "$(page /smoke-login)" = 200 ] && browser_page /smoke-page | grep -q 'Hostname:' && break
+    [ "$i" = 60 ] && fail "Anti-Bot in detect still refuses or challenges (status $(page /smoke-login))"
+    sleep 2
+  done
+  for i in $(seq 1 45); do
+    page /smoke-login > /dev/null
+    $CURL "$ADMIN/api/nginxions/events?kind=crowdsec&q=anti-bot&limit=1" | grep -q '"kind": *"crowdsec"' && break
+    [ "$i" = 45 ] && fail "a request without the challenge cookie in detect is not in the events"
+    sleep 2
+  done
+  host_objects null
+
+  step "WAF -> Policy: Schema Validation of a practice: requests that do not match the OpenAPI file are refused"
+  cat > /tmp/smoke-api.yaml <<'EOF'
+openapi: 3.0.3
+info: {title: smoke, version: "1"}
+paths:
+  /smoke-api/items:
+    get:
+      parameters:
+        - {name: id, in: query, required: true, schema: {type: integer}}
+      responses: {"200": {description: ok}}
+EOF
+  $CURL -X PUT --data-binary @/tmp/smoke-api.yaml "$ADMIN/api/nginxions/waf/policy/schemas/smoke-api.yaml" \
+    | grep -q '"paths": *1' || fail "the OpenAPI file was not uploaded"
+  echo 'not: [an api' | $CURL -o /dev/null -w '%{http_code}' -X PUT --data-binary @- \
+    "$ADMIN/api/nginxions/waf/policy/schemas/broken.yaml" | grep -q 400 || fail "a file that is not OpenAPI was taken"
+  api=$(post_json POST /objects '{"kind": "threat_prevention", "name": "smoke-schema", "spec": {"practiceMode": "inherited",
+    "webAttacks": {"overrideMode": "inherited", "minimumConfidence": "high"}, "schemaValidation": {"overrideMode": "prevent",
+    "enforcementLevel": "fullSchema", "files": ["smoke-api.yaml"]}}}' | new_id)
+  [ -n "$api" ] || fail "the practice with Schema Validation was not created"
+  host_objects "{\"threatPreventionPractices\": [$api]}"
+  wait_page '/smoke-api/items?id=abc' 403 "a request against the OpenAPI file (id is not an integer)"
+  wait_page '/smoke-api/items?id=7' 200 "a request that matches the OpenAPI file"
+  [ "$(page /smoke-api/other)" = 403 ] || fail "a route that is not in the OpenAPI file passes with fullSchema"
+  [ "$($CURL -o /dev/null -w '%{http_code}' -X DELETE "$ADMIN/api/nginxions/waf/policy/schemas/smoke-api.yaml")" = 400 ] \
+    || fail "an OpenAPI file in use was deleted"
+  host_objects null
+  wait_page '/smoke-api/items?id=abc' 200 "the OpenAPI file still applies once the practice is gone"
+  api_json "$ADMIN/api/nginxions/crowdsec/decisions/delete" -d "{\"values\": [\"$client_ip\"]}" > /dev/null || true
+
   step "CrowdSec: three requests blocked by open-appsec ban the address"
   # the WAF steps above leave test.local in detect-learn: the scenario counts blocked requests only
   $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/nginxions/waf/hosts/1" \

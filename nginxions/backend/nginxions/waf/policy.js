@@ -17,9 +17,11 @@ import YAML from "yaml";
 import db from "../../db.js";
 import { debug, global as logger } from "../../logger.js";
 import { getCurrentCustom, mergeCustom, parseCustom } from "./custom.js";
+import { appsecRules, forAgent, schemaFiles, setEngines } from "./engines.js";
 import { asV2, danglingRefs, extraRefs } from "./objects/format.js";
 import { UNSUPPORTED_ENGINES } from "./objects/model.js";
 import { buildDoc, seedBuiltins } from "./objects/store.js";
+import { listSchemas } from "./schemas.js";
 
 const POLICY_FILE = process.env.NGINXIONS_APPSEC_POLICY_FILE || "/ext/appsec/local_policy.yaml";
 const BACKUP_DIR = "/data/nginxions/waf/policy-backups";
@@ -63,8 +65,12 @@ const buildPolicy = async ({ custom, candidate } = {}) => {
 			}
 		}
 	}
+	const appsec = appsecRules(merged);
+	const stored = new Set((await listSchemas().catch(() => [])).map((f) => f.name));
 	return {
-		policy: asV2(merged),
+		// the engines CrowdSec runs (antiBot, schemaValidation) and File Security are off for the agent
+		policy: asV2(forAgent(merged)),
+		appsec,
 		doc: merged,
 		hosts,
 		customId,
@@ -76,6 +82,10 @@ const buildPolicy = async ({ custom, candidate } = {}) => {
 			...danglingRefs(merged).map((ref) => `missing:${ref}`),
 			// the agent takes the first practice or trigger of a list
 			...extraRefs(merged).map((ref) => `extra:${ref}`),
+			// an OpenAPI file of schemaValidation NginxionS does not have (deleted, or an imported policy)
+			...schemaFiles(appsec)
+				.filter((f) => !stored.has(f))
+				.map((f) => `schema-missing:${f}`),
 			// engines saved before they were refused (docs/WAF-POLICY.md): the agent does nothing with them
 			...(merged.threatPreventionPractices || []).flatMap((p) =>
 				UNSUPPORTED_ENGINES.filter((e) => p[e]?.overrideMode && p[e].overrideMode !== "inactive").map(
@@ -187,7 +197,7 @@ function retryNotify() {
  * @returns {Promise<{changed: boolean, hosts: number}>}
  */
 const regenerate = async ({ force = false } = {}) => {
-	const { policy, doc, hosts, customId, format, reasons, warnings } = await buildPolicy();
+	const { policy, appsec, doc, hosts, customId, format, reasons, warnings } = await buildPolicy();
 	const content = render(policy, customId !== null);
 	const current = await readPolicyFile();
 	const changed = current !== content;
@@ -208,6 +218,13 @@ const regenerate = async ({ force = false } = {}) => {
 	if (changed || force) {
 		retries = 0;
 		await notifyAgent();
+	}
+	// antiBot and schemaValidation run in AppSec of CrowdSec: its appsec-config follows the policy
+	if (setEngines(appsec)) {
+		const { applyPolicyEngines } = await import("../crowdsec/index.js");
+		applyPolicyEngines().catch((err) =>
+			logger.error(`WAF: the engines of CrowdSec were not applied: ${err.message}`),
+		);
 	}
 	return { changed, hosts };
 };

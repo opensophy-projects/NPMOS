@@ -17,7 +17,10 @@ import {
 	renderSimulation,
 	requiredItems,
 	unwantedItems,
+	withPolicy,
 } from "./config.js";
+import { GOOD_BOTS, getEngines, schemaFiles, usesChallenge } from "../waf/engines.js";
+import { appsecPolicyText, syncToCrowdsec } from "../waf/schemas.js";
 import { CONF_DIR, install, remove } from "./hub.js";
 import { health, registrationToken } from "./lapi.js";
 
@@ -27,7 +30,7 @@ const HEALTH_TIMEOUT_MS = Number(process.env.NGINXIONS_CROWDSEC_HEALTH_TIMEOUT_M
 const SETTLE_MS = Number(process.env.NGINXIONS_CROWDSEC_SETTLE_MS || 4000);
 
 // files whose change a reload picks up; config.yaml.local (LAPI, AppSec listener...) needs a restart
-const RELOADED = ["acquis", "profiles", "allowlist", "scenario", "simulation"];
+const RELOADED = ["acquis", "profiles", "allowlist", "scenario", "simulation", "policy"];
 
 /** files NginxionS owns in the config volume */
 const FILES = {
@@ -37,6 +40,8 @@ const FILES = {
 	scenario: "scenarios/nginxions-openappsec-prevent.yaml",
 	simulation: "nginxions-simulation.yaml",
 	config: "config.yaml.local",
+	// the appsec-config of the engines of the WAF policy (waf/engines.js)
+	policy: "appsec-configs/nginxions-policy.yaml",
 };
 
 const read = async (rel) => {
@@ -58,15 +63,33 @@ const put = async (rel, content) => {
 	await rename(`${file}.tmp`, file);
 };
 
+/** the configs of good bots of the hub are installed (seeded with the image; an older volume may not have them) */
+const goodBotsInstalled = async () => {
+	for (const name of GOOD_BOTS) {
+		if ((await read(`appsec-configs/${name.split("/")[1]}.yaml`)) === null) return false;
+	}
+	return true;
+};
+
+/** the settings with the engines of the WAF policy in force (config.js withPolicy) */
+export const effective = async (settings) => {
+	const parsed = getEngines();
+	return withPolicy(settings, parsed, { goodBots: usesChallenge(parsed) && (await goodBotsInstalled()) });
+};
+
 /** contents of the files for these settings */
-export const render = async (settings) => ({
-	acquis: renderAcquis(settings),
-	profiles: renderProfiles(settings),
-	allowlist: renderAllowlist(settings),
-	scenario: renderScenario(settings),
-	simulation: renderSimulation(settings),
-	config: renderConfigLocal(settings, { registrationToken: await registrationToken() }),
-});
+export const render = async (settings) => {
+	const s = await effective(settings);
+	return {
+		acquis: renderAcquis(s),
+		profiles: renderProfiles(s),
+		allowlist: renderAllowlist(s),
+		scenario: renderScenario(s),
+		simulation: renderSimulation(s),
+		config: renderConfigLocal(s, { registrationToken: await registrationToken() }),
+		policy: await appsecPolicyText(getEngines()),
+	};
+};
 
 /** files that differ from what is on disk: {key: {old, new}} */
 export const pending = async (settings) => {
@@ -157,6 +180,19 @@ export const apply = (settings, options = {}) => {
 };
 
 const applyNow = async (settings, { actor, force = false, online = false }) => {
+	const parsed = getEngines();
+	// the bot challenge spares verified good bots: their configs of the hub, if they can be installed (offline, an
+	// older volume may lack their data files: the challenge works without them)
+	if (usesChallenge(parsed) && !(await goodBotsInstalled())) {
+		try {
+			for (const name of GOOD_BOTS) await install("appsec-configs", name, { online });
+		} catch (err) {
+			logger.warn(`NginxionS CrowdSec: good bots are not spared the challenge: ${err.message}`);
+		}
+	}
+	// the OpenAPI files of the policy, in the data of CrowdSec before its appsec-config names them
+	const missing = await syncToCrowdsec(schemaFiles(parsed));
+	if (missing.length) logger.warn(`NginxionS CrowdSec: OpenAPI files missing: ${missing.join(", ")}`);
 	const diff = await pending(settings);
 	// hub items installed or removed for the settings
 	const installed = [];

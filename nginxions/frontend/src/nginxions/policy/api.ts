@@ -188,6 +188,33 @@ const request = async <T>(method: string, url: string, data?: unknown): Promise<
 	return payload as T;
 };
 
+/** an OpenAPI file of schemaValidation */
+export interface SchemaFile {
+	name: string;
+	size: number;
+	modifiedOn: string;
+	version: string;
+	title: string;
+	paths: number;
+	/** practices that name it */
+	usedBy: string[];
+}
+export const getSchemaFiles = () => request<SchemaFile[]>("GET", "/schemas");
+export const uploadSchemaFile = async (name: string, file: Blob) => {
+	const response = await fetch(`/api/nginxions/waf/policy/schemas/${encodeURIComponent(name)}`, {
+		method: "PUT",
+		headers: { "Content-Type": "application/octet-stream" },
+		body: file,
+	});
+	if (isNotJson(response)) throw notJsonError(response);
+	const payload = await response.json();
+	if (!response.ok) throw new Error(payload?.error?.message || response.statusText);
+	return payload as SchemaFile;
+};
+export const deleteSchemaFile = (name: string) => request<boolean>("DELETE", `/schemas/${encodeURIComponent(name)}`);
+export const downloadSchemaFile = (name: string) =>
+	base.download({ url: `/nginxions/waf/policy/schemas/${encodeURIComponent(name)}` }, name);
+
 export const getPolicyObjects = () => request<PolicyObjects>("GET", "/objects");
 export const createObject = (data: ObjectInput) =>
 	request<PolicyObject & { state: PolicyState }>("POST", "/objects", data);

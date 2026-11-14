@@ -37,6 +37,7 @@ import internalWafHosts from "./waf/hosts.js";
 import internalWafHostCode from "./waf/hosts-code.js";
 import internalWaf from "./waf/index.js";
 import internalWafObjects, { simulateHostMode } from "./waf/objects/api.js";
+import internalWafSchemas from "./waf/schemas.js";
 import internalWafTrial from "./waf/trial.js";
 
 const router = express.Router({
@@ -1542,6 +1543,40 @@ router
 		),
 	)
 	.delete(handle((req, res) => internalWafObjects.delete(res.locals.access, req.params.object_id)));
+
+/**
+ * OpenAPI files of schemaValidation (waf/schemas.js)
+ * GET    /api/nginxions/waf/policy/schemas — the files, with the practices that name them
+ * PUT    /api/nginxions/waf/policy/schemas/:name — body: the file (YAML or JSON, up to 5 MB)
+ * GET    /api/nginxions/waf/policy/schemas/:name — the file
+ * DELETE /api/nginxions/waf/policy/schemas/:name — a file no practice names
+ */
+router
+	.route("/waf/policy/schemas")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_req, res) => internalWafSchemas.list(res.locals.access)));
+
+router
+	.route("/waf/policy/schemas/:name")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.put(
+		express.raw({ type: () => true, limit: "6mb" }),
+		handle((req, res) => internalWafSchemas.upload(res.locals.access, String(req.params.name), rawBytes(req))),
+	)
+	.get(async (req, res, next) => {
+		try {
+			const name = String(req.params.name);
+			const content = await internalWafSchemas.download(res.locals.access, name);
+			res.set("Content-Type", name.endsWith(".json") ? "application/json" : "application/yaml");
+			res.set("Content-Disposition", `attachment; filename="${name}"`);
+			res.send(content);
+		} catch (err) {
+			next(err);
+		}
+	})
+	.delete(handle((req, res) => internalWafSchemas.remove(res.locals.access, String(req.params.name))));
 
 /**
  * PUT /api/nginxions/waf/policy/default — {mode, threatPreventionPractices?: [id], ..., customResponse?: id}

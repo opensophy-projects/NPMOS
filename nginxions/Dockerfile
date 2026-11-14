@@ -255,7 +255,7 @@ RUN apk add --no-cache file && \
 # the tag of CROWDSEC_VERSION pinned by its digest (OpenSSF Scorecard; CI checks the tag against deploy/.env)
 FROM docker.io/crowdsecurity/crowdsec:v1.8.2@sha256:65b74942f7e7ed5c60fde4ac15fc4ba715904c398c8b16dd451f4907d90347d4 AS crowdsec-seed
 ARG HUB_BRANCH=master
-ARG HUB_ITEMS="parsers crowdsecurity/docker-logs crowdsecurity/cri-logs; collections ZoeyVid/npmplus crowdsecurity/appsec-virtual-patching crowdsecurity/appsec-generic-rules"
+ARG HUB_ITEMS="parsers crowdsecurity/docker-logs crowdsecurity/cri-logs; collections ZoeyVid/npmplus crowdsecurity/appsec-virtual-patching crowdsecurity/appsec-generic-rules crowdsecurity/appsec-bot-challenge-good-bots"
 ARG HUB_URL_TEMPLATE=
 COPY crowdsec-seed/seed.sh /seed.sh
 RUN --mount=type=secret,id=ca_bundle,required=false sh /seed.sh
@@ -266,7 +266,7 @@ ENV NODE_ENV=production
 ENV NODE_OPTIONS=--use-openssl-ca
 ARG LRC_VER=6fec23e2149c88b33b39fec8a5ebdd67a3e0dd88 # v0.1.34rc3
 ARG LRL_VER=3ff6300e68b73ba20e909c7d16bd839aef2e5a4b # v0.15
-ARG LCSB_VER=3e82dd61508ed9683b5007f823c69b112c59ac6f # v1.0.14
+ARG LCSB_VER=ec94d512927cf70be865686e4eb928d128189633 # v1.0.19: the bot challenge of AppSec (NginxionS: antiBot)
 # NginxionS: lua-resty-string from git like the other Lua libraries: its rock has no source package on luarocks.org,
 # luarocks fetched the archive of GitHub (archive/v0.09.tar.gz), which fails again and again, and the build with it
 ARG LRS_VER=e363ac306db6135bdda9399511742fe36ebd4cbb # v0.09

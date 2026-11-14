@@ -40,6 +40,10 @@ export type Field = {
 	| { type: "number"; min?: number; max?: number }
 	| { type: "text" | "textarea" }
 	| { type: "strings" }
+	/** paths, one per line: [{uri}] in the policy (antiBot) */
+	| { type: "uris" }
+	/** OpenAPI files of WAF -> Policy (schemaValidation.files): chosen, uploaded */
+	| { type: "schemas" }
 	| { type: "conditions" }
 	| { type: "rateRules" }
 	| { type: "identifiers" }
@@ -86,6 +90,20 @@ export const FIELDS: Record<Kind, Field[]> = {
 		{ path: "intrusionPrevention.highConfidenceEventAction", type: "select", options: ACTIONS, modes: true },
 		{ path: "intrusionPrevention.mediumConfidenceEventAction", type: "select", options: ACTIONS, modes: true },
 		{ path: "intrusionPrevention.lowConfidenceEventAction", type: "select", options: ACTIONS, modes: true },
+		// AppSec of CrowdSec runs them for the agent (waf/engines.js of the backend)
+		{ path: "antiBot", type: "heading" },
+		{ path: "antiBot.overrideMode", type: "select", options: MODES, modes: true },
+		{ path: "antiBot.injectedUris", type: "uris" },
+		{ path: "antiBot.validatedUris", type: "uris" },
+		{ path: "schemaValidation", type: "heading" },
+		{ path: "schemaValidation.overrideMode", type: "select", options: MODES, modes: true },
+		{
+			path: "schemaValidation.enforcementLevel",
+			type: "select",
+			options: ["fullSchema", "endpointOnly"],
+			labels: "nginxions.policy.enforcement.",
+		},
+		{ path: "schemaValidation.files", type: "schemas" },
 		{ path: "snortSignatures", type: "heading" },
 		{ path: "snortSignatures.overrideMode", type: "select", options: MODES, modes: true },
 		{ path: "snortSignatures.files", type: "strings" },

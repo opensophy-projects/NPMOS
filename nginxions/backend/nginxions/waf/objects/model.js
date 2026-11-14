@@ -74,11 +74,15 @@ const fixups = {
 // ---------------------------------------------------------------- what the agent applies (docs/WAF-POLICY.md)
 
 /**
- * Engines of a threat prevention practice the agent of NginxionS does not have yet (File Security, OpenAPI schema
- * validation and Anti-Bot are of the Premium edition of open-appsec). The IPS has the signatures of NginxionS
- * (CrowdSec virtual patching rules, waf/ips/vpatch.js) in place of the ones of the Check Point cloud.
+ * Engines of a threat prevention practice NginxionS does not run yet (File Security is of the Premium edition of
+ * open-appsec). The IPS has the signatures of NginxionS (CrowdSec virtual patching rules, waf/ips/vpatch.js) in place
+ * of the ones of the Check Point cloud; antiBot and schemaValidation run in AppSec of CrowdSec (waf/engines.js).
  */
-export const UNSUPPORTED_ENGINES = ["fileSecurity", "schemaValidation", "antiBot"];
+export const UNSUPPORTED_ENGINES = ["fileSecurity"];
+/** a name of an OpenAPI file of schemaValidation (waf/schemas.js) */
+const SCHEMA_FILE = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}\.(ya?ml|json)$/;
+/** a path of antiBot */
+const URI = /^\/[^\s"\\]{0,1023}$/;
 /** keys of a condition of a rate limit rule: what the rate limit engine matches (rate_limit.cc) */
 export const RATE_LIMIT_KEYS = ["sourceIp", "sourceIdentifier", "countryCode", "countryName", "url"];
 const IPV4 = /^(25[0-5]|2[0-4]\d|1?\d?\d)(\.(25[0-5]|2[0-4]\d|1?\d?\d)){3}$/;
@@ -100,6 +104,30 @@ const unsupported = (kind, spec, lenient) => {
 				dropped.push(`/${engine}`);
 			} else {
 				errors.push(`/${engine}: not in the agent of NginxionS (Premium edition or the Check Point cloud)`);
+			}
+		}
+		// antiBot: paths ({uri} as in v1beta2; a plain string is taken too)
+		for (const list of ["injectedUris", "validatedUris"]) {
+			if (!spec.antiBot || !Array.isArray(spec.antiBot[list])) continue;
+			spec.antiBot[list] = spec.antiBot[list].map((u) => (typeof u === "string" ? { uri: u } : u));
+			spec.antiBot[list].forEach((u, i) => {
+				if (!URI.test(String(u?.uri ?? ""))) errors.push(`/antiBot/${list}/${i}: a path that starts with /`);
+			});
+		}
+		// schemaValidation: names of the OpenAPI files of WAF -> Policy
+		if (spec.schemaValidation) {
+			(spec.schemaValidation.files || []).forEach((f, i) => {
+				if (!SCHEMA_FILE.test(String(f))) {
+					errors.push(`/schemaValidation/files/${i}: the name of an OpenAPI file (api.yaml, api.json)`);
+				}
+			});
+			const level = spec.schemaValidation.enforcementLevel;
+			if (level !== undefined && level !== "" && !["fullSchema", "endpointOnly"].includes(level)) {
+				errors.push("/schemaValidation/enforcementLevel: fullSchema or endpointOnly");
+			}
+			const mode = spec.schemaValidation.overrideMode;
+			if (mode && mode !== "inactive" && !(spec.schemaValidation.files || []).length && !lenient) {
+				errors.push("/schemaValidation/files: an OpenAPI file is needed to validate requests");
 			}
 		}
 		for (const engine of ["snortSignatures", "schemaValidation"]) {

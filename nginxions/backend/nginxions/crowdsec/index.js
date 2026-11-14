@@ -877,11 +877,27 @@ const refreshLists = async () => {
 	}
 };
 
+let booted = false;
+
+/**
+ * The engines of the WAF policy changed (waf/policy.js: antiBot, schemaValidation of practices, their OpenAPI files):
+ * the appsec-config of the policy, AppSec and the bouncer follow. Before the bootstrap below nothing is done: it
+ * applies them itself.
+ */
+export const applyPolicyEngines = async () => {
+	if (!booted) return null;
+	const s = await settings();
+	const result = await apply(s, { online: s.online_hub });
+	await applyBouncer(s);
+	return result;
+};
+
 /**
  * At backend start, in the background (CrowdSec may start later than NginxionS): files of the
  * settings, the bouncer, the alert reader and the refresh of URL blocklists.
  */
 export const bootstrap = async () => {
+	booted = true;
 	let s;
 	try {
 		s = await settings();

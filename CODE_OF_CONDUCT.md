@@ -391,6 +391,8 @@ flowchart LR
       - `hosts-code.js` — политика хоста как код (YAML)
       - `trial.js` — пробный режим хоста: блокировка на N часов только в журнале, отчёт и решение; `trial-model.js` — его состояния без базы (для тестов)
       - `custom.js`, `expert.js` — свои YAML-фрагменты поверх политики (режим эксперта)
+      - `engines.js` — движки практики, которые выполняет AppSec CrowdSec (`antiBot`: проверка браузера; `schemaValidation`: запросы по OpenAPI): appsec-config `nginxions/policy` из правил политики, для агента они выключены
+      - `schemas.js` — файлы OpenAPI для `schemaValidation`: загрузка, проверка, копирование в данные CrowdSec
       - **`ips/`** — `vpatch.js` (правило виртуального патча CrowdSec → сигнатуры IPS агента: зоны запроса → контексты IPS, значения → data/pcre)
       - **`objects/`** — `model.js` (объекты политики в терминах v1beta2 и проверка «нет молчаливых полей»), `store.js` (хранение и сборка политики), `api.js` (объекты, политика по умолчанию, предпросмотр, импорт), `format.js` (v1beta2 для агента, v1beta1 для импорта и экспорта), `compare.js` (сравнение применённой агентом конфигурации с политикой), `simulate.js` (пробный прогон изменения на недавних событиях WAF), `schema-v1beta2.json` (схема политики), `examples/` (примеры политик open-appsec для тестов)
     - **`migrations/`** — миграции таблиц `nginxions_*` (по одной на изменение схемы, имя начинается с даты)
@@ -444,6 +446,6 @@ flowchart LR
     - **`learning/`** — обучение: страница (`Learning.tsx`), разметка (`LabelModal.tsx`), пробный режим хоста (`TrialModal.tsx`), что выучил агент (`LearnedModal.tsx`), снимки обучения (`SnapshotsModal.tsx`), API
     - **`notifications/`** — канал (`ChannelModal.tsx`), правило (`RuleModal.tsx`), быстрая настройка (`SetupModal.tsx`), API
     - **`pki/`** — CA (`CaModal.tsx`), выпуск (`IssueModal.tsx`), сертификат (`CertModal.tsx`), доступ к хосту (`AccessModal.tsx`, `HostCertsModal.tsx`), mTLS хоста (`MtlsModal.tsx`), отзыв (`RevokeModal.tsx`), ключи (`SecretModal.tsx`), шаблоны (`TemplateModal.tsx`), выдача файлов (`Delivery.tsx`), API
-    - **`policy/`** — редактор политики: объект (`ObjectModal.tsx`, поля в `fields.ts`), ссылки на объекты (`RefsEditor.tsx`), просмотр изменения (`Review.tsx`, `ReviewModal.tsx`), код (`CodePane.tsx`), импорт (`ImportModal.tsx`), имена встроенных объектов (`names.ts`), API
+    - **`policy/`** — редактор политики: объект (`ObjectModal.tsx`, поля в `fields.ts`), файлы OpenAPI практики (`SchemaFiles.tsx`), ссылки на объекты (`RefsEditor.tsx`), просмотр изменения (`Review.tsx`, `ReviewModal.tsx`), код (`CodePane.tsx`), импорт (`ImportModal.tsx`), имена встроенных объектов (`names.ts`), API
     - **`rbac/`** — роль (`RoleModal.tsx`), хосты роли (`HostPicker.tsx`), роли пользователя (`UserRolesModal.tsx`, `UserRoleBadges.tsx`), подписи (`labels.ts`), хуки и API
     - **`system/`** — Настройки: env-настройки (`EnvSection.tsx`, `sections.tsx`), GeoIP (`Geoip.tsx`), перенос (`Migration.tsx`), API

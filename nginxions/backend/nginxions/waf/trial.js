@@ -9,7 +9,6 @@ import errs from "../../lib/error.js";
 import { global as logger } from "../../logger.js";
 import internalWafHosts from "./hosts.js";
 import { hostSimulation } from "./objects/api.js";
-
 import { MAX_HOURS, TRIAL_MODE, trialState } from "./trial-model.js";
 
 export const TRIAL_TABLE = "nginxions_waf_trial";

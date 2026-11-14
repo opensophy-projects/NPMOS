@@ -7,6 +7,7 @@ import db from "../../db.js";
 import internalNginx from "../../internal/nginx.js";
 import { global as logger } from "../../logger.js";
 import { decrypt } from "../secrets.js";
+import { effective } from "./apply.js";
 import { HEADER, renderBouncer, renderNginx } from "./config.js";
 import { bouncerKey } from "./lapi.js";
 
@@ -41,7 +42,9 @@ export const perHostSupported = () => perHost;
  * @param {{reload?: boolean}} [options]
  * @returns {Promise<{changed: boolean}>}
  */
-export const applyBouncer = async (settings, { reload = true } = {}) => {
+export const applyBouncer = async (input, { reload = true } = {}) => {
+	// AppSec is on for the engines of the WAF policy too (antiBot, schemaValidation)
+	const settings = await effective(input);
 	const conf = renderBouncer(settings, {
 		apiKey: await bouncerKey(),
 		captchaSecret: decrypt(settings.bouncer.captcha.secret_key),

@@ -5510,6 +5510,12 @@
 	"nginxions.policy.edit": {
 		"defaultMessage": "Edit"
 	},
+	"nginxions.policy.enforcement.endpointOnly": {
+		"defaultMessage": "Only the routes of the files"
+	},
+	"nginxions.policy.enforcement.fullSchema": {
+		"defaultMessage": "The whole API: a route that is not in the files is refused too"
+	},
 	"nginxions.policy.export": {
 		"defaultMessage": "Export"
 	},
@@ -5533,6 +5539,15 @@
 	},
 	"nginxions.policy.f.additionalSuspiciousEventsLogging.responseCode": {
 		"defaultMessage": "Response code"
+	},
+	"nginxions.policy.f.antiBot.injectedUris": {
+		"defaultMessage": "Pages a browser gets the check on, one path per line (empty, with no paths below: every page)"
+	},
+	"nginxions.policy.f.antiBot.overrideMode": {
+		"defaultMessage": "Mode (prevent: the challenge and refusals; detect: refusals are only logged)"
+	},
+	"nginxions.policy.f.antiBot.validatedUris": {
+		"defaultMessage": "Paths that need a passed check (requests without it are refused), one per line"
 	},
 	"nginxions.policy.f.appsecLogging.allWebRequests": {
 		"defaultMessage": "All requests (a lot of data)"
@@ -5612,6 +5627,15 @@
 	"nginxions.policy.f.redirectUrl": {
 		"defaultMessage": "Redirect to"
 	},
+	"nginxions.policy.f.schemaValidation.enforcementLevel": {
+		"defaultMessage": "What is checked"
+	},
+	"nginxions.policy.f.schemaValidation.files": {
+		"defaultMessage": "OpenAPI files (a request valid against one of them passes)"
+	},
+	"nginxions.policy.f.schemaValidation.overrideMode": {
+		"defaultMessage": "Mode"
+	},
 	"nginxions.policy.f.snortSignatures.files": {
 		"defaultMessage": "Files of signatures in the agent, one per line"
 	},
@@ -5660,6 +5684,9 @@
 	"nginxions.policy.h.additionalSuspiciousEventsLogging": {
 		"defaultMessage": "Suspicious requests"
 	},
+	"nginxions.policy.h.antiBot": {
+		"defaultMessage": "Anti-Bot: browser check (AppSec of CrowdSec)"
+	},
 	"nginxions.policy.h.appsecLogging": {
 		"defaultMessage": "Events"
 	},
@@ -5671,6 +5698,9 @@
 	},
 	"nginxions.policy.h.logDestination": {
 		"defaultMessage": "Send to a log server"
+	},
+	"nginxions.policy.h.schemaValidation": {
+		"defaultMessage": "Schema Validation: requests checked against OpenAPI (AppSec of CrowdSec)"
 	},
 	"nginxions.policy.h.snortSignatures": {
 		"defaultMessage": "Snort signatures"
@@ -5983,6 +6013,30 @@
 	},
 	"nginxions.policy.saved": {
 		"defaultMessage": "Policy applied"
+	},
+	"nginxions.policy.schemas.bad-name": {
+		"defaultMessage": "The file name must end in .yaml, .yml or .json"
+	},
+	"nginxions.policy.schemas.delete": {
+		"defaultMessage": "Delete"
+	},
+	"nginxions.policy.schemas.download": {
+		"defaultMessage": "Download"
+	},
+	"nginxions.policy.schemas.empty": {
+		"defaultMessage": "No OpenAPI files yet: upload one."
+	},
+	"nginxions.policy.schemas.info": {
+		"defaultMessage": "{title}, OpenAPI {version}, {paths} paths"
+	},
+	"nginxions.policy.schemas.missing": {
+		"defaultMessage": "{name}: no such file in NginxionS, upload it again"
+	},
+	"nginxions.policy.schemas.upload": {
+		"defaultMessage": "Upload an OpenAPI file"
+	},
+	"nginxions.policy.schemas.used": {
+		"defaultMessage": "Used by {practices}"
 	},
 	"nginxions.policy.service.add": {
 		"defaultMessage": "Add server"

@@ -5510,6 +5510,12 @@
 	"nginxions.policy.edit": {
 		"defaultMessage": "Изменить"
 	},
+	"nginxions.policy.enforcement.endpointOnly": {
+		"defaultMessage": "Только пути из файлов"
+	},
+	"nginxions.policy.enforcement.fullSchema": {
+		"defaultMessage": "Весь API: запрос к пути, которого нет в файлах, тоже отклоняется"
+	},
 	"nginxions.policy.export": {
 		"defaultMessage": "Экспорт"
 	},
@@ -5533,6 +5539,15 @@
 	},
 	"nginxions.policy.f.additionalSuspiciousEventsLogging.responseCode": {
 		"defaultMessage": "Код ответа"
+	},
+	"nginxions.policy.f.antiBot.injectedUris": {
+		"defaultMessage": "Страницы, где браузер проходит проверку, по одному пути в строке (пусто и пусто ниже — все страницы)"
+	},
+	"nginxions.policy.f.antiBot.overrideMode": {
+		"defaultMessage": "Режим (блокировка — проверка и отказы; обнаружение — отказы только пишутся в журнал)"
+	},
+	"nginxions.policy.f.antiBot.validatedUris": {
+		"defaultMessage": "Пути, которым нужна пройденная проверка (запросы без неё отклоняются), по одному в строке"
 	},
 	"nginxions.policy.f.appsecLogging.allWebRequests": {
 		"defaultMessage": "Все запросы (много данных)"
@@ -5612,6 +5627,15 @@
 	"nginxions.policy.f.redirectUrl": {
 		"defaultMessage": "Перенаправлять на"
 	},
+	"nginxions.policy.f.schemaValidation.enforcementLevel": {
+		"defaultMessage": "Что проверяется"
+	},
+	"nginxions.policy.f.schemaValidation.files": {
+		"defaultMessage": "Файлы OpenAPI (запрос проходит, если он соответствует одному из них)"
+	},
+	"nginxions.policy.f.schemaValidation.overrideMode": {
+		"defaultMessage": "Режим"
+	},
 	"nginxions.policy.f.snortSignatures.files": {
 		"defaultMessage": "Файлы сигнатур в агенте, по одному в строке"
 	},
@@ -5660,6 +5684,9 @@
 	"nginxions.policy.h.additionalSuspiciousEventsLogging": {
 		"defaultMessage": "Подозрительные запросы"
 	},
+	"nginxions.policy.h.antiBot": {
+		"defaultMessage": "Anti-Bot: проверка браузера (AppSec CrowdSec)"
+	},
 	"nginxions.policy.h.appsecLogging": {
 		"defaultMessage": "События"
 	},
@@ -5671,6 +5698,9 @@
 	},
 	"nginxions.policy.h.logDestination": {
 		"defaultMessage": "Отправка на сервер журналов"
+	},
+	"nginxions.policy.h.schemaValidation": {
+		"defaultMessage": "Schema Validation: проверка запросов по OpenAPI (AppSec CrowdSec)"
 	},
 	"nginxions.policy.h.snortSignatures": {
 		"defaultMessage": "Сигнатуры Snort"
@@ -5983,6 +6013,30 @@
 	},
 	"nginxions.policy.saved": {
 		"defaultMessage": "Политика применена"
+	},
+	"nginxions.policy.schemas.bad-name": {
+		"defaultMessage": "Имя файла должно оканчиваться на .yaml, .yml или .json"
+	},
+	"nginxions.policy.schemas.delete": {
+		"defaultMessage": "Удалить"
+	},
+	"nginxions.policy.schemas.download": {
+		"defaultMessage": "Скачать"
+	},
+	"nginxions.policy.schemas.empty": {
+		"defaultMessage": "Файлов OpenAPI пока нет: загрузите файл."
+	},
+	"nginxions.policy.schemas.info": {
+		"defaultMessage": "{title}, OpenAPI {version}, путей: {paths}"
+	},
+	"nginxions.policy.schemas.missing": {
+		"defaultMessage": "{name}: такого файла нет в NginxionS, загрузите его снова"
+	},
+	"nginxions.policy.schemas.upload": {
+		"defaultMessage": "Загрузить файл OpenAPI"
+	},
+	"nginxions.policy.schemas.used": {
+		"defaultMessage": "Используется: {practices}"
 	},
 	"nginxions.policy.service.add": {
 		"defaultMessage": "Добавить сервер"

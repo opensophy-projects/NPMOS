@@ -29,6 +29,7 @@ import {
 	setPath,
 } from "./fields";
 import { Review } from "./Review";
+import { SchemaFiles } from "./SchemaFiles";
 
 const t = (id: string, values?: Record<string, any>) => intl.formatMessage({ id }, values);
 
@@ -182,6 +183,29 @@ function FieldInput({
 					}
 				/>
 			);
+		case "uris":
+			// [{uri}] in the policy, one path a line in the form
+			return (
+				<textarea
+					id={id}
+					className="form-control font-monospace"
+					rows={3}
+					placeholder={EXAMPLE.uri}
+					value={(value || []).map((u: any) => (typeof u === "string" ? u : (u?.uri ?? ""))).join("\n")}
+					onChange={(e) =>
+						set(
+							field.path,
+							e.target.value
+								.split("\n")
+								.map((s) => s.trim())
+								.filter(Boolean)
+								.map((uri) => ({ uri })),
+						)
+					}
+				/>
+			);
+		case "schemas":
+			return <SchemaFiles id={id} value={value} onChange={(files) => set(field.path, files)} />;
 		case "names": {
 			const names: string[] = value || [];
 			const options = objects.filter((o) => o.kind === field.kind);
