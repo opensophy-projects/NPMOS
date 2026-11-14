@@ -2,7 +2,7 @@
 // in the data volume of NginxionS and copied into the data of CrowdSec (its "schemas" folder), where AppSec loads them
 // (waf/engines.js). A practice names them in schemaValidation.files.
 import { createHash } from "node:crypto";
-import { mkdir, readdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, open, readdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import YAML from "yaml";
 import errs from "../../lib/error.js";
@@ -63,12 +63,19 @@ export const listSchemas = async () => {
 	const out = [];
 	for (const name of names.filter((n) => NAME.test(n)).sort()) {
 		const file = path.join(STORE, name);
-		const info = await stat(file);
+		// one descriptor for its stat and its content: the size listed is the one of the content described
+		const handle = await open(file, "r");
+		let info;
 		let meta = { version: "", title: "", paths: 0 };
 		try {
-			meta = describe(await readFile(file));
-		} catch {
-			// a file broken on disk is listed without its description
+			info = await handle.stat();
+			try {
+				meta = describe(await handle.readFile());
+			} catch {
+				// a file broken on disk is listed without its description
+			}
+		} finally {
+			await handle.close();
 		}
 		out.push({ name, size: info.size, modifiedOn: info.mtime.toISOString(), ...meta });
 	}

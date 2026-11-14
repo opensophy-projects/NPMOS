@@ -72,6 +72,28 @@ test("an event of the IPS: its incident type, confidence and CVEs", () => {
 	assert.equal(row.host, "app.local");
 });
 
+test("an event of the IPS as the open agent writes it: tagged IPS, the CWE in waapIncidentType", () => {
+	const { row } = classify({
+		eventTime: "2026-11-14T10:41:13.657",
+		eventName: "Web Request",
+		eventSeverity: "Critical",
+		eventTags: ["IPS"],
+		eventSource: { practiceName: "local_policy/smoke-ips", practiceSubType: "Web IPS", assetName: "test.local" },
+		eventData: {
+			matchedSignatureConfidence: "High",
+			matchedSignatureCVE: "CVE-2017-9841",
+			protectionId: "PHPUnit RCE (CVE-2017-9841)",
+			waapIncidentType: "CWE-94",
+			httpHostName: "test.local",
+			httpUriPath: "/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php",
+			securityAction: "Prevent",
+		},
+	});
+	assert.equal(row.incident_type, "IPS");
+	assert.equal(row.indicators, "CVE-2017-9841, CWE-94");
+	assert.equal(row.confidence, "High");
+});
+
 test("notices, telemetry and noise", () => {
 	const notice = classify({ eventTime: "2026-10-28T03:38:23.773", eventName: "Check Point Nano-service started" });
 	assert.equal(notice.row.kind, "system");
