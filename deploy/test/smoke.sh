@@ -288,7 +288,7 @@ if $CURL "$ADMIN/api/nginxions/waf" | grep -q '"reachable": *true'; then
   step "WAF -> Agent: the metrics of the agent (its prometheus service) are read"
   metrics=""
   for i in $(seq 1 30); do
-    metrics=$($CURL "$ADMIN/api/nginxions/waf/agent/metrics" | json)
+    metrics=$($CURL "$ADMIN/api/nginxions/waf/agent/metrics" | tr -d ' \n')
     echo "$metrics" | grep -q '"reachable":true' && break
     [ "$i" = 30 ] && fail "the metrics service of the agent does not answer: $(echo "$metrics" | head -c 300)"
     sleep 4
