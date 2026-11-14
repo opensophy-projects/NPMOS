@@ -36,6 +36,11 @@ const DEFINITIONS = {
 			v.failOpen.timeoutMs >= 10 &&
 			v.failOpen.timeoutMs <= 10000,
 	},
+	// File Security (WAF -> Agent), see waf/files.js: online updates of the signatures of ClamAV (freshclam)
+	"waf.files": {
+		default: () => ({ online_updates: false }),
+		validate: (v) => typeof v?.online_updates === "boolean",
+	},
 	// the block page (Agents → Block page), see block-page.js: what a visitor sees when a request is refused
 	"block.page": {
 		default: () => ({

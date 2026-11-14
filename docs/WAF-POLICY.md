@@ -7,7 +7,10 @@
 должно молча игнорироваться. План работ — фаза 11 в [ROADMAP.md](ROADMAP.md). Текущее устройство политики
 описано в [ADR-0008](adr/0008-waf-policy.md).
 
-**Состояние (фаза 11 выполнена):**
+**Состояние (ноябрь 2026):** все поля v1beta2 работают (раздел 3). Движки, которые в open-appsec есть только в
+Premium или облаке Check Point, NginxionS выполняет своими средствами (раздел 8). Ниже — история фазы 11.
+
+**Фаза 11 выполнена:**
 
 - Доработки агента A1–A9 сделаны, кроме нескольких серверов syslog/CEF. Агент держит один поток каждого вида
   (`logging.cc`), поэтому проверка допускает один сервер.
@@ -17,7 +20,7 @@
 - Есть сверка применённой конфигурации и новые поля GUI.
 - Smoke проверяет перенаправление и правила ограничения частоты.
 
-Расширения `x-nginxions` (раздел 5.2) перенесены в фазу 12. Таблицы раздела 3 описывают агент до фазы 11.
+Расширения `x-nginxions` (раздел 5.2) сделаны в фазе 12.
 
 ## 1. Почему это нужно
 
@@ -63,102 +66,100 @@ NginxionS генерирует политику из своей БД (ADR-0008).
 Комментарий в начале `objects/format.js` («v1beta2 применяет только первое исключение») устарел: агент
 NginxionS применяет все исключения в обоих синтаксисах.
 
-## 3. Аудит v1beta2 по коду агента
+## 3. Поля v1beta2 в NginxionS: что работает
 
-Состояние агента до фазы 11. Источник — `openappsec/agent/components/security_apps/local_policy_mgmt_gen`: разбор
-`new_*.cc` и генерация конфигурации движков `policy_maker_utils.cc`, `*_section.cc`. Кроме того —
-компоненты `waap`, `rate_limit`, `ips` и `utils/generic_rulebase`.
+Таблицы показывают текущее состояние (ноябрь 2026). В колонке «Было» указано, что делал агент open-appsec до
+доработок NginxionS: аудит кода `openappsec/agent/components/security_apps/local_policy_mgmt_gen` (`new_*.cc`,
+`policy_maker_utils.cc`, `*_section.cc`) и движков `waap`, `rate_limit`, `ips`, `utils/generic_rulebase`.
 
 Статусы:
 
-- ✅ — работает;
-- 🟡 — работает с ограничением;
-- ❌ — агент читает поле, но не применяет;
-- ⛔ — движка нет в агенте NginxionS или ему нужно облако Check Point;
-- ➖ — относится только к Kubernetes или облаку и в NginxionS не нужно.
+- ✅ — работает так, как описано в документации open-appsec;
+- 🟡 — работает, но с ограничением. Ограничение проверяется в GUI и API (ошибка с причиной), молча ничего не
+  теряется;
+- ➖ — относится только к Kubernetes или облаку. При импорте поле отбрасывается с предупреждением.
 
 ### 3.1. `policies` (default и specificRules)
 
-| Поле | Статус | Что на самом деле |
-|---|---|---|
-| `host` | ✅ | `хост[/путь]`. Правило без `host` — `*` |
-| `mode` | 🟡 | Обязателен: без `mode` агент бросает исключение `mode invalid` (`new_appsec_policy_crd_parser.cc`) |
-| `threatPreventionPractices` | 🟡 | Ключ обязателен. Берётся **только первая** практика списка (`extractAnnotationsNames`, «TBD: support multiple practices»). Пустой список — практика правила по умолчанию |
-| `accessControlPractices` | 🟡 | То же: ключ обязателен, применяется только первая практика |
-| `triggers` | 🟡 | Применяется только первый триггер журналирования |
-| `customResponse` | ✅ | Если поле не задано, агент подставляет имя `"403"`. Такого объекта нет, поэтому действует встроенный ответ 403 |
-| `exceptions` | ✅ | Все исключения (исправлено в NginxionS) |
-| `sourceIdentifiers` | ✅ | |
-| `trustedSources` | 🟡 | Работают, **только если у того же правила задан `sourceIdentifiers`**. Иначе список доверенных источников молча пуст (`createTrustedSourcesSection`) |
-| `specificRules[].name` | ➖ | Агент не читает. NginxionS использует имя для своих правил |
-| `appsecClassName`, `policyActivations` | ➖ | Только Kubernetes |
-| `autoUpgrade` | ➖ | Автообновление агента из облака |
+| Поле | Статус | Как сейчас | Было |
+|---|---|---|---|
+| `host` | ✅ | `хост[/путь]`. Правило без `host` — `*` | — |
+| `mode` | ✅ | Правило без `mode` берёт режим правила по умолчанию (A9) | исключение `mode invalid` |
+| `threatPreventionPractices` | ✅ | Одна практика на правило; проверка отклоняет вторую с причиной (раздел 4) | молча бралась первая |
+| `accessControlPractices` | ✅ | То же | молча бралась первая |
+| `triggers` | ✅ | Один триггер журналирования на правило; проверка отклоняет второй | молча брался первый |
+| `customResponse` | ✅ | Ответ правила; без поля — встроенный 403 | имя `"403"` без объекта |
+| `exceptions` | ✅ | Все исключения правила, в обоих синтаксисах | только первое |
+| `sourceIdentifiers` | ✅ | | |
+| `trustedSources` | ✅ | Без `sourceIdentifiers` у правила источники различаются по IP (A4) | список молча пуст |
+| `specificRules[].name` | ✅ | NginxionS использует имя для своих правил | агент не читал |
+| `appsecClassName`, `policyActivations`, `autoUpgrade` | ➖ | Kubernetes, облако | |
 
 ### 3.2. `threatPreventionPractices`
 
-| Поле | Статус | Что на самом деле |
-|---|---|---|
-| `practiceMode`, `webAttacks.overrideMode` | ✅ | `inherited` — режим правила |
-| `webAttacks.minimumConfidence` | ✅ | |
-| `webAttacks.maxUrlSizeBytes`, `maxObjectDepth`, `maxBodySizeKb`, `maxHeaderSizeBytes` | ✅ | `PracticeAdvancedConfig` |
-| `webAttacks.protections.csrfProtection`, `errorDisclosure`, `openRedirect` | ✅ | Исправлено в NginxionS |
-| `webAttacks.protections.nonValidHttpMethods` | ✅ | Исправлено в NginxionS |
-| `snortSignatures.files` | 🟡 | Работает (конвертер на Node.js), но берётся **только первый файл** (`getFiles()[0]`) |
-| `snortSignatures.configmap` | ➖ | Kubernetes |
-| `intrusionPrevention.*` | ⛔ | Конфигурация генерируется, но сигнатуры Check Point IPS приходят ресурсом из облака (`registerExpectedResource("IPS", "protections")`). В закрытом контуре их нет, и IPS ничего не проверяет |
-| `fileSecurity.*` | ⛔ | Секция генерируется, но компонента File Security в агенте с открытым кодом нет |
-| `schemaValidation.*` | ⛔ | Агент только собирает данные для обновления схемы. Проверки запросов по OpenAPI в открытом коде нет |
-| `antiBot.*` | ⛔? | В WAAP есть внедрение скрипта (`Waf2Engine.cc`), но по документации open-appsec это Premium. Работу без облака нужно проверить на стенде |
+| Поле | Статус | Как сейчас | Было |
+|---|---|---|---|
+| `practiceMode`, `webAttacks.overrideMode` | ✅ | `inherited` — режим правила | |
+| `webAttacks.minimumConfidence` | ✅ | | |
+| `webAttacks.maxUrlSizeBytes`, `maxObjectDepth`, `maxBodySizeKb`, `maxHeaderSizeBytes` | ✅ | | |
+| `webAttacks.protections.csrfProtection`, `errorDisclosure`, `openRedirect` | ✅ | | всегда выключены |
+| `webAttacks.protections.nonValidHttpMethods` | ✅ | | не читалось |
+| `snortSignatures.files` | ✅ | Все файлы (A6), конвертер на Node.js | только первый файл |
+| `intrusionPrevention.*` | ✅ | Сигнатуры NginxionS из правил виртуальных патчей CrowdSec (раздел 8.1): все поля — режим, критичность, уверенность, влияние на скорость, год CVE, действия | сигнатуры только из облака Check Point |
+| `fileSecurity.overrideMode`, действия по уверенности, `largeFileInspection.*` | ✅ | ClamAV в nginx (раздел 8.4) | Premium |
+| `fileSecurity.minSeverityLevel`, `archiveInspection.*`, `unnamedFilesAction` | 🟡 | У сигнатур ClamAV нет критичности; архивы ClamAV проверяет всегда, вложенные тоже; загрузка проверяется целиком, без разбора на файлы. Поля не меняют проверку | Premium |
+| `fileSecurity.threatEmulationEnabled` | 🟡 | Песочницы Check Point нет: `true` — ошибка проверки, при импорте поле выключается и называется в плане | Premium |
+| `schemaValidation.*` | ✅ | AppSec CrowdSec по файлам OpenAPI, `enforcementLevel` `fullSchema` или `endpointOnly` (раздел 8.3) | Premium |
+| `antiBot.*` | ✅ | Проверка браузера AppSec CrowdSec на `injectedUris`, обязательная пройденная проверка на `validatedUris` (раздел 8.2) | Premium |
+| `snortSignatures.configmap`, `schemaValidation.configmap` | ➖ | Kubernetes | |
 
 ### 3.3. `accessControlPractices` (ограничение частоты)
 
-| Поле | Статус | Что на самом деле |
-|---|---|---|
-| `practiceMode`, `rateLimit.overrideMode` | ✅ | |
-| `rules[].uri`, `limit`, `unit` (`minute`/`second`) | ✅ | |
-| `rules[].triggers` | 🟡 | Работает, только если триггер правила политики назван и в правиле ограничения частоты |
-| `rules[].action` | ❌ | Генератор не читает поле. Действие всегда берётся из режима практики, хотя движок `rate_limit` действие правила поддерживает |
-| `rules[].condition` | ❌ | Генератор не читает поле и не пишет `match`, хотя движок поддерживает `match` |
-| `rules[].comment` | ✅ | Только текст |
-| одна практика в нескольких правилах | 🟡 | Агент хранит ограничение частоты по имени практики, поэтому действует последнее правило. Генератор NginxionS делает копии |
-| ответ при превышении | ❌ | Генератор не пишет `webUserResponseId`. Отвечает встроенный ответ движка, а не `customResponse` правила |
+| Поле | Статус | Как сейчас | Было |
+|---|---|---|---|
+| `practiceMode`, `rateLimit.overrideMode` | ✅ | | |
+| `rules[].uri`, `limit`, `unit` (`minute`/`second`) | ✅ | | |
+| `rules[].triggers` | ✅ | | только если триггер назван и в правиле политики |
+| `rules[].action` | ✅ | Своё действие правила (A2) | не читалось |
+| `rules[].condition` | ✅ | `match` движка: IP, идентификатор источника, страна, URL (A2) | не читалось |
+| `rules[].comment` | ✅ | Только текст | |
+| одна практика в нескольких правилах | ✅ | Ограничение хранится по ассету (A5) | действовало последнее правило |
+| ответ при превышении | ✅ | `customResponse` правила (A3) | встроенный ответ движка |
 
 Счётчик ограничения частоты ведётся по идентификатору источника правила (`sourceIdentifiers`), без него — по IP.
 
 ### 3.4. `customResponses`
 
-| Поле | Статус | Что на самом деле |
-|---|---|---|
-| `mode: response-code-only`, `httpResponseCode` | ✅ | |
-| `mode: block-page`, `messageTitle`, `messageBody` | ✅ | Стабильные ID и нейтральные тексты — исправлено в NginxionS |
-| `mode: redirect`, `redirectUrl`, `redirectAddXEventId` | ❌ | Поля прочитаны (`new_custom_response.cc`), но в секцию `WebUserResponse` не передаются: генератор пишет только код, заголовок и текст. Движок (`WebTriggerConf`) перенаправление умеет: ключи `redirect URL`, `xEventId`. **Сейчас перенаправление не работает** |
+| Поле | Статус | Как сейчас | Было |
+|---|---|---|---|
+| `mode: response-code-only`, `httpResponseCode` | ✅ | | |
+| `mode: block-page`, `messageTitle`, `messageBody` | ✅ | Стабильные ID, нейтральные тексты | |
+| `mode: redirect`, `redirectUrl`, `redirectAddXEventId` | ✅ | Перенаправление с ID события (A1) | не доходило до движка |
 
 ### 3.5. `logTriggers`
 
-| Поле | Статус | Что на самом деле |
-|---|---|---|
-| `accessControlLogging.*`, `appsecLogging.*`, `extendedLogging.*` | ✅ | |
-| `additionalSuspiciousEventsLogging.enabled`, `minSeverity`, `responseBody` | ✅ | |
-| `additionalSuspiciousEventsLogging.responseCode` | ❌ | Прочитано, но в секцию триггера не передаётся |
-| `logDestination.cloud` | ➖ | В hybrid-режиме агент принудительно ставит `false`. NginxionS тоже всегда пишет `false` |
-| `logDestination.local-tuning`, `logToAgent`, `stdout.format` | ✅ | NginxionS читает журналы агента и `local-tuning` |
-| `logDestination.syslogService`, `cefService` | 🟡 | Только **первый** сервис списка, только UDP (`proto` игнорируется), только IPv4-адрес |
-| `k8s-service` | ➖ | Kubernetes |
+| Поле | Статус | Как сейчас | Было |
+|---|---|---|---|
+| `accessControlLogging.*`, `appsecLogging.*`, `extendedLogging.*` | ✅ | | |
+| `additionalSuspiciousEventsLogging.*` | ✅ | `responseCode` передаётся в триггер (A7) | `responseCode` терялся |
+| `logDestination.local-tuning`, `logToAgent`, `stdout.format` | ✅ | NginxionS читает журналы агента | |
+| `logDestination.syslogService`, `cefService` | 🟡 | Протокол TCP/UDP передаётся (A8). Агент держит один поток каждого вида и открывает сокет к IPv4-адресу: проверка допускает один сервер и адрес IPv4 | только первый, только UDP |
+| `logDestination.cloud`, `k8s-service` | ➖ | Облако, Kubernetes | |
 
 ### 3.6. `exceptions`
 
-| Поле | Статус | Что на самом деле |
-|---|---|---|
-| `action`: `accept`, `drop`, `skip`, `suppressLog` | ✅ | `drop` → reject, `skip` → ignore, `suppressLog` → без записи в журнал |
-| `condition[].key` | 🟡 | Генератор знает только 9 ключей: `countryCode`, `countryName`, `hostName`, `paramName`, `paramValue`, `protectionName`, `sourceIdentifier`, `sourceIp`, `url`. Остальные молча отбрасываются. Движок WAAP сопоставляет и другие: `method`, `headerName`, `headerValue`, `paramLocation`, `indicator`, `keyword`, `responseCode`, `responseBody` (по коду; проверить на стенде) |
-| логика условий | 🟡 | Значения одного ключа — ИЛИ, разные ключи — И. Отрицания нет, хотя движок умеет `not-equals`, `not-in`, `exist` (`match_query.cc`). Значения динамических ключей (`url`, `paramName`…) — регулярные выражения |
+| Поле | Статус | Как сейчас | Было |
+|---|---|---|---|
+| `action`: `accept`, `drop`, `skip`, `suppressLog` | ✅ | | |
+| `condition[].key` | ✅ | 9 ключей v1beta2 и `method`, `headerName`, `headerValue`, `paramLocation`, `indicator` (`x-nginxions`) | остальные ключи отбрасывались |
+| `condition[].op` | ✅ | `equals`, `in`, `not-equals`, `not-in`, `exist` (`x-nginxions`) | отрицания не было |
 
 ### 3.7. `trustedSources`, `sourcesIdentifiers`
 
-| Поле | Статус | Что на самом деле |
-|---|---|---|
-| `trustedSources.minNumOfSources`, `sourcesIdentifiers` | 🟡 | См. 3.1: без `sourceIdentifiers` у правила список пуст |
-| `sourcesIdentifiers[].identifier` (`headerkey`, `JWTKey`, `cookie`, `sourceip`, `x-forwarded-for`) и `value` | ✅ | `JWTKey` → заголовок `authorization` |
+| Поле | Статус | Как сейчас | Было |
+|---|---|---|---|
+| `trustedSources.minNumOfSources`, `sourcesIdentifiers` | ✅ | См. 3.1 | пусто без `sourceIdentifiers` |
+| `sourcesIdentifiers[].identifier` (`headerkey`, `JWTKey`, `cookie`, `sourceip`, `x-forwarded-for`) и `value` | ✅ | `JWTKey` → заголовок `authorization` | |
 
 ## 4. Решение
 
@@ -178,9 +179,9 @@ NginxionS применяет все исключения в обоих синт�
 **Правило «нет молчаливых полей».** Каждое поле схемы попадает в одну из трёх групп:
 
 1. Работает: агент NginxionS применяет поле так, как описано в документации.
-2. Отклоняется: проверка политики (предпросмотр, импорт, API) возвращает ошибку с причиной. Сюда
-   относятся File Security, Schema Validation, IPS Check Point, а также Anti-Bot, пока он не проверен.
-   В GUI такие движки не показываются (сейчас — с пометкой «Premium»).
+2. Отклоняется: проверка политики (предпросмотр, импорт, API) возвращает ошибку с причиной. Сначала сюда
+   относились File Security, Schema Validation, IPS Check Point и Anti-Bot. Теперь их выполняет NginxionS
+   (раздел 8), и отклоняется только то, чего нет и у него: эмуляция угроз (песочница Check Point).
 3. Kubernetes или облако (`configmap`, `appsecClassName`, `policyActivations`, `cloud`, `k8s-service`,
    `autoUpgrade`): допускаются при импорте и выбрасываются с предупреждением.
 
@@ -264,8 +265,8 @@ NginxionS применяет все исключения в обоих синт�
 
 ### 5.4. GUI
 
-- Редактор объектов показывает только рабочие поля. Движки Premium и облака не показываются вовсе (сейчас —
-  с пометкой «Premium»).
+- Редактор объектов показывает только рабочие поля. Движки Premium выполняет NginxionS (раздел 8), их поля
+  есть в редакторе практики.
 - Новые поля в редакторе:
   - перенаправление (URL, X-Event-ID);
   - действие и условия правила ограничения частоты;
@@ -319,3 +320,97 @@ ML-анализ не повторяется: событие сохраняет �
 **Расширения `x-nginxions`** — условия исключений по методу, заголовку, месту параметра и индикатору, с отрицанием
 и `exist` (раздел 5.2). Дальше по фазе 12 — пункты агента и обучения в [ROADMAP.md](ROADMAP.md).
 
+## 8. Движки Premium в NginxionS
+
+В open-appsec IPS работает только с сигнатурами из облака Check Point, а Anti-Bot, Schema Validation и File
+Security есть только в Premium-версии. NginxionS выполняет их сам, на открытых компонентах стека, и не зависит от
+интернета. Поля практики остаются полями v1beta2: импорт и экспорт совместимы с open-appsec. В политике, которую
+получает агент, Anti-Bot, Schema Validation и File Security выключены (`waf/engines.js`, `forAgent`): их
+выполняют CrowdSec и nginx.
+
+### 8.1. IPS: сигнатуры NginxionS
+
+- Движок IPS есть в открытом коде агента, но загружал только зашифрованные сигнатуры Check Point. Теперь он
+  загружает открытые (`helper_open_source.cc`), а зашифрованные по-прежнему отклоняет.
+- Сигнатуры собираются из правил виртуальных патчей хаба CrowdSec (MIT): коллекции
+  `appsec-virtual-patching` и `appsec-generic-rules`. Конвертер — `waf/ips/vpatch.js`, запуск —
+  `scripts/update-ips-signatures.mjs`, результат — `openappsec/agent/nginxions/ips-protections.json` в образе.
+  Коммит хаба — `CROWDSEC_HUB_REF` в `deploy/openappsec/sources.env`, CI сверяет его с файлом.
+- Зоны запроса правила переводятся в контексты IPS: путь, URL, query, метод, заголовки, тело. Значения
+  переводятся в ключевые слова `data` и `pcre`. Регулярное выражение значения не выходит за границы значения:
+  например, `[^0-9]+` не захватывает соседний аргумент формы.
+- Не переводятся 12 правил из 215: им нужны libinjection, base64, длина или подсчёт, а в IPS этого нет. Такие
+  атаки всё равно ловят WAAP и AppSec CrowdSec.
+- Метаданные сигнатуры:
+  - критичность — по классу уязвимости (CWE);
+  - уверенность — из правила хаба;
+  - влияние на скорость — по тому, используются ли pcre и тело запроса;
+  - год — из номера CVE.
+- Генератор локальной политики добавляет сигнатуры в секцию IPS, когда практика включает
+  `intrusionPrevention` (`policy_maker_utils.cc`). Правила практики отбирают их по критичности,
+  уверенности, влиянию и году.
+- ctest `ips_ut` проверяет, что каждая сигнатура загружается и компилируется. Smoke проверяет, что
+  CVE-2017-9841 блокируется и попадает в события, а `minCveYear` 2018 его пропускает.
+
+### 8.2. Anti-Bot: проверка браузера AppSec CrowdSec
+
+- CrowdSec 1.8 умеет проверку браузера: proof-of-work и отпечаток браузера. NginxionS пишет appsec-config
+  `nginxions/policy` (`waf/engines.js`, файл `appsec-configs/nginxions-policy.yaml`) с хуками на правила
+  политики, у практики которых включён Anti-Bot.
+- Правило определяется так же, как в агенте: побеждает самый длинный `host[/path]`. Хук правила не
+  срабатывает на запросы более точных правил.
+- `injectedUris` — страницы, на которых браузер проходит проверку. Пройденная проверка ставит cookie. Без
+  путей проверка идёт на всех страницах хоста.
+- `validatedUris` — пути, которым нужна пройденная проверка:
+  - навигация браузера без cookie получает проверку;
+  - любой другой запрос без cookie отклоняется.
+- Сигналы автоматизации из отпечатка (webdriver, headless и т. п.) складываются в баллы с весами хаба
+  CrowdSec. При 75 баллах и больше проверка не засчитывается.
+- Проверенные хорошие боты (поисковики и т. п.) проверку не получают: коллекция
+  `appsec-bot-challenge-good-bots` поставляется в офлайн-снимке хаба.
+- В режиме detect проверка не показывается. Запрос без cookie на `validatedUris` проходит, но пишется в
+  события CrowdSec.
+- AppSec включается для этого сам, даже если он выключен в «CrowdSec → Настройки». Тогда работает только
+  конфиг политики. Нужен баунсер CrowdSec в nginx: он отправляет запросы в AppSec и показывает проверку. Его
+  версия поднята до lua-cs-bouncer v1.0.19.
+
+### 8.3. Schema Validation: OpenAPI в AppSec CrowdSec
+
+- Файлы OpenAPI 3 или Swagger 2.0 загружаются в редакторе практики (`waf/schemas.js`). NginxionS хранит их
+  у себя и копирует в данные CrowdSec, в `schemas/nginxions/`.
+- appsec-config политики загружает файлы (`LoadAPISchemaWithOptions`). Запрос хоста проверяется на
+  соответствие одному из файлов практики: путь, метод, параметры, тело.
+- `enforcementLevel`:
+  - `fullSchema` (по умолчанию) отклоняет и пути, которых нет в файлах;
+  - `endpointOnly` проверяет только пути из файлов.
+- Detect записывает отказ в события и пропускает запрос.
+- Файл, который использует практика, удалить нельзя. Файл, которого нет в NginxionS, становится
+  предупреждением политики. Новая загрузка файла с тем же именем перезагружает CrowdSec.
+
+### 8.4. File Security: ClamAV
+
+- Контейнер `clamav` (официальный образ со снимком сигнатур) входит в стек.
+- clamd работает, только пока практика с File Security применена хотя бы к одному хосту: его сигнатуры занимают
+  около 1 ГБ памяти. NginxionS пишет флаг в общий том и перезапускает контейнер
+  (`deploy/clamav/nginxions-clamav.sh`).
+- У хоста с File Security nginx проверяет тело загрузки (POST, PUT, PATCH) до того, как отдать запрос дальше
+  (`nginxions_files.lua`):
+  - отдаёт его clamd потоком (INSTREAM);
+  - вирус отклоняет (403, страница блокировки) или только пишет в журнал;
+  - находки попадают в события WAF (`waf/files.js`).
+- Действие зависит от уверенности сигнатуры ClamAV:
+  - вредоносное ПО — высокая;
+  - PUA — средняя;
+  - эвристика — низкая.
+- Загрузка больше `largeFileInspection.fileSizeLimit` (10 МБ по умолчанию) не проверяется. С ней поступают по
+  `filesExceedingSizeLimitAction`.
+- Если clamd не отвечает (запускается или перегружен), загрузка проходит, как при fail-open агента.
+- Сигнатуры:
+  - снимок образа;
+  - файлы `.cvd`/`.cld`, загруженные в «WAF → Агент → File Security» (без интернета);
+  - freshclam, если там разрешены обновления через интернет.
+- Ограничения ClamAV:
+  - у сигнатур нет критичности (`minSeverityLevel`);
+  - архивы проверяются всегда, вложенные тоже (`archiveInspection`);
+  - загрузка проверяется целиком, без разбора на файлы (`unnamedFilesAction`);
+  - эмуляции угроз нет (`threatEmulationEnabled` отклоняется).

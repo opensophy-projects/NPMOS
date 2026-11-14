@@ -456,6 +456,50 @@ if $CURL "$ADMIN/api/nginxions/waf" | grep -q '"reachable": *true'; then
   wait_status_stable "$PHPUNIT" 200 "the path of PHPUnit is blocked once the IPS is off"
   wait_status "$SQLI" 403 "SQLi is not blocked once the practice with the IPS is gone"
 
+  step "WAF -> Policy: File Security of a practice: an upload with a virus is refused (ClamAV), a clean one passes"
+  # the EICAR test file of antivirus vendors; the ML model of the WAF only logs here (webAttacks detect), so a 403 is
+  # the one of File Security
+  EICAR='X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
+  upload() {
+    printf '%s' "$1" | curl -s -o /dev/null -w '%{http_code}' --max-time 30 -H 'Host: test.local' \
+      -H 'Content-Type: application/octet-stream' --data-binary @- "$HTTP/smoke-upload"
+  }
+  files_spec() {
+    printf '{"kind": "threat_prevention", "name": "smoke-files", "spec": {"practiceMode": "inherited",
+      "webAttacks": {"overrideMode": "detect", "minimumConfidence": "high"}, "fileSecurity": {"overrideMode": "%s"}}}' "$1"
+  }
+  files=$(post_json POST /objects "$(files_spec prevent)" | new_id)
+  [ -n "$files" ] || fail "the practice with File Security was not created"
+  host_objects "{\"threatPreventionPractices\": [$files]}"
+  # clamd starts with the first practice that needs it and loads its signatures: up to a few minutes
+  for i in $(seq 1 120); do
+    [ "$(upload "$EICAR")" = 403 ] && break
+    [ "$i" = 120 ] && fail "an upload with the EICAR test file is not refused: $($CURL "$ADMIN/api/nginxions/waf/files")"
+    sleep 3
+  done
+  $CURL "$ADMIN/api/nginxions/waf/files" | grep -q '"clamd": *"ClamAV ' || fail "clamd does not answer NginxionS"
+  [ "$(upload 'a clean file of the smoke test')" = 200 ] || fail "a clean upload is refused"
+  for i in $(seq 1 30); do
+    $CURL "$ADMIN/api/nginxions/events?kind=all&host=test.local&q=EICAR&limit=1" \
+      | grep -q '"incident_type": *"File Security"' && break
+    [ "$i" = 30 ] && fail "the refused upload is not in the events: $($CURL "$ADMIN/api/nginxions/events?kind=all&limit=3" | head -c 600)"
+    sleep 2
+  done
+  step "WAF -> Policy: File Security in detect lets the upload through; off, clamd stops"
+  post_json PUT "/objects/$files" "$(files_spec detect)" > /dev/null
+  for i in $(seq 1 60); do
+    [ "$(upload "$EICAR")" = 200 ] && break
+    [ "$i" = 60 ] && fail "File Security in detect still refuses the upload"
+    sleep 2
+  done
+  host_objects null
+  for i in $(seq 1 30); do
+    $CURL "$ADMIN/api/nginxions/waf/files" | grep -q '"enabled": *false' && break
+    [ "$i" = 30 ] && fail "clamd is still on with no practice that needs it"
+    sleep 2
+  done
+  wait_status "$SQLI" 403 "SQLi is not blocked once the practice with File Security is gone"
+
   step "WAF -> Policy: a custom response «response code only» answers with its own code"
   code406=$(post_json POST /objects '{"kind": "custom_response", "name": "smoke-406",
     "spec": {"mode": "response-code-only", "httpResponseCode": 406}}' | new_id)

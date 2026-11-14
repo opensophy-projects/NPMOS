@@ -31,11 +31,12 @@ import internalRbac from "./rbac/index.js";
 import internalServices from "./services.js";
 import internalSystem from "./system/index.js";
 import internalWafAgent from "./waf/agent-settings.js";
-import { getAgentMetrics } from "./waf/metrics.js";
 import internalWafExpert from "./waf/expert.js";
+import internalWafFiles, { MAX_SIGNATURE_BYTES } from "./waf/files.js";
 import internalWafHosts from "./waf/hosts.js";
 import internalWafHostCode from "./waf/hosts-code.js";
 import internalWaf from "./waf/index.js";
+import { getAgentMetrics } from "./waf/metrics.js";
 import internalWafObjects, { simulateHostMode } from "./waf/objects/api.js";
 import internalWafSchemas from "./waf/schemas.js";
 import internalWafTrial from "./waf/trial.js";
@@ -1543,6 +1544,30 @@ router
 		),
 	)
 	.delete(handle((req, res) => internalWafObjects.delete(res.locals.access, req.params.object_id)));
+
+/**
+ * File Security: ClamAV (waf/files.js)
+ * GET /api/nginxions/waf/files — clamd, the hosts that check uploads, uploaded signatures, settings
+ * PUT /api/nginxions/waf/files — {online_updates}: freshclam (needs the internet) on or off
+ * PUT /api/nginxions/waf/files/signatures/:name — body: a signature database of ClamAV (main.cvd, daily.cld...)
+ */
+router
+	.route("/waf/files")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_req, res) => internalWafFiles.status(res.locals.access)))
+	.put(handle((req, res) => internalWafFiles.setSettings(res.locals.access, req.body)));
+
+router
+	.route("/waf/files/signatures/:name")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.put(
+		express.raw({ type: () => true, limit: MAX_SIGNATURE_BYTES }),
+		handle((req, res) =>
+			internalWafFiles.uploadSignatures(res.locals.access, String(req.params.name), rawBytes(req)),
+		),
+	);
 
 /**
  * OpenAPI files of schemaValidation (waf/schemas.js)

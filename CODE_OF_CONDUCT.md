@@ -184,12 +184,14 @@ flowchart LR
 
 ### `deploy/` — запуск стека
 
-- `compose.yaml` — прод-стек: `nginxions`, `openappsec`, `crowdsec`, `postgres` и разовый `nginxions-init`
+- `compose.yaml` — прод-стек: `nginxions`, `openappsec`, `crowdsec`, `clamav`, `postgres` и разовый `nginxions-init`
 - `compose.dev.yaml` — надстройка для разработки: dev-образ, синхронизация backend, генератор атак
 - `.env` — закреплённые версии образов и реестр
 - **`init/`**
   - `nginxions-init.sh` — разовый старт: секреты, каталоги томов, офлайн-снимок hub CrowdSec
   - `postgres-init.sh` — базы и пользователи postgres при первом запуске
+- **`clamav/`**
+  - `nginxions-clamav.sh` — запуск контейнера `clamav`: clamd только пока File Security включён в практике (флаг NginxionS), загруженные сигнатуры, freshclam по разрешению
 - **`openappsec/`** — образ `nginxions-openappsec`
   - `Dockerfile` — агент open-appsec (C++), shared storage и tuning (Go) из исходников корневого `openappsec/`, `nginxions-control`
   - `nginxions-openappsec.sh` — запуск процессов контейнера: агент, shared storage, tuning, `nginxions-control`
@@ -308,6 +310,7 @@ flowchart LR
   - `usr/local/nginx/html/nginxions-mtls-denied.html` — страница «нужен клиентский сертификат»
   - `usr/local/lua/nginxions/nginxions_block_page.lua` — подстановка настроек в страницу блокировки
   - `usr/local/lua/nginxions/nginxions_error_page.lua` — подстановка кода и текста в страницу ошибок
+  - `usr/local/lua/nginxions/nginxions_files.lua` — File Security: тело загрузки потоком в clamd (INSTREAM), отказ или запись находки
   - `etc/nginxions/crowdsec-ban.html`, `crowdsec-captcha.html` — страницы бана и капчи баунсера CrowdSec
 - **`backend/`** — API на Node.js
   - `index.js` — запуск: миграции, затем `bootstrap` модулей NginxionS (ACME, WAF, PKI, CrowdSec, GeoIP…), фоновые задачи
@@ -346,6 +349,7 @@ flowchart LR
     - **`events/`** — события и аналитика
       - `ingest.js` — фоновый приём: лог агента open-appsec, лог запросов nginx, обслуживание таблиц
       - `tail.js` — чтение того, что агент дописал в лог с прошлого раза
+      - `jsonlog.js` — чтение журнала nginx из JSON-строк (отказы mTLS, находки File Security) в события
       - `normalize.js` — запись лога агента → строка события
       - `store.js` — хранение: дневные разделы, агрегаты, срок хранения
       - `index.js` — Аналитика → События: фильтры, страницы, общая лента «Все»
@@ -393,6 +397,7 @@ flowchart LR
       - `custom.js`, `expert.js` — свои YAML-фрагменты поверх политики (режим эксперта)
       - `engines.js` — движки практики, которые выполняет AppSec CrowdSec (`antiBot`: проверка браузера; `schemaValidation`: запросы по OpenAPI): appsec-config `nginxions/policy` из правил политики, для агента они выключены
       - `schemas.js` — файлы OpenAPI для `schemaValidation`: загрузка, проверка, копирование в данные CrowdSec
+      - `files.js` — File Security практики (ClamAV): правила по хостам для nginx, запуск clamd, сигнатуры, находки → события
       - **`ips/`** — `vpatch.js` (правило виртуального патча CrowdSec → сигнатуры IPS агента: зоны запроса → контексты IPS, значения → data/pcre)
       - **`objects/`** — `model.js` (объекты политики в терминах v1beta2 и проверка «нет молчаливых полей»), `store.js` (хранение и сборка политики), `api.js` (объекты, политика по умолчанию, предпросмотр, импорт), `format.js` (v1beta2 для агента, v1beta1 для импорта и экспорта), `compare.js` (сравнение применённой агентом конфигурации с политикой), `simulate.js` (пробный прогон изменения на недавних событиях WAF), `schema-v1beta2.json` (схема политики), `examples/` (примеры политик open-appsec для тестов)
     - **`migrations/`** — миграции таблиц `nginxions_*` (по одной на изменение схемы, имя начинается с даты)
@@ -429,7 +434,7 @@ flowchart LR
       - `AuditLog/` — журнал аудита
       - `Crowdsec/` — Блокировки и CrowdSec: решения (`Decisions.tsx`), срабатывания (`Triggers.tsx`), hub (`Hub.tsx`), блок-листы (`Blocklists.tsx`), настройки (`Settings.tsx`)
       - `AgentOpenappsec/` — Агенты → open-appsec: политика, хосты, обучение
-      - `WafAgent/` — состояние, метрики (`AgentMetrics.tsx`) и настройки агента (`AgentSettings.tsx`)
+      - `WafAgent/` — состояние, метрики (`AgentMetrics.tsx`), настройки агента (`AgentSettings.tsx`), File Security / ClamAV (`FileSecurity.tsx`)
       - `WafPolicy/`, `WafExpert/` — политика из объектов и режим эксперта
       - `BlockPage/` — Агенты → Страница блокировки с предпросмотром
       - `Certificates/` — реестр всех сертификатов

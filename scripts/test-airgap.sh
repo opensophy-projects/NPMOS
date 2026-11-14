@@ -12,7 +12,7 @@ cd "$(dirname "$0")/.."
 
 export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-nginxions-airgap}"
 compose=(docker compose -f deploy/compose.yaml -f deploy/test/compose.airgap.yaml)
-read -r -a services <<< "${SERVICES:-nginxions openappsec crowdsec}"
+read -r -a services <<< "${SERVICES:-nginxions openappsec crowdsec clamav}"
 
 cleanup() {
   status=$?

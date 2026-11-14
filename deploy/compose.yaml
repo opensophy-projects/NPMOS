@@ -9,7 +9,7 @@
 # Settings below are bootstrap parameters only; see docs/ENV-INVENTORY.md.
 #
 # Containers: nginxions (nginx, the panel, the backend), openappsec (the WAF agent and its learning services,
-# nginxions-control), crowdsec, postgres; nginxions-init runs once at start. nginxions and openappsec are built by the
+# nginxions-control), crowdsec, clamav (File Security of the WAF policy), postgres; nginxions-init runs once at start. nginxions and openappsec are built by the
 # NginxionS project (${NGINXIONS_REGISTRY}/nginxions, /nginxions-openappsec), CrowdSec and Postgres are the official images.
 # Versions are pinned in deploy/.env (read automatically by compose).
 #
@@ -213,6 +213,8 @@ services:
       # symlinks resolve in both (nginxions/backend/nginxions/crowdsec)
       - crowdsec-conf:/etc/crowdsec
       - crowdsec-data:/var/lib/crowdsec/data
+      # File Security (WAF policy): the flag that starts clamd, signature files uploaded in the GUI
+      - clamav-control:/var/lib/nginxions-clamav
 
   postgres:
     <<: *managed
@@ -301,6 +303,44 @@ services:
     networks:
       - internal
 
+  clamav:
+    <<: *managed
+    # official image with a snapshot of the signatures; clamd runs only while a practice of the WAF policy has File
+    # Security on (deploy/clamav/nginxions-clamav.sh): without it the container waits and takes no memory
+    image: docker.io/clamav/clamav:${CLAMAV_VERSION}
+    container_name: nginxions-clamav
+    entrypoint: ["/bin/sh", "/nginxions-clamav.sh"]
+    security_opt:
+      - no-new-privileges:true
+    # the entrypoint of the image hands /var/lib/clamav to its user clamav, clamd drops to it
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    environment:
+      TZ: ${TZ:-UTC}
+      # an upload is streamed to clamd whole (nginxions_files.lua): the limits of the practice come first
+      CLAMD_CONF_StreamMaxLength: 200M
+      CLAMD_CONF_MaxFileSize: 200M
+      CLAMD_CONF_MaxScanSize: 400M
+    healthcheck:
+      # healthy while it waits (File Security off) or once clamd answers
+      test: ["CMD-SHELL", "[ ! -f /nginxions/enabled ] || clamdcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      start_period: 5m
+      retries: 3
+    volumes:
+      - ./clamav/nginxions-clamav.sh:/nginxions-clamav.sh:ro
+      - clamav-db:/var/lib/clamav
+      - clamav-control:/nginxions:ro
+    networks:
+      - internal
+
 networks:
   # published ports; egress only for what the admin enables (e.g. ACME)
   edge: {}
@@ -325,3 +365,7 @@ volumes:
   appsec-storage: {}
   crowdsec-conf: {}
   crowdsec-data: {}
+  # the signatures of ClamAV (the snapshot of the image on the first start, then freshclam or uploads)
+  clamav-db: {}
+  # written by NginxionS, read by clamav: the flag that starts clamd, uploaded signature files
+  clamav-control: {}

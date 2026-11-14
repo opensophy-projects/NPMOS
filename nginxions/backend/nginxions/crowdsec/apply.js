@@ -7,6 +7,8 @@ import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { global as logger } from "../../logger.js";
 import control from "../control/client.js";
+import { GOOD_BOTS, getEngines, schemaFiles, usesChallenge } from "../waf/engines.js";
+import { appsecPolicyText, syncToCrowdsec } from "../waf/schemas.js";
 import {
 	fatalMessages,
 	renderAcquis,
@@ -19,8 +21,6 @@ import {
 	unwantedItems,
 	withPolicy,
 } from "./config.js";
-import { GOOD_BOTS, getEngines, schemaFiles, usesChallenge } from "../waf/engines.js";
-import { appsecPolicyText, syncToCrowdsec } from "../waf/schemas.js";
 import { CONF_DIR, install, remove } from "./hub.js";
 import { health, registrationToken } from "./lapi.js";
 

@@ -14,7 +14,7 @@ NginxionS — форк NPMplus с встроенными open-appsec (ML-WAF) и
 | `nginxions/` | NPMplus (git subtree, upstream `ZoeyVid/NPMplus`) + наши изменения | см. «Изменения в upstream-коде» |
 | `nginxions/backend/nginxions/`, `nginxions/frontend/src/nginxions/` | Наш код (модули NginxionS) | Новый код — сюда |
 | `openappsec/` | Исходники агента NginxionS: open-appsec `agent/`, `attachment/`, `smartsync-shared-files/`, `smartsync-tuning/`, `smartsync/` (git subtree, upstream `openappsec/*`) | Свой код агента; изменения upstream-файлов — с меткой `NginxionS:`, как в `nginxions/` |
-| `deploy/` | `compose.yaml` (прод: `nginxions`, `openappsec`, `crowdsec`, `postgres` + разовый `nginxions-init`), `compose.dev.yaml`, `.env` (версии), `init/`, `openappsec/` (образ `nginxions-openappsec`), `test/` | |
+| `deploy/` | `compose.yaml` (прод: `nginxions`, `openappsec`, `crowdsec`, `clamav`, `postgres` + разовый `nginxions-init`), `compose.dev.yaml`, `.env` (версии), `init/`, `openappsec/` (образ `nginxions-openappsec`), `test/` | |
 | `docs/` | План, ADR, инвентаризация env | |
 
 ## Изменения в upstream-коде (`nginxions/`)
@@ -66,7 +66,7 @@ scripts/test-airgap.sh
 |---|---|---|
 | `nginxions` | `nginxions/Dockerfile` (+ стадия `crowdsec-seed`; контекст сборки `attachment=openappsec/attachment`) | долго: nginx, aws-lc, attachment из исходников |
 | `nginxions-openappsec` | `deploy/openappsec/Dockerfile`: агент (C++), shared storage и tuning (Go) из `openappsec/` (контекст сборки `openappsec=openappsec`), `nginxions-control` (контекст `control=nginxions/backend/nginxions/control`) | долго: C++ |
-| CrowdSec, Postgres | официальные образы, версии в `deploy/.env` | — |
+| CrowdSec, ClamAV, Postgres | официальные образы, версии в `deploy/.env` | — |
 
 Модель агента в образе — продвинутая модель Check Point (`openappsec/agent/components/security_apps/waap/resources/waap.data`, лицензия внутри
 файла). Модель WAF NginxionS обучается из неё в CI на настоящем агенте (`training.yml`: ветки `training/**` или `[train]` в коммите) и

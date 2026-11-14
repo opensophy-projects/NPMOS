@@ -18,6 +18,7 @@ import db from "../../db.js";
 import { debug, global as logger } from "../../logger.js";
 import { getCurrentCustom, mergeCustom, parseCustom } from "./custom.js";
 import { appsecRules, forAgent, schemaFiles, setEngines } from "./engines.js";
+import { applyFiles } from "./files.js";
 import { asV2, danglingRefs, extraRefs } from "./objects/format.js";
 import { UNSUPPORTED_ENGINES } from "./objects/model.js";
 import { buildDoc, seedBuiltins } from "./objects/store.js";
@@ -218,6 +219,12 @@ const regenerate = async ({ force = false } = {}) => {
 	if (changed || force) {
 		retries = 0;
 		await notifyAgent();
+	}
+	// File Security: the hosts that check uploads with ClamAV, and clamd itself
+	try {
+		await applyFiles(doc);
+	} catch (err) {
+		logger.error(`WAF: File Security was not applied: ${err.message}`);
 	}
 	// antiBot and schemaValidation run in AppSec of CrowdSec: its appsec-config follows the policy
 	if (setEngines(appsec)) {

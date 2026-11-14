@@ -5573,6 +5573,27 @@
 	"nginxions.policy.f.extendedLogging.urlQuery": {
 		"defaultMessage": "URL query"
 	},
+	"nginxions.policy.f.fileSecurity.highConfidenceEventAction": {
+		"defaultMessage": "Action for a virus of high confidence (malware signatures)"
+	},
+	"nginxions.policy.f.fileSecurity.largeFileInspection.fileSizeLimit": {
+		"defaultMessage": "Largest upload that is checked"
+	},
+	"nginxions.policy.f.fileSecurity.largeFileInspection.fileSizeLimitUnit": {
+		"defaultMessage": "Unit of the size"
+	},
+	"nginxions.policy.f.fileSecurity.largeFileInspection.filesExceedingSizeLimitAction": {
+		"defaultMessage": "Action for a larger upload (not checked)"
+	},
+	"nginxions.policy.f.fileSecurity.lowConfidenceEventAction": {
+		"defaultMessage": "Action for low confidence (heuristics)"
+	},
+	"nginxions.policy.f.fileSecurity.mediumConfidenceEventAction": {
+		"defaultMessage": "Action for medium confidence (potentially unwanted programs, PUA)"
+	},
+	"nginxions.policy.f.fileSecurity.overrideMode": {
+		"defaultMessage": "Mode"
+	},
 	"nginxions.policy.f.httpResponseCode": {
 		"defaultMessage": "HTTP code"
 	},
@@ -5692,6 +5713,9 @@
 	},
 	"nginxions.policy.h.extendedLogging": {
 		"defaultMessage": "Details"
+	},
+	"nginxions.policy.h.fileSecurity": {
+		"defaultMessage": "File Security: uploads checked by ClamAV"
 	},
 	"nginxions.policy.h.intrusionPrevention": {
 		"defaultMessage": "IPS: signatures of known vulnerabilities (CVE)"
@@ -7903,6 +7927,42 @@
 	},
 	"nginxions.waf.expert.versions": {
 		"defaultMessage": "Versions"
+	},
+	"nginxions.waf.files.off": {
+		"defaultMessage": "Off: no practice has File Security on"
+	},
+	"nginxions.waf.files.on": {
+		"defaultMessage": "On, uploads of {hosts} host(s) are checked"
+	},
+	"nginxions.waf.files.online": {
+		"defaultMessage": "Update the signatures online (freshclam, needs the internet)"
+	},
+	"nginxions.waf.files.saved": {
+		"defaultMessage": "Saved, ClamAV restarts"
+	},
+	"nginxions.waf.files.signatures": {
+		"defaultMessage": "Signatures"
+	},
+	"nginxions.waf.files.starting": {
+		"defaultMessage": "Starting: ClamAV is loading its signatures (uploads pass until then)"
+	},
+	"nginxions.waf.files.state": {
+		"defaultMessage": "State"
+	},
+	"nginxions.waf.files.text": {
+		"defaultMessage": "Uploads to the hosts whose practice has File Security on are checked by ClamAV before they reach the server. ClamAV runs only while a practice needs it: its signatures take about 1 GB of memory."
+	},
+	"nginxions.waf.files.title": {
+		"defaultMessage": "File Security (ClamAV)"
+	},
+	"nginxions.waf.files.upload": {
+		"defaultMessage": "Upload signatures (main.cvd, daily.cvd…)"
+	},
+	"nginxions.waf.files.uploaded": {
+		"defaultMessage": "Uploaded in NginxionS: {files}"
+	},
+	"nginxions.waf.files.uploaded-now": {
+		"defaultMessage": "Signatures uploaded, ClamAV restarts with them"
 	},
 	"nginxions.waf.host-description": {
 		"defaultMessage": "The WAF analyses every request to this host with machine learning. Start in Detect-Learn: the model learns your normal traffic and only logs attacks; switch to Prevent-Learn when the events look right."

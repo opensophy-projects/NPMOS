@@ -1,25 +1,12 @@
 // Requests refused by mTLS → nginxions_security_event (kind "mtls"): nginx writes them to their own log
 // (_nginxions_mtls.conf, format nginxions_mtls of conf.d/nginxions-mtls-log.conf), read here every few seconds.
 // The position is the cursor "mtls:denied" in nginxions_log_cursor, stored with the rows.
-import { createHash } from "node:crypto";
-import { open, truncate } from "node:fs/promises";
-import { global as logger } from "../../logger.js";
-import { loadCursors, oldestKeptDay, store } from "../events/store.js";
-import { getSetting } from "../settings.js";
+import { pollJsonLog, startJsonLog } from "../events/jsonlog.js";
 
 export const LOG_FILE = process.env.NGINXIONS_MTLS_LOG || "/data/nginx/logs/nginxions-mtls.log";
 const CURSOR = "mtls:denied";
-const INTERVAL_MS = 5000;
-const MAX_BYTES = 1024 * 1024;
-const HEAD_BYTES = 64;
-/** the log is emptied when everything is read and it is larger (logrotate may be off) */
-const TRUNCATE_BYTES = 10 * 1024 * 1024;
-
-const state = { running: false, timer: null, lastError: null };
 
 const str = (v, max = 255) => String(v ?? "").slice(0, max);
-// nosemgrep: nginxions-weak-hash -- recognizes a rotated log by its first bytes (a cursor stored in the database), not a secret
-const hash = (b) => createHash("sha1").update(b).digest("hex");
 
 /**
  * @param {object} line  a line of the log (JSON)
@@ -71,75 +58,7 @@ export const toEvent = (line, nodeId = "local") => {
 };
 
 /** one round: new lines of the log → events */
-export const pollOnce = async ({ file = LOG_FILE, now = new Date() } = {}) => {
-	let handle;
-	try {
-		handle = await open(file, "r");
-	} catch {
-		return [];
-	}
-	const events = [];
-	try {
-		const { size } = await handle.stat();
-		const cursor = (await loadCursors()).get(CURSOR);
-		const headBuf = Buffer.alloc(Math.min(HEAD_BYTES, size));
-		await handle.read(headBuf, 0, headBuf.length, 0);
-		// emptied (logrotate copytruncate, or by us) or another file: from the start
-		let offset =
-			cursor && cursor.offset <= size && cursor.head === hash(headBuf.subarray(0, cursor.headLength))
-				? cursor.offset
-				: 0;
-		if (offset === size) {
-			if (size > TRUNCATE_BYTES) {
-				await truncate(file, 0);
-				await store({
-					events: [],
-					telemetry: [],
-					cursors: [{ key: CURSOR, file, offset: 0, head: hash(Buffer.alloc(0)), head_length: 0 }],
-				});
-			}
-			return [];
-		}
-		const length = Math.min(MAX_BYTES, size - offset);
-		const buf = Buffer.alloc(length);
-		await handle.read(buf, 0, length, offset);
-		const end = buf.lastIndexOf(0x0a);
-		if (end < 0) return [];
-		const oldest = oldestKeptDay((await getSetting("events.retention")).days, now);
-		for (const text of buf.subarray(0, end).toString("utf8").split("\n")) {
-			try {
-				const e = toEvent(JSON.parse(text));
-				if (e && e.time >= oldest) events.push(e);
-			} catch {
-				// a broken line
-			}
-		}
-		offset += end + 1;
-		await store({
-			events,
-			telemetry: [],
-			cursors: [{ key: CURSOR, file, offset, head: hash(headBuf), head_length: headBuf.length }],
-		});
-	} finally {
-		await handle.close();
-	}
-	return events;
-};
+export const pollOnce = ({ file = LOG_FILE, now = new Date() } = {}) =>
+	pollJsonLog({ file, cursor: CURSOR, toEvent, now });
 
-const round = async () => {
-	try {
-		await pollOnce();
-		state.lastError = null;
-	} catch (err) {
-		if (state.lastError !== err.message) logger.error(`NginxionS mTLS denials: ${err.message}`);
-		state.lastError = err.message;
-	} finally {
-		if (state.running) state.timer = setTimeout(round, INTERVAL_MS);
-	}
-};
-
-export const startDenials = () => {
-	if (state.running) return;
-	state.running = true;
-	state.timer = setTimeout(round, 1000);
-};
+export const startDenials = () => startJsonLog({ name: "mTLS denials", file: LOG_FILE, cursor: CURSOR, toEvent });

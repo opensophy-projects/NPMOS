@@ -11,6 +11,8 @@ import { prepareHost as prepareCrowdsec } from "../nginxions/crowdsec/bouncer.js
 import { prepareHost as prepareGeo } from "../nginxions/geo/index.js";
 // NginxionS: mTLS of hosts and streams from PKI and mTLS (CAs, CRLs, rules, locations)
 import { prepareHost as prepareMtls } from "../nginxions/pki/mtls.js";
+// NginxionS: File Security of the WAF policy (uploads checked by ClamAV) on the hosts that have it
+import { prepareHost as prepareFiles } from "../nginxions/waf/files.js";
 // NginxionS: the WAF policy has rules per proxy host, regenerate it whenever a host config changes
 import { scheduleRegenerate as scheduleWafPolicy } from "../nginxions/waf/policy.js";
 import internalProxyHostAccessList from "./proxy-host-access-list.js";
@@ -285,6 +287,8 @@ const internalNginx = {
 		await prepareCrowdsec(host_type, host);
 		// NginxionS: nginxions_geo of the templates (checked, never the raw meta)
 		prepareGeo(host_type, host);
+		// NginxionS: nginxions_files of the templates (File Security of the WAF policy)
+		await prepareFiles(host_type, host);
 
 		if (
 			host.forward_host &&

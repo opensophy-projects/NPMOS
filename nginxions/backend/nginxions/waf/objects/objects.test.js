@@ -126,11 +126,16 @@ test("fragments in either syntax; the agent always gets v1beta2, without copies 
 });
 
 test("no silent fields: what the agent does not apply is an error, or dropped and named", () => {
-	const files = { webAttacks: { overrideMode: "inherited" }, fileSecurity: { overrideMode: "inherited" } };
-	assert.match(normalize("threat_prevention", files).errors.join(), /fileSecurity: not in the agent/);
+	// threat emulation is a sandbox of Check Point: File Security of NginxionS (ClamAV) has none
+	const files = {
+		webAttacks: { overrideMode: "inherited" },
+		fileSecurity: { overrideMode: "inherited", threatEmulationEnabled: true },
+	};
+	assert.match(normalize("threat_prevention", files).errors.join(), /threatEmulationEnabled: threat emulation/);
 	const imported = normalize("threat_prevention", files, { lenient: true });
-	assert.equal(imported.spec.fileSecurity.overrideMode, "inactive");
-	assert.deepEqual(imported.dropped, ["/fileSecurity"]);
+	assert.equal(imported.spec.fileSecurity.threatEmulationEnabled, false);
+	assert.equal(imported.spec.fileSecurity.overrideMode, "inherited");
+	assert.deepEqual(imported.dropped, ["/fileSecurity/threatEmulationEnabled"]);
 	// the IPS has the signatures of NginxionS
 	const ips = { webAttacks: { overrideMode: "inherited" }, intrusionPrevention: { overrideMode: "prevent" } };
 	assert.equal(normalize("threat_prevention", ips).errors, undefined);

@@ -5573,6 +5573,27 @@
 	"nginxions.policy.f.extendedLogging.urlQuery": {
 		"defaultMessage": "Параметры URL"
 	},
+	"nginxions.policy.f.fileSecurity.highConfidenceEventAction": {
+		"defaultMessage": "Действие для вируса высокой уверенности (сигнатуры вредоносного ПО)"
+	},
+	"nginxions.policy.f.fileSecurity.largeFileInspection.fileSizeLimit": {
+		"defaultMessage": "Наибольший размер проверяемой загрузки"
+	},
+	"nginxions.policy.f.fileSecurity.largeFileInspection.fileSizeLimitUnit": {
+		"defaultMessage": "Единица размера"
+	},
+	"nginxions.policy.f.fileSecurity.largeFileInspection.filesExceedingSizeLimitAction": {
+		"defaultMessage": "Действие для загрузки крупнее (не проверяется)"
+	},
+	"nginxions.policy.f.fileSecurity.lowConfidenceEventAction": {
+		"defaultMessage": "Действие для низкой уверенности (эвристика)"
+	},
+	"nginxions.policy.f.fileSecurity.mediumConfidenceEventAction": {
+		"defaultMessage": "Действие для средней уверенности (потенциально нежелательные программы, PUA)"
+	},
+	"nginxions.policy.f.fileSecurity.overrideMode": {
+		"defaultMessage": "Режим"
+	},
 	"nginxions.policy.f.httpResponseCode": {
 		"defaultMessage": "HTTP-код"
 	},
@@ -5692,6 +5713,9 @@
 	},
 	"nginxions.policy.h.extendedLogging": {
 		"defaultMessage": "Подробности"
+	},
+	"nginxions.policy.h.fileSecurity": {
+		"defaultMessage": "File Security: проверка загружаемых файлов антивирусом ClamAV"
 	},
 	"nginxions.policy.h.intrusionPrevention": {
 		"defaultMessage": "IPS: сигнатуры известных уязвимостей (CVE)"
@@ -7903,6 +7927,42 @@
 	},
 	"nginxions.waf.expert.versions": {
 		"defaultMessage": "Версии"
+	},
+	"nginxions.waf.files.off": {
+		"defaultMessage": "Выключен: ни у одной практики нет File Security"
+	},
+	"nginxions.waf.files.on": {
+		"defaultMessage": "Включён, проверяются загрузки хостов: {hosts}"
+	},
+	"nginxions.waf.files.online": {
+		"defaultMessage": "Обновлять сигнатуры через интернет (freshclam)"
+	},
+	"nginxions.waf.files.saved": {
+		"defaultMessage": "Сохранено, ClamAV перезапускается"
+	},
+	"nginxions.waf.files.signatures": {
+		"defaultMessage": "Сигнатуры"
+	},
+	"nginxions.waf.files.starting": {
+		"defaultMessage": "Запускается: ClamAV загружает сигнатуры (до этого загрузки пропускаются)"
+	},
+	"nginxions.waf.files.state": {
+		"defaultMessage": "Состояние"
+	},
+	"nginxions.waf.files.text": {
+		"defaultMessage": "Загрузки на хосты, у практики которых включён File Security, проверяет ClamAV до того, как они попадут на сервер. ClamAV работает, только пока он нужен практике: его сигнатуры занимают около 1 ГБ памяти."
+	},
+	"nginxions.waf.files.title": {
+		"defaultMessage": "File Security (ClamAV)"
+	},
+	"nginxions.waf.files.upload": {
+		"defaultMessage": "Загрузить сигнатуры (main.cvd, daily.cvd…)"
+	},
+	"nginxions.waf.files.uploaded": {
+		"defaultMessage": "Загружены в NginxionS: {files}"
+	},
+	"nginxions.waf.files.uploaded-now": {
+		"defaultMessage": "Сигнатуры загружены, ClamAV перезапускается с ними"
 	},
 	"nginxions.waf.host-description": {
 		"defaultMessage": "WAF анализирует каждый запрос к этому хосту с помощью машинного обучения. Начните с Detect-Learn: модель изучает обычный трафик сайта и только записывает атаки. Когда события выглядят правильно, переключите на Prevent-Learn."

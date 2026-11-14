@@ -15,6 +15,8 @@ import { bootstrap as bootstrapGeo } from "./nginxions/geo/index.js";
 import { start as startEventIngest } from "./nginxions/events/ingest.js";
 import { start as startLearning } from "./nginxions/learning/index.js";
 import { start as startLearningSnapshots } from "./nginxions/learning/snapshots.js";
+// NginxionS: findings of File Security of the WAF policy (ClamAV) → security events
+import { startFilesLog } from "./nginxions/waf/files.js";
 import { start as startNotifications } from "./nginxions/notifications/index.js";
 import { bootstrap as bootstrapPki } from "./nginxions/pki/index.js";
 import { bootstrap as bootstrapWafAgent } from "./nginxions/waf/agent-settings.js";
@@ -44,6 +46,7 @@ async function appStart() {
 			.then(startEventIngest)
 			.then(startLearning)
 			.then(startLearningSnapshots)
+			.then(startFilesLog)
 			.then(startWafTrials)
 			.then(startNotifications)
 			.then(getCompiledSchema)

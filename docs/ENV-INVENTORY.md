@@ -104,7 +104,7 @@
 - `openappsec` владеет сетью и IPC (`ipc: shareable`, опубликованные порты), `nginxions` подключается к ним (`network_mode`/`ipc: service:openappsec`); tmpfs-том `appsec-shm`;
 - общие тома: `appsec-localconfig` (политика), `appsec-logs` (события, только чтение для NginxionS и CrowdSec), логи nginx для CrowdSec, `crowdsec-conf` и `crowdsec-data` в `nginxions` (настройки CrowdSec из GUI, список машин и баунсеров);
 - метки `nginxions.managed=true`, по которым `nginxions-control` решает, чем можно управлять; сокет Docker смонтирован только в `openappsec`, где работает `nginxions-control` со своим белым списком операций;
-- образы и версии (`deploy/.env`): `NGINXIONS_REGISTRY`, `NGINXIONS_VERSION`, `CROWDSEC_VERSION`, `POSTGRES_VERSION`.
+- образы и версии (`deploy/.env`): `NGINXIONS_REGISTRY`, `NGINXIONS_VERSION`, `CROWDSEC_VERSION`, `POSTGRES_VERSION`, `CLAMAV_VERSION`.
 
 ## Обращения наружу только по действию администратора
 

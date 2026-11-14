@@ -74,11 +74,12 @@ const fixups = {
 // ---------------------------------------------------------------- what the agent applies (docs/WAF-POLICY.md)
 
 /**
- * Engines of a threat prevention practice NginxionS does not run yet (File Security is of the Premium edition of
- * open-appsec). The IPS has the signatures of NginxionS (CrowdSec virtual patching rules, waf/ips/vpatch.js) in place
- * of the ones of the Check Point cloud; antiBot and schemaValidation run in AppSec of CrowdSec (waf/engines.js).
+ * Engines of a threat prevention practice NginxionS does not run: none any more. The IPS has the signatures of
+ * NginxionS (CrowdSec virtual patching rules, waf/ips/vpatch.js) in place of the ones of the Check Point cloud;
+ * antiBot and schemaValidation run in AppSec of CrowdSec (waf/engines.js), fileSecurity in nginx with ClamAV
+ * (waf/files.js). Kept for policies saved before, which name an engine (a warning, policy.js).
  */
-export const UNSUPPORTED_ENGINES = ["fileSecurity"];
+export const UNSUPPORTED_ENGINES = [];
 /** a name of an OpenAPI file of schemaValidation (waf/schemas.js) */
 const SCHEMA_FILE = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}\.(ya?ml|json)$/;
 /** a path of antiBot */
@@ -104,6 +105,17 @@ const unsupported = (kind, spec, lenient) => {
 				dropped.push(`/${engine}`);
 			} else {
 				errors.push(`/${engine}: not in the agent of NginxionS (Premium edition or the Check Point cloud)`);
+			}
+		}
+		// fileSecurity: ClamAV scans archives (it always extracts them) but has no sandbox for threat emulation
+		if (spec.fileSecurity?.threatEmulationEnabled === true && spec.fileSecurity.overrideMode !== "inactive") {
+			if (lenient) {
+				spec.fileSecurity.threatEmulationEnabled = false;
+				dropped.push("/fileSecurity/threatEmulationEnabled");
+			} else {
+				errors.push(
+					"/fileSecurity/threatEmulationEnabled: threat emulation (a sandbox of Check Point) is not in NginxionS",
+				);
 			}
 		}
 		// antiBot: paths ({uri} as in v1beta2; a plain string is taken too)

@@ -1,8 +1,8 @@
 // NginxionS API client (/api/nginxions/*), see nginxions/backend/nginxions/routes.js
 import type { AuditLog } from "src/api/backend";
 import * as api from "src/api/backend/base";
-import type { HostObjects } from "./policy/api";
 import { isNotJson, notJsonError } from "./apiErrors";
+import type { HostObjects } from "./policy/api";
 
 export interface Service {
 	id: string;
@@ -558,6 +558,33 @@ export const uploadWafModel = async (file: File): Promise<WafAgentModel & { rest
 	if (!response.ok) {
 		throw new Error(payload.error?.message || response.statusText);
 	}
+	return payload;
+};
+
+/** File Security of the WAF policy: ClamAV (waf/files.js of the backend) */
+export interface WafFiles {
+	/** a practice has File Security on: clamd runs */
+	enabled: boolean;
+	/** proxy hosts that check uploads */
+	hosts: number;
+	/** the answer of clamd to VERSION (ClamAV x.y.z/database/date), null if it does not answer */
+	clamd: string | null;
+	/** signature files uploaded in NginxionS */
+	uploaded: string[];
+	settings: { online_updates: boolean };
+}
+export const getWafFiles = (): Promise<WafFiles> => api.get({ url: "/nginxions/waf/files" });
+export const setWafFiles = (settings: { online_updates: boolean }): Promise<{ online_updates: boolean }> =>
+	api.put({ url: "/nginxions/waf/files", data: settings });
+export const uploadClamavSignatures = async (file: File): Promise<{ name: string; size: number }> => {
+	const response = await fetch(`/api/nginxions/waf/files/signatures/${encodeURIComponent(file.name)}`, {
+		method: "PUT",
+		headers: { "Content-Type": "application/octet-stream" },
+		body: file,
+	});
+	if (isNotJson(response)) throw notJsonError(response);
+	const payload = await response.json().catch(() => ({ error: { message: response.statusText } }));
+	if (!response.ok) throw new Error(payload.error?.message || response.statusText);
 	return payload;
 };
 
