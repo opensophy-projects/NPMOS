@@ -460,7 +460,13 @@ if $CURL "$ADMIN/api/nginxions/waf" | grep -q '"reachable": *true'; then
   # the EICAR test file of antivirus vendors; the ML model of the WAF only logs here (webAttacks detect), so a 403 is
   # the one of File Security
   EICAR='X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
+  # a named file (Content-Disposition); unnamed ones follow unnamedFilesAction of the practice
   upload() {
+    printf '%s' "$1" | curl -s -o /dev/null -w '%{http_code}' --max-time 30 -H 'Host: test.local' \
+      -H 'Content-Type: application/octet-stream' -H 'Content-Disposition: attachment; filename="smoke.bin"' \
+      --data-binary @- "$HTTP/smoke-upload"
+  }
+  upload_unnamed() {
     printf '%s' "$1" | curl -s -o /dev/null -w '%{http_code}' --max-time 30 -H 'Host: test.local' \
       -H 'Content-Type: application/octet-stream' --data-binary @- "$HTTP/smoke-upload"
   }
@@ -479,6 +485,8 @@ if $CURL "$ADMIN/api/nginxions/waf" | grep -q '"reachable": *true'; then
   done
   $CURL "$ADMIN/api/nginxions/waf/files" | grep -q '"clamd": *"ClamAV ' || fail "clamd does not answer NginxionS"
   [ "$(upload 'a clean file of the smoke test')" = 200 ] || fail "a clean upload is refused"
+  # unnamedFilesAction inherited: prevent, as the practice
+  [ "$(upload_unnamed 'a clean file with no name')" = 403 ] || fail "a file with no name is not refused"
   for i in $(seq 1 30); do
     $CURL "$ADMIN/api/nginxions/events?kind=all&host=test.local&q=EICAR&limit=1" \
       | grep -q '"incident_type": *"File Security"' && break

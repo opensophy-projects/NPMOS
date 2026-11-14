@@ -67,6 +67,45 @@ test("an engine the practice does not set is off; inherited takes the mode of th
 	// 10 MB by default, large files take the mode
 	assert.equal(rule.max_bytes, 10 * 1024 * 1024);
 	assert.equal(rule.large_action, "prevent");
+	// the defaults of the schema: medium severity and up, archives not opened, unnamed files take the mode
+	assert.equal(rule.min_severity, "medium");
+	assert.deepEqual(rule.archives, {
+		extract: false,
+		max_bytes: 10 * 1024 * 1024,
+		nested_action: "prevent",
+		failed_action: "prevent",
+	});
+	assert.equal(rule.unnamed_action, "prevent");
+	assert.equal(rule.deep, false);
+	const set = new Map([
+		[
+			"p",
+			{
+				fileSecurity: {
+					overrideMode: "detect",
+					minSeverityLevel: "critical",
+					unnamedFilesAction: "inactive",
+					threatEmulationEnabled: true,
+					archiveInspection: {
+						extractArchiveFiles: true,
+						scanMaxFileSize: 2,
+						scanMaxFileSizeUnit: "KB",
+						archivedFilesWithinArchivedFiles: "prevent",
+					},
+				},
+			},
+		],
+	]);
+	const custom = fileRule({ mode: "prevent", threatPreventionPractices: ["p"] }, set, "/up");
+	assert.equal(custom.min_severity, "critical");
+	assert.equal(custom.unnamed_action, "inactive");
+	assert.equal(custom.deep, true);
+	assert.deepEqual(custom.archives, {
+		extract: true,
+		max_bytes: 2048,
+		nested_action: "prevent",
+		failed_action: "detect",
+	});
 });
 
 test("a finding of nginx becomes a security event", () => {

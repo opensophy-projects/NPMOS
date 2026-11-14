@@ -327,6 +327,14 @@ services:
       CLAMD_CONF_StreamMaxLength: 200M
       CLAMD_CONF_MaxFileSize: 200M
       CLAMD_CONF_MaxScanSize: 400M
+      # an archive clamd cannot open is a finding: archivedFilesWhereContentExtractionFailed of the practice
+      CLAMD_CONF_AlertEncryptedArchive: "yes"
+      CLAMD_CONF_AlertExceedsMax: "yes"
+      # the deep static analysis of threatEmulationEnabled; nginx leaves these findings out for practices without it
+      CLAMD_CONF_AlertOLE2Macros: "yes"
+      CLAMD_CONF_AlertBrokenExecutables: "yes"
+      CLAMD_CONF_AlertBrokenMedia: "yes"
+      CLAMD_CONF_AlertPartitionIntersection: "yes"
     healthcheck:
       # healthy while it waits (File Security off) or once clamd answers
       test: ["CMD-SHELL", "[ ! -f /nginxions/enabled ] || clamdcheck.sh"]

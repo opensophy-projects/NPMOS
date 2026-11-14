@@ -47,6 +47,79 @@ local function confidence_of(name)
   return "high"
 end
 
+--- the severity of a signature of ClamAV by its kind of malware (Platform.Category.Name-Id-Rev, "Heuristics.*",
+--- "PUA.*"): minSeverityLevel of the practice leaves out those below it
+local CRITICAL = { Ransomware = 1, Backdoor = 1, Rootkit = 1, Exploit = 1, Worm = 1, Virus = 1 }
+local HIGH = { Trojan = 1, Downloader = 1, Dropper = 1, Loader = 1, Infostealer = 1, Keylogger = 1, Spyware = 1,
+  Malware = 1, Ircbot = 1, Macro = 1, Coinminer = 1, Webshell = 1 }
+local LOW = { Adware = 1, Joke = 1, File = 1, Filetype = 1, Revoked = 1 }
+local RANK = { low = 1, medium = 2, high = 3, critical = 4 }
+local function severity_of(name)
+  if name:match("^PUA%.") then return "low" end
+  if name:match("^Heuristics%.") then return "medium" end
+  local category = name:match("^[^.]+%.([^.]+)%.")
+  if category and CRITICAL[category] then return "critical" end
+  if category and HIGH[category] then return "high" end
+  if category and LOW[category] then return "low" end
+  -- phishing, packers, tools, test files (EICAR is Win.Test.EICAR_HDB-1) and the rest
+  return "medium"
+end
+
+--- an archive, by its first bytes: zip (and its documents), gzip, bzip2, xz, 7-Zip, RAR, cab, tar
+local function is_archive(head)
+  if not head or #head < 4 then return false end
+  local four = head:sub(1, 4)
+  if four == "PK\3\4" or four == "PK\5\6" or head:sub(1, 2) == "\31\139" or head:sub(1, 3) == "BZh"
+    or head:sub(1, 6) == "\253" .. "7zXZ\0" or head:sub(1, 6) == "7z\188\175\39\28" or head:sub(1, 4) == "Rar!"
+    or four == "MSCF" or head:sub(258, 262) == "ustar" then
+    return true
+  end
+  return false
+end
+
+local ARCHIVE_EXT = { zip = 1, jar = 1, war = 1, apk = 1, gz = 1, tgz = 1, bz2 = 1, xz = 1, ["7z"] = 1, rar = 1,
+  tar = 1, cab = 1, iso = 1, zst = 1 }
+--- an archive inside a zip: the names of its entries (local file headers)
+local function has_nested(data)
+  local pos = 1
+  while true do
+    local at = data:find("PK\3\4", pos, true)
+    if not at or at + 30 > #data then return false end
+    local b1, b2 = data:byte(at + 26, at + 27)
+    local name = data:sub(at + 30, at + 29 + b1 + b2 * 256):lower()
+    local ext = name:match("%.([%w]+)$")
+    if ext and ARCHIVE_EXT[ext] then return true end
+    pos = at + 4
+  end
+end
+
+--- the name of the uploaded file is known: multipart parts with a filename, Content-Disposition, or a path ending
+--- with a file name; text, forms and JSON are not files
+local NOT_FILES = { "^text/", "^application/json", "%+json", "^application/xml", "%+xml",
+  "^application/x%-www%-form%-urlencoded", "^application/graphql", "^application/javascript" }
+local function unnamed(data)
+  local ctype = (ngx.var.content_type or ""):lower()
+  if ctype:find("^multipart/") then
+    if not data then return false end
+    -- a part with a type of its own and no file name
+    for headers in ("\r\n" .. data):gmatch("\r\n%-%-[^\r\n]*\r\n(.-)\r\n\r\n") do
+      local h = headers:lower()
+      if h:find("content%-disposition") and not h:find("filename") and h:find("content%-type:")
+        and not h:find("content%-type:%s*text/") then
+        return true
+      end
+    end
+    return false
+  end
+  for _, p in ipairs(NOT_FILES) do
+    if ctype:find(p) then return false end
+  end
+  local disposition = ngx.var.http_content_disposition or ""
+  if disposition:lower():find("filename") then return false end
+  if (ngx.var.uri or ""):match("/[^/]+%.%w+$") then return false end
+  return true
+end
+
 local function log_event(event)
   if not log_handle then
     log_handle = io.open(LOG_FILE, "a")
@@ -64,6 +137,35 @@ local function log_event(event)
   event.ua = ngx.var.http_user_agent
   local line = cjson.encode(event)
   if line then log_handle:write(line, "\n") end
+end
+
+--- the body whole (up to limit bytes), for the checks of its archives and parts; nil above it
+local function body_data(limit)
+  local data = ngx.req.get_body_data()
+  if data then return data end
+  local name = ngx.req.get_body_file()
+  if not name then return nil end
+  local f = io.open(name, "rb")
+  if not f then return nil end
+  local size = f:seek("end")
+  if size > limit then f:close() return nil end
+  f:seek("set", 0)
+  data = f:read("*a")
+  f:close()
+  return data
+end
+
+--- the first bytes of the body
+local function body_head()
+  local data = ngx.req.get_body_data()
+  if data then return data:sub(1, 512) end
+  local name = ngx.req.get_body_file()
+  if not name then return nil end
+  local f = io.open(name, "rb")
+  if not f then return nil end
+  local head = f:read(512)
+  f:close()
+  return head
 end
 
 --- the body as chunks: from memory or from the temporary file of nginx
@@ -159,22 +261,65 @@ function M.check()
     return
   end
 
+  local base = { engine = "file-security", mode = rule.mode, size = size }
+  local function with(t)
+    for k, v in pairs(base) do t[k] = v end
+    return t
+  end
+  local archives = rule.archives or {}
+  local archive = is_archive(body_head())
+  if archive then
+    -- an archive is opened (and scanned) only when the practice asks it, up to its size
+    if not archives.extract or size > (archives.max_bytes or 10485760) then return end
+    local action = archives.nested_action or "inactive"
+    if action ~= "inactive" then
+      local data = body_data(archives.max_bytes or 10485760)
+      if data and has_nested(data) then
+        return act(action, with({ reason = "an archive inside an archive" }))
+      end
+    end
+  end
+
   local verdict, err = scan(reader, rule)
   if not verdict then
     -- clamd down or busy: the request goes on (fail-open, as the agent), the error is logged
     ngx.log(ngx.ERR, "[NginxionS files] no scan of ", ngx.var.request_uri, ": ", err)
     if err == "size limit" and (rule.large_action or "inactive") ~= "inactive" then
-      return act(rule.large_action, { engine = "file-security", mode = rule.mode, size = size,
-        reason = "file over the size limit of clamd" })
+      return act(rule.large_action, with({ reason = "file over the size limit of clamd" }))
     end
     return
   end
-  if verdict == "OK" then return end
-  local confidence = confidence_of(verdict)
-  local action = (rule.actions or {})[confidence] or rule.mode
-  if action == "inactive" then return end
-  return act(action, { engine = "file-security", mode = rule.mode, size = size, signature = verdict,
-    confidence = confidence })
+  -- the deep static analysis (threatEmulationEnabled of the practice): off, its findings are left out
+  local deep = verdict ~= "OK" and (verdict:match("^Heuristics%.OLE2%.ContainsMacros")
+    or verdict:match("^Heuristics%.Broken%.") or verdict:match("^Heuristics%.PartitionIntersection"))
+  if deep then
+    if not rule.deep then
+      verdict = "OK"
+    else
+      local action = (rule.actions or {}).high or rule.mode
+      if action == "inactive" then return end
+      return act(action, with({ signature = verdict, confidence = "high", reason = "threat emulation" }))
+    end
+  end
+  if verdict ~= "OK" then
+    -- an archive clamd could not open (encrypted, over its limits)
+    if verdict:match("^Heuristics%.Encrypted") or verdict:match("^Heuristics%.Limits%.Exceeded") then
+      local action = archive and archives.failed_action or rule.large_action or "inactive"
+      if action == "inactive" then return end
+      return act(action, with({ signature = verdict, reason = "the content of the archive could not be extracted" }))
+    end
+    local severity = severity_of(verdict)
+    if RANK[severity] < (RANK[rule.min_severity or "medium"] or 2) then return end
+    local confidence = confidence_of(verdict)
+    local action = (rule.actions or {})[confidence] or rule.mode
+    if action == "inactive" then return end
+    return act(action, with({ signature = verdict, confidence = confidence, severity = severity }))
+  end
+
+  local action = rule.unnamed_action or "inactive"
+  if action ~= "inactive" and unnamed(body_data(rule.max_bytes or 10485760)) then
+    return act(action, with({ reason = "a file with no name" }))
+  end
 end
 
 return M

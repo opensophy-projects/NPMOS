@@ -5573,6 +5573,21 @@
 	"nginxions.policy.f.extendedLogging.urlQuery": {
 		"defaultMessage": "Параметры URL"
 	},
+	"nginxions.policy.f.fileSecurity.archiveInspection.archivedFilesWhereContentExtractionFailed": {
+		"defaultMessage": "Действие для архива, который не удалось распаковать (зашифрован, превышены лимиты)"
+	},
+	"nginxions.policy.f.fileSecurity.archiveInspection.archivedFilesWithinArchivedFiles": {
+		"defaultMessage": "Действие для архива внутри архива"
+	},
+	"nginxions.policy.f.fileSecurity.archiveInspection.extractArchiveFiles": {
+		"defaultMessage": "Распаковывать и проверять архивы (выключено — архив пропускается без проверки)"
+	},
+	"nginxions.policy.f.fileSecurity.archiveInspection.scanMaxFileSize": {
+		"defaultMessage": "Наибольший размер распаковываемого архива"
+	},
+	"nginxions.policy.f.fileSecurity.archiveInspection.scanMaxFileSizeUnit": {
+		"defaultMessage": "Единица размера архива"
+	},
 	"nginxions.policy.f.fileSecurity.highConfidenceEventAction": {
 		"defaultMessage": "Действие для вируса высокой уверенности (сигнатуры вредоносного ПО)"
 	},
@@ -5591,8 +5606,17 @@
 	"nginxions.policy.f.fileSecurity.mediumConfidenceEventAction": {
 		"defaultMessage": "Действие для средней уверенности (потенциально нежелательные программы, PUA)"
 	},
+	"nginxions.policy.f.fileSecurity.minSeverityLevel": {
+		"defaultMessage": "Наименьшая критичность вируса (ниже — пропускается)"
+	},
 	"nginxions.policy.f.fileSecurity.overrideMode": {
 		"defaultMessage": "Режим"
+	},
+	"nginxions.policy.f.fileSecurity.threatEmulationEnabled": {
+		"defaultMessage": "Эмуляция угроз: углублённый статический анализ ClamAV (макросы Office, повреждённые исполняемые файлы и медиа) вместо песочницы Check Point"
+	},
+	"nginxions.policy.f.fileSecurity.unnamedFilesAction": {
+		"defaultMessage": "Действие для файла без имени (двоичная загрузка без имени в Content-Disposition или пути)"
 	},
 	"nginxions.policy.f.httpResponseCode": {
 		"defaultMessage": "HTTP-код"
@@ -6066,10 +6090,10 @@
 		"defaultMessage": "Добавить сервер"
 	},
 	"nginxions.policy.service.address": {
-		"defaultMessage": "IPv4-адрес"
+		"defaultMessage": "IP-адрес или имя"
 	},
 	"nginxions.policy.service.hint": {
-		"defaultMessage": "Один сервер каждого вида, по IPv4-адресу: агент открывает соединение с адресом, а не с именем."
+		"defaultMessage": "Можно несколько серверов, по IPv4, IPv6 или имени. Один сервер по IPv4 агент обслуживает сам, остальное пересылает NginxionS: агент отправляет на 127.0.0.1, NginxionS — каждому серверу по UDP или TCP."
 	},
 	"nginxions.policy.service.port": {
 		"defaultMessage": "Порт"

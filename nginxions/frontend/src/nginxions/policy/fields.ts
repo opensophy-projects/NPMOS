@@ -110,6 +110,33 @@ export const FIELDS: Record<Kind, Field[]> = {
 		{ path: "fileSecurity.highConfidenceEventAction", type: "select", options: ACTIONS, modes: true },
 		{ path: "fileSecurity.mediumConfidenceEventAction", type: "select", options: ACTIONS, modes: true },
 		{ path: "fileSecurity.lowConfidenceEventAction", type: "select", options: ACTIONS, modes: true },
+		{
+			path: "fileSecurity.minSeverityLevel",
+			type: "select",
+			options: ["low", "medium", "high", "critical"],
+			labels: "nginxions.policy.severity.",
+		},
+		{ path: "fileSecurity.unnamedFilesAction", type: "select", options: ACTIONS, modes: true },
+		{ path: "fileSecurity.threatEmulationEnabled", type: "bool" },
+		{ path: "fileSecurity.archiveInspection.extractArchiveFiles", type: "bool" },
+		{ path: "fileSecurity.archiveInspection.scanMaxFileSize", type: "number", min: 1 },
+		{
+			path: "fileSecurity.archiveInspection.scanMaxFileSizeUnit",
+			type: "select",
+			options: ["bytes", "KB", "MB", "GB"],
+		},
+		{
+			path: "fileSecurity.archiveInspection.archivedFilesWithinArchivedFiles",
+			type: "select",
+			options: ACTIONS,
+			modes: true,
+		},
+		{
+			path: "fileSecurity.archiveInspection.archivedFilesWhereContentExtractionFailed",
+			type: "select",
+			options: ACTIONS,
+			modes: true,
+		},
 		{ path: "fileSecurity.largeFileInspection.fileSizeLimit", type: "number", min: 1 },
 		{
 			path: "fileSecurity.largeFileInspection.fileSizeLimitUnit",

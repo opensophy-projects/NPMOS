@@ -5573,6 +5573,21 @@
 	"nginxions.policy.f.extendedLogging.urlQuery": {
 		"defaultMessage": "URL query"
 	},
+	"nginxions.policy.f.fileSecurity.archiveInspection.archivedFilesWhereContentExtractionFailed": {
+		"defaultMessage": "Action for an archive that could not be extracted (encrypted, over the limits)"
+	},
+	"nginxions.policy.f.fileSecurity.archiveInspection.archivedFilesWithinArchivedFiles": {
+		"defaultMessage": "Action for an archive inside an archive"
+	},
+	"nginxions.policy.f.fileSecurity.archiveInspection.extractArchiveFiles": {
+		"defaultMessage": "Extract and scan archives (off: an archive passes unscanned)"
+	},
+	"nginxions.policy.f.fileSecurity.archiveInspection.scanMaxFileSize": {
+		"defaultMessage": "Largest archive to extract"
+	},
+	"nginxions.policy.f.fileSecurity.archiveInspection.scanMaxFileSizeUnit": {
+		"defaultMessage": "Unit of the archive size"
+	},
 	"nginxions.policy.f.fileSecurity.highConfidenceEventAction": {
 		"defaultMessage": "Action for a virus of high confidence (malware signatures)"
 	},
@@ -5591,8 +5606,17 @@
 	"nginxions.policy.f.fileSecurity.mediumConfidenceEventAction": {
 		"defaultMessage": "Action for medium confidence (potentially unwanted programs, PUA)"
 	},
+	"nginxions.policy.f.fileSecurity.minSeverityLevel": {
+		"defaultMessage": "Lowest severity of a virus (below it passes)"
+	},
 	"nginxions.policy.f.fileSecurity.overrideMode": {
 		"defaultMessage": "Mode"
+	},
+	"nginxions.policy.f.fileSecurity.threatEmulationEnabled": {
+		"defaultMessage": "Threat emulation: the deep static analysis of ClamAV (Office macros, broken executables and media) instead of the sandbox of Check Point"
+	},
+	"nginxions.policy.f.fileSecurity.unnamedFilesAction": {
+		"defaultMessage": "Action for a file with no name (a binary upload with no name in Content-Disposition or the path)"
 	},
 	"nginxions.policy.f.httpResponseCode": {
 		"defaultMessage": "HTTP code"
@@ -6066,10 +6090,10 @@
 		"defaultMessage": "Add server"
 	},
 	"nginxions.policy.service.address": {
-		"defaultMessage": "IPv4 address"
+		"defaultMessage": "IP address or name"
 	},
 	"nginxions.policy.service.hint": {
-		"defaultMessage": "One server of each kind, by IPv4 address: the agent opens a socket to an address, not a name."
+		"defaultMessage": "Any number of servers, by IPv4, IPv6 or name. The agent sends to one IPv4 server itself; the rest goes through NginxionS: the agent sends to 127.0.0.1, NginxionS to each server over UDP or TCP."
 	},
 	"nginxions.policy.service.port": {
 		"defaultMessage": "Port"

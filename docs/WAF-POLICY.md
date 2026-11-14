@@ -12,8 +12,8 @@ Premium или облаке Check Point, NginxionS выполняет своим
 
 **Фаза 11 выполнена:**
 
-- Доработки агента A1–A9 сделаны, кроме нескольких серверов syslog/CEF. Агент держит один поток каждого вида
-  (`logging.cc`), поэтому проверка допускает один сервер.
+- Доработки агента A1–A9 сделаны. Несколько серверов syslog/CEF, имена и IPv6, которых сам агент не умеет, обслуживает
+  ретранслятор NginxionS (раздел 8.5).
 - Unit-тесты секций (A10) написаны.
 - Генератор всегда пишет v1beta2.
 - Действует проверка «нет молчаливых полей».
@@ -107,8 +107,8 @@ NginxionS применяет все исключения в обоих синт�
 | `snortSignatures.files` | ✅ | Все файлы (A6), конвертер на Node.js | только первый файл |
 | `intrusionPrevention.*` | ✅ | Сигнатуры NginxionS из правил виртуальных патчей CrowdSec (раздел 8.1): все поля — режим, критичность, уверенность, влияние на скорость, год CVE, действия | сигнатуры только из облака Check Point |
 | `fileSecurity.overrideMode`, действия по уверенности, `largeFileInspection.*` | ✅ | ClamAV в nginx (раздел 8.4) | Premium |
-| `fileSecurity.minSeverityLevel`, `archiveInspection.*`, `unnamedFilesAction` | 🟡 | У сигнатур ClamAV нет критичности; архивы ClamAV проверяет всегда, вложенные тоже; загрузка проверяется целиком, без разбора на файлы. Поля не меняют проверку | Premium |
-| `fileSecurity.threatEmulationEnabled` | 🟡 | Песочницы Check Point нет: `true` — ошибка проверки, при импорте поле выключается и называется в плане | Premium |
+| `fileSecurity.minSeverityLevel`, `archiveInspection.*`, `unnamedFilesAction` | 🟢 | Критичность — по виду вредоносного ПО в имени сигнатуры ClamAV; архив распаковывается и проверяется только при `extractArchiveFiles`, до `scanMaxFileSize`; архив в zip-архиве и архив, который clamd не смог открыть, — по своим действиям; файл без имени — двоичная загрузка без имени (раздел 8.4) | Premium |
+| `fileSecurity.threatEmulationEnabled` | 🟢 | Вместо песочницы Check Point — углублённый статический анализ ClamAV: макросы Office, повреждённые исполняемые файлы и медиа, пересекающиеся разделы образов (раздел 8.4) | Premium |
 | `schemaValidation.*` | ✅ | AppSec CrowdSec по файлам OpenAPI, `enforcementLevel` `fullSchema` или `endpointOnly` (раздел 8.3) | Premium |
 | `antiBot.*` | ✅ | Проверка браузера AppSec CrowdSec на `injectedUris`, обязательная пройденная проверка на `validatedUris` (раздел 8.2) | Premium |
 | `snortSignatures.configmap`, `schemaValidation.configmap` | ➖ | Kubernetes | |
@@ -143,7 +143,7 @@ NginxionS применяет все исключения в обоих синт�
 | `accessControlLogging.*`, `appsecLogging.*`, `extendedLogging.*` | ✅ | | |
 | `additionalSuspiciousEventsLogging.*` | ✅ | `responseCode` передаётся в триггер (A7) | `responseCode` терялся |
 | `logDestination.local-tuning`, `logToAgent`, `stdout.format` | ✅ | NginxionS читает журналы агента | |
-| `logDestination.syslogService`, `cefService` | 🟡 | Протокол TCP/UDP передаётся (A8). Агент держит один поток каждого вида и открывает сокет к IPv4-адресу: проверка допускает один сервер и адрес IPv4 | только первый, только UDP |
+| `logDestination.syslogService`, `cefService` | 🟢 | Сколько угодно серверов, по IPv4, IPv6 или имени, TCP/UDP. Один IPv4-сервер агент обслуживает сам (A8), остальное — ретранслятор NginxionS (раздел 8.5) | только первый, только UDP |
 | `logDestination.cloud`, `k8s-service` | ➖ | Облако, Kubernetes | |
 
 ### 3.6. `exceptions`
@@ -181,7 +181,8 @@ NginxionS применяет все исключения в обоих синт�
 1. Работает: агент NginxionS применяет поле так, как описано в документации.
 2. Отклоняется: проверка политики (предпросмотр, импорт, API) возвращает ошибку с причиной. Сначала сюда
    относились File Security, Schema Validation, IPS Check Point и Anti-Bot. Теперь их выполняет NginxionS
-   (раздел 8), и отклоняется только то, чего нет и у него: эмуляция угроз (песочница Check Point).
+   (раздел 8), и отклонять больше нечего: эмуляцию угроз (песочницу Check Point) заменяет углублённый статический
+   анализ ClamAV.
 3. Kubernetes или облако (`configmap`, `appsecClassName`, `policyActivations`, `cloud`, `k8s-service`,
    `autoUpgrade`): допускаются при импорте и выбрасываются с предупреждением.
 
@@ -209,7 +210,7 @@ NginxionS применяет все исключения в обоих синт�
 | A5 | Ограничение частоты хранится по ассету, а не по имени практики: одна практика в нескольких правилах работает без копий | `createRateLimitSection` (ключ `rate_limit`) |
 | A6 | Snort: все файлы `snortSignatures.files` (объединение в один набор), а не только первый | `createSnortSections` |
 | A7 | `additionalSuspiciousEventsLogging.responseCode` передаётся в триггер | `extractLogTriggerData`, `LogTriggerSection` |
-| A8 | Syslog/CEF: `proto: tcp/udp` передаётся агенту. Несколько серверов и адрес-имя агент не поддерживает: один поток каждого вида, сокет только к IPv4 (`logging.cc`, `socket_is.cc`). Это проверяется в GUI | `new_log_trigger.cc`, `triggers_section.cc` |
+| A8 | Syslog/CEF: `proto: tcp/udp` передаётся агенту. Несколько серверов и адрес-имя агент сам не поддерживает (один поток каждого вида, сокет только к IPv4: `logging.cc`, `socket_is.cc`) — их обслуживает ретранслятор NginxionS (`waf/syslog.js`, раздел 8.5) | `new_log_trigger.cc`, `triggers_section.cc` |
 | A9 | Правило без `mode` — режим правила по умолчанию, а не исключение | `new_appsec_policy_crd_parser.cc` |
 | A10 | Unit-тесты: каждая исправленная секция генератора читается обратно классом конфигурации своего движка (`WebTriggerConf`, `MatchQuery`) | `local_policy_mgmt_gen/local_policy_mgmt_gen_ut` (ctest в сборке образа) |
 
@@ -409,8 +410,34 @@ Security есть только в Premium-версии. NginxionS выполня
   - снимок образа;
   - файлы `.cvd`/`.cld`, загруженные в «WAF → Агент → File Security» (без интернета);
   - freshclam, если там разрешены обновления через интернет.
-- Ограничения ClamAV:
-  - у сигнатур нет критичности (`minSeverityLevel`);
-  - архивы проверяются всегда, вложенные тоже (`archiveInspection`);
-  - загрузка проверяется целиком, без разбора на файлы (`unnamedFilesAction`);
-  - эмуляции угроз нет (`threatEmulationEnabled` отклоняется).
+- Критичность (`minSeverityLevel`, по умолчанию «средняя») — по виду вредоносного ПО во второй части имени сигнатуры
+  ClamAV (`Платформа.Вид.Имя`). Находка ниже порога пропускается:
+  - критическая — Ransomware, Backdoor, Rootkit, Exploit, Worm, Virus;
+  - высокая — Trojan, Downloader, Dropper, Loader, Infostealer, Keylogger, Spyware, Malware, Macro, Coinminer, Webshell;
+  - низкая — PUA, Adware, Joke;
+  - средняя — эвристика, фишинг, упаковщики, тестовые файлы (EICAR) и остальное.
+- Архивы (`archiveInspection`), их узнают по первым байтам (zip и документы Office, gzip, bzip2, xz, 7-Zip, RAR, cab, tar):
+  - `extractArchiveFiles: false` (по умолчанию) — архив не распаковывается и не проверяется, как у агента;
+  - `true` — clamd распаковывает и проверяет архив не больше `scanMaxFileSize`, более крупный проходит без проверки;
+  - `archivedFilesWithinArchivedFiles` — действие для zip-архива, в котором лежит архив (по именам его файлов);
+  - `archivedFilesWhereContentExtractionFailed` — действие для архива, который clamd не смог открыть: зашифрован
+    (`AlertEncryptedArchive`) или превышены его лимиты (`AlertExceedsMax`).
+- Файл без имени (`unnamedFilesAction`) — загрузка двоичного типа, у которой нет имени: нет `filename` в
+  `Content-Disposition`, путь не кончается именем файла (`/upload/report.pdf`), а в multipart — часть со своим
+  `Content-Type`, но без `filename`. Текст, формы, JSON и XML файлами не считаются.
+- Эмуляция угроз (`threatEmulationEnabled`): песочницы Check Point нет, вместо неё — углублённый статический анализ
+  clamd (`AlertOLE2Macros`, `AlertBrokenExecutables`, `AlertBrokenMedia`, `AlertPartitionIntersection`). clamd
+  ищет это всегда, а nginx учитывает такие находки только у практик с эмуляцией: как находки высокой уверенности.
+
+### 8.5. Syslog и CEF: ретранслятор NginxionS
+
+Агент держит один поток syslog и один CEF и открывает сокет только к IPv4-адресу (`logging.cc`, `socket_is.cc`).
+Триггер журнала с одним IPv4-сервером агент обслуживает сам. Остальные случаи — несколько серверов, имя хоста,
+IPv6 — обслуживает ретранслятор NginxionS (`waf/syslog.js`):
+
+- в политике агента сервер триггера заменяется на `127.0.0.1:79xx` по UDP (контейнеры `nginxions` и `openappsec`
+  делят сеть);
+- backend NginxionS слушает этот порт и пересылает каждое сообщение всем серверам триггера: по UDP датаграммой,
+  по TCP — с подсчётом октетов, как сам агент; TCP-соединение переподключается, пока сервер недоступен, сообщения
+  ждут в очереди (до 1000);
+- триггеры с одинаковым набором серверов делят один ретранслятор.

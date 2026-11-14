@@ -126,16 +126,15 @@ test("fragments in either syntax; the agent always gets v1beta2, without copies 
 });
 
 test("no silent fields: what the agent does not apply is an error, or dropped and named", () => {
-	// threat emulation is a sandbox of Check Point: File Security of NginxionS (ClamAV) has none
+	// threat emulation: the deep static analysis of ClamAV in NginxionS (macros, broken executables and media)
 	const files = {
 		webAttacks: { overrideMode: "inherited" },
 		fileSecurity: { overrideMode: "inherited", threatEmulationEnabled: true },
 	};
-	assert.match(normalize("threat_prevention", files).errors.join(), /threatEmulationEnabled: threat emulation/);
+	assert.equal(normalize("threat_prevention", files).errors, undefined);
 	const imported = normalize("threat_prevention", files, { lenient: true });
-	assert.equal(imported.spec.fileSecurity.threatEmulationEnabled, false);
-	assert.equal(imported.spec.fileSecurity.overrideMode, "inherited");
-	assert.deepEqual(imported.dropped, ["/fileSecurity/threatEmulationEnabled"]);
+	assert.equal(imported.spec.fileSecurity.threatEmulationEnabled, true);
+	assert.deepEqual(imported.dropped ?? [], []);
 	// the IPS has the signatures of NginxionS
 	const ips = { webAttacks: { overrideMode: "inherited" }, intrusionPrevention: { overrideMode: "prevent" } };
 	assert.equal(normalize("threat_prevention", ips).errors, undefined);
@@ -165,14 +164,17 @@ test("no silent fields: what the agent does not apply is an error, or dropped an
 
 	const syslog = (services) => normalize("log_trigger", { logDestination: { syslogService: services } });
 	assert.ok(syslog([{ address: "10.0.0.5", port: 514 }]).spec);
-	assert.match(syslog([{ address: "logs.example.com", port: 514 }]).errors.join(), /IPv4/);
-	assert.match(
+	// several servers, names and IPv6 go through the relay of NginxionS (waf/syslog.js)
+	assert.ok(syslog([{ address: "logs.example.com", port: 514 }]).spec);
+	assert.ok(syslog([{ address: "2001:db8::5", port: 514 }]).spec);
+	assert.ok(
 		syslog([
 			{ address: "10.0.0.5", port: 514 },
-			{ address: "10.0.0.6", port: 514 },
-		]).errors.join(),
-		/one server/,
+			{ address: "10.0.0.6", port: 514, proto: "tcp" },
+		]).spec,
 	);
+	assert.match(syslog([{ address: "not a host", port: 514 }]).errors.join(), /host name/);
+	assert.match(syslog([{ address: "10.0.0.5", port: 70000 }]).errors.join(), /1-65535/);
 });
 
 test("objects of the examples of open-appsec pass the schema", async () => {

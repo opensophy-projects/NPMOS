@@ -5,7 +5,6 @@ import { createHash } from "node:crypto";
 import { mkdir, readdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import YAML from "yaml";
-import internalAuditLog from "../../internal/audit-log.js";
 import errs from "../../lib/error.js";
 import { global as logger } from "../../logger.js";
 import { DATA_DIR as CROWDSEC_DATA } from "../crowdsec/hub.js";
@@ -135,8 +134,11 @@ export const appsecPolicyText = async (parsed) => {
 	return lines.length ? `${text}${lines.join("\n")}\n` : text;
 };
 
-const audit = (access, action, name) =>
-	internalAuditLog.add(access, { action, object_type: "waf", meta: { openapi: name } });
+// imported when used: the audit log loads the JWT keys, which the policy generator (and its tests) do not need
+const audit = async (access, action, name) => {
+	const { default: internalAuditLog } = await import("../../internal/audit-log.js");
+	return internalAuditLog.add(access, { action, object_type: "waf", meta: { openapi: name } });
+};
 
 /** the practices that name each file: {name: [practice]} */
 const usage = async () => {

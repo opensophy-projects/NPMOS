@@ -13,7 +13,6 @@ import { mkdir, readdir, readFile, rename, rm, writeFile } from "node:fs/promise
 import net from "node:net";
 import path from "node:path";
 import db from "../../db.js";
-import internalAuditLog from "../../internal/audit-log.js";
 import errs from "../../lib/error.js";
 import { global as logger } from "../../logger.js";
 import control from "../control/client.js";
@@ -30,6 +29,7 @@ const SERVICE = "clamav";
 const CURSOR = "files:findings";
 const SIGNATURE_FILE = /^[a-z0-9][a-z0-9_-]{0,63}\.(cvd|cld|cud)$/;
 export const MAX_SIGNATURE_BYTES = 512 * 1024 * 1024;
+const SEVERITIES = ["low", "medium", "high", "critical"];
 const UNITS = { bytes: 1, KB: 1024, MB: 1024 * 1024, GB: 1024 * 1024 * 1024 };
 const list = (v) => (Array.isArray(v) ? v : []);
 const parseJson = (v) => (typeof v === "string" ? JSON.parse(v) : v) || [];
@@ -50,6 +50,9 @@ export const fileRule = (rule, practices, path) => {
 	const fs = practice.fileSecurity ?? {};
 	const large = fs.largeFileInspection ?? {};
 	const limit = Number(large.fileSizeLimit ?? 10) * (UNITS[large.fileSizeLimitUnit ?? "MB"] ?? UNITS.MB);
+	const archive = fs.archiveInspection ?? {};
+	const archiveLimit =
+		Number(archive.scanMaxFileSize ?? 10) * (UNITS[archive.scanMaxFileSizeUnit ?? "MB"] ?? UNITS.MB);
 	return {
 		path,
 		mode,
@@ -61,6 +64,20 @@ export const fileRule = (rule, practices, path) => {
 		},
 		max_bytes: Math.max(1, Math.round(limit)),
 		large_action: actionOf(large.filesExceedingSizeLimitAction, mode),
+		// a signature below it is not acted upon (the severity of its kind of malware, nginxions_files.lua)
+		min_severity: SEVERITIES.includes(fs.minSeverityLevel) ? fs.minSeverityLevel : "medium",
+		archives: {
+			// off: an archive is not opened, so not scanned (as the agent, which only extracts when asked)
+			extract: fs.archiveInspection?.extractArchiveFiles === true,
+			max_bytes: Math.max(1, Math.round(archiveLimit)),
+			nested_action: actionOf(fs.archiveInspection?.archivedFilesWithinArchivedFiles, mode),
+			failed_action: actionOf(fs.archiveInspection?.archivedFilesWhereContentExtractionFailed, mode),
+		},
+		// a file whose name is not known: a body of a binary type with no name in Content-Disposition or the path
+		unnamed_action: actionOf(fs.unnamedFilesAction, mode),
+		// threat emulation: instead of the sandbox of Check Point, the deep static analysis of clamd counts (Office
+		// macros, broken executables and media, partitions that intersect); off, these findings are left out
+		deep: fs.threatEmulationEnabled === true,
 	};
 };
 
@@ -229,7 +246,11 @@ export const clamdCommand = (command, { host = CLAMD.host, port = CLAMD.port, ti
 		socket.on("end", () => done(data.replace(/\0/g, "").trim() || null));
 	});
 
-const audit = (access, action, meta) => internalAuditLog.add(access, { action, object_type: "waf", meta });
+// imported when used: the audit log loads the JWT keys, which the policy generator (and its tests) do not need
+const audit = async (access, action, meta) => {
+	const { default: internalAuditLog } = await import("../../internal/audit-log.js");
+	return internalAuditLog.add(access, { action, object_type: "waf", meta });
+};
 
 const internalWafFiles = {
 	/** @param {Access} access */

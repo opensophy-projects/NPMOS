@@ -1,6 +1,7 @@
 // Objects of the open-appsec policy (WAF → Policy, docs/ROADMAP.md phase 5) in the terms of v1beta2:
 // what each kind is, how its specification is completed and checked (the schema of open-appsec),
 // the built-in objects and the templates made of them. Pure functions, no database.
+import { isIPv6 } from "node:net";
 import Ajv from "ajv/dist/2020.js";
 import { EXCEPTION_KEYS, EXCEPTION_OPS } from "./format.js";
 import schema from "./schema-v1beta2.json" with { type: "json" };
@@ -87,6 +88,7 @@ const URI = /^\/[^\s"\\]{0,1023}$/;
 /** keys of a condition of a rate limit rule: what the rate limit engine matches (rate_limit.cc) */
 export const RATE_LIMIT_KEYS = ["sourceIp", "sourceIdentifier", "countryCode", "countryName", "url"];
 const IPV4 = /^(25[0-5]|2[0-4]\d|1?\d?\d)(\.(25[0-5]|2[0-4]\d|1?\d?\d)){3}$/;
+const HOSTNAME = /^(?=.{1,253}$)[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*$/i;
 
 /**
  * What a specification asks of the agent that it does not do: errors (it would be silently left out) and
@@ -105,17 +107,6 @@ const unsupported = (kind, spec, lenient) => {
 				dropped.push(`/${engine}`);
 			} else {
 				errors.push(`/${engine}: not in the agent of NginxionS (Premium edition or the Check Point cloud)`);
-			}
-		}
-		// fileSecurity: ClamAV scans archives (it always extracts them) but has no sandbox for threat emulation
-		if (spec.fileSecurity?.threatEmulationEnabled === true && spec.fileSecurity.overrideMode !== "inactive") {
-			if (lenient) {
-				spec.fileSecurity.threatEmulationEnabled = false;
-				dropped.push("/fileSecurity/threatEmulationEnabled");
-			} else {
-				errors.push(
-					"/fileSecurity/threatEmulationEnabled: threat emulation (a sandbox of Check Point) is not in NginxionS",
-				);
 			}
 		}
 		// antiBot: paths ({uri} as in v1beta2; a plain string is taken too)
@@ -177,12 +168,14 @@ const unsupported = (kind, spec, lenient) => {
 		const dest = spec.logDestination || {};
 		for (const service of ["syslogService", "cefService"]) {
 			const list = Array.isArray(dest[service]) ? dest[service] : dest[service] ? [dest[service]] : [];
-			// the agent keeps one stream of each kind (logging.cc) and opens sockets to IPv4 addresses only
-			if (list.length > 1) errors.push(`/logDestination/${service}: the agent sends to one server`);
+			// any number of servers by IPv4, IPv6 or name: what the agent cannot send goes through a relay (waf/syslog.js)
 			list.forEach((s, i) => {
-				if (!IPV4.test(s?.address || ""))
-					errors.push(`/logDestination/${service}/${i}/address: an IPv4 address`);
+				if (!IPV4.test(s?.address || "") && !isIPv6(s?.address || "") && !HOSTNAME.test(s?.address || ""))
+					errors.push(`/logDestination/${service}/${i}/address: an IP address or a host name`);
+				if (s?.port !== undefined && !(Number.isInteger(s.port) && s.port > 0 && s.port < 65536))
+					errors.push(`/logDestination/${service}/${i}/port: 1-65535`);
 			});
+			if (list.length > 16) errors.push(`/logDestination/${service}: at most 16 servers`);
 		}
 		if (dest["k8s-service"] !== undefined) {
 			dropped.push("/logDestination/k8s-service");

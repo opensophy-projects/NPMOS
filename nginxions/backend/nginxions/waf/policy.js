@@ -23,6 +23,7 @@ import { asV2, danglingRefs, extraRefs } from "./objects/format.js";
 import { UNSUPPORTED_ENGINES } from "./objects/model.js";
 import { buildDoc, seedBuiltins } from "./objects/store.js";
 import { listSchemas } from "./schemas.js";
+import { applyRelays, withRelays } from "./syslog.js";
 
 const POLICY_FILE = process.env.NGINXIONS_APPSEC_POLICY_FILE || "/ext/appsec/local_policy.yaml";
 const BACKUP_DIR = "/data/nginxions/waf/policy-backups";
@@ -67,11 +68,14 @@ const buildPolicy = async ({ custom, candidate } = {}) => {
 		}
 	}
 	const appsec = appsecRules(merged);
+	// syslog and CEF the agent cannot send itself (several servers, a name, IPv6) go through a relay of NginxionS
+	const { doc: forLogs, relays } = withRelays(forAgent(merged));
 	const stored = new Set((await listSchemas().catch(() => [])).map((f) => f.name));
 	return {
 		// the engines CrowdSec runs (antiBot, schemaValidation) and File Security are off for the agent
-		policy: asV2(forAgent(merged)),
+		policy: asV2(forLogs),
 		appsec,
+		relays,
 		doc: merged,
 		hosts,
 		customId,
@@ -198,7 +202,9 @@ function retryNotify() {
  * @returns {Promise<{changed: boolean, hosts: number}>}
  */
 const regenerate = async ({ force = false } = {}) => {
-	const { policy, appsec, doc, hosts, customId, format, reasons, warnings } = await buildPolicy();
+	const { policy, appsec, relays, doc, hosts, customId, format, reasons, warnings } = await buildPolicy();
+	// before the agent reads the policy: its messages find the relay up
+	applyRelays(relays);
 	const content = render(policy, customId !== null);
 	const current = await readPolicyFile();
 	const changed = current !== content;

@@ -397,70 +397,58 @@ function FieldInput({
 					)}
 				/>
 			);
-		case "service": {
-			// a list in the schema, one server in the agent (it keeps one stream of each kind)
-			const service = (value || [])[0];
-			const setService = (next: Record<string, any> | null) => set(field.path, next ? [next] : []);
-			if (!service) {
-				return (
-					<div>
-						<Button size="sm" onClick={() => setService({ address: "", port: 514, proto: "udp" })}>
-							<IconPlus size={14} className="me-1" />
-							<T id="nginxions.policy.service.add" />
-						</Button>
-					</div>
-				);
-			}
+		case "service":
+			// any number of servers by IP address or name: what the agent cannot send itself goes through the relay
+			// of NginxionS (backend waf/syslog.js)
 			return (
-				<div className="row g-2 align-items-center">
-					<div className="col-5">
-						<input
-							id={id}
-							className="form-control"
-							aria-label={t("nginxions.policy.service.address")}
-							placeholder={EXAMPLE.ip}
-							value={service.address ?? ""}
-							onChange={(e) => setService({ ...service, address: e.target.value.trim() })}
-						/>
-					</div>
-					<div className="col-3">
-						<input
-							type="number"
-							min={1}
-							max={65535}
-							className="form-control"
-							aria-label={t("nginxions.policy.service.port")}
-							value={service.port ?? 514}
-							onChange={(e) => setService({ ...service, port: Number(e.target.value) })}
-						/>
-					</div>
-					<div className="col">
-						<select
-							className="form-select"
-							aria-label={t("nginxions.policy.service.proto")}
-							value={service.proto ?? "udp"}
-							onChange={(e) => setService({ ...service, proto: e.target.value })}
-						>
-							<option value="udp">UDP</option>
-							<option value="tcp">TCP</option>
-						</select>
-					</div>
-					<div className="col-auto">
-						<button
-							type="button"
-							className="btn btn-icon btn-sm btn-ghost-danger"
-							aria-label={t("nginxions.policy.remove")}
-							onClick={() => setService(null)}
-						>
-							<IconTrash size={16} />
-						</button>
-					</div>
+				<div>
+					<Rows
+						rows={(Array.isArray(value) ? value : value ? [value] : []) as Record<string, any>[]}
+						onChange={(rows) => set(field.path, rows)}
+						empty={() => ({ address: "", port: 514, proto: "udp" })}
+						add="nginxions.policy.service.add"
+						render={(service: any, setService) => (
+							<>
+								<div className="col-5">
+									<input
+										id={id}
+										className="form-control"
+										aria-label={t("nginxions.policy.service.address")}
+										placeholder={EXAMPLE.ip}
+										value={service.address ?? ""}
+										onChange={(e) => setService({ ...service, address: e.target.value.trim() })}
+									/>
+								</div>
+								<div className="col-3">
+									<input
+										type="number"
+										min={1}
+										max={65535}
+										className="form-control"
+										aria-label={t("nginxions.policy.service.port")}
+										value={service.port ?? 514}
+										onChange={(e) => setService({ ...service, port: Number(e.target.value) })}
+									/>
+								</div>
+								<div className="col">
+									<select
+										className="form-select"
+										aria-label={t("nginxions.policy.service.proto")}
+										value={service.proto ?? "udp"}
+										onChange={(e) => setService({ ...service, proto: e.target.value })}
+									>
+										<option value="udp">UDP</option>
+										<option value="tcp">TCP</option>
+									</select>
+								</div>
+							</>
+						)}
+					/>
 					<div className="form-hint">
 						<T id="nginxions.policy.service.hint" />
 					</div>
 				</div>
 			);
-		}
 		case "identifiers":
 			return (
 				<Rows
