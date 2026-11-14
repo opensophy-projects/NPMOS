@@ -340,17 +340,52 @@ ParsedMatch::ParsedMatch(const string &_operator, const string &_tag, const stri
 }
 
 // LCOV_EXCL_START Reason: no test exist
+// NginxionS: the override of the WAF (Waap::Override::Match) knows basic (any of the values of a tag), and, or (of two
+// operands) and not. A condition with another operator than equals became {"operator": "not-in"} with no tag, which
+// the WAF never matches: an exception "every source but ..." (not-in, not-equals) or "the header exists" (exist) was
+// never applied. not-in is "not" of a basic match of its values, exist a basic match of any value; and/or of more than
+// two matches are nested, two at a time (the operands after the second were ignored).
 ParsedMatch::ParsedMatch(const ExceptionMatch &exceptions)
 {
-    if (exceptions.getOperator() == "equals") {
-        operator_type = "basic";
-        tag = exceptions.getKey();
-        value = exceptions.getValue();
-    } else {
-        operator_type = exceptions.getOperator();
+    const string &op = exceptions.getOperator();
+    if (op == "equals" || op == "not-in" || op == "exist") {
+        ParsedMatch basic;
+        basic.operator_type = "basic";
+        basic.tag = exceptions.getKey();
+        if (op == "exist") {
+            string lower_tag = basic.tag;
+            transform(lower_tag.begin(), lower_tag.end(), lower_tag.begin(), ::tolower);
+            basic.value = (lower_tag == "sourceip" || lower_tag == "sourceidentifier") ? "0.0.0.0/0" : ".*";
+        } else if (exceptions.getValues().size() == 1) {
+            basic.value = exceptions.getValues()[0];
+        } else {
+            basic.values = exceptions.getValues();
+        }
+        if (op == "not-in") {
+            operator_type = "not";
+            parsed_match.push_back(basic);
+        } else {
+            *this = basic;
+        }
+        return;
     }
-    for (const ExceptionMatch &exception_match : exceptions.getMatch()) {
-        parsed_match.push_back(ParsedMatch(exception_match));
+    *this = ParsedMatch(op, exceptions.getMatch(), 0);
+}
+
+ParsedMatch::ParsedMatch(const string &_operator, const vector<ExceptionMatch> &matches, size_t first)
+        :
+    operator_type(_operator)
+{
+    if (matches.size() <= first) return;
+    if (matches.size() - first == 1) {
+        *this = ParsedMatch(matches[first]);
+        return;
+    }
+    parsed_match.push_back(ParsedMatch(matches[first]));
+    if (matches.size() - first == 2) {
+        parsed_match.push_back(ParsedMatch(matches[first + 1]));
+    } else {
+        parsed_match.push_back(ParsedMatch(_operator, matches, first + 1));
     }
 }
 
@@ -366,6 +401,12 @@ ParsedMatch::save(cereal::JSONOutputArchive &out_ar) const
             i++;
             out_ar(cereal::make_nvp("operand" + to_string(i), operand));
         }
+    } else if (!values.empty()) {
+        out_ar(
+            cereal::make_nvp("operator",    operator_type),
+            cereal::make_nvp("tag",         tag),
+            cereal::make_nvp("values",      values)
+        );
     } else {
         out_ar(
             cereal::make_nvp("operator",    operator_type),

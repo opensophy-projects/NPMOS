@@ -218,6 +218,9 @@ public:
     ParsedMatch(const std::string &_operator, const std::string &_tag, const std::string &_value);
 
     ParsedMatch(const ExceptionMatch &exceptions);
+    // NginxionS: "and"/"or" of the matches from `first` on, two operands at a time (Waap::Override::Match reads
+    // operand1 and operand2 only)
+    ParsedMatch(const std::string &_operator, const std::vector<ExceptionMatch> &matches, size_t first);
 
     void save(cereal::JSONOutputArchive &out_ar) const;
 
@@ -225,6 +228,8 @@ private:
     std::string operator_type;
     std::string tag;
     std::string value;
+    // NginxionS: a "basic" match of any of these values (Waap::Override::Match reads "values" before "value")
+    std::vector<std::string> values;
     std::vector<ParsedMatch> parsed_match;
 };
 

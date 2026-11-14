@@ -94,6 +94,8 @@ public:
     const std::string & getOperator() const;
     const std::string & getKey() const;
     const std::string & getValue() const;
+    // NginxionS: all the values (none for exist)
+    const std::vector<std::string> & getValues() const;
     const std::vector<ExceptionMatch> & getMatch() const;
 
 private:

@@ -322,6 +322,12 @@ ExceptionMatch::getValue() const
     return value[0];
 }
 
+const vector<string> &
+ExceptionMatch::getValues() const
+{
+    return value;
+}
+
 const vector<ExceptionMatch> &
 ExceptionMatch::getMatch() const
 {

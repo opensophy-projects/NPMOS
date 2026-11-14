@@ -332,6 +332,14 @@ if $CURL "$ADMIN/api/nginxions/waf" | grep -q '"reachable": *true'; then
     done
     fail "$3 (last status $(status "$1"))"
   }
+  # the same, three times in a row: while the agent reloads its policy, fail-open lets a blocked request through once
+  wait_status_stable() {
+    for i in $(seq 1 60); do
+      [ "$(status "$1")" = "$2" ] && [ "$(status "$1")" = "$2" ] && [ "$(status "$1")" = "$2" ] && return 0
+      sleep 2
+    done
+    fail "$3 (last status $(status "$1"))"
+  }
 
   step "WAF -> Policy: an exception object in the default policy lets the attack through, a rollback blocks it again"
   recommended=$(object_id threat_prevention nginxions-recommended)
@@ -411,7 +419,7 @@ if $CURL "$ADMIN/api/nginxions/waf" | grep -q '"reachable": *true'; then
     "spec": {"action": "drop", "condition": [{"key": "headerName", "value": "x-smoke-drop"}]}}' | new_id)
   [ -n "$not_in" ] && [ -n "$by_header" ] || fail "the exceptions of x-nginxions were not created"
   host_objects "{\"exceptions\": [$not_in]}"
-  wait_status "$SQLI" 200 "an exception for every source but another one does not let the attack through"
+  wait_status_stable "$SQLI" 200 "an exception for every source but another one does not let the attack through"
   host_objects "{\"exceptions\": [$by_header]}"
   for i in $(seq 1 60); do
     [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 -H 'Host: test.local' -H 'X-Smoke-Drop: 1' "$HTTP/")" = 403 ] \

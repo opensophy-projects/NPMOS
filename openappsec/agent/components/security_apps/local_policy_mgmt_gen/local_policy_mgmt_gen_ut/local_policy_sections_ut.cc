@@ -6,6 +6,7 @@
 
 #include "cptest.h"
 #include "access_control_practice.h"
+#include "appsec_practice_section.h"
 #include "exceptions_section.h"
 #include "new_exceptions.h"
 #include "new_custom_response.h"
@@ -236,4 +237,61 @@ TEST(LocalPolicySections, exceptionRejectsWhatTheWafDoesNotMatch)
     EXPECT_THROW(exceptionQueryOf("[{\"key\": \"cookie\", \"value\": \"a\"}]"), PolicyGenException);
     EXPECT_THROW(exceptionQueryOf("[{\"key\": \"url\", \"op\": \"contains\", \"value\": \"a\"}]"), PolicyGenException);
     EXPECT_THROW(exceptionQueryOf("[{\"key\": \"url\", \"op\": \"equals\"}]"), PolicyGenException);
+}
+
+// NginxionS: the same exception as the override of the WAF (Waap::Override::Match: basic, and/or of two operands,
+// not): a not-in or exist condition was written as {"operator": "not-in"} without a tag and never matched
+static string
+overrideOf(const string &conditions)
+{
+    auto exception = loadFrom<NewAppsecException>(
+        "{\"name\": \"e\", \"action\": \"accept\", \"condition\": " + conditions + "}"
+    );
+    return saveOf(ParsedMatch(ExceptionMatch(exception)));
+}
+
+static size_t
+countOf(const string &text, const string &part)
+{
+    size_t count = 0;
+    for (size_t at = text.find(part); at != string::npos; at = text.find(part, at + part.size())) count++;
+    return count;
+}
+
+TEST(LocalPolicySections, exceptionOverrideOfNotInIsNotOfTheValues)
+{
+    string json = overrideOf("[{\"key\": \"sourceIp\", \"op\": \"not-in\", \"value\": \"192.0.2.7\"}]");
+    EXPECT_THAT(json, HasSubstr("\"operator\": \"not\""));
+    EXPECT_THAT(json, HasSubstr("\"operator\": \"basic\""));
+    EXPECT_THAT(json, HasSubstr("\"tag\": \"sourceIP\""));
+    EXPECT_THAT(json, HasSubstr("\"value\": \"192.0.2.7\""));
+    EXPECT_THAT(json, Not(HasSubstr("not-in")));
+
+    string two = overrideOf(
+        "[{\"key\": \"sourceIp\", \"op\": \"not-in\", \"value\": \"192.0.2.7\"},"
+        " {\"key\": \"sourceIp\", \"op\": \"not-equals\", \"value\": \"192.0.2.8\"}]"
+    );
+    EXPECT_THAT(two, HasSubstr("\"values\""));
+    EXPECT_THAT(two, HasSubstr("\"192.0.2.8\""));
+}
+
+TEST(LocalPolicySections, exceptionOverrideOfExistMatchesAnyValue)
+{
+    string json = overrideOf("[{\"key\": \"headerName\", \"op\": \"exist\"}]");
+    EXPECT_THAT(json, HasSubstr("\"operator\": \"basic\""));
+    EXPECT_THAT(json, HasSubstr("\"value\": \".*\""));
+}
+
+TEST(LocalPolicySections, exceptionOverrideNestsMoreThanTwoOperands)
+{
+    // three values of a key: or(a, or(b, c)), every one of them read (the WAF reads operand1 and operand2 only)
+    string json = overrideOf(
+        "[{\"key\": \"url\", \"value\": \"/a\"}, {\"key\": \"url\", \"value\": \"/b\"},"
+        " {\"key\": \"url\", \"value\": \"/c\"}]"
+    );
+    EXPECT_EQ(countOf(json, "\"operator\": \"or\""), 2u);
+    EXPECT_EQ(countOf(json, "\"operand3\""), 0u);
+    EXPECT_THAT(json, HasSubstr("\"/c\""));
+    // equals stays one basic match of its value
+    EXPECT_THAT(overrideOf("[{\"key\": \"url\", \"value\": \"/a\"}]"), HasSubstr("\"value\": \"/a\""));
 }
