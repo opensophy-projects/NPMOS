@@ -295,16 +295,28 @@ if $CURL "$ADMIN/api/nginxions/waf" | grep -q '"reachable": *true'; then
   done
   echo "    metrics of the agent: $(echo "$metrics" | grep -o '"name":"[^"]*"' | wc -l)"
 
+  wait_status() {
+    for i in $(seq 1 60); do
+      [ "$(status "$1")" = "$2" ] && return 0
+      sleep 2
+    done
+    fail "$3 (last status $(status "$1"))"
+  }
+  # the same, three times in a row: while the agent reloads its policy, fail-open lets a blocked request through once
+  wait_status_stable() {
+    for i in $(seq 1 60); do
+      [ "$(status "$1")" = "$2" ] && [ "$(status "$1")" = "$2" ] && [ "$(status "$1")" = "$2" ] && return 0
+      sleep 2
+    done
+    fail "$3 (last status $(status "$1"))"
+  }
+
   step "WAF -> Policy (expert): an exception for the tester's IP lets the attack through"
   $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/nginxions/waf/policy/custom" -d "{
     \"content\": \"exceptions:\\n  - name: smoke-trusted\\n    action: accept\\n    condition:\\n      - key: sourceIp\\n        value: $client_ip\\npolicies:\\n  default:\\n    exceptions:\\n      - smoke-trusted\\n\",
     \"comment\": \"smoke\"}" > /dev/null
   $CURL "$ADMIN/api/nginxions/waf/policy" | grep -q 'name: smoke-trusted' || fail "the exception is not in the policy"
-  for i in $(seq 1 60); do
-    [ "$(status "$SQLI")" = 200 ] && break
-    [ "$i" = 60 ] && fail "SQLi from the trusted IP is still blocked"
-    sleep 2
-  done
+  wait_status_stable "$SQLI" 200 "SQLi from the trusted IP is still blocked"
 
   step "WAF -> Policy (expert): without the fragment (a new empty version) the attack is blocked again"
   $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/nginxions/waf/policy/custom" \
@@ -325,22 +337,6 @@ if $CURL "$ADMIN/api/nginxions/waf" | grep -q '"reachable": *true'; then
   new_id() { json | grep -o '^{"id":[0-9]*' | grep -o '[0-9]*$'; }
   last_version() { $CURL "$ADMIN/api/nginxions/waf/policy/versions" | json | grep -o '^\[{"id":[0-9]*' | grep -o '[0-9]*$'; }
   post_json() { $CURL -X "$1" -H 'Content-Type: application/json' "$ADMIN/api/nginxions/waf/policy$2" -d "$3"; }
-  wait_status() {
-    for i in $(seq 1 60); do
-      [ "$(status "$1")" = "$2" ] && return 0
-      sleep 2
-    done
-    fail "$3 (last status $(status "$1"))"
-  }
-  # the same, three times in a row: while the agent reloads its policy, fail-open lets a blocked request through once
-  wait_status_stable() {
-    for i in $(seq 1 60); do
-      [ "$(status "$1")" = "$2" ] && [ "$(status "$1")" = "$2" ] && [ "$(status "$1")" = "$2" ] && return 0
-      sleep 2
-    done
-    fail "$3 (last status $(status "$1"))"
-  }
-
   step "WAF -> Policy: an exception object in the default policy lets the attack through, a rollback blocks it again"
   recommended=$(object_id threat_prevention nginxions-recommended)
   trigger=$(object_id log_trigger nginxions-log)
@@ -361,7 +357,7 @@ if $CURL "$ADMIN/api/nginxions/waf" | grep -q '"reachable": *true'; then
     || fail "the dry run does not let the blocked attacks of the tester through: $(echo "$preview" | grep -o '"simulation":{[^]]*' | head -c 400)"
   post_json PUT /default "$default_policy, \"exceptions\": [$exception]}" > /dev/null
   $CURL "$ADMIN/api/nginxions/waf/policy" | grep -q -- "value: $client_ip" || fail "the exception is not in local_policy.yaml"
-  wait_status "$SQLI" 200 "SQLi from an IP of the exception is still blocked"
+  wait_status_stable "$SQLI" 200 "SQLi from an IP of the exception is still blocked"
   [ "$($CURL -o /dev/null -w "%{http_code}" -X DELETE "$ADMIN/api/nginxions/waf/policy/objects/$exception" 2>/dev/null || true)" = 400 ] \
     || fail "an object in use was deleted"
   post_json POST "/versions/$before/rollback" "" > /dev/null
@@ -406,7 +402,7 @@ if $CURL "$ADMIN/api/nginxions/waf" | grep -q '"reachable": *true'; then
     \"spec\": {\"action\": \"accept\", \"condition\": [{\"key\": \"sourceIp\", \"value\": \"$client_ip\"}]}}" | new_id)
   [ -n "$other" ] && [ -n "$mine" ] || fail "the exceptions were not created"
   host_objects "{\"accessControlPractices\": [$limit], \"exceptions\": [$other, $mine]}"
-  wait_status "$SQLI" 200 "the second exception of a rule does not let the attack through"
+  wait_status_stable "$SQLI" 200 "the second exception of a rule does not let the attack through"
   host_objects null
   wait_status "$SQLI" 403 "SQLi is not blocked once the exceptions are gone"
 
@@ -516,7 +512,7 @@ if $CURL "$ADMIN/api/nginxions/waf" | grep -q '"reachable": *true'; then
     || fail "a trial was started on a host that blocks already"
   $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/nginxions/waf/hosts/1" \
     -d '{"enabled": true, "mode": "detect-learn", "minimum_confidence": "high"}' > /dev/null
-  wait_status "$SQLI" 200 "SQLi is still blocked in detect mode"
+  wait_status_stable "$SQLI" 200 "SQLi is still blocked in detect mode"
   trial POST '{"hours": 1}' | json | grep -q '"state":"running"' || fail "the trial did not start"
   report=""
   for i in $(seq 1 30); do
@@ -580,7 +576,7 @@ if $CURL "$ADMIN/api/nginxions/waf" | grep -q '"reachable": *true'; then
     [ "$i" = 30 ] && fail "no exception of the label in the policy"
     sleep 1
   done
-  wait_status "$SQLI" 200 "SQLi labelled legitimate is still blocked"
+  wait_status_stable "$SQLI" 200 "SQLi labelled legitimate is still blocked"
   $CURL -X DELETE "$ADMIN/api/nginxions/learning/labels/$label_id" | grep -q '"ok": *true' || fail "the label was not undone"
   wait_status "$SQLI" 403 "SQLi is not blocked after the label was undone"
   $CURL "$ADMIN/api/nginxions/learning/labels?active=0" | grep -q '"undoneOn": *"' || fail "the undone label is not in the history"
@@ -624,11 +620,7 @@ if $CURL "$ADMIN/api/nginxions/waf" | grep -q '"reachable": *true'; then
   step "WAF: detect-learn lets attacks through"
   $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/nginxions/waf/hosts/1" \
     -d '{"enabled": true, "mode": "detect-learn", "minimum_confidence": "high"}' > /dev/null
-  for i in $(seq 1 60); do
-    [ "$(status "$SQLI")" = 200 ] && break
-    [ "$i" = 60 ] && fail "SQLi is still blocked in detect-learn"
-    sleep 2
-  done
+  wait_status_stable "$SQLI" 200 "SQLi is still blocked in detect-learn"
 
   step "WAF -> Events: the detected attack is an important event (Detect)"
   event Detect
