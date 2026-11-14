@@ -3383,6 +3383,99 @@
 	"nginxions.learning.severity": {
 		"defaultMessage": "Severity"
 	},
+	"nginxions.learning.snapshots.delete.text": {
+		"defaultMessage": "The snapshot of {time} is removed for good."
+	},
+	"nginxions.learning.snapshots.delete.title": {
+		"defaultMessage": "Remove this snapshot?"
+	},
+	"nginxions.learning.snapshots.download": {
+		"defaultMessage": "Download"
+	},
+	"nginxions.learning.snapshots.empty": {
+		"defaultMessage": "No snapshot yet: the first one is taken a day after the agent starts learning, or now with the button below."
+	},
+	"nginxions.learning.snapshots.learned": {
+		"defaultMessage": "Learned"
+	},
+	"nginxions.learning.snapshots.learned.value": {
+		"defaultMessage": "{values} values, {assets} assets"
+	},
+	"nginxions.learning.snapshots.open": {
+		"defaultMessage": "Snapshots of learning"
+	},
+	"nginxions.learning.snapshots.reason": {
+		"defaultMessage": "Why"
+	},
+	"nginxions.learning.snapshots.reason.auto": {
+		"defaultMessage": "Daily"
+	},
+	"nginxions.learning.snapshots.reason.before-restore": {
+		"defaultMessage": "Before a restore"
+	},
+	"nginxions.learning.snapshots.reason.import": {
+		"defaultMessage": "Uploaded"
+	},
+	"nginxions.learning.snapshots.reason.manual": {
+		"defaultMessage": "Manual"
+	},
+	"nginxions.learning.snapshots.restore": {
+		"defaultMessage": "Restore"
+	},
+	"nginxions.learning.snapshots.restore.text": {
+		"defaultMessage": "What the agent learned is replaced by the snapshot of {time}; what it learned since is kept as a snapshot first. The agent and NginxionS restart: about a minute without the WAF and this page."
+	},
+	"nginxions.learning.snapshots.restore.title": {
+		"defaultMessage": "Restore this snapshot?"
+	},
+	"nginxions.learning.snapshots.restored": {
+		"defaultMessage": "The snapshot is restored: the agent and NginxionS restart"
+	},
+	"nginxions.learning.snapshots.restored-on": {
+		"defaultMessage": "restored {time}"
+	},
+	"nginxions.learning.snapshots.shift": {
+		"defaultMessage": "Shift from the snapshot before"
+	},
+	"nginxions.learning.snapshots.shift.drop": {
+		"defaultMessage": "{asset}: shrank from {before} to {after}"
+	},
+	"nginxions.learning.snapshots.shift.first": {
+		"defaultMessage": "the first snapshot"
+	},
+	"nginxions.learning.snapshots.shift.growth": {
+		"defaultMessage": "{asset}: grew from {before} to {after}"
+	},
+	"nginxions.learning.snapshots.shift.none": {
+		"defaultMessage": "no sharp shift"
+	},
+	"nginxions.learning.snapshots.source": {
+		"defaultMessage": "taken {time}"
+	},
+	"nginxions.learning.snapshots.take": {
+		"defaultMessage": "Take a snapshot"
+	},
+	"nginxions.learning.snapshots.taken": {
+		"defaultMessage": "Taken"
+	},
+	"nginxions.learning.snapshots.taken-now": {
+		"defaultMessage": "The snapshot is taken"
+	},
+	"nginxions.learning.snapshots.text": {
+		"defaultMessage": "NginxionS takes a snapshot of the learned state of the agent every day (the last {keep} are kept) and when you ask, and compares each with the one before. A snapshot restored replaces the learned state: the agent and NginxionS restart (about a minute), the state before is kept as a snapshot first. Snapshots are in the data volume of NginxionS, so its backup holds them; a downloaded snapshot is uploaded on another NginxionS to move what was learned."
+	},
+	"nginxions.learning.snapshots.title": {
+		"defaultMessage": "Snapshots of what the agent learned"
+	},
+	"nginxions.learning.snapshots.upload": {
+		"defaultMessage": "Upload a snapshot"
+	},
+	"nginxions.learning.snapshots.uploaded": {
+		"defaultMessage": "The snapshot is uploaded: restore it to use it"
+	},
+	"nginxions.learning.snapshots.warning": {
+		"defaultMessage": "What the agent learned shifted sharply in the snapshot of {time}. A sudden growth can be poisoning (attacks learned as normal traffic); Snapshots of learning restores an earlier state."
+	},
 	"nginxions.learning.submit.benign": {
 		"defaultMessage": "Mark legitimate"
 	},
@@ -4352,6 +4445,15 @@
 	"nginxions.notifications.rule.learning_queue.params": {
 		"defaultMessage": "from {threshold} groups"
 	},
+	"nginxions.notifications.rule.learning_shift": {
+		"defaultMessage": "Sharp shift of what the WAF learned"
+	},
+	"nginxions.notifications.rule.learning_shift.hint": {
+		"defaultMessage": "What the agent counts as normal on a site grew or shrank sharply between two snapshots of learning: a sudden growth can be poisoning."
+	},
+	"nginxions.notifications.rule.learning_shift.params": {
+		"defaultMessage": "after a daily or manual snapshot"
+	},
 	"nginxions.notifications.rule.new": {
 		"defaultMessage": "New rule"
 	},
@@ -4465,6 +4567,9 @@
 	},
 	"nginxions.notifications.setup.why.learning_queue": {
 		"defaultMessage": "The WAF agent has doubtful requests to label: legitimate ones stop being blocked."
+	},
+	"nginxions.notifications.setup.why.learning_shift": {
+		"defaultMessage": "Attacks learned as normal traffic would stop being blocked: compare the snapshots and restore an earlier one."
 	},
 	"nginxions.notifications.setup.why.policy_error": {
 		"defaultMessage": "A changed WAF policy did not apply: the agent keeps the previous one."

@@ -3383,6 +3383,99 @@
 	"nginxions.learning.severity": {
 		"defaultMessage": "Важность"
 	},
+	"nginxions.learning.snapshots.delete.text": {
+		"defaultMessage": "Снимок от {time} будет удалён насовсем."
+	},
+	"nginxions.learning.snapshots.delete.title": {
+		"defaultMessage": "Удалить этот снимок?"
+	},
+	"nginxions.learning.snapshots.download": {
+		"defaultMessage": "Скачать"
+	},
+	"nginxions.learning.snapshots.empty": {
+		"defaultMessage": "Снимков пока нет: первый появится через сутки после начала обучения агента или сейчас — кнопкой ниже."
+	},
+	"nginxions.learning.snapshots.learned": {
+		"defaultMessage": "Выучено"
+	},
+	"nginxions.learning.snapshots.learned.value": {
+		"defaultMessage": "{values} значений, {assets} asset"
+	},
+	"nginxions.learning.snapshots.open": {
+		"defaultMessage": "Снимки обучения"
+	},
+	"nginxions.learning.snapshots.reason": {
+		"defaultMessage": "Почему"
+	},
+	"nginxions.learning.snapshots.reason.auto": {
+		"defaultMessage": "Ежедневный"
+	},
+	"nginxions.learning.snapshots.reason.before-restore": {
+		"defaultMessage": "Перед откатом"
+	},
+	"nginxions.learning.snapshots.reason.import": {
+		"defaultMessage": "Загружен"
+	},
+	"nginxions.learning.snapshots.reason.manual": {
+		"defaultMessage": "Вручную"
+	},
+	"nginxions.learning.snapshots.restore": {
+		"defaultMessage": "Восстановить"
+	},
+	"nginxions.learning.snapshots.restore.text": {
+		"defaultMessage": "Выученное агентом заменится снимком от {time}; выученное после него сначала сохранится снимком. Агент и NginxionS перезапустятся: около минуты без WAF и без этой страницы."
+	},
+	"nginxions.learning.snapshots.restore.title": {
+		"defaultMessage": "Восстановить этот снимок?"
+	},
+	"nginxions.learning.snapshots.restored": {
+		"defaultMessage": "Снимок восстановлен: агент и NginxionS перезапускаются"
+	},
+	"nginxions.learning.snapshots.restored-on": {
+		"defaultMessage": "восстановлен {time}"
+	},
+	"nginxions.learning.snapshots.shift": {
+		"defaultMessage": "Сдвиг от предыдущего снимка"
+	},
+	"nginxions.learning.snapshots.shift.drop": {
+		"defaultMessage": "{asset}: уменьшилось с {before} до {after}"
+	},
+	"nginxions.learning.snapshots.shift.first": {
+		"defaultMessage": "первый снимок"
+	},
+	"nginxions.learning.snapshots.shift.growth": {
+		"defaultMessage": "{asset}: выросло с {before} до {after}"
+	},
+	"nginxions.learning.snapshots.shift.none": {
+		"defaultMessage": "резкого сдвига нет"
+	},
+	"nginxions.learning.snapshots.source": {
+		"defaultMessage": "сделан {time}"
+	},
+	"nginxions.learning.snapshots.take": {
+		"defaultMessage": "Сделать снимок"
+	},
+	"nginxions.learning.snapshots.taken": {
+		"defaultMessage": "Сделан"
+	},
+	"nginxions.learning.snapshots.taken-now": {
+		"defaultMessage": "Снимок сделан"
+	},
+	"nginxions.learning.snapshots.text": {
+		"defaultMessage": "NginxionS делает снимок обученного состояния агента каждый день (хранятся последние {keep}) и по кнопке и сравнивает каждый с предыдущим. Восстановленный снимок заменяет обученное состояние: агент и NginxionS перезапускаются (около минуты), прежнее состояние сначала сохраняется снимком. Снимки лежат в томе данных NginxionS, поэтому его резервная копия их содержит; скачанный снимок загружается на другой NginxionS, чтобы перенести выученное."
+	},
+	"nginxions.learning.snapshots.title": {
+		"defaultMessage": "Снимки того, что выучил агент"
+	},
+	"nginxions.learning.snapshots.upload": {
+		"defaultMessage": "Загрузить снимок"
+	},
+	"nginxions.learning.snapshots.uploaded": {
+		"defaultMessage": "Снимок загружен: восстановите его, чтобы применить"
+	},
+	"nginxions.learning.snapshots.warning": {
+		"defaultMessage": "Выученное агентом резко изменилось в снимке от {time}. Внезапный рост может быть отравлением (атаки выучены как обычный трафик); в «Снимках обучения» можно откатиться к раннему состоянию."
+	},
 	"nginxions.learning.submit.benign": {
 		"defaultMessage": "Отметить легитимным"
 	},
@@ -4352,6 +4445,15 @@
 	"nginxions.notifications.rule.learning_queue.params": {
 		"defaultMessage": "от {threshold} групп"
 	},
+	"nginxions.notifications.rule.learning_shift": {
+		"defaultMessage": "Резкий сдвиг выученного WAF"
+	},
+	"nginxions.notifications.rule.learning_shift.hint": {
+		"defaultMessage": "То, что агент считает нормой на сайте, резко выросло или уменьшилось между двумя снимками обучения: внезапный рост может быть отравлением."
+	},
+	"nginxions.notifications.rule.learning_shift.params": {
+		"defaultMessage": "после ежедневного или ручного снимка"
+	},
 	"nginxions.notifications.rule.new": {
 		"defaultMessage": "Новое правило"
 	},
@@ -4465,6 +4567,9 @@
 	},
 	"nginxions.notifications.setup.why.learning_queue": {
 		"defaultMessage": "У агента WAF есть сомнительные запросы на разметку: легитимные перестанут блокироваться."
+	},
+	"nginxions.notifications.setup.why.learning_shift": {
+		"defaultMessage": "Атаки, выученные как обычный трафик, перестанут блокироваться: сравните снимки и откатитесь к раннему."
 	},
 	"nginxions.notifications.setup.why.policy_error": {
 		"defaultMessage": "Изменённая политика WAF не применилась: агент работает по прежней."

@@ -23,13 +23,16 @@ import {
 	getLearningHosts,
 	getQueue,
 	type LearningHost,
+	getLearningSnapshots,
 	type QueueGroup,
 	type Reason,
+	recentShift,
 	type Suggestion,
 	undoLabel,
 } from "./api";
 import { showLabelModal } from "./LabelModal";
 import { showLearnedModal } from "./LearnedModal";
+import { ShiftList, SNAPSHOTS_KEY, showSnapshotsModal } from "./SnapshotsModal";
 import { showStartTrialModal, showTrialReportModal } from "./TrialModal";
 import styles from "./Learning.module.css";
 
@@ -64,13 +67,16 @@ function Readiness({ host }: { host: LearningHost }) {
 	);
 }
 
-function Hosts({ manage }: { manage: boolean }) {
+function Hosts({ manage, label, restore }: { manage: boolean; label: boolean; restore: boolean }) {
 	const refresh = useRefresh();
 	const { data, isLoading, isError, error } = useQuery({
 		queryKey: ["nginxions-learning-hosts"],
 		queryFn: getLearningHosts,
 		refetchInterval: 60000,
 	});
+	// a sharp shift of what the agent learned between its last two snapshots (snapshots of learning)
+	const snapshots = useQuery({ queryKey: [SNAPSHOTS_KEY], queryFn: getLearningSnapshots, refetchInterval: 300000 });
+	const shifted = snapshots.data ? recentShift(snapshots.data.snapshots) : null;
 	const [busy, setBusy] = useState<number | null>(null);
 
 	const switchToPrevent = async (host: LearningHost) => {
@@ -111,7 +117,20 @@ function Hosts({ manage }: { manage: boolean }) {
 						<T id="nginxions.learning.hosts.text" />
 					</p>
 				</div>
+				<button
+					type="button"
+					className="btn btn-sm"
+					onClick={() => showSnapshotsModal({ label, manage: restore })}
+				>
+					<T id="nginxions.learning.snapshots.open" />
+				</button>
 			</div>
+			{shifted && (
+				<Alert variant="warning">
+					<T id="nginxions.learning.snapshots.warning" data={{ time: dateTime(shifted.takenOn) }} />
+					<ShiftList snapshot={shifted} />
+				</Alert>
+			)}
 			{data?.error && (
 				<Alert variant="warning">
 					<T id="nginxions.learning.tuning-error" data={{ error: data.error }} />
@@ -809,7 +828,7 @@ export function LearningTab() {
 				<T id="nginxions.learning.description" />
 			</p>
 			<Queue label={label} />
-			<Hosts manage={can("proxy_hosts", "manage")} />
+			<Hosts manage={can("proxy_hosts", "manage")} label={label} restore={label && can("waf_policy", "manage")} />
 			<History label={label} />
 		</div>
 	);

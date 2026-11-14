@@ -577,6 +577,42 @@ if $CURL "$ADMIN/api/nginxions/waf" | grep -q '"reachable": *true'; then
   wait_status "$SQLI" 403 "SQLi is not blocked after the label was undone"
   $CURL "$ADMIN/api/nginxions/learning/labels?active=0" | grep -q '"undoneOn": *"' || fail "the undone label is not in the history"
 
+  step "Learning: a snapshot of what the agent learned is taken, downloaded, uploaded and restored (the agent restarts)"
+  snapshot=$($CURL -X POST "$ADMIN/api/nginxions/learning/snapshots" | tr -d ' \n')
+  snapshot_id=$(echo "$snapshot" | grep -o '"id":"[0-9TZ]*-[0-9a-f]*"' | head -1 | cut -d'"' -f4)
+  [ -n "$snapshot_id" ] || fail "no snapshot was taken: $(echo "$snapshot" | head -c 400)"
+  echo "$snapshot" | grep -q '"reason":"manual"' || fail "the snapshot is not a manual one: $(echo "$snapshot" | head -c 400)"
+  $CURL -o /tmp/learning.json.gz "$ADMIN/api/nginxions/learning/snapshots/$snapshot_id/download"
+  [ "$(od -An -tx1 -N2 /tmp/learning.json.gz | tr -d ' ')" = 1f8b ] || fail "the downloaded snapshot is not gzip"
+  uploaded=$($CURL -X POST -H 'Content-Type: application/octet-stream' --data-binary @/tmp/learning.json.gz \
+    "$ADMIN/api/nginxions/learning/snapshots/upload" | tr -d ' \n')
+  uploaded_id=$(echo "$uploaded" | grep -o '"id":"[0-9TZ]*-[0-9a-f]*"' | head -1 | cut -d'"' -f4)
+  echo "$uploaded" | grep -q '"reason":"import"' || fail "the snapshot was not uploaded: $(echo "$uploaded" | head -c 400)"
+  # a file that is not a snapshot is refused
+  [ "$(printf 'nope' | curl -s -k -o /dev/null -w '%{http_code}' -b "$JAR" -X POST --data-binary @- \
+    -H 'Content-Type: application/octet-stream' "$ADMIN/api/nginxions/learning/snapshots/upload" || true)" = 400 ] \
+    || fail "a file that is not a snapshot was accepted"
+  nginxions_before=$(started nginxions)
+  $CURL -X POST "$ADMIN/api/nginxions/learning/snapshots/$uploaded_id/restore" | grep -q '"restarting": *true' \
+    || fail "the snapshot was not restored"
+  # the agent restarts with the snapshot in place, then nginxions: the API is away for a while
+  for i in $(seq 1 90); do
+    now=$(started nginxions 2>/dev/null || true)
+    [ -n "$now" ] && [ "$now" != "$nginxions_before" ] && break
+    [ "$i" = 90 ] && fail "nginxions was not restarted after the restore of the snapshot"
+    sleep 2
+  done
+  for i in $(seq 1 60); do
+    $CURL "$ADMIN/api/nginxions/waf" 2>/dev/null | grep -q '"reachable": *true' && break
+    [ "$i" = 60 ] && fail "the agent did not come back after the restore: $($CURL "$ADMIN/api/nginxions/waf")"
+    sleep 2
+  done
+  wait_status "$SQLI" 403 "SQLi is not blocked after the restore of a snapshot of learning"
+  snapshots=$($CURL "$ADMIN/api/nginxions/learning/snapshots" | tr -d ' \n')
+  echo "$snapshots" | grep -q '"reason":"before-restore"' || fail "the state before the restore was not kept: $(echo "$snapshots" | head -c 600)"
+  echo "$snapshots" | grep -q '"restoredOn":"' || fail "the restored snapshot is not marked: $(echo "$snapshots" | head -c 600)"
+  $CURL "$ADMIN/api/nginxions/learning/hosts/1/learned" | grep -q '"assets"' || fail "what the agent learned is not read after the restore"
+
   step "WAF: detect-learn lets attacks through"
   $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/nginxions/waf/hosts/1" \
     -d '{"enabled": true, "mode": "detect-learn", "minimum_confidence": "high"}' > /dev/null

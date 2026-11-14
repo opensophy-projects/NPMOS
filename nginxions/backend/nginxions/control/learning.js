@@ -6,7 +6,7 @@
 //   7.data  the same, learned from trusted sources (KeywordIndicatorFilter, trusted)
 //   9.data  types learned from trusted sources (TypeIndicatorsFilter, trusted)
 //  11.data  sources the scanner detector keeps out of learning (ScannerDetector)
-import { open, readdir, stat } from "node:fs/promises";
+import { mkdir, open, readdir, rename, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { gunzipSync } from "node:zlib";
 
@@ -100,4 +100,86 @@ export const readLearning = async (asset, name, root = LEARNING_DIR) => {
 	} finally {
 		await file.close();
 	}
+};
+
+// ------------------------------------------------------------------ snapshots and their restore
+// NginxionS keeps snapshots of what the agent learned (learning/snapshots.js) and restores one: the files of the
+// snapshot are staged next to the data folder, the agent is restarted and its start (nginxions-entry.sh) puts them in
+// place of its learned files before the agent reads them. Nothing is written into the data folder while the agent runs.
+export const RESTORE_DIR =
+	process.env.NGINXIONS_AGENT_LEARNING_RESTORE_DIR || "/etc/cp/conf/nginxions-learning-restore";
+export const MAX_SNAPSHOT_BYTES = 64 * 1024 * 1024;
+
+/**
+ * All the learned files of the agent, as they are (gzip): {files: [{asset, name, modifiedAt, content (base64)}]}
+ * @param {string} [root]
+ */
+export const snapshotLearning = async (root = LEARNING_DIR) => {
+	const files = [];
+	let total = 0;
+	for (const { asset, files: names } of await listLearning(root)) {
+		for (const { name } of names) {
+			let file;
+			try {
+				file = await open(path.join(assetDir(asset, root), name), "r");
+			} catch (err) {
+				if (err.code === "ENOENT") continue;
+				throw err;
+			}
+			try {
+				const info = await file.stat();
+				total += info.size;
+				if (total > MAX_SNAPSHOT_BYTES) throw new LearningError(413, "what the agent learned is too large");
+				const content = await file.readFile();
+				files.push({ asset, name, modifiedAt: info.mtime.toISOString(), content: content.toString("base64") });
+			} finally {
+				await file.close();
+			}
+		}
+	}
+	return { files };
+};
+
+/**
+ * The files of a snapshot, checked: every asset stays inside the data folder, only learned files, sizes in bounds.
+ * @param {any} bundle  {files: [{asset, name, content (base64)}]}
+ * @returns {{asset: string, name: string, content: Buffer}[]}
+ */
+export const checkSnapshot = (bundle, root = LEARNING_DIR) => {
+	if (!bundle || !Array.isArray(bundle.files)) throw new LearningError(400, "no files");
+	let total = 0;
+	const seen = new Set();
+	return bundle.files.map((f) => {
+		if (!f || typeof f.content !== "string") throw new LearningError(400, "invalid file");
+		if (!LEARNED_FILES.includes(f.name)) throw new LearningError(400, "unknown file");
+		assetDir(f.asset, root);
+		const key = `${f.asset}\n${f.name}`;
+		if (seen.has(key)) throw new LearningError(400, "the same file twice");
+		seen.add(key);
+		const content = Buffer.from(f.content, "base64");
+		total += content.length;
+		if (total > MAX_SNAPSHOT_BYTES) throw new LearningError(413, "the snapshot is too large");
+		return { asset: f.asset, name: f.name, content };
+	});
+};
+
+/**
+ * Stages the files of a snapshot for the next start of the agent: written into a new folder, which then replaces
+ * RESTORE_DIR at once (a start of the agent never sees half of it).
+ * @returns {Promise<number>} the number of files
+ */
+export const stageRestore = async (bundle, root = LEARNING_DIR, restoreDir = RESTORE_DIR) => {
+	const files = checkSnapshot(bundle, root);
+	const staging = `${restoreDir}.new`;
+	await rm(staging, { recursive: true, force: true });
+	await mkdir(staging, { recursive: true, mode: 0o700 });
+	for (const f of files) {
+		// the same check as the data folder: no way out of the staging folder either
+		const dir = assetDir(f.asset, staging);
+		await mkdir(dir, { recursive: true, mode: 0o700 });
+		await writeFile(path.join(dir, f.name), f.content, { mode: 0o600 });
+	}
+	await rm(restoreDir, { recursive: true, force: true });
+	await rename(staging, restoreDir);
+	return files.length;
 };

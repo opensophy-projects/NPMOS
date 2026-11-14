@@ -31,6 +31,8 @@ export const RULE_TYPES = {
 	learning_queue: { params: { threshold: int(1, 100000, 1) }, severity: "warning" },
 	// trials of blocking on hosts (Agents → open-appsec → Learning) that ended and wait for a decision
 	waf_trial: { params: {}, severity: "info" },
+	// a sharp shift of what the agent counts as normal on an asset between two snapshots of learning (poisoning?)
+	learning_shift: { params: {}, severity: "warning" },
 	// short-lived client certificates renewed by NginxionS (auto renewal by link): the one-time link of the new .p12
 	pki_reissued: { params: {}, severity: "info" },
 };
@@ -128,6 +130,16 @@ const TEXT = {
 		ru: (v) => ({
 			title: `Пробный режим блокировки на ${v.name} завершён`,
 			text: `За ${v.hours} ч пробного режима WAF записал ${v.events} событий хоста ${v.name}: блокировка дополнительно заблокировала бы ${v.toBlock}, пропустила бы ${v.toPass}. Отчёт и переключение хоста в блокировку — в «Агенты → open-appsec → Обучение».`,
+		}),
+	},
+	learning_shift: {
+		en: (v) => ({
+			title: `Learning: the norm of ${v.asset} ${v.direction === "growth" ? "grew" : "shrank"} sharply`,
+			text: `What the WAF agent counts as normal on ${v.asset} went from ${v.before} to ${v.after} learned values between two snapshots (${v.takenOn}). A sudden growth can be poisoning: attacks learned as normal traffic. Agents → open-appsec → Learning → Snapshots compares them and restores an earlier one.`,
+		}),
+		ru: (v) => ({
+			title: `Обучение: норма ${v.asset} резко ${v.direction === "growth" ? "выросла" : "уменьшилась"}`,
+			text: `То, что агент WAF считает нормой на ${v.asset}, изменилось с ${v.before} до ${v.after} выученных значений между двумя снимками (${v.takenOn}). Резкий рост может быть отравлением: атаки выучены как обычный трафик. Сравнение и откат к раннему снимку — «Агенты → open-appsec → Обучение → Снимки».`,
 		}),
 	},
 };
@@ -366,6 +378,19 @@ const CHECKS = {
 				},
 			};
 		});
+	},
+	learning_shift: async () => {
+		const { recentShifts } = await import("../learning/snapshots.js");
+		return (await recentShifts()).map((s) => ({
+			key: `learning-shift:${s.id}:${s.asset}`,
+			values: {
+				asset: s.asset,
+				before: s.before,
+				after: s.after,
+				direction: s.direction,
+				takenOn: s.takenOn.slice(0, 16).replace("T", " "),
+			},
+		}));
 	},
 	learning_queue: async (p) => {
 		const { queueSize } = await import("../learning/index.js");

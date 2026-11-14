@@ -46,6 +46,21 @@ printf '{"agentSettings": [%s, %s, %s]}\n' \
     '{"key": "orchestration.configTimeoutSeconds", "value": "60"}' \
     > /etc/cp/conf/settings.json
 
+# a snapshot of what the agent learned, restored in the GUI (Agents -> open-appsec -> Learning -> Snapshots): staged by
+# nginxions-control (control/learning.js), put in place of the learned files before the agent reads them
+RESTORE=/etc/cp/conf/nginxions-learning-restore
+LEARNED=/etc/cp/conf/waap
+if [ -d "$RESTORE" ]; then
+    mkdir -p "$LEARNED"
+    find "$LEARNED" -type f \( -name 4.data -o -name 5.data -o -name 7.data -o -name 9.data -o -name 11.data \) -delete
+    if cp -R "$RESTORE/." "$LEARNED/"; then
+        echo "nginxions: the learned state of a snapshot is restored" >&2
+    else
+        echo "nginxions: the learned state of a snapshot could not be restored" >&2
+    fi
+    rm -rf "$RESTORE"
+fi
+
 # what this start applied, for "saved, restart the agent to apply" in the GUI
 [ -f "$SETTINGS" ] && cp "$SETTINGS" /ext/appsec/nginxions-agent.applied
 

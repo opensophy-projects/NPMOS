@@ -7,13 +7,14 @@ import internalIpRanges from "./internal/ip_ranges.js";
 import { global as logger } from "./logger.js";
 import { migrateUp } from "./migrate.js";
 // NginxionS: ACME servers, open-appsec policy and agent settings from the database, security events of the agent, CRLs of
-// the PKI
+// the PKI, snapshots of what the agent learned
 import { bootstrap as bootstrapAcmeServers } from "./nginxions/acme/servers.js";
 import { bootstrap as bootstrapBlockPage } from "./nginxions/block-page.js";
 import { bootstrap as bootstrapCrowdsec } from "./nginxions/crowdsec/index.js";
 import { bootstrap as bootstrapGeo } from "./nginxions/geo/index.js";
 import { start as startEventIngest } from "./nginxions/events/ingest.js";
 import { start as startLearning } from "./nginxions/learning/index.js";
+import { start as startLearningSnapshots } from "./nginxions/learning/snapshots.js";
 import { start as startNotifications } from "./nginxions/notifications/index.js";
 import { bootstrap as bootstrapPki } from "./nginxions/pki/index.js";
 import { bootstrap as bootstrapWafAgent } from "./nginxions/waf/agent-settings.js";
@@ -42,6 +43,7 @@ async function appStart() {
 			.then(bootstrapGeo)
 			.then(startEventIngest)
 			.then(startLearning)
+			.then(startLearningSnapshots)
 			.then(startWafTrials)
 			.then(startNotifications)
 			.then(getCompiledSchema)

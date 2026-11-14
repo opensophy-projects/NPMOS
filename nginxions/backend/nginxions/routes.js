@@ -22,6 +22,7 @@ import { geoAvailable, writeGeoConf } from "./geo/index.js";
 import internalGeoip from "./geoip/index.js";
 import internalHosts, { HOST_OBJECTS } from "./hosts.js";
 import internalLearning from "./learning/index.js";
+import internalLearningSnapshots from "./learning/snapshots.js";
 import internalMigration from "./migration/index.js";
 import internalNotifications from "./notifications/index.js";
 import internalPki from "./pki/index.js";
@@ -747,6 +748,7 @@ const ruleSchema = (create) => ({
 				"host_problem",
 				"learning_queue",
 				"waf_trial",
+				"learning_shift",
 			],
 		},
 		enabled: { type: "boolean" },
@@ -2839,5 +2841,58 @@ router
 	.options((_, res) => res.sendStatus(204))
 	.all(jwtdecode())
 	.get(handle((req, res) => internalLearning.learned(res.locals.access, Number(req.params.host_id))));
+
+/**
+ * Snapshots of what the agent learned (learning/snapshots.js)
+ * GET    /api/nginxions/learning/snapshots — the snapshots, the newest first, with the shift from the one before
+ * POST   /api/nginxions/learning/snapshots — a snapshot now
+ * POST   /api/nginxions/learning/snapshots/upload — body: a snapshot file (application/octet-stream), kept as a snapshot
+ * POST   /api/nginxions/learning/snapshots/:snapshot_id/restore — the snapshot in place of the learned state (the agent
+ *        and nginxions restart)
+ * GET    /api/nginxions/learning/snapshots/:snapshot_id/download — the snapshot file
+ * DELETE /api/nginxions/learning/snapshots/:snapshot_id
+ */
+router
+	.route("/learning/snapshots")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((_req, res) => internalLearningSnapshots.list(res.locals.access)))
+	.post(handle((_req, res) => internalLearningSnapshots.take(res.locals.access), 201));
+
+router
+	.route("/learning/snapshots/upload")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(
+		express.raw({ type: () => true, limit: "100mb" }),
+		handle((req, res) => internalLearningSnapshots.upload(res.locals.access, rawBytes(req)), 201),
+	);
+
+router
+	.route("/learning/snapshots/:snapshot_id/restore")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.post(handle((req, res) => internalLearningSnapshots.restore(res.locals.access, String(req.params.snapshot_id))));
+
+router
+	.route("/learning/snapshots/:snapshot_id/download")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(async (req, res, next) => {
+		try {
+			const file = await internalLearningSnapshots.download(res.locals.access, String(req.params.snapshot_id));
+			res.set("Content-Type", "application/gzip");
+			res.set("Content-Disposition", `attachment; filename="${file.name}"`);
+			res.send(file.content);
+		} catch (err) {
+			next(err);
+		}
+	});
+
+router
+	.route("/learning/snapshots/:snapshot_id")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.delete(handle((req, res) => internalLearningSnapshots.remove(res.locals.access, String(req.params.snapshot_id))));
 
 export default router;

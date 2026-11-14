@@ -23,28 +23,35 @@ const getToken = async () => {
  * @param   {string} method
  * @param   {string} path
  * @param   {number} [actor]  id of the user on whose behalf the call is made (for the control audit log)
+ * @param   {any}    [body]   sent as JSON
  * @returns {Promise<any>}
  */
-const call = async (method, path, actor) => {
+const call = async (method, path, actor, body) => {
 	const headers = { Authorization: `Bearer ${await getToken()}` };
 	if (actor) {
 		headers["X-NginxionS-Actor"] = `user:${actor}`;
 	}
+	if (body !== undefined) headers["Content-Type"] = "application/json";
 
 	let response;
 	try {
-		response = await fetch(`${CONTROL_URL}${path}`, { method, headers, signal: AbortSignal.timeout(TIMEOUT_MS) });
+		response = await fetch(`${CONTROL_URL}${path}`, {
+			method,
+			headers,
+			body: body === undefined ? undefined : JSON.stringify(body),
+			signal: AbortSignal.timeout(TIMEOUT_MS),
+		});
 	} catch (err) {
 		throw new errs.ConfigurationError(`nginxions-control is unreachable: ${err.cause?.code || err.message}`, err);
 	}
-	const body = await response.json().catch(() => ({}));
+	const answer = await response.json().catch(() => ({}));
 	if (response.status === 404) {
-		throw new errs.ItemNotFoundError(body.error || path);
+		throw new errs.ItemNotFoundError(answer.error || path);
 	}
 	if (!response.ok) {
-		throw new errs.ConfigurationError(`nginxions-control: ${body.error || response.status}`);
+		throw new errs.ConfigurationError(`nginxions-control: ${answer.error || response.status}`);
 	}
-	return body;
+	return answer;
 };
 
 const control = {
@@ -57,6 +64,10 @@ const control = {
 	/** a learned file of an asset (4, 5, 7, 9, 11.data): {modifiedAt, data} or null */
 	getAgentLearning: (asset, name) =>
 		call("GET", `/v1/agent/learning/file?asset=${encodeURIComponent(asset)}&name=${encodeURIComponent(name)}`),
+	/** every learned file as it is: {files: [{asset, name, modifiedAt, content (base64 of the gzip file)}]} */
+	snapshotAgentLearning: () => call("GET", "/v1/agent/learning/snapshot"),
+	/** puts the files of a snapshot in place of the learned files and restarts the agent (and nginxions) */
+	restoreAgentLearning: (bundle, actor) => call("POST", "/v1/agent/learning/restore", actor, bundle),
 	getService: (service) => call("GET", `/v1/services/${encodeURIComponent(service)}`),
 	/**
 	 * @param {string} service

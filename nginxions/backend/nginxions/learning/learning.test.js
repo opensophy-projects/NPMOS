@@ -273,3 +273,46 @@ test("what the agent learned: confident sets of its files, per parameter", async
 		["shop.example.com", "shop.example.com/api"],
 	);
 });
+
+test("snapshots: the size of what is learned per asset and a sharp shift between two of them", async () => {
+	const { learnedCount, shiftOf, summarize, SHIFT_MIN_ENTRIES } = await import("./model.js");
+	const sets = (n) => ({
+		confident_sets: [{ key: "url_param#q", value: { first: Array.from({ length: n }, (_, i) => `v${i}`) } }],
+	});
+	assert.deepEqual(learnedCount(sets(3)), { params: 1, values: 3 });
+	assert.deepEqual(learnedCount(null), { params: 0, values: 0 });
+	assert.deepEqual(
+		summarize([
+			{ asset: "b", name: "5.data", data: sets(2) },
+			{ asset: "b", name: "9.data", data: sets(1) },
+			// scanners are not what is normal
+			{ asset: "b", name: "11.data", data: sets(50) },
+			{ asset: "a", name: "4.data", data: null },
+		]),
+		[
+			{ asset: "a", params: 0, values: 0 },
+			{ asset: "b", params: 2, values: 3 },
+		],
+	);
+	const before = [
+		{ asset: "grows", values: 40 },
+		{ asset: "steady", values: 1000 },
+		{ asset: "drops", values: 100 },
+		{ asset: "small", values: 2 },
+	];
+	const after = [
+		{ asset: "grows", values: 40 + SHIFT_MIN_ENTRIES },
+		// 100 more of 1000: not sharp
+		{ asset: "steady", values: 1100 },
+		{ asset: "drops", values: 10 },
+		// 2 to 20: many times more, but few
+		{ asset: "small", values: 20 },
+		// new: learning starts
+		{ asset: "new", values: 500 },
+	];
+	assert.deepEqual(shiftOf(before, after), [
+		{ asset: "drops", before: 100, after: 10, direction: "drop" },
+		{ asset: "grows", before: 40, after: 70, direction: "growth" },
+	]);
+	assert.deepEqual(shiftOf([], after), []);
+});
