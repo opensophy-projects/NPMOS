@@ -89,7 +89,7 @@ FROM ${AGENT_RUNTIME}
 RUN apk add --no-cache nodejs
 COPY --from=shared-storage /out/ /opt/appsec-shared-storage/
 COPY --from=tuning /out/ /opt/appsec-tuning/
-COPY --from=control server.js watchdog.js /opt/nginxions-control/
+COPY --from=control server.js watchdog.js learning.js /opt/nginxions-control/
 RUN printf '{"type": "module"}\n' > /opt/nginxions-control/package.json && mkdir -p /db
 # the settings of WAF -> Agent (fail-open), applied at every start of the agent; then the services
 COPY agent/nginxions-entry.sh /nginxions-entry.sh

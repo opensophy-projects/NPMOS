@@ -2815,4 +2815,14 @@ router
 	.all(jwtdecode())
 	.get(handle((_req, res) => internalLearning.hosts(res.locals.access)));
 
+/**
+ * GET /api/nginxions/learning/hosts/:host_id/learned — what the agent learned on a host (statistics, normal indicators
+ * and types of values per parameter)
+ */
+router
+	.route("/learning/hosts/:host_id/learned")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(handle((req, res) => internalLearning.learned(res.locals.access, Number(req.params.host_id))));
+
 export default router;

@@ -3135,10 +3135,10 @@
 		"defaultMessage": "Effect"
 	},
 	"nginxions.learning.effects.benign": {
-		"defaultMessage": "The agent takes the label within 30 minutes and learns from it over the next cycles (hours). To stop blocking at once, add an exception for the host until the model has learnt."
+		"defaultMessage": "The agent takes the label within a minute and learns from it over the next cycles (hours). To stop blocking at once, add an exception for the host until the model has learnt."
 	},
 	"nginxions.learning.effects.malicious": {
-		"defaultMessage": "The agent takes the label within 30 minutes: these requests no longer count in learning. Blocking at once is optional."
+		"defaultMessage": "The agent takes the label within a minute: these requests no longer count in learning. Blocking at once is optional."
 	},
 	"nginxions.learning.effects.tuning": {
 		"defaultMessage": "A suggestion of the tuning service of open-appsec: it writes the decision for the agent itself."
@@ -3205,6 +3205,45 @@
 	},
 	"nginxions.learning.last": {
 		"defaultMessage": "Last"
+	},
+	"nginxions.learning.learned.error": {
+		"defaultMessage": "Not everything could be read: {error}"
+	},
+	"nginxions.learning.learned.indicators": {
+		"defaultMessage": "Normal indicators ({count} parameters)"
+	},
+	"nginxions.learning.learned.more": {
+		"defaultMessage": "Show {count} more"
+	},
+	"nginxions.learning.learned.none": {
+		"defaultMessage": "The agent has not written what it learned for this host yet: it saves its learning periodically, once it has seen traffic."
+	},
+	"nginxions.learning.learned.nothing": {
+		"defaultMessage": "Nothing learned yet for this part of the host."
+	},
+	"nginxions.learning.learned.open": {
+		"defaultMessage": "What it learned"
+	},
+	"nginxions.learning.learned.stats": {
+		"defaultMessage": "Seen: {requests} requests from {sources} sources on {urls} URLs, {legitimate} of them legitimate. Readiness: {readiness}."
+	},
+	"nginxions.learning.learned.text": {
+		"defaultMessage": "The WAF does not change its model: it learns which indicators of attacks and which types of values are normal for each parameter of the application, and stops counting them there. A parameter is learned from enough different sources over several intervals; from trusted sources at once."
+	},
+	"nginxions.learning.learned.title": {
+		"defaultMessage": "What the agent learned on {name}"
+	},
+	"nginxions.learning.learned.trustedIndicators": {
+		"defaultMessage": "Indicators from trusted sources ({count} parameters)"
+	},
+	"nginxions.learning.learned.trustedTypes": {
+		"defaultMessage": "Types from trusted sources ({count} parameters)"
+	},
+	"nginxions.learning.learned.types": {
+		"defaultMessage": "Normal types of values ({count} parameters)"
+	},
+	"nginxions.learning.learned.updated": {
+		"defaultMessage": "· updated {time}"
 	},
 	"nginxions.learning.mode": {
 		"defaultMessage": "Mode"

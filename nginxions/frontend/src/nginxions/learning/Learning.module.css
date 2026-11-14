@@ -274,3 +274,11 @@
 	width: auto;
 	min-width: 9rem;
 }
+
+/* what the agent learned: the name of a parameter */
+.learnedParam {
+	width: 40%;
+	word-break: break-all;
+	font-family: var(--tblr-font-monospace, monospace);
+	font-size: 0.8125rem;
+}

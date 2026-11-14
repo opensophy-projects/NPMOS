@@ -33,9 +33,13 @@ TuningDecision::TuningDecision(const string& remotePath)
     {
         return;
     }
+    // NginxionS: the labels of NginxionS (decisions.data in the local shared storage) are read every minute, not
+    // every 30 minutes: a label changes what the agent learns from at once. The read is a GET on the same machine.
+    uint interval_seconds = getProfileAgentSettingWithDefault<uint>(60, "appsec.tuningDecisions.intervalSeconds");
+    if (interval_seconds < 10) interval_seconds = 10;
     Singleton::Consume<I_MainLoop>::by<WaapComponent>()->addRecurringRoutine(
         I_MainLoop::RoutineType::System,
-        chrono::minutes(30),
+        chrono::seconds(interval_seconds),
         [&]() { updateDecisions(); },
         "Get tuning updates"
     );

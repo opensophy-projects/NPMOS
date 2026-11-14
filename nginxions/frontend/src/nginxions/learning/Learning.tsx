@@ -29,6 +29,7 @@ import {
 	undoLabel,
 } from "./api";
 import { showLabelModal } from "./LabelModal";
+import { showLearnedModal } from "./LearnedModal";
 import { showStartTrialModal, showTrialReportModal } from "./TrialModal";
 import styles from "./Learning.module.css";
 
@@ -164,6 +165,13 @@ function Hosts({ manage }: { manage: boolean }) {
 											</td>
 											<td>
 												<Readiness host={h} />
+												<button
+													type="button"
+													className="btn btn-link btn-sm p-0 ms-2"
+													onClick={() => showLearnedModal({ host: h })}
+												>
+													<T id="nginxions.learning.learned.open" />
+												</button>
 												{h.stats && (
 													<div className={styles.muted}>
 														<T

@@ -52,6 +52,11 @@ const control = {
 	listApps: () => call("GET", "/v1/apps"),
 	/** the configuration the agent generated from local_policy.yaml: {modifiedAt, policy} */
 	getAgentPolicy: () => call("GET", "/v1/agent/policy"),
+	/** the assets with files of what the agent learned: [{asset, files: [{name, size, modifiedAt}]}] */
+	listAgentLearning: () => call("GET", "/v1/agent/learning"),
+	/** a learned file of an asset (4, 5, 7, 9, 11.data): {modifiedAt, data} or null */
+	getAgentLearning: (asset, name) =>
+		call("GET", `/v1/agent/learning/file?asset=${encodeURIComponent(asset)}&name=${encodeURIComponent(name)}`),
 	getService: (service) => call("GET", `/v1/services/${encodeURIComponent(service)}`),
 	/**
 	 * @param {string} service

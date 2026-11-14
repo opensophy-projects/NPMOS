@@ -541,6 +541,11 @@ if $CURL "$ADMIN/api/nginxions/waf" | grep -q '"reachable": *true'; then
     sleep 2
   done
 
+  step "Learning: what the agent learned on the host is read through nginxions-control"
+  learned=$($CURL "$ADMIN/api/nginxions/learning/hosts/1/learned" | json)
+  echo "$learned" | grep -q '"assets":\[' || fail "what the agent learned is not read: $(echo "$learned" | head -c 400)"
+  echo "$learned" | grep -q 'nginxions-control' && fail "nginxions-control does not read what the agent learned: $(echo "$learned" | head -c 400)"
+
   step "Learning: labelled legitimate with an exception, the attack passes at once; undo blocks it again"
   label=$($CURL -H 'Content-Type: application/json' "$ADMIN/api/nginxions/learning/labels" -d "{\"key\": \"$key\", \"decision\": \"benign\",
     \"scopes\": [{\"type\": \"parameterName\", \"value\": \"id\"}], \"exception\": true, \"ttl_days\": 1}")

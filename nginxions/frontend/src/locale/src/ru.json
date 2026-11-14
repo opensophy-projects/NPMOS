@@ -3135,10 +3135,10 @@
 		"defaultMessage": "Эффект"
 	},
 	"nginxions.learning.effects.benign": {
-		"defaultMessage": "Агент получит разметку в течение 30 минут и учтёт её в следующих циклах обучения (часы). Чтобы перестать блокировать сразу, добавьте исключение для хоста на время, пока модель учится."
+		"defaultMessage": "Агент получит разметку в течение минуты и учтёт её в следующих циклах обучения (часы). Чтобы перестать блокировать сразу, добавьте исключение для хоста на время, пока модель учится."
 	},
 	"nginxions.learning.effects.malicious": {
-		"defaultMessage": "Агент получит разметку в течение 30 минут: эти запросы больше не учитываются в обучении. Сразу блокировать — по желанию."
+		"defaultMessage": "Агент получит разметку в течение минуты: эти запросы больше не учитываются в обучении. Сразу блокировать — по желанию."
 	},
 	"nginxions.learning.effects.tuning": {
 		"defaultMessage": "Подсказка сервиса настройки open-appsec: решение для агента он записывает сам."
@@ -3205,6 +3205,45 @@
 	},
 	"nginxions.learning.last": {
 		"defaultMessage": "Последнее"
+	},
+	"nginxions.learning.learned.error": {
+		"defaultMessage": "Прочитано не всё: {error}"
+	},
+	"nginxions.learning.learned.indicators": {
+		"defaultMessage": "Нормальные индикаторы ({count} параметров)"
+	},
+	"nginxions.learning.learned.more": {
+		"defaultMessage": "Показать ещё {count}"
+	},
+	"nginxions.learning.learned.none": {
+		"defaultMessage": "Агент ещё не записал выученное для этого хоста: он сохраняет обучение периодически, когда увидит трафик."
+	},
+	"nginxions.learning.learned.nothing": {
+		"defaultMessage": "Для этой части хоста пока ничего не выучено."
+	},
+	"nginxions.learning.learned.open": {
+		"defaultMessage": "Что выучено"
+	},
+	"nginxions.learning.learned.stats": {
+		"defaultMessage": "Увидено: {requests} запросов от {sources} источников на {urls} URL, легитимных — {legitimate}. Готовность: {readiness}."
+	},
+	"nginxions.learning.learned.text": {
+		"defaultMessage": "WAF не меняет модель: он запоминает, какие индикаторы атак и типы значений нормальны для каждого параметра приложения, и перестаёт учитывать их там. Параметр выучивается по достаточному числу разных источников за несколько интервалов, от доверенных источников — сразу."
+	},
+	"nginxions.learning.learned.title": {
+		"defaultMessage": "Что агент выучил на {name}"
+	},
+	"nginxions.learning.learned.trustedIndicators": {
+		"defaultMessage": "Индикаторы от доверенных источников ({count} параметров)"
+	},
+	"nginxions.learning.learned.trustedTypes": {
+		"defaultMessage": "Типы от доверенных источников ({count} параметров)"
+	},
+	"nginxions.learning.learned.types": {
+		"defaultMessage": "Нормальные типы значений ({count} параметров)"
+	},
+	"nginxions.learning.learned.updated": {
+		"defaultMessage": "· обновлено {time}"
 	},
 	"nginxions.learning.mode": {
 		"defaultMessage": "Режим"

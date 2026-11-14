@@ -327,7 +327,7 @@ flowchart LR
     - `stream-ports.js` — один входящий порт (диапазон) на протокол у потоков
     - **`acme/`** — `servers.js` (ACME-серверы: пресеты и свои, EAB), `lego.js` (второй ACME-клиент), `certs.js` (сертификаты NPMplus с сервером из настроек)
     - **`audit/`** — `index.js`: журнал аудита со страницами и фильтрами
-    - **`control/`** — `server.js` (сервис `nginxions-control`: доступ к Docker по белому списку), `client.js` (клиент backend), `watchdog.js` (чинит контейнеры, делящие сеть с другим)
+    - **`control/`** — `server.js` (сервис `nginxions-control`: доступ к Docker по белому списку), `client.js` (клиент backend), `watchdog.js` (чинит контейнеры, делящие сеть с другим), `learning.js` (только чтение того, что выучил агент: его файлы обучения по asset)
     - **`crowdsec/`**
       - `index.js` — CrowdSec в GUI: обзор, решения, алерты, машины, баунсеры, метрики
       - `lapi.js` — клиент локального API CrowdSec (LAPI)
@@ -433,7 +433,7 @@ flowchart LR
     - **`acme/`** — ACME-серверы (`AcmeServers.tsx`), поля сервера и DNS (`AcmeFields.tsx`), API
     - **`certs/`** — выпуск ACME (`AcmeCertificateModal.tsx`), свой CSR (`CsrModal.tsx`), полный лог ошибки (`AcmeLog.tsx`)
     - **`crowdsec/`** — окна бана (`BanModal.tsx`), заблокированного адреса (`DecisionModal.tsx`), блок-листа (`BlocklistModal.tsx`), профиля (`ProfileModal.tsx`); подписи (`labels.ts`), API
-    - **`learning/`** — обучение: страница (`Learning.tsx`), разметка (`LabelModal.tsx`), пробный режим хоста (`TrialModal.tsx`), API
+    - **`learning/`** — обучение: страница (`Learning.tsx`), разметка (`LabelModal.tsx`), пробный режим хоста (`TrialModal.tsx`), что выучил агент (`LearnedModal.tsx`), API
     - **`notifications/`** — канал (`ChannelModal.tsx`), правило (`RuleModal.tsx`), быстрая настройка (`SetupModal.tsx`), API
     - **`pki/`** — CA (`CaModal.tsx`), выпуск (`IssueModal.tsx`), сертификат (`CertModal.tsx`), доступ к хосту (`AccessModal.tsx`, `HostCertsModal.tsx`), mTLS хоста (`MtlsModal.tsx`), отзыв (`RevokeModal.tsx`), ключи (`SecretModal.tsx`), шаблоны (`TemplateModal.tsx`), выдача файлов (`Delivery.tsx`), API
     - **`policy/`** — редактор политики: объект (`ObjectModal.tsx`, поля в `fields.ts`), ссылки на объекты (`RefsEditor.tsx`), просмотр изменения (`Review.tsx`, `ReviewModal.tsx`), код (`CodePane.tsx`), импорт (`ImportModal.tsx`), имена встроенных объектов (`names.ts`), API

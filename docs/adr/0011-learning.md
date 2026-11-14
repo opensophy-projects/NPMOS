@@ -8,7 +8,7 @@
 
 Что показали исходники агента (`components/security_apps/waap`) и проверка на стенде:
 
-- Агент раз в 30 минут читает `GET /api/<tenant>/<asset>/tuning/decisions.data` из shared storage (`TuningDecision.cc`). Формат: `{"decisions": [{decision, eventType, eventTitle, …}]}`.
+- Агент раз в 30 минут (в NginxionS — раз в минуту, фаза 12) читает `GET /api/<tenant>/<asset>/tuning/decisions.data` из shared storage (`TuningDecision.cc`). Формат: `{"decisions": [{decision, eventType, eventTitle, …}]}`.
   - `decision`: `benign`, `malicious` или `dismiss`.
   - `eventType`: `source`, `url`, `parameterName` или `parameterValue`.
 - **Решения влияют только на обучение, не на вердикт запроса:**
@@ -74,3 +74,13 @@
 - В формате v1beta2 агент применяет только первое исключение правила. NginxionS по-прежнему предупреждает об этом в состоянии политики. Пока политика в v1beta1 (без rate limit и прочих возможностей v1beta2), ограничения нет.
 - Отложено, не блокирует релиз: локальная вторичная модель, которая только предлагает метки, по накопленному датасету. Будет отдельным ADR после сбора данных.
 - CrowdSec AppSec проверяет запросы своими правилами (CRS, vpatch) отдельно от open-appsec. Разметка в NginxionS на него не действует; ложное срабатывание AppSec исправляется его правилами, а не обучением.
+
+## Фаза 12
+
+- Агент читает `decisions.data` раз в минуту, а не раз в 30 минут (`TuningDecision.cc`, настройка
+  `appsec.tuningDecisions.intervalSeconds`, не меньше 10 с).
+- «Что выучено» у хоста: nginxions-control только читает файлы обучения агента
+  (`/etc/cp/conf/waap/<asset>/`, gzip-JSON cereal; `5.data` — нормальные индикаторы по параметрам,
+  `4.data` — типы значений, `7.data` и `9.data` — то же от доверенных источников). Backend показывает
+  `confident_sets` по каждому asset хоста, включая asset его location (подкаталоги).
+

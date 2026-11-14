@@ -250,3 +250,26 @@ test("scores of the agent: the scale 0..10, also when logged multiplied by 100",
 	assert.equal(scoreOf("7"), 7);
 	assert.equal(scoreOf(null), null);
 });
+
+test("what the agent learned: confident sets of its files, per parameter", async () => {
+	const { learnedFolders, learnedOf } = await import("./model.js");
+	const file = {
+		version: 3,
+		params: {},
+		confident_sets: [
+			{ key: "url_param#q", value: { first: ["select", "'"], second: 12 } },
+			{ key: "body#comment", value: { first: [], second: 3 } },
+		],
+	};
+	assert.deepEqual(learnedOf(file), [{ param: "url_param#q", values: ["'", "select"] }]);
+	assert.deepEqual(learnedOf({ value0: file }), learnedOf(file));
+	assert.deepEqual(learnedOf(null), []);
+	assert.deepEqual(learnedOf({ confident_sets: { "header#x": { first: ["base64"] } } }), [
+		{ param: "header#x", values: ["base64"] },
+	]);
+	const folders = [{ asset: "shop.example.com" }, { asset: "shop.example.com/api" }, { asset: "other.example.com" }];
+	assert.deepEqual(
+		learnedFolders(["shop.example.com"], folders).map((f) => f.asset),
+		["shop.example.com", "shop.example.com/api"],
+	);
+});

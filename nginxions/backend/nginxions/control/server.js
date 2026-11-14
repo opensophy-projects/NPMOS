@@ -16,6 +16,7 @@ import { readFileSync } from "node:fs";
 import { open } from "node:fs/promises";
 import http from "node:http";
 import { hostname } from "node:os";
+import { LearningError, listLearning, readLearning } from "./learning.js";
 import { repairNamespaces } from "./watchdog.js";
 
 const PORT = Number.parseInt(process.env.NGINXIONS_CONTROL_PORT || "7080", 10);
@@ -321,6 +322,11 @@ const server = http.createServer(async (req, res) => {
 			result = await listApps();
 		} else if (req.method === "GET" && url.pathname === "/v1/agent/policy") {
 			result = await agentPolicy();
+		} else if (req.method === "GET" && url.pathname === "/v1/agent/learning") {
+			// what the agent learned, read only (learning.js)
+			result = await listLearning();
+		} else if (req.method === "GET" && url.pathname === "/v1/agent/learning/file") {
+			result = await readLearning(url.searchParams.get("asset") || "", url.searchParams.get("name") || "");
 		} else if (parts[0] === "v1" && parts[1] === "services" && parts.length >= 3) {
 			const service = decodeURIComponent(parts[2]);
 			const action = parts[3];
@@ -392,7 +398,7 @@ const server = http.createServer(async (req, res) => {
 			);
 		}
 	} catch (err) {
-		const status = err instanceof HttpError ? err.status : 500;
+		const status = err instanceof HttpError || err instanceof LearningError ? err.status : 500;
 		audit({ ...entry, result: "error", status, error: err.message });
 		send(res, status, { error: err.message });
 	}

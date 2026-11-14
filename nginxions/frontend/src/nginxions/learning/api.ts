@@ -97,6 +97,10 @@ interface HostStats {
 	ready: boolean;
 	requests: number;
 	elapsed: string;
+	sources?: number;
+	urls?: number;
+	legitimate?: number;
+	malicious?: number;
 }
 
 export interface LearningHost {
@@ -174,3 +178,24 @@ export const startWafTrial = (hostId: number, hours: number) =>
 
 export const finishWafTrial = (hostId: number, enable: boolean) =>
 	api.put({ url: `/nginxions/waf/hosts/${hostId}/trial`, data: { enable } });
+
+/** what the WAF of the agent counts as normal for a parameter */
+export interface LearnedParam {
+	param: string;
+	values: string[];
+}
+
+export interface LearnedAsset {
+	asset: string;
+	updatedOn: string | null;
+	indicators?: LearnedParam[];
+	types?: LearnedParam[];
+	trustedIndicators?: LearnedParam[];
+	trustedTypes?: LearnedParam[];
+}
+
+/** what the agent learned on a host: statistics and, per asset, the normal indicators and types of parameters */
+export const getLearned = (
+	hostId: number,
+): Promise<{ id: number; name: string; stats: HostStats | null; assets: LearnedAsset[]; error: string | null }> =>
+	api.get({ url: `/nginxions/learning/hosts/${hostId}/learned` });
