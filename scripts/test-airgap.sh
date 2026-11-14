@@ -29,6 +29,10 @@ cleanup() {
         grep -ho "\"triggers\": *\[[^]]*\]" /etc/cp/conf/*/*.policy 2> /dev/null | sort -u | head -c 3000; echo;
         echo "--- configuration the agent made of the policy: rate limits ---";
         grep -o "\"accessControlV2\".\{0,3000\}" /tmp/local_appsec.policy 2> /dev/null | head -c 3000; echo;
+        echo "--- exceptions: local_policy.yaml, the configuration the agent made of it, the policy of the services ---";
+        grep -h -A 12 "^exceptions:" /etc/cp/conf/local_policy.yaml 2> /dev/null | head -n 40;
+        grep -o "\"exceptions\": *\[.\{0,2000\}" /tmp/local_appsec.policy 2> /dev/null | head -c 2000; echo;
+        grep -ho "\"exception\": *\[.\{0,2000\}" /etc/cp/conf/*/*.policy 2> /dev/null | sort -u | head -c 3000; echo;
         echo "--- orchestration: checks of updates, policies applied ---";
         grep -h "check update\|Check update\|NginxionS\|apply\|Failed\|econfiguration" /var/log/nano_agent/cp-nano-orchestration.dbg* \
           2> /dev/null | tail -n 40' || true
