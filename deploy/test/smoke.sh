@@ -285,6 +285,16 @@ if $CURL "$ADMIN/api/nginxions/waf" | grep -q '"reachable": *true'; then
   t=$($CURL -o /dev/null -w '%{time_total}' "$ADMIN/api/")
   awk -v t="$t" 'BEGIN {exit !(t > 0.5)}' && fail "the interface took $t s: it must not wait for the agent"
 
+  step "WAF -> Agent: the metrics of the agent (its prometheus service) are read"
+  metrics=""
+  for i in $(seq 1 30); do
+    metrics=$($CURL "$ADMIN/api/nginxions/waf/agent/metrics" | json)
+    echo "$metrics" | grep -q '"reachable":true' && break
+    [ "$i" = 30 ] && fail "the metrics service of the agent does not answer: $(echo "$metrics" | head -c 300)"
+    sleep 4
+  done
+  echo "    metrics of the agent: $(echo "$metrics" | grep -o '"name":"[^"]*"' | wc -l)"
+
   step "WAF -> Policy (expert): an exception for the tester's IP lets the attack through"
   $CURL -X PUT -H 'Content-Type: application/json' "$ADMIN/api/nginxions/waf/policy/custom" -d "{
     \"content\": \"exceptions:\\n  - name: smoke-trusted\\n    action: accept\\n    condition:\\n      - key: sourceIp\\n        value: $client_ip\\npolicies:\\n  default:\\n    exceptions:\\n      - smoke-trusted\\n\",

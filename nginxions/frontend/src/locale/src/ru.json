@@ -7739,6 +7739,27 @@
 	"nginxions.waf.location.off": {
 		"defaultMessage": "Выключено"
 	},
+	"nginxions.waf.metrics": {
+		"defaultMessage": "Метрики агента"
+	},
+	"nginxions.waf.metrics.labels": {
+		"defaultMessage": "Метки"
+	},
+	"nginxions.waf.metrics.name": {
+		"defaultMessage": "Метрика"
+	},
+	"nginxions.waf.metrics.none": {
+		"defaultMessage": "У агента пока нет метрик: его службы присылают их через минуту-две после запуска."
+	},
+	"nginxions.waf.metrics.search": {
+		"defaultMessage": "Поиск метрик"
+	},
+	"nginxions.waf.metrics.unreachable": {
+		"defaultMessage": "Служба метрик агента не отвечает"
+	},
+	"nginxions.waf.metrics.value": {
+		"defaultMessage": "Значение"
+	},
 	"nginxions.waf.minimum-confidence": {
 		"defaultMessage": "Минимальная уверенность для блокировки"
 	},

@@ -13,6 +13,7 @@ import { useWafStatus } from "../../hooks";
 import { showConfirmModal } from "../../modals/ConfirmModal";
 import { showWafPolicyModal } from "../../modals/WafPolicyModal";
 import { useCan } from "../../rbac/hooks";
+import { AgentMetricsCard } from "./AgentMetrics";
 import { AgentSettingsCard } from "./AgentSettings";
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
@@ -227,6 +228,7 @@ function WafAgentPage() {
 		<>
 			<WafCard status={data} />
 			<AgentCard agent={data.agent} />
+			<AgentMetricsCard />
 			<AgentSettingsCard />
 			<PolicyCard policy={data.policy} />
 		</>

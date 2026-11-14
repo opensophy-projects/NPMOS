@@ -49,4 +49,8 @@ printf '{"agentSettings": [%s, %s, %s]}\n' \
 # what this start applied, for "saved, restart the agent to apply" in the GUI
 [ -f "$SETTINGS" ] && cp "$SETTINGS" /ext/appsec/nginxions-agent.applied
 
+# the prometheus nano service of the agent: the metrics of its services on 127.0.0.1:7465/metrics, which NginxionS shows
+# in WAF -> Agent (waf/metrics.js); local only, nothing is sent anywhere
+export PROMETHEUS=true
+
 exec /cp-nano-agent "$@"

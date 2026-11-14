@@ -528,6 +528,17 @@ export interface WafAgentState extends WafAgentSettings {
 
 export const getWafAgent = (): Promise<WafAgentState> => api.get({ url: "/nginxions/waf/agent" });
 
+/** metrics of the agent (its prometheus nano service) */
+export interface AgentMetric {
+	name: string;
+	help: string;
+	type: string;
+	samples: { labels: [string, string][]; value: number }[];
+}
+
+export const getWafAgentMetrics = (): Promise<{ reachable: boolean; metrics: AgentMetric[]; error: string | null }> =>
+	api.get({ url: "/nginxions/waf/agent/metrics" });
+
 export const setWafAgent = (data: WafAgentSettings, apply = true): Promise<WafAgentState> =>
 	api.put({ url: "/nginxions/waf/agent", data: { ...data, apply } });
 

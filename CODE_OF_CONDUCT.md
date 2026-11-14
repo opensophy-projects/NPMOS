@@ -377,6 +377,7 @@ flowchart LR
     - **`waf/`** — open-appsec
       - `index.js` — включение attachment в nginx
       - `agent.js` — состояние агента
+      - `metrics.js` — метрики агента (его служба prometheus на 127.0.0.1:7465)
       - `agent-settings.js` — настройки агента и ML-модели
       - `policy.js` — сборка `local_policy.yaml` (всегда v1beta2) и его запись
       - `applied.js` — что агент применяет на самом деле: его конфигурация (через nginxions-control) против сгенерированной политики
@@ -419,7 +420,7 @@ flowchart LR
       - `AuditLog/` — журнал аудита
       - `Crowdsec/` — Блокировки и CrowdSec: решения (`Decisions.tsx`), срабатывания (`Triggers.tsx`), hub (`Hub.tsx`), блок-листы (`Blocklists.tsx`), настройки (`Settings.tsx`)
       - `AgentOpenappsec/` — Агенты → open-appsec: политика, хосты, обучение
-      - `WafAgent/` — состояние и настройки агента (`AgentSettings.tsx`)
+      - `WafAgent/` — состояние, метрики (`AgentMetrics.tsx`) и настройки агента (`AgentSettings.tsx`)
       - `WafPolicy/`, `WafExpert/` — политика из объектов и режим эксперта
       - `BlockPage/` — Агенты → Страница блокировки с предпросмотром
       - `Certificates/` — реестр всех сертификатов

@@ -30,6 +30,7 @@ import internalRbac from "./rbac/index.js";
 import internalServices from "./services.js";
 import internalSystem from "./system/index.js";
 import internalWafAgent from "./waf/agent-settings.js";
+import { getAgentMetrics } from "./waf/metrics.js";
 import internalWafExpert from "./waf/expert.js";
 import internalWafHosts from "./waf/hosts.js";
 import internalWafHostCode from "./waf/hosts-code.js";
@@ -642,6 +643,20 @@ router
 	.all(jwtdecode())
 	.put(handle((req, res) => internalWafAgent.uploadModel(res.locals.access, req, req.query.apply !== "false")))
 	.delete(handle((req, res) => internalWafAgent.removeModel(res.locals.access, req.query.apply !== "false")));
+
+/**
+ * GET /api/nginxions/waf/agent/metrics — metrics of the agent (its prometheus nano service), parsed
+ */
+router
+	.route("/waf/agent/metrics")
+	.options((_, res) => res.sendStatus(204))
+	.all(jwtdecode())
+	.get(
+		handle(async (_, res) => {
+			await res.locals.access.can("waf_policy:view");
+			return getAgentMetrics();
+		}),
+	);
 
 const language = { enum: ["ru", "en"] };
 /** config of a channel by type (secrets: omitted or null keeps the stored one) */

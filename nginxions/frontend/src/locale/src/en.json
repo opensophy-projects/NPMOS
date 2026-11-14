@@ -7739,6 +7739,27 @@
 	"nginxions.waf.location.off": {
 		"defaultMessage": "Off"
 	},
+	"nginxions.waf.metrics": {
+		"defaultMessage": "Metrics of the agent"
+	},
+	"nginxions.waf.metrics.labels": {
+		"defaultMessage": "Labels"
+	},
+	"nginxions.waf.metrics.name": {
+		"defaultMessage": "Metric"
+	},
+	"nginxions.waf.metrics.none": {
+		"defaultMessage": "The agent has no metrics yet: its services report them a minute or two after the start."
+	},
+	"nginxions.waf.metrics.search": {
+		"defaultMessage": "Search metrics"
+	},
+	"nginxions.waf.metrics.unreachable": {
+		"defaultMessage": "The metrics service of the agent does not answer"
+	},
+	"nginxions.waf.metrics.value": {
+		"defaultMessage": "Value"
+	},
 	"nginxions.waf.minimum-confidence": {
 		"defaultMessage": "Minimum confidence to block"
 	},
