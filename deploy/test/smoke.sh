@@ -1359,9 +1359,9 @@ paths:
         - {name: id, in: query, required: true, schema: {type: integer}}
       responses: {"200": {description: ok}}
 EOF
-  $CURL -X PUT --data-binary @/tmp/smoke-api.yaml "$ADMIN/api/nginxions/waf/policy/schemas/smoke-api.yaml" \
+  $CURL -X PUT -H "Content-Type: application/octet-stream" --data-binary @/tmp/smoke-api.yaml "$ADMIN/api/nginxions/waf/policy/schemas/smoke-api.yaml" \
     | grep -q '"paths": *1' || fail "the OpenAPI file was not uploaded"
-  echo 'not: [an api' | $CURL -o /dev/null -w '%{http_code}' -X PUT --data-binary @- \
+  echo 'not: [an api' | $CURL -o /dev/null -w '%{http_code}' -X PUT -H "Content-Type: application/octet-stream" --data-binary @- \
     "$ADMIN/api/nginxions/waf/policy/schemas/broken.yaml" | grep -q 400 || fail "a file that is not OpenAPI was taken"
   api=$(post_json POST /objects '{"kind": "threat_prevention", "name": "smoke-schema", "spec": {"practiceMode": "inherited",
     "webAttacks": {"overrideMode": "inherited", "minimumConfidence": "high"}, "schemaValidation": {"overrideMode": "prevent",
@@ -1374,7 +1374,7 @@ EOF
   [ "$($CURL -o /dev/null -w '%{http_code}' -X DELETE "$ADMIN/api/nginxions/waf/policy/schemas/smoke-api.yaml")" = 400 ] \
     || fail "an OpenAPI file in use was deleted"
   host_objects null
-  wait_page '/smoke-api/items?id=abc' 200 "the OpenAPI file still applies once the practice is gone"
+  wait_page '/smoke-api/items?id=abc' 200 "the OpenAPI file still refuses once the practice is gone"
   api_json "$ADMIN/api/nginxions/crowdsec/decisions/delete" -d "{\"values\": [\"$client_ip\"]}" > /dev/null || true
 
   step "CrowdSec: three requests blocked by open-appsec ban the address"
