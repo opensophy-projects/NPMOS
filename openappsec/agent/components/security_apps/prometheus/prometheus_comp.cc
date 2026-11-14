@@ -177,11 +177,19 @@ private:
                 dbgWarning(D_PROMETHEUS) << "Failed to get service metrics. Service: " << service.first;
                 continue;
             }
+            // NginxionS: a service whose answer is not an object of metrics (an empty body, an error page) is skipped;
+            // the parse threw out of the REST handler and the prometheus service crashed on the first scrape
             stringstream buffer;
             buffer << res.unpack().getBody();
-            cereal::JSONInputArchive archive(buffer);
             vector<PrometheusData> metrics;
-            archive(cereal::make_nvp("metrics", metrics));
+            try {
+                cereal::JSONInputArchive archive(buffer);
+                archive(cereal::make_nvp("metrics", metrics));
+            } catch (const exception &e) {
+                dbgWarning(D_PROMETHEUS)
+                    << "Failed to parse service metrics. Service: " << service.first << ", error: " << e.what();
+                continue;
+            }
             addMetrics(metrics);
         }
     }
