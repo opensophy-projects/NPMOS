@@ -103,6 +103,8 @@ private:
     std::vector<IpsProtectionsRulesSection>     rules;
 };
 
+class ProtectionsSection;
+
 class IPSSection
 {
 public:
@@ -111,11 +113,18 @@ public:
 
     IPSSection(const std::vector<IpsProtectionsSection> &_ips);
     // LCOV_EXCL_STOP
+    // NginxionS: with the signatures of the IPS (the resource "IPS"/"protections" the engine selects them from); they
+    // came only from the Check Point cloud, NginxionS gives its own (NginxionsIpsSignatures)
+    IPSSection(
+        const std::vector<IpsProtectionsSection> &_ips,
+        const std::shared_ptr<const ProtectionsSection> &_protections
+    );
 
     void save(cereal::JSONOutputArchive &out_ar) const;
 
 private:
     std::vector<IpsProtectionsSection> ips;
+    std::shared_ptr<const ProtectionsSection> protections; // NginxionS: see the constructor
 };
 
 class IntrusionPreventionWrapper
@@ -126,6 +135,13 @@ public:
 
     IntrusionPreventionWrapper(const std::vector<IpsProtectionsSection> &_ips) : ips(IPSSection(_ips)) {};
     // LCOV_EXCL_STOP
+    // NginxionS: with the signatures of the IPS, see IPSSection
+    IntrusionPreventionWrapper(
+        const std::vector<IpsProtectionsSection> &_ips,
+        const std::shared_ptr<const ProtectionsSection> &_protections)
+            :
+        ips(IPSSection(_ips, _protections))
+    {};
 
     void save(cereal::JSONOutputArchive &out_ar) const;
 
@@ -437,6 +453,18 @@ private:
     std::vector<ProtectionsProtectionsSection>  protections;
     std::string                                 name;
     std::string                                 modification_time;
+};
+
+// NginxionS: the signatures of the IPS of NginxionS (CrowdSec virtual patching rules converted by
+// scripts/update-ips-signatures.mjs), a file of the image: {"name", "modificationTime", "protections": [...]}
+class NginxionsIpsSignatures
+{
+public:
+    void serialize(cereal::JSONInputArchive &archive_in);
+    const ProtectionsSection & getSection() const { return section; }
+
+private:
+    ProtectionsSection section;
 };
 
 class ProtectionsSectionWrapper

@@ -1475,7 +1475,20 @@ PolicyMakerUtils::combineElementsToPolicy(const string &policy_version)
 
     AppSecWrapper appses_section(AppSecRulebase(convertMapToVector(web_apps), {}));
     RulesConfigWrapper rules_config_section(convertMapToVector(rules_config), convertMapToVector(users_identifiers));
-    IntrusionPreventionWrapper ips_section(convertMapToVector(ips));
+    // NginxionS: the signatures of NginxionS when a practice turns the IPS on (createIpsSections)
+    shared_ptr<const ProtectionsSection> ips_signatures;
+    if (!ips.empty()) {
+        auto path = getFilesystemPathConfig() + "/nginxions/ips-protections.json";
+        auto i_tools = Singleton::Consume<I_OrchestrationTools>::by<LocalPolicyMgmtGenerator>();
+        auto maybe_signatures = i_tools->jsonFileToObject<NginxionsIpsSignatures>(path);
+        if (maybe_signatures.ok()) {
+            ips_signatures = make_shared<const ProtectionsSection>(maybe_signatures.unpack().getSection());
+        } else {
+            dbgWarning(D_LOCAL_POLICY)
+                << "The IPS signatures of NginxionS (" << path << ") were not loaded: " << maybe_signatures.getErr();
+        }
+    }
+    IntrusionPreventionWrapper ips_section(convertMapToVector(ips), ips_signatures);
     SnortSectionWrapper snort_section(convertMapToVector(snort), convertMapToVector(snort_protections));
     FileSecurityWrapper file_security_section(convertMapToVector(file_security));
     // NginxionS: the rate limit of the default rule (context All()) last: the engine takes the first one whose context

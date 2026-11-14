@@ -74,10 +74,11 @@ const fixups = {
 // ---------------------------------------------------------------- what the agent applies (docs/WAF-POLICY.md)
 
 /**
- * Engines of a threat prevention practice the agent of NginxionS does not have: IPS signatures of Check Point come
- * from its cloud, File Security, OpenAPI schema validation and Anti-Bot are of the Premium edition.
+ * Engines of a threat prevention practice the agent of NginxionS does not have yet (File Security, OpenAPI schema
+ * validation and Anti-Bot are of the Premium edition of open-appsec). The IPS has the signatures of NginxionS
+ * (CrowdSec virtual patching rules, waf/ips/vpatch.js) in place of the ones of the Check Point cloud.
  */
-export const UNSUPPORTED_ENGINES = ["intrusionPrevention", "fileSecurity", "schemaValidation", "antiBot"];
+export const UNSUPPORTED_ENGINES = ["fileSecurity", "schemaValidation", "antiBot"];
 /** keys of a condition of a rate limit rule: what the rate limit engine matches (rate_limit.cc) */
 export const RATE_LIMIT_KEYS = ["sourceIp", "sourceIdentifier", "countryCode", "countryName", "url"];
 const IPV4 = /^(25[0-5]|2[0-4]\d|1?\d?\d)(\.(25[0-5]|2[0-4]\d|1?\d?\d)){3}$/;
@@ -192,7 +193,7 @@ const practice = ({ confidence = "high", strictProtections = false, methods = fa
 			nonValidHttpMethods: methods,
 		},
 	},
-	// Premium edition of the agent only
+	// off unless chosen (signatures of known vulnerabilities, NginxionS)
 	intrusionPrevention: { overrideMode: "inactive" },
 	fileSecurity: { overrideMode: "inactive" },
 	snortSignatures: { overrideMode: "inactive", files: [] },

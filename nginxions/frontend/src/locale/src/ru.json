@@ -5561,6 +5561,27 @@
 	"nginxions.policy.f.httpResponseCode": {
 		"defaultMessage": "HTTP-код"
 	},
+	"nginxions.policy.f.intrusionPrevention.highConfidenceEventAction": {
+		"defaultMessage": "Действие для сигнатур высокой уверенности"
+	},
+	"nginxions.policy.f.intrusionPrevention.lowConfidenceEventAction": {
+		"defaultMessage": "Действие для сигнатур низкой уверенности"
+	},
+	"nginxions.policy.f.intrusionPrevention.maxPerformanceImpact": {
+		"defaultMessage": "Максимальное влияние сигнатуры на скорость"
+	},
+	"nginxions.policy.f.intrusionPrevention.mediumConfidenceEventAction": {
+		"defaultMessage": "Действие для сигнатур средней уверенности"
+	},
+	"nginxions.policy.f.intrusionPrevention.minCveYear": {
+		"defaultMessage": "Сигнатуры уязвимостей начиная с года"
+	},
+	"nginxions.policy.f.intrusionPrevention.minSeverityLevel": {
+		"defaultMessage": "Минимальная критичность сигнатуры"
+	},
+	"nginxions.policy.f.intrusionPrevention.overrideMode": {
+		"defaultMessage": "Режим"
+	},
 	"nginxions.policy.f.logDestination.cefService": {
 		"defaultMessage": "CEF"
 	},
@@ -5645,6 +5666,9 @@
 	"nginxions.policy.h.extendedLogging": {
 		"defaultMessage": "Подробности"
 	},
+	"nginxions.policy.h.intrusionPrevention": {
+		"defaultMessage": "IPS: сигнатуры известных уязвимостей (CVE)"
+	},
 	"nginxions.policy.h.logDestination": {
 		"defaultMessage": "Отправка на сервер журналов"
 	},
@@ -5665,6 +5689,15 @@
 	},
 	"nginxions.policy.identifier.values": {
 		"defaultMessage": "Имена через запятую"
+	},
+	"nginxions.policy.impact.high": {
+		"defaultMessage": "Высокое"
+	},
+	"nginxions.policy.impact.low": {
+		"defaultMessage": "Низкое"
+	},
+	"nginxions.policy.impact.medium": {
+		"defaultMessage": "Среднее"
 	},
 	"nginxions.policy.import": {
 		"defaultMessage": "Импорт"
@@ -5965,6 +5998,18 @@
 	},
 	"nginxions.policy.service.proto": {
 		"defaultMessage": "Протокол"
+	},
+	"nginxions.policy.severity.critical": {
+		"defaultMessage": "Критическая"
+	},
+	"nginxions.policy.severity.high": {
+		"defaultMessage": "Высокая"
+	},
+	"nginxions.policy.severity.low": {
+		"defaultMessage": "Низкая"
+	},
+	"nginxions.policy.severity.medium": {
+		"defaultMessage": "Средняя"
 	},
 	"nginxions.policy.simulation.count": {
 		"defaultMessage": "Событий"

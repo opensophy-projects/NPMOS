@@ -126,11 +126,14 @@ test("fragments in either syntax; the agent always gets v1beta2, without copies 
 });
 
 test("no silent fields: what the agent does not apply is an error, or dropped and named", () => {
-	const ips = { webAttacks: { overrideMode: "inherited" }, intrusionPrevention: { overrideMode: "inherited" } };
-	assert.match(normalize("threat_prevention", ips).errors.join(), /intrusionPrevention: not in the agent/);
-	const imported = normalize("threat_prevention", ips, { lenient: true });
-	assert.equal(imported.spec.intrusionPrevention.overrideMode, "inactive");
-	assert.deepEqual(imported.dropped, ["/intrusionPrevention"]);
+	const files = { webAttacks: { overrideMode: "inherited" }, fileSecurity: { overrideMode: "inherited" } };
+	assert.match(normalize("threat_prevention", files).errors.join(), /fileSecurity: not in the agent/);
+	const imported = normalize("threat_prevention", files, { lenient: true });
+	assert.equal(imported.spec.fileSecurity.overrideMode, "inactive");
+	assert.deepEqual(imported.dropped, ["/fileSecurity"]);
+	// the IPS has the signatures of NginxionS
+	const ips = { webAttacks: { overrideMode: "inherited" }, intrusionPrevention: { overrideMode: "prevent" } };
+	assert.equal(normalize("threat_prevention", ips).errors, undefined);
 	assert.deepEqual(
 		normalize("threat_prevention", {
 			webAttacks: { overrideMode: "inherited" },

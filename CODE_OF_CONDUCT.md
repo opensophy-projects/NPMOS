@@ -223,7 +223,10 @@ flowchart LR
   лицензия внутри файла) с заголовками браузеров (`Sec-Fetch-*`, `Priority`…) среди чистых заголовков сигнатур;
   конвертер сигнатур Snort на JavaScript (`nodes/http_transaction_handler/package/snort_to_ips_local.mjs`: в образе
   нет Python; питоновский оригинал upstream лежит рядом как эталон для теста `snort_to_ips_local.test.mjs` с
-  правилами `testdata/snort-rules.txt`)
+  правилами `testdata/snort-rules.txt`); IPS загружает открытые (не зашифрованные Check Point) сигнатуры, свои
+  сигнатуры NginxionS — `nginxions/ips-protections.json` (правила виртуальных патчей хаба CrowdSec, MIT, перевод
+  `scripts/update-ips-signatures.mjs`; ctest `ips_ut` проверяет, что каждая загружается); генератор локальной
+  политики кладёт их в секцию IPS, когда практика включает `intrusionPrevention`
 - **`attachment/`** — модуль nginx для связи с агентом (`libngx_module.so` образа `nginxions`, контекст сборки
   `attachment`; изменения бывшего патча NPMplus `attachment.patch`: только модуль nginx, zlib-ng)
 - **`smartsync-shared-files/`** — shared storage (Go): файлы обучения и `decisions.data`; пути REST API не выходят
@@ -252,6 +255,7 @@ flowchart LR
   пространства имён хоста, сокет Docker, root, запись в корень
 - `security-report.mjs` — сводный отчёт безопасности, политика блокировки, читаемые страницы SBOM
 - `sarif-accepted.mjs` — убирает из SARIF принятые риски и подавленные в коде находки перед загрузкой в Code scanning
+- `update-ips-signatures.mjs` — сигнатуры IPS агента из правил виртуальных патчей хаба CrowdSec (`openappsec/agent/nginxions/ips-protections.json`; коммит хаба — `CROWDSEC_HUB_REF` в `deploy/openappsec/sources.env`)
 - `upgrade-from-npmos.sh` — перенос томов стека времён названия NPMOS (`npmos_*`) в NginxionS: копия томов, имена секретов, роль и база Postgres
 - `train-model.sh` — цикл обучения модели WAF на настоящем агенте: штатная модель, обучение, установка новой как
   в GUI, сравнение и решение о выпуске (`docs/MODEL.md`)
@@ -387,6 +391,7 @@ flowchart LR
       - `hosts-code.js` — политика хоста как код (YAML)
       - `trial.js` — пробный режим хоста: блокировка на N часов только в журнале, отчёт и решение; `trial-model.js` — его состояния без базы (для тестов)
       - `custom.js`, `expert.js` — свои YAML-фрагменты поверх политики (режим эксперта)
+      - **`ips/`** — `vpatch.js` (правило виртуального патча CrowdSec → сигнатуры IPS агента: зоны запроса → контексты IPS, значения → data/pcre)
       - **`objects/`** — `model.js` (объекты политики в терминах v1beta2 и проверка «нет молчаливых полей»), `store.js` (хранение и сборка политики), `api.js` (объекты, политика по умолчанию, предпросмотр, импорт), `format.js` (v1beta2 для агента, v1beta1 для импорта и экспорта), `compare.js` (сравнение применённой агентом конфигурации с политикой), `simulate.js` (пробный прогон изменения на недавних событиях WAF), `schema-v1beta2.json` (схема политики), `examples/` (примеры политик open-appsec для тестов)
     - **`migrations/`** — миграции таблиц `nginxions_*` (по одной на изменение схемы, имя начинается с даты)
 - **`frontend/`** — интерфейс на React + Vite

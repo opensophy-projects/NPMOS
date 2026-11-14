@@ -2,6 +2,7 @@
 #include "ips_common_types.h"
 
 #include <sstream>
+#include <fstream>
 #include <memory>
 #include "cptest.h"
 
@@ -818,4 +819,52 @@ TEST_F(SignatureTest, broken_signature)
     EXPECT_TRUE(checkData("fff"));
 
     EXPECT_FALSE(checkData("www"));
+}
+
+// NginxionS: the signatures of NginxionS (CrowdSec virtual patching rules, nginxions/ips-protections.json, made by
+// scripts/update-ips-signatures.mjs): every one loads and compiles, and an attack of a rule is caught
+class NginxionsSignatureTest : public SignatureTest
+{
+public:
+    NginxionsSignatureTest()
+    {
+        ifstream file(NGINXIONS_IPS_FILE);
+        stringstream content;
+        content << file.rdbuf();
+        const string text = content.str();
+        auto start = text.find("\"protections\":");
+        auto end = text.rfind(']');
+        if (start == string::npos || end == string::npos) return;
+        start = text.find('[', start);
+        expected = 0;
+        for (auto at = text.find("\"protectionMetadata\""); at != string::npos;
+            at = text.find("\"protectionMetadata\"", at + 1)) {
+            ++expected;
+        }
+        stringstream ss(text.substr(start, end - start + 1));
+        cereal::JSONInputArchive ar(ss);
+        nginxions.load(ar);
+    }
+
+    IPSSignaturesResource nginxions;
+    size_t expected = 0;
+};
+
+TEST_F(NginxionsSignatureTest, every_signature_loads)
+{
+    EXPECT_GT(expected, 100u);
+    EXPECT_EQ(nginxions.getSignatures().size(), expected);
+}
+
+TEST_F(NginxionsSignatureTest, an_attack_is_caught)
+{
+    load(nginxions, "Low or above", "High");
+    EXPECT_CALL(logs, sendLog(_)).Times(AnyNumber());
+
+    // vpatch-CVE-2017-9841 (PHPUnit): the path, in any case
+    EXPECT_TRUE(checkData("/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php", "HTTP_PATH_DECODED"));
+    EXPECT_FALSE(checkData("/index.php", "HTTP_PATH_DECODED"));
+    // vpatch-CVE-2019-5418 (Rails): ../ in the Accept header
+    EXPECT_TRUE(checkData("Accept: ../../../../../../etc/passwd{{\r\n", "HTTP_REQUEST_HEADER"));
+    EXPECT_FALSE(checkData("Accept: text/html\r\n", "HTTP_REQUEST_HEADER"));
 }

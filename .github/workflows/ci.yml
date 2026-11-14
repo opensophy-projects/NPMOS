@@ -157,9 +157,12 @@ jobs:
           done
           # the upstream commits of the sources in openappsec/ are full commits
           . deploy/openappsec/sources.env
-          for ref in "$OPENAPPSEC_REF" "$ATTACHMENT_REF" "$SHARED_FILES_REF" "$TUNING_REF" "$SMARTSYNC_REF"; do
+          for ref in "$OPENAPPSEC_REF" "$ATTACHMENT_REF" "$SHARED_FILES_REF" "$TUNING_REF" "$SMARTSYNC_REF" "$CROWDSEC_HUB_REF"; do
             echo "$ref" | grep -qE '^[0-9a-f]{40}$' || { echo "::error file=deploy/openappsec/sources.env::not a full commit: $ref"; exit 1; }
           done
+          # the IPS signatures of the agent come from that commit of the CrowdSec hub (scripts/update-ips-signatures.mjs)
+          ips_ref=$(jq -r '.source.ref' openappsec/agent/nginxions/ips-protections.json)
+          [ "$ips_ref" = "$CROWDSEC_HUB_REF" ] || { echo "::error file=deploy/openappsec/sources.env::CROWDSEC_HUB_REF $CROWDSEC_HUB_REF != the hub of ips-protections.json $ips_ref"; exit 1; }
           # a rule of renovate.json for a file that was moved stops matching without a word
           for f in $(jq -r '.packageRules[].matchFileNames[]? | select(test("[*?]") | not)' renovate.json); do
             [ -e "$f" ] || { echo "::error file=renovate.json::matchFileNames: $f does not exist"; exit 1; }

@@ -5,3 +5,6 @@ add_unit_test(
     "signatures_ut.cc;entry_ut.cc;component_ut.cc;configuration.cc;rule_selector_ut.cc;compound_ut.cc;resource_ut.cc"
     "ips;messaging;keywords;pcre2-8;intelligence_is_v2;logging;compression_utils;agent_details;time_proxy;event_is;table;http_transaction_data;nginx_attachment;connkey;pm;metric;encryptor;generic_rulebase;generic_rulebase_evaluators;compression_utils;ip_utilities;-lboost_regex;-lcrypto;-lz"
 )
+
+# NginxionS: the signatures of NginxionS checked by signatures_ut.cc
+target_compile_definitions(ips_ut PRIVATE NGINXIONS_IPS_FILE="${CMAKE_SOURCE_DIR}/nginxions/ips-protections.json")

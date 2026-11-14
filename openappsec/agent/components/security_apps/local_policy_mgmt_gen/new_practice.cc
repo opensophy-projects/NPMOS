@@ -427,6 +427,18 @@ ProtectionsSection::getProtections() const
     return protections;
 }
 
+// NginxionS: see new_practice.h
+void
+NginxionsIpsSignatures::serialize(cereal::JSONInputArchive &archive_in)
+{
+    vector<ProtectionsProtectionsSection> protections;
+    string name, modification_time;
+    parseAppsecJSONKey<string>("name", name, archive_in);
+    parseAppsecJSONKey<string>("modificationTime", modification_time, archive_in);
+    parseAppsecJSONKey<vector<ProtectionsProtectionsSection>>("protections", protections, archive_in);
+    section = ProtectionsSection(protections, name, modification_time);
+}
+
 void
 ProtectionsSectionWrapper::serialize(cereal::JSONInputArchive &archive_in)
 {
@@ -653,12 +665,31 @@ IPSSection::IPSSection(const vector<IpsProtectionsSection> &_ips) : ips(_ips)
     sort(ips.begin(), ips.end());
 }
 
+// NginxionS: see new_practice.h
+IPSSection::IPSSection(
+    const vector<IpsProtectionsSection> &_ips,
+    const shared_ptr<const ProtectionsSection> &_protections)
+        :
+    ips(_ips),
+    protections(_protections)
+{
+    sort(ips.begin(), ips.end());
+}
+
 void
 IPSSection::save(cereal::JSONOutputArchive &out_ar) const
 {
     out_ar(
         cereal::make_nvp("IpsProtections", ips)
     );
+    // NginxionS: the signatures the rules of IpsProtections select from (IPSSignaturesResource)
+    if (protections) {
+        string version = "NginxionS";
+        out_ar(
+            cereal::make_nvp("VersionId", version),
+            cereal::make_nvp("protections", protections->getProtections())
+        );
+    }
 }
 
 void

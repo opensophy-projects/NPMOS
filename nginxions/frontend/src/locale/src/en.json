@@ -5561,6 +5561,27 @@
 	"nginxions.policy.f.httpResponseCode": {
 		"defaultMessage": "HTTP code"
 	},
+	"nginxions.policy.f.intrusionPrevention.highConfidenceEventAction": {
+		"defaultMessage": "Action for signatures of high confidence"
+	},
+	"nginxions.policy.f.intrusionPrevention.lowConfidenceEventAction": {
+		"defaultMessage": "Action for signatures of low confidence"
+	},
+	"nginxions.policy.f.intrusionPrevention.maxPerformanceImpact": {
+		"defaultMessage": "Maximum performance impact of a signature"
+	},
+	"nginxions.policy.f.intrusionPrevention.mediumConfidenceEventAction": {
+		"defaultMessage": "Action for signatures of medium confidence"
+	},
+	"nginxions.policy.f.intrusionPrevention.minCveYear": {
+		"defaultMessage": "Signatures of vulnerabilities from the year"
+	},
+	"nginxions.policy.f.intrusionPrevention.minSeverityLevel": {
+		"defaultMessage": "Minimum severity of a signature"
+	},
+	"nginxions.policy.f.intrusionPrevention.overrideMode": {
+		"defaultMessage": "Mode"
+	},
 	"nginxions.policy.f.logDestination.cefService": {
 		"defaultMessage": "CEF"
 	},
@@ -5645,6 +5666,9 @@
 	"nginxions.policy.h.extendedLogging": {
 		"defaultMessage": "Details"
 	},
+	"nginxions.policy.h.intrusionPrevention": {
+		"defaultMessage": "IPS: signatures of known vulnerabilities (CVE)"
+	},
 	"nginxions.policy.h.logDestination": {
 		"defaultMessage": "Send to a log server"
 	},
@@ -5665,6 +5689,15 @@
 	},
 	"nginxions.policy.identifier.values": {
 		"defaultMessage": "Names, separated by commas"
+	},
+	"nginxions.policy.impact.high": {
+		"defaultMessage": "High"
+	},
+	"nginxions.policy.impact.low": {
+		"defaultMessage": "Low"
+	},
+	"nginxions.policy.impact.medium": {
+		"defaultMessage": "Medium"
 	},
 	"nginxions.policy.import": {
 		"defaultMessage": "Import"
@@ -5965,6 +5998,18 @@
 	},
 	"nginxions.policy.service.proto": {
 		"defaultMessage": "Protocol"
+	},
+	"nginxions.policy.severity.critical": {
+		"defaultMessage": "Critical"
+	},
+	"nginxions.policy.severity.high": {
+		"defaultMessage": "High"
+	},
+	"nginxions.policy.severity.low": {
+		"defaultMessage": "Low"
+	},
+	"nginxions.policy.severity.medium": {
+		"defaultMessage": "Medium"
 	},
 	"nginxions.policy.simulation.count": {
 		"defaultMessage": "Events"

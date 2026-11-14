@@ -427,6 +427,35 @@ if $CURL "$ADMIN/api/nginxions/waf" | grep -q '"reachable": *true'; then
   host_objects null
   wait_status "$SQLI" 403 "SQLi is not blocked once the exceptions of x-nginxions are gone"
 
+  step "WAF -> Policy: the IPS of a practice blocks a known vulnerability (signatures of NginxionS, CrowdSec virtual patching)"
+  # PHPUnit eval-stdin.php (CVE-2017-9841, vpatch-CVE-2017-9841): a plain GET, no payload the ML model of the WAF reads as
+  # an attack; the IPS of the agent had no signatures without the Check Point cloud
+  PHPUNIT=/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php
+  wait_status_stable "$PHPUNIT" 200 "the path of PHPUnit is blocked without the IPS"
+  ips=$(post_json POST /objects '{"kind": "threat_prevention", "name": "smoke-ips",
+    "spec": {"practiceMode": "inherited", "webAttacks": {"overrideMode": "inherited", "minimumConfidence": "high"},
+    "intrusionPrevention": {"overrideMode": "prevent", "minSeverityLevel": "medium", "minCveYear": 2010,
+    "highConfidenceEventAction": "prevent", "mediumConfidenceEventAction": "prevent", "lowConfidenceEventAction": "detect"}}}' \
+    | new_id)
+  [ -n "$ips" ] || fail "the practice with the IPS was not created"
+  host_objects "{\"threatPreventionPractices\": [$ips]}"
+  wait_status "$PHPUNIT" 403 "the IPS does not block CVE-2017-9841"
+  [ "$(status /)" = 200 ] || fail "the IPS blocks a normal request"
+  for i in $(seq 1 30); do
+    $CURL "$ADMIN/api/nginxions/events?kind=all&host=test.local&q=CVE-2017-9841&limit=1" | grep -q '"incident_type": *"IPS"' \
+      && break
+    [ "$i" = 30 ] && fail "no event of the IPS in WAF -> Events: $($CURL "$ADMIN/api/nginxions/events?kind=all&limit=3" | head -c 600)"
+    sleep 2
+  done
+  # the year of a signature counts: CVE-2017 is older than 2018
+  post_json PUT "/objects/$ips" '{"kind": "threat_prevention", "name": "smoke-ips", "spec": {"practiceMode": "inherited",
+    "webAttacks": {"overrideMode": "inherited", "minimumConfidence": "high"},
+    "intrusionPrevention": {"overrideMode": "prevent", "minCveYear": 2018}}}' > /dev/null
+  wait_status_stable "$PHPUNIT" 200 "a signature of a CVE older than minCveYear still blocks"
+  host_objects null
+  wait_status_stable "$PHPUNIT" 200 "the path of PHPUnit is blocked once the IPS is off"
+  wait_status "$SQLI" 403 "SQLi is not blocked once the practice with the IPS is gone"
+
   step "WAF -> Policy: a custom response «response code only» answers with its own code"
   code406=$(post_json POST /objects '{"kind": "custom_response", "name": "smoke-406",
     "spec": {"mode": "response-code-only", "httpResponseCode": 406}}' | new_id)

@@ -48,6 +48,30 @@ test("an attack becomes a security event", () => {
 	assert.equal(JSON.parse(row.raw).eventData.matchedSample, "1' OR '1'='1");
 });
 
+test("an event of the IPS: its incident type, confidence and CVEs", () => {
+	const { type, row } = classify({
+		eventTime: "2026-11-14T09:00:00.000",
+		eventName: "IPS Signature 'PHPUnit RCE (CVE-2017-9841)' Found",
+		eventSeverity: "Critical",
+		eventSource: { serviceName: "Unnamed Nano Service", assetName: "app", practiceName: "practice" },
+		eventData: {
+			securityAction: "Prevent",
+			incidentType: "IPS",
+			matchedSignatureConfidence: "High",
+			matchedSignatureCVE: "CVE-2017-9841",
+			sourceIP: "10.0.0.1",
+			httpHostName: "App.Local",
+			httpUriPath: "/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php",
+		},
+	});
+	assert.equal(type, "event");
+	assert.equal(row.kind, "security");
+	assert.equal(row.incident_type, "IPS");
+	assert.equal(row.confidence, "High");
+	assert.equal(row.indicators, "CVE-2017-9841");
+	assert.equal(row.host, "app.local");
+});
+
 test("notices, telemetry and noise", () => {
 	const notice = classify({ eventTime: "2026-10-28T03:38:23.773", eventName: "Check Point Nano-service started" });
 	assert.equal(notice.row.kind, "system");

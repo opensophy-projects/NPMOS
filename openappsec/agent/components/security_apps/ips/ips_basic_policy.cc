@@ -37,7 +37,7 @@ RuleSelector::selectSignatures() const
         for (auto &rule : rules) {
             if (rule.isSignaturedMatched(*signature)) {
                 if (rule.getAction() != IPSSignatureSubTypes::SignatureAction::IGNORE) {
-                    signature->setIndicators("Check Point", signatures_version);
+                    signature->setIndicators("NginxionS", signatures_version); // NginxionS: its signatures, not of Check Point
                     res.emplace_back(signature, rule.getAction(), trigger_id, exception_id);
                 }
                 break;
