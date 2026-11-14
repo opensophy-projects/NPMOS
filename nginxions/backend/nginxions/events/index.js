@@ -82,7 +82,7 @@ const score = (value) => {
  * from/to: ISO time (default: `period` before `to`, the last 24 h); kind: agents (default: security and crowdsec) |
  * security | system | crowdsec | mtls | all; agent: open-appsec, crowdsec, mtls (comma-separated);
  * important: only critical/high; host, ip, action, severity, type: comma-separated, exact;
- * min_score/max_score; q: text in host, request, IP, sample, parameter, event name and type.
+ * min_score/max_score; q: text in host, request, IP, sample, parameter, event name and type, indicators (CVE).
  */
 export const parseFilters = (query, now = new Date()) => {
 	const to = date(query.to, now);
@@ -148,6 +148,8 @@ const applyFilters = (builder, f) => {
 				"parameter",
 				"name",
 				"incident_type",
+				// the CVEs of an IPS signature, the indicators of the WAF
+				"indicators",
 			]) {
 				w.orWhere(column, op, pattern);
 			}
