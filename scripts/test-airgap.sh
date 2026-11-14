@@ -59,6 +59,11 @@ echo "==> waiting for nginxions to become healthy"
 wait_healthy
 "${compose[@]}" run --rm -T tester
 
+# an update runs init again on the volumes of an existing install (issue 146: the copies of the secrets are read
+# only and init has no capabilities, cp could not write them)
+echo "==> init again on existing volumes (an update) succeeds"
+"${compose[@]}" run --rm -T nginxions-init || { echo "FAIL: nginxions-init fails on an existing install"; exit 1; }
+
 echo "==> restart nginxions"
 "${compose[@]}" restart nginxions
 wait_healthy

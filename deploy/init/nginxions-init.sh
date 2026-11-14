@@ -34,11 +34,18 @@ gen /secrets/control/control_token
 gen /secrets/nginxions/crowdsec_machine_password
 gen /secrets/nginxions/crowdsec_registration_token
 
-cp /secrets/postgres/nginxions_db_password /secrets/nginxions/db_password
-cp /secrets/postgres/appsec_db_password /secrets/appsec/db_password
-cp /secrets/crowdsec/bouncer_key_nginxions /secrets/nginxions/bouncer_key
-cp /secrets/crowdsec/bouncer_key_appsec /secrets/appsec-agent/crowdsec_bouncer_key
-cp /secrets/control/control_token /secrets/nginxions/control_token
+# A copy for a consumer, written next to it and renamed over it. On an existing install the copy is read only (444,
+# below) and init runs without capabilities (cap_drop: ALL in compose.yaml): root may not open a file it may not write
+# (no CAP_DAC_OVERRIDE), but it may replace it in its own directory. Consumers never see half a file either.
+put() {
+  cp "$1" "$2.tmp"
+  mv -f "$2.tmp" "$2"
+}
+put /secrets/postgres/nginxions_db_password /secrets/nginxions/db_password
+put /secrets/postgres/appsec_db_password /secrets/appsec/db_password
+put /secrets/crowdsec/bouncer_key_nginxions /secrets/nginxions/bouncer_key
+put /secrets/crowdsec/bouncer_key_appsec /secrets/appsec-agent/crowdsec_bouncer_key
+put /secrets/control/control_token /secrets/nginxions/control_token
 
 # Consumers run as different users (postgres uid 70; openappsec, crowdsec and nginxions root).
 # Each container mounts only its own subdirectory, so world-readable files are not shared further.
